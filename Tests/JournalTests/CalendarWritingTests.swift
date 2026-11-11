@@ -9,62 +9,92 @@ import VaultFormat
 @MainActor struct CalendarWritingTests {
     private let day = CalendarDate("2026-10-04")!
     private let utc = TimeZone(secondsFromGMT: 0)!
+    private let color = CalendarEventColor(red: 0, green: 0, blue: 0, alpha: 1)
 
     private func service(_ source: InMemoryCalendarSource) -> CalendarService {
         CalendarService(source: source, defaults: UserDefaults(suiteName: "CalendarWritingTests-\(UUID())")!)
     }
 
     private func at(_ hour: Int, on date: CalendarDate? = nil) -> Date {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = .current
-        return calendar.date(
+        Calendar(identifier: .gregorian).date(
             bySettingHour: hour, minute: 0, second: 0, of: LocalDay.instant(for: date ?? day))!
     }
+
+    private func draft(_ title: String, _ hour: Int = 10, recurrence: CalendarRecurrence = .none) -> CalendarEventDraft
+    {
+        CalendarEventDraft(
+            title: title, start: at(hour), end: at(hour + 1), isAllDay: false, recurrence: recurrence, calendarID: nil)
+    }
+
+    private func titles(_ calendar: CalendarService, on date: CalendarDate) async -> [String] {
+        await calendar.load(date)
+        return calendar.events(on: date).map(\.title)
+    }
+
+    // MARK: - Single events
 
     @Test func addEditAndDeleteReachTheDay() async throws {
         let source = InMemoryCalendarSource()
         let calendar = service(source)
         await calendar.load(day)
-        var draft = CalendarEventDraft(
-            title: "  Ders  ", start: at(10), end: at(11), isAllDay: false, recurrence: .none, calendarID: "work")
-        #expect(await calendar.save(draft))
+        var new = draft("  Ders  ")
+        new.calendarID = "work"
+        #expect(await calendar.save(new))
         let added = try #require(calendar.events(on: day).first)
         #expect(added.title == "Ders")
         #expect(added.calendarTitle == "İş")
         #expect(added.isEditable)
 
-        draft = CalendarEventDraft(event: added)
-        draft.title = "Toplantı"
-        draft.end = at(12)
-        #expect(await calendar.save(draft, editing: added))
+        var edit = CalendarEventDraft(event: added)
+        edit.title = "Toplantı"
+        edit.end = at(12)
+        #expect(await calendar.save(edit, editing: added))
         #expect(calendar.events(on: day).map(\.title) == ["Toplantı"])
         #expect(calendar.events(on: day).first?.end == at(12))
 
         let edited = try #require(calendar.events(on: day).first)
         #expect(await calendar.delete(edited))
         #expect(calendar.events(on: day).isEmpty)
-        #expect(calendar.writeErrorText == nil)
+        #expect(calendar.writeError == nil)
     }
 
-    @Test func emptyTitleIsNotWrittenAndEndNeverPrecedesStart() async {
+    @Test func oneWriteRefreshesOnce() async {
         let source = InMemoryCalendarSource()
         let calendar = service(source)
-        let blank = CalendarEventDraft(
-            title: "   ", start: at(10), end: at(11), isAllDay: false, recurrence: .none, calendarID: nil)
-        #expect(!(await calendar.save(blank)))
-        #expect(source.stored.isEmpty)
-        let backwards = CalendarEventDraft(
-            title: "Ders", start: at(10), end: at(9), isAllDay: false, recurrence: .none, calendarID: nil)
-        #expect(backwards.normalized().end == at(10))
+        await calendar.load(day)
+        let before = calendar.changeCount
+        #expect(await calendar.save(draft("Ders")))
+        // The source's echo of our own write does not run a second refresh.
+        for _ in 0..<20 { await Task.yield() }
+        #expect(calendar.changeCount == before + 1)
     }
 
-    @Test func newEventGoesToTheDefaultCalendar() async throws {
+    @Test func emptyTitleIsNotWrittenAndTimesAreNormalized() async {
+        let source = InMemoryCalendarSource()
+        let calendar = service(source)
+        #expect(!(await calendar.save(draft("   "))))
+        #expect(source.writeCount == 0)
+        var backwards = draft("Ders")
+        backwards.end = at(9)
+        #expect(backwards.normalized().end == at(10))
+        // 23:00–00:00 turned all day stays one day.
+        var calendarUTC = Calendar(identifier: .gregorian)
+        calendarUTC.timeZone = utc
+        let late = calendarUTC.date(
+            bySettingHour: 23, minute: 0, second: 0, of: LocalDay.instant(for: day, timeZone: utc))!
+        let midnight = late.addingTimeInterval(3600)
+        let allDay = CalendarEventDraft(
+            title: "Gece", start: late, end: midnight, isAllDay: true, recurrence: .none, calendarID: nil
+        ).normalized(timeZone: utc)
+        #expect(allDay.start == calendarUTC.startOfDay(for: late))
+        #expect(allDay.end == allDay.start)
+    }
+
+    @Test func newEventGoesToTheDefaultCalendar() async {
         let source = InMemoryCalendarSource()
         let calendar = service(source)
         calendar.defaultCalendarID = "work"
-        let draft = CalendarEventDraft(
-            title: "Ders", start: at(10), end: at(11), isAllDay: false, recurrence: .none, calendarID: nil)
-        #expect(await calendar.save(draft))
+        #expect(await calendar.save(draft("Ders")))
         #expect(source.stored.first?.calendarID == "work")
         let calendars = await calendar.writableCalendars()
         #expect(await calendar.resolvedDefaultCalendarID(among: calendars) == "work")
@@ -80,23 +110,19 @@ import VaultFormat
         #expect(second.defaultCalendarID == "work")
     }
 
-    @Test func writesNeedReadAccessAndFailuresAreShown() async {
+    @Test func writesNeedReadAccessAndFailuresAreTyped() async {
         let denied = InMemoryCalendarSource(authorization: .denied)
-        let calendar = service(denied)
-        let draft = CalendarEventDraft(
-            title: "Ders", start: at(10), end: at(11), isAllDay: false, recurrence: .none, calendarID: nil)
-        #expect(!(await calendar.save(draft)))
-        #expect(denied.stored.isEmpty)
+        #expect(!(await service(denied).save(draft("Ders"))))
+        #expect(denied.writeCount == 0)
 
-        let empty = InMemoryCalendarSource(calendars: [])
-        let failing = service(empty)
-        #expect(!(await failing.save(draft)))
-        #expect(failing.writeErrorText != nil)
+        let failing = service(InMemoryCalendarSource(calendars: []))
+        #expect(!(await failing.save(draft("Ders"))))
+        #expect(failing.writeError == .noCalendar)
         failing.clearWriteError()
-        #expect(failing.writeErrorText == nil)
+        #expect(failing.writeError == nil)
     }
 
-    @Test func readOnlySourceRefusesWrites() async throws {
+    @Test func readOnlySourceRefusesWrites() async {
         final class ReadOnly: CalendarEventSource {
             var authorization = CalendarAuthorization.fullAccess
             var onChange: (@MainActor @Sendable () -> Void)?
@@ -104,43 +130,208 @@ import VaultFormat
             func events(from start: Date, to end: Date) async throws -> [CalendarEvent] { [] }
         }
         let calendar = CalendarService(source: ReadOnly())
-        let draft = CalendarEventDraft(
-            title: "Ders", start: at(10), end: at(11), isAllDay: false, recurrence: .none, calendarID: nil)
-        #expect(!(await calendar.save(draft)))
-        #expect(calendar.writeErrorText != nil)
+        #expect(!(await calendar.save(draft("Ders"))))
+        #expect(calendar.writeError == .unsupported)
         #expect(await calendar.writableCalendars().isEmpty)
     }
 
-    @Test func weeklyEventRepeatsAndSpanChoicesFollowTheRule() async throws {
+    /// A subscribed calendar or someone else's invitation: neither edit nor delete reaches it.
+    @Test func readOnlyEventIsNeverChanged() async throws {
+        let invite = CalendarEvent(
+            id: "invite", title: "Davet", start: at(10), end: at(11), isAllDay: false, color: color,
+            eventIdentifier: "invite", calendarID: "home", calendarTitle: "Ev", isEditable: false)
+        let source = InMemoryCalendarSource(events: [invite])
+        let calendar = service(source)
+        await calendar.load(day)
+        let shown = try #require(calendar.events(on: day).first)
+        var change = CalendarEventDraft(event: shown)
+        change.title = "Değişti"
+        #expect(!(await calendar.save(change, editing: shown)))
+        #expect(calendar.writeError == .readOnly)
+        #expect(!(await calendar.delete(shown)))
+        #expect(source.writeCount == 0)
+        #expect(await titles(calendar, on: day) == ["Davet"])
+    }
+
+    // MARK: - Repeating events
+
+    private let week2 = CalendarDate("2026-10-11")!
+    private let week3 = CalendarDate("2026-10-18")!
+
+    private func weekly() async throws -> (InMemoryCalendarSource, CalendarService, CalendarEvent) {
         let source = InMemoryCalendarSource()
         let calendar = service(source)
-        let draft = CalendarEventDraft(
-            title: "Ders", start: at(10), end: at(11), isAllDay: false, recurrence: .weekly, calendarID: nil)
-        #expect(await calendar.save(draft))
-        let nextWeek = CalendarDate("2026-10-11")!
-        await calendar.load(nextWeek)
-        let occurrence = try #require(calendar.events(on: nextWeek).first)
-        #expect(occurrence.recurrence == .weekly)
-        #expect(occurrence.start == at(10, on: nextWeek))
+        #expect(await calendar.save(draft("Ders", recurrence: .weekly)))
+        await calendar.load(week2)
+        let middle = try #require(calendar.events(on: week2).first)
+        #expect(middle.recurrence == .weekly)
+        #expect(middle.start == at(10, on: week2))
+        return (source, calendar, middle)
+    }
 
-        var same = CalendarEventDraft(event: occurrence)
+    @Test func deleteOnlyThisOccurrence() async throws {
+        let (_, calendar, middle) = try await weekly()
+        #expect(await calendar.delete(middle, span: .thisEvent))
+        #expect(await titles(calendar, on: day) == ["Ders"])
+        #expect(await titles(calendar, on: week2).isEmpty)
+        #expect(await titles(calendar, on: week3) == ["Ders"])
+    }
+
+    @Test func deleteThisAndFollowing() async throws {
+        let (_, calendar, middle) = try await weekly()
+        #expect(await calendar.delete(middle, span: .futureEvents))
+        #expect(await titles(calendar, on: day) == ["Ders"])
+        #expect(await titles(calendar, on: week2).isEmpty)
+        #expect(await titles(calendar, on: week3).isEmpty)
+    }
+
+    @Test func editOnlyThisOccurrence() async throws {
+        let (_, calendar, middle) = try await weekly()
+        var change = CalendarEventDraft(event: middle)
+        change.title = "Sınav"
+        #expect(await calendar.save(change, editing: middle, span: .thisEvent))
+        #expect(await titles(calendar, on: day) == ["Ders"])
+        #expect(await titles(calendar, on: week2) == ["Sınav"])
+        #expect(await titles(calendar, on: week3) == ["Ders"])
+    }
+
+    @Test func editThisAndFollowing() async throws {
+        let (_, calendar, middle) = try await weekly()
+        var change = CalendarEventDraft(event: middle)
+        change.title = "Yeni ders"
+        #expect(await calendar.save(change, editing: middle, span: .futureEvents))
+        #expect(await titles(calendar, on: day) == ["Ders"])
+        #expect(await titles(calendar, on: week2) == ["Yeni ders"])
+        #expect(await titles(calendar, on: week3) == ["Yeni ders"])
+    }
+
+    /// The occurrence went away meanwhile: no write lands on the series' first occurrence, and
+    /// "Bu ve sonrakiler" does not take the whole series with it.
+    @Test func staleOccurrenceIsNotFoundAndTheSeriesStays() async throws {
+        let (source, calendar, middle) = try await weekly()
+        #expect(await calendar.delete(middle, span: .thisEvent))
+        let writes = source.writeCount
+        #expect(!(await calendar.delete(middle, span: .futureEvents)))
+        #expect(calendar.writeError == .notFound)
+        var change = CalendarEventDraft(event: middle)
+        change.title = "Yanlış"
+        #expect(!(await calendar.save(change, editing: middle, span: .futureEvents)))
+        #expect(source.writeCount == writes)
+        #expect(await titles(calendar, on: day) == ["Ders"])
+        #expect(await titles(calendar, on: week3) == ["Ders"])
+    }
+
+    @Test func spanChoicesFollowTheRuleAndTheCalendar() async throws {
+        let (_, _, middle) = try await weekly()
+        var same = CalendarEventDraft(event: middle)
         same.title = "Ders 2"
-        #expect(CalendarEventDraft.spans(saving: same, over: occurrence) == [.thisEvent, .futureEvents])
+        #expect(CalendarEventDraft.spans(saving: same, over: middle) == [.thisEvent, .futureEvents])
         var changed = same
         changed.recurrence = .monthly
-        #expect(CalendarEventDraft.spans(saving: changed, over: occurrence) == [.futureEvents])
-        var single = occurrence
+        #expect(CalendarEventDraft.spans(saving: changed, over: middle) == [.futureEvents])
+        var moved = same
+        moved.calendarID = "work"
+        #expect(CalendarEventDraft.spans(saving: moved, over: middle) == [.futureEvents])
+        var single = middle
         single.recurrence = .none
         #expect(CalendarEventDraft.spans(saving: CalendarEventDraft(event: single), over: single) == [.thisEvent])
     }
 
-    @Test func eventKitRuleMapping() {
+    @Test func weeklyRuleWithEndStopsAndKeepsItsEndWhenChanged() async throws {
+        let end = at(12, on: week2)
+        var series = CalendarEvent(
+            id: "s", title: "Kurs", start: at(10), end: at(11), isAllDay: false, color: color, eventIdentifier: "s",
+            calendarID: "home", calendarTitle: "Ev", recurrence: .weekly, recurrenceEnd: end, isEditable: true)
+        let calendar = service(InMemoryCalendarSource(events: [series]))
+        #expect(await titles(calendar, on: week2) == ["Kurs"])
+        #expect(await titles(calendar, on: week3).isEmpty)
+        series.occurrenceDate = series.start
+        var monthly = CalendarEventDraft(event: series)
+        monthly.recurrence = .monthly
+        #expect(CalendarWritePlan.changes(draft: monthly, original: series).rule == .set(.monthly, end: end))
+    }
+
+    // MARK: - Pure write plan
+
+    @Test func pickOccurrenceNeverFallsBackOnASeries() {
+        func candidate(_ start: Date, original: Date? = nil, recurring: Bool = true, id: String = "s")
+            -> OccurrenceCandidate
+        {
+            OccurrenceCandidate(identifier: id, start: start, occurrenceDate: original ?? start, isRecurring: recurring)
+        }
+        var target = CalendarEvent(
+            id: "t", title: "Ders", start: at(10, on: week2), end: at(11, on: week2), isAllDay: false, color: color,
+            eventIdentifier: "s", recurrence: .weekly, occurrenceDate: at(10, on: week2))
+        let first = candidate(at(10))
+        // Exact original start, even when this occurrence was moved to 14:00.
+        let moved = candidate(at(14, on: week2), original: at(10, on: week2))
+        #expect(CalendarWritePlan.pickOccurrence(target, in: [first, moved], fallback: first) == .candidate(1))
+        // Gone from the window: the series' first occurrence is not a stand-in.
+        #expect(CalendarWritePlan.pickOccurrence(target, in: [], fallback: first) == .notFound)
+        #expect(
+            CalendarWritePlan.pickOccurrence(target, in: [candidate(at(10, on: week2), id: "other")], fallback: nil)
+                == .notFound)
+        // Start match when the calendar gives no original start.
+        let plain = OccurrenceCandidate(
+            identifier: "s", start: at(10, on: week2), occurrenceDate: nil, isRecurring: true)
+        #expect(CalendarWritePlan.pickOccurrence(target, in: [plain], fallback: first) == .candidate(0))
+        // A single event that moved elsewhere is still itself.
+        target.recurrence = .none
+        let single = candidate(at(15), recurring: false)
+        #expect(CalendarWritePlan.pickOccurrence(target, in: [], fallback: single) == .fallback)
+        target.eventIdentifier = nil
+        #expect(CalendarWritePlan.pickOccurrence(target, in: [], fallback: single) == .notFound)
+    }
+
+    @Test func changesWriteOnlyWhatTheUserChanged() {
+        let original = CalendarEvent(
+            id: "e", title: "Ders", start: at(10), end: at(11), isAllDay: false, color: color, eventIdentifier: "e",
+            calendarID: "home", recurrence: .custom, isEditable: true)
+        var draft = CalendarEventDraft(event: original)
+        #expect(CalendarWritePlan.changes(draft: draft, original: original).isEmpty)
+        draft.title = "Sınav"
+        #expect(
+            CalendarWritePlan.changes(draft: draft, original: original) == CalendarWritePlan.Changes(title: "Sınav"))
+        draft.calendarID = "work"
+        draft.recurrence = .none
+        let both = CalendarWritePlan.changes(draft: draft, original: original)
+        #expect(both.calendarID == "work")
+        #expect(both.rule == .remove)
+        #expect(both.start == nil && both.end == nil && both.isAllDay == nil)
+        let created = CalendarWritePlan.changes(draft: self.draft("Yeni", recurrence: .daily), original: nil)
+        #expect(created.title == "Yeni" && created.start == at(10) && created.rule == .set(.daily, end: nil))
+    }
+
+    @Test func calendarChoiceAndEditability() {
+        let writable: Set = ["home", "work"]
+        #expect(
+            CalendarWritePlan.calendarID(requested: "work", current: "home", writable: writable, systemDefault: "home")
+                == "work")
+        #expect(
+            CalendarWritePlan.calendarID(requested: "gone", current: "home", writable: writable, systemDefault: "work")
+                == "home")
+        #expect(
+            CalendarWritePlan.calendarID(requested: nil, current: nil, writable: writable, systemDefault: "work")
+                == "work")
+        #expect(CalendarWritePlan.isEditable(calendarAllowsModifications: true, organizerIsOtherPerson: false))
+        #expect(!CalendarWritePlan.isEditable(calendarAllowsModifications: true, organizerIsOtherPerson: true))
+        #expect(!CalendarWritePlan.isEditable(calendarAllowsModifications: false, organizerIsOtherPerson: false))
+    }
+
+    @Test func eventKitRuleAndSpanMapping() {
         #expect(EventKitRecurrence.recurrence(of: nil) == .none)
         for value in [CalendarRecurrence.daily, .weekly, .monthly, .yearly] {
             #expect(EventKitRecurrence.recurrence(of: EventKitRecurrence.rules(for: value)) == value)
         }
         #expect(EventKitRecurrence.rules(for: .none) == nil)
         #expect(EventKitRecurrence.rules(for: .custom) == nil)
+        #expect(EventKitRecurrence.rules(for: .remove) == nil)
+        let end = at(10, on: week3)
+        let ended = EventKitRecurrence.rules(for: .set(.weekly, end: end))
+        #expect(ended?.first?.recurrenceEnd?.endDate == end)
+        #expect(EventKitRecurrence.recurrence(of: ended) == .weekly)
+        let counted = EKRecurrenceRule(recurrenceWith: .weekly, interval: 1, end: EKRecurrenceEnd(occurrenceCount: 5))
+        #expect(EventKitRecurrence.recurrence(of: [counted]) == .custom)
         let everyOther = EKRecurrenceRule(recurrenceWith: .weekly, interval: 2, end: nil)
         #expect(EventKitRecurrence.recurrence(of: [everyOther]) == .custom)
         let weekdays = EKRecurrenceRule(
@@ -148,100 +339,123 @@ import VaultFormat
             daysOfTheMonth: nil, monthsOfTheYear: nil, weeksOfTheYear: nil, daysOfTheYear: nil,
             setPositions: nil, end: nil)
         #expect(EventKitRecurrence.recurrence(of: [weekdays]) == .custom)
+        #expect(EventKitRecurrence.span(.thisEvent) == .thisEvent)
+        #expect(EventKitRecurrence.span(.futureEvents) == .futureEvents)
     }
 
-    @Test func newDraftStartsAtTheNextHourTodayAndAtNineOtherwise() {
+    @Test func newDraftStartTimes() {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = utc
-        let now = calendar.date(
-            bySettingHour: 14, minute: 20, second: 0, of: LocalDay.instant(for: day, timeZone: utc))!
-        let today = CalendarEventDraft.new(on: day, now: now, calendarID: "home", timeZone: utc)
+        func now(_ hour: Int, _ minute: Int) -> Date {
+            calendar.date(
+                bySettingHour: hour, minute: minute, second: 0, of: LocalDay.instant(for: day, timeZone: utc))!
+        }
+        let today = CalendarEventDraft.new(on: day, now: now(14, 20), calendarID: "home", timeZone: utc)
         #expect(calendar.component(.hour, from: today.start) == 15)
         #expect(today.end.timeIntervalSince(today.start) == 3600)
         #expect(today.calendarID == "home")
-        let other = CalendarEventDraft.new(on: CalendarDate("2026-10-09")!, now: now, calendarID: nil, timeZone: utc)
+        // After 23:00 the next hour is tomorrow: start now, on today.
+        let late = CalendarEventDraft.new(on: day, now: now(23, 37), calendarID: nil, timeZone: utc)
+        #expect(late.start == now(23, 35))
+        let other = CalendarEventDraft.new(
+            on: CalendarDate("2026-10-09")!, now: now(14, 20), calendarID: nil, timeZone: utc)
         #expect(calendar.component(.hour, from: other.start) == 9)
     }
 
-    @Test func personMatchesTitleWordsAndAttendeesByNameOrAlias() {
-        func event(_ title: String, attendees: [Attendee] = []) -> CalendarEvent {
-            CalendarEvent(
-                id: title, title: title, start: at(10), end: at(11), isAllDay: false,
-                color: CalendarEventColor(red: 0, green: 0, blue: 0, alpha: 1), attendees: attendees)
-        }
-        let names = ["Deniz Arıkan", "Den"]
+    // MARK: - Person page
+
+    private func event(
+        _ title: String, attendees: [Attendee] = [], allDay: Bool = false, recurrence: CalendarRecurrence = .none,
+        birthdays: Bool = false
+    ) -> CalendarEvent {
+        CalendarEvent(
+            id: title, title: title, start: at(10), end: at(11), isAllDay: allDay, color: color, attendees: attendees,
+            recurrence: recurrence, isFromBirthdayCalendar: birthdays)
+    }
+
+    @Test func personMatchingNeedsTheFullNameOrAnAttendee() {
+        let names = CalendarPersonNames(fullName: "Deniz Arıkan", aliases: ["Den", "Deniz A."])
         #expect(CalendarPersonMatch.matches(event("Deniz Arıkan ile kahve"), names: names))
         #expect(CalendarPersonMatch.matches(event("DENİZ ARIKAN'ın sunumu"), names: names))
-        #expect(CalendarPersonMatch.matches(event("Den ile tenis"), names: names))
-        #expect(!CalendarPersonMatch.matches(event("Denizli gezisi"), names: names))
+        #expect(CalendarPersonMatch.matches(event("deniz a. ile tenis"), names: names))
+        // One word is a common word: "Den", "Deniz kenarı" never match by title.
+        #expect(!CalendarPersonMatch.matches(event("Den ile tenis"), names: names))
         #expect(!CalendarPersonMatch.matches(event("Deniz kenarı"), names: names))
+        #expect(!CalendarPersonMatch.matches(event("Denizli gezisi"), names: names))
         #expect(CalendarPersonMatch.matches(event("Proje", attendees: [Attendee(name: "deniz arıkan")]), names: names))
+        #expect(CalendarPersonMatch.matches(event("Proje", attendees: [Attendee(name: "Den")]), names: names))
+        #expect(!CalendarPersonMatch.matches(event("Proje", attendees: [Attendee(name: "Deniz")]), names: names))
         #expect(
             !CalendarPersonMatch.matches(
                 event("Proje", attendees: [Attendee(name: "Deniz Arıkan", isCurrentUser: true)]), names: names))
-        #expect(!CalendarPersonMatch.matches(event("Deniz Arıkan"), names: []))
+        let single = CalendarPersonNames(fullName: "Can", aliases: [])
+        #expect(!CalendarPersonMatch.matches(event("Can sıkıntısı"), names: single))
+        #expect(CalendarPersonMatch.matches(event("Ders", attendees: [Attendee(name: "CAN")]), names: single))
+        // Turkish İ/ı fold.
+        let ilker = CalendarPersonNames(fullName: "İlker Işık", aliases: [])
+        #expect(CalendarPersonMatch.matches(event("ilker ışık ile yemek"), names: ilker))
+    }
+
+    @Test func birthdayIsOnlyTheFullNamesOwn() {
+        let ayse = "Ayşe"
+        #expect(
+            CalendarBirthday.isBirthday(event("Ayşe doğum günü", allDay: true, recurrence: .yearly), fullName: ayse))
+        #expect(
+            !CalendarBirthday.isBirthday(
+                event("Ayşe Kaya doğum günü", allDay: true, recurrence: .yearly), fullName: ayse))
+        #expect(!CalendarBirthday.isBirthday(event("Ayşe Kaya’s Birthday", birthdays: true), fullName: ayse))
+        let kaya = "Ayşe Kaya"
+        #expect(CalendarBirthday.isBirthday(event("Ayşe Kaya's Birthday", birthdays: true), fullName: kaya))
+        #expect(
+            CalendarBirthday.isBirthday(event("Ayşe Kaya adlı kişinin doğum günü", birthdays: true), fullName: kaya))
+        #expect(
+            CalendarBirthday.isBirthday(
+                event("AYŞE KAYA'nın doğum günü", allDay: true, recurrence: .yearly), fullName: kaya))
+        #expect(
+            !CalendarBirthday.isBirthday(
+                event("Ayşe Kaya doğum günü", allDay: false, recurrence: .yearly), fullName: kaya))
+        #expect(
+            !CalendarBirthday.isBirthday(event("Ayşe Kaya doğum günü", allDay: true, recurrence: .none), fullName: kaya)
+        )
+        #expect(
+            !CalendarBirthday.isBirthday(
+                event("Ayşe Kaya ile yemek", allDay: true, recurrence: .yearly), fullName: kaya))
+        #expect(
+            !CalendarBirthday.isBirthday(
+                event("Ayşe Kaya doğum günü partisi", allDay: true, recurrence: .yearly), fullName: kaya))
     }
 
     @Test func birthdayIsAddedYearlyAndFoundOnThePersonPage() async throws {
         let source = InMemoryCalendarSource()
         let calendar = service(source)
-        let names = ["Deniz Arıkan"]
-        let now = at(8)
-        let before = try #require(await calendar.personEvents(names: names, from: now))
-        #expect(before.birthday == nil)
-        #expect(before.upcoming.isEmpty)
+        let names = CalendarPersonNames(fullName: "Deniz Arıkan", aliases: [])
+        let before = try #require(await calendar.personEvents(names: names, from: at(8)))
+        #expect(before.birthday == nil && before.upcoming.isEmpty)
 
-        let birth = Calendar(identifier: .gregorian).date(
-            byAdding: .year, value: -30, to: at(12, on: CalendarDate("2026-12-01")!))!
+        let field = try #require(PersonBirthday.parse("1996-12-01"))
+        let first = try #require(field.firstDay(currentYear: 2026))
         let draft = CalendarEventDraft.birthday(
-            name: "Deniz Arıkan", on: birth, calendarID: nil, locale: Locale(identifier: "tr"))
+            name: "Deniz Arıkan", on: LocalDay.instant(for: first), calendarID: nil, locale: Locale(identifier: "tr"))
         #expect(draft.title == "Deniz Arıkan doğum günü")
-        #expect(draft.isAllDay)
-        #expect(draft.recurrence == .yearly)
+        #expect(draft.isAllDay && draft.recurrence == .yearly)
         #expect(await calendar.save(draft))
-        _ = await calendar.save(
-            CalendarEventDraft(
-                title: "Deniz Arıkan ile kahve", start: at(15), end: at(16), isAllDay: false, recurrence: .none,
-                calendarID: nil))
-        _ = await calendar.save(
-            CalendarEventDraft(
-                title: "Ece Yalın ile kahve", start: at(15), end: at(16), isAllDay: false, recurrence: .none,
-                calendarID: nil))
+        #expect(await calendar.save(self.draft("Deniz Arıkan ile kahve", 15)))
+        #expect(await calendar.save(self.draft("Ece Yalın ile kahve", 15)))
 
-        let after = try #require(await calendar.personEvents(names: names, from: now))
+        let after = try #require(await calendar.personEvents(names: names, from: at(8)))
         #expect(after.upcoming.map(\.title) == ["Deniz Arıkan ile kahve", "Deniz Arıkan doğum günü"])
         let found = try #require(after.birthday)
         #expect(LocalDay.today(at: found.start) == CalendarDate("2026-12-01"))
-        #expect(CalendarBirthday.isBirthday(found))
-    }
-
-    @Test func birthdayRecognitionNeedsYearlyAllDayOrTheBirthdaysCalendar() {
-        func event(_ title: String, allDay: Bool, recurrence: CalendarRecurrence, birthdays: Bool = false)
-            -> CalendarEvent
-        {
-            CalendarEvent(
-                id: title, title: title, start: at(0), end: at(0), isAllDay: allDay,
-                color: CalendarEventColor(red: 0, green: 0, blue: 0, alpha: 1), recurrence: recurrence,
-                isFromBirthdayCalendar: birthdays)
-        }
-        #expect(CalendarBirthday.isBirthday(event("Ece doğum günü", allDay: true, recurrence: .yearly)))
-        #expect(CalendarBirthday.isBirthday(event("Ece's Birthday", allDay: true, recurrence: .yearly)))
-        #expect(!CalendarBirthday.isBirthday(event("Ece doğum günü", allDay: false, recurrence: .yearly)))
-        #expect(!CalendarBirthday.isBirthday(event("Ece doğum günü", allDay: true, recurrence: .none)))
-        #expect(CalendarBirthday.isBirthday(event("Ece", allDay: true, recurrence: .none, birthdays: true)))
-        #expect(!CalendarBirthday.isBirthday(event("Ece ile yemek", allDay: true, recurrence: .yearly)))
     }
 
     @Test func personEventsNeedReadAccessAndCapAtFive() async {
-        let denied = service(InMemoryCalendarSource(authorization: .denied))
-        #expect(await denied.personEvents(names: ["Deniz"], from: at(8)) == nil)
-        let source = InMemoryCalendarSource()
-        let calendar = service(source)
-        _ = await calendar.save(
-            CalendarEventDraft(
-                title: "Deniz ders", start: at(10), end: at(11), isAllDay: false, recurrence: .daily,
-                calendarID: nil))
-        let result = await calendar.personEvents(names: ["Deniz"], from: at(8))
+        let names = CalendarPersonNames(fullName: "Deniz Arıkan", aliases: [])
+        #expect(
+            await service(InMemoryCalendarSource(authorization: .denied)).personEvents(names: names, from: at(8)) == nil
+        )
+        let calendar = service(InMemoryCalendarSource())
+        #expect(await calendar.save(draft("Deniz Arıkan ders", recurrence: .daily)))
+        let result = await calendar.personEvents(names: names, from: at(8))
         #expect(result?.upcoming.count == 5)
         #expect(result?.birthday == nil)
     }

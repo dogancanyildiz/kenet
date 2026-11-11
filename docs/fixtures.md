@@ -26,7 +26,7 @@ flowchart LR
   F --> ET["entity-types/ : 6 örnek"]
   F --> RN["rename/ : 11 örnek"]
   F --> IM["import/ : 7 örnek"]
-  F --> DA["dates/ : 3 JSON, 2 girdi dosyası"]
+  F --> DA["dates/ : 4 JSON, 3 girdi dosyası"]
   F --> GO["goals/ : cases.json, series.json, creation/, writes/"]
   F --> SU["summaries/ : 11 JSON"]
   F --> GC["goal-chain/ : cases.json, query/"]
@@ -138,6 +138,7 @@ Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru 
 | `dates/cases.json` | `DateParsingTests/DateFixtureTests.swift` | JSON vaka |
 | `dates/quick-entry.json` | `DateParsingTests/QuickEntryTests.swift` | JSON vaka |
 | `dates/recurrence.json` | `DateParsingTests/RecurrenceTests.swift` | JSON vaka |
+| `dates/birthday.json`, `dates/birthday-person.md` | `VaultFormatTests/PersonBirthdayTests.swift` | JSON vaka, Markdown girdi |
 | `goals/cases.json` | `GoalTrackingTests/GoalFixtures.swift` | JSON vaka |
 | `goals/series.json` | `GoalTrackingTests/GoalSeriesTests.swift` | JSON vaka |
 | `goals/writes/` | `VaultStoreTests/GoalStoreFixtures.swift` | JSON vaka |
@@ -1011,6 +1012,8 @@ Her örnek `before/` altında girdi kasasını, `expected/` altında hazırlama 
 | `quick-entry.json` | Hızlı giriş görev çözümlemesinin beklenen sonuçları | 26 |
 | `quick-entry-inputs.md` | `quick-entry.json` vakalarının ham girdileri | |
 | `recurrence.json` | Tekrar kuralından sonraki görev tarihinin hesabı | 11 |
+| `birthday.json` | Kişi dosyasındaki doğum günü alanının okunması | 18 |
+| `birthday-person.md` | Kurgusal kişi dosyası; ilk okunabilen doğum günü alanı ikincisidir | |
 
 **NOT:** `regression-inputs.md` ve `quick-entry-inputs.md` dosyalarını yalnız gidiş dönüş testi okur; tarih testleri girdiyi JSON dosyasından alır.
 
@@ -1021,6 +1024,8 @@ Test ifade aralığını özgün ifadenin UTF-8 baytlarıyla bağımsız karşı
 **`quick-entry.json`:** Her vaka `id`, `today`, sıralı `language`, `input`, `suppressed`, `remainder` ve `tokens` taşır. `suppressed` özgün UTF-8 `[başlangıç, bitiş)` çiftleridir. Her simge `range`, `expression`, `kind` (`recurrence`, `priority` ya da `date`), `value` ve `confidence` taşır; `value` tekrar kuralı, öncelik adı ya da ISO gündür. Vaka aileleri Türkçe ve İngilizce zincirler, Türkçe bayt ofsetleri, iki uçtaki ünlemler, miktar ve gelecek hafta günüdür. <!-- sır değil -->
 
 Diğer aileler kod, bağlantı ve anma koruması, tam ve kısmi bastırma ve çıkarma sonrası birleşen tarih parçalarıdır. Test özgün aralıkları çıkarır, boşluk birleştirmesini uygular ve kalan metni yeniden kurar. 2.000 belirlenimci rastgele girdi ayrıca mevcut zincirle değer ve metin eşitliğini denetler.
+
+**`birthday.json`:** Her vaka `key`, `value` ve `expected` taşır. `expected` `{month, day, year}` nesnesidir; yılsızda `year` `null`, okunamayan değerde `expected` `null` olur. Vaka aileleri anahtar yazımları, harf boyu, yıllı ve yılsız biçim, artık gün ve geçersiz değerlerdir.
 
 **`recurrence.json`:** Her vaka `rule`, `after`, `completedOn` ve `expected` taşır. `rule` tekrar kuralıdır; örneğin `every month`, `every monday`, `every month when done`. `after` görevin önceki tarihi, `completedOn` tamamlama günüdür. `expected` beklenen sonraki tarihtir; hesap taşarsa `null` olur. Vakalar ay sonunu, artık günü, `when done` kuralını ve yıl geçişini kapsar; son 2 vaka tarih sınırını ve sayı taşmasını sınar.
 

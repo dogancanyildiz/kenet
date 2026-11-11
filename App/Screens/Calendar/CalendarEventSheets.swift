@@ -6,13 +6,14 @@ enum CalendarSheetRoute: Identifiable {
     /// `day`: the page's day, for "Olay taslağı"; nil on the person page (no quick entry there).
     case detail(CalendarEvent, day: CalendarDate?)
     case create(CalendarDate)
-    case birthday(name: String)
+    /// `birthday`: the person file's birthday field, when it has a readable one.
+    case birthday(CalendarPersonNames, birthday: PersonBirthday?)
 
     var id: String {
         switch self {
         case .detail(let event, _): "detail:" + event.id
         case .create(let day): "create:" + day.description
-        case .birthday(let name): "birthday:" + name
+        case .birthday(let names, _): "birthday:" + names.fullName
         }
     }
 }
@@ -27,7 +28,7 @@ struct CalendarSheet: View {
             switch route {
             case .detail(let event, let day): CalendarEventDetail(event: event, day: day)
             case .create(let day): CalendarEventForm(original: nil, day: day, onDone: nil)
-            case .birthday(let name): CalendarBirthdayForm(name: name)
+            case .birthday(let names, let birthday): CalendarBirthdayForm(names: names, birthday: birthday)
             }
         }
     }
@@ -63,8 +64,29 @@ struct CalendarEventText {
     func caption(_ event: CalendarEvent) -> String {
         var parts: [String] = []
         if !event.calendarTitle.isEmpty { parts.append(event.calendarTitle) }
-        if event.recurrence != .none { parts.append(recurrence(event.recurrence)) }
+        if event.recurrence != .none { parts.append(recurrence(of: event)) }
         return parts.joined(separator: " · ")
+    }
+
+    /// "Her hafta", or with a dated end "Her hafta · 1 Oca 2027'ye kadar".
+    func recurrence(of event: CalendarEvent) -> String {
+        let rule = recurrence(event.recurrence)
+        guard let end = event.recurrenceEnd else { return rule }
+        let day = end.formatted(.dateTime.day().month(.abbreviated).year().locale(locale))
+        return rule + " · " + String(localized: "\(day) tarihine kadar", bundle: bundle, locale: locale)
+    }
+
+    /// The failed write's message, by what went wrong.
+    func message(_ error: CalendarWriteError) -> String {
+        switch error {
+        case .notFound:
+            String(
+                localized: "Etkinlik takvimde değişmiş. Listeyi yenileyip yeniden dene.", bundle: bundle, locale: locale
+            )
+        case .readOnly: String(localized: "Bu etkinlik burada düzenlenemez.", bundle: bundle, locale: locale)
+        case .noCalendar: String(localized: "Yazılabilir takvim yok.", bundle: bundle, locale: locale)
+        case .unsupported, .failed: String(localized: "Etkinlik takvime yazılamadı.", bundle: bundle, locale: locale)
+        }
     }
 
     func recurrence(_ value: CalendarRecurrence) -> String {
@@ -102,8 +124,8 @@ struct CalendarEventDetail: View {
     private var reading: some View {
         List {
             InkPageTitleRow(verbatim: text.title(event))
-            if let error = calendar.writeErrorText {
-                InfoBand(kind: .error, verbatim: error).inkListRow()
+            if let error = calendar.writeError {
+                InfoBand(kind: .error, verbatim: text.message(error)).inkListRow()
             }
             InkCard(padded: false) {
                 VStack(alignment: .leading, spacing: 0) {
@@ -114,7 +136,7 @@ struct CalendarEventDetail: View {
                     }
                     if event.recurrence != .none {
                         InkCardDivider()
-                        row("Tekrar", value: text.recurrence(event.recurrence))
+                        row("Tekrar", value: text.recurrence(of: event))
                     }
                     let people = event.attendees.filter { !$0.name.isEmpty }.map(\.name)
                     if !people.isEmpty {
@@ -126,7 +148,7 @@ struct CalendarEventDetail: View {
             }
             .inkListRow()
             if !event.isEditable {
-                Text("Bu takvim salt okunur.")
+                Text("Bu etkinlik burada düzenlenemez.")
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
                     .inkListRow()
@@ -214,6 +236,9 @@ struct CalendarEventForm: View {
     @State private var draft: CalendarEventDraft?
     @State private var calendars: [CalendarTarget] = []
     @State private var spans: [CalendarEditSpan] = []
+    @Environment(\.locale) private var locale
+
+    private var text: CalendarEventText { CalendarEventText(locale: PresentationLocalization.resolvedLocale(locale)) }
 
     init(original: CalendarEvent?, day: CalendarDate?, onDone: (() -> Void)?) {
         self.original = original
@@ -227,8 +252,8 @@ struct CalendarEventForm: View {
     var body: some View {
         List {
             InkPageTitleRow(title)
-            if let error = calendar.writeErrorText {
-                InfoBand(kind: .error, verbatim: error).inkListRow()
+            if let error = calendar.writeError {
+                InfoBand(kind: .error, verbatim: text.message(error)).inkListRow()
             }
             if let binding = Binding($draft) {
                 fields(binding)
@@ -297,10 +322,13 @@ struct CalendarEventForm: View {
                     "Tekrar", selection: draft.recurrence, options: recurrenceOptions,
                     identifier: "menu.calendarEvent.recurrence")
                 InkCardDivider()
+                // One occurrence of a series cannot move to another calendar: the menu is closed.
                 InkLabeledMenu(
                     "Takvim", selection: calendarBinding(draft),
                     options: calendars.map { InkMenuOption(verbatim: $0.title, value: $0.id) },
-                    identifier: "menu.calendarEvent.calendar")
+                    identifier: "menu.calendarEvent.calendar"
+                )
+                .disabled((original?.recurrence ?? .none) != .none)
             }
             .font(.subheadline)
             .padding(.horizontal, InkSpacing.cardPadding)
@@ -359,53 +387,88 @@ struct CalendarEventForm: View {
     }
 }
 
-/// "Doğum günü ekle": a yearly all-day event "<Ad> doğum günü" on the picked date.
+/// "Doğum günü ekle": a yearly all-day event "<Ad> doğum günü". The date comes from the person
+/// file's birthday field when it has one (`docs/vault-format.md`), else the user picks it.
 struct CalendarBirthdayForm: View {
-    let name: String
+    let names: CalendarPersonNames
+    let birthday: PersonBirthday?
     @Environment(CalendarService.self) private var calendar
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
     @Environment(\.clockNow) private var clockNow
     @State private var date: Date?
     @State private var calendarID: String?
+    @State private var calendars: [CalendarTarget]?
+    @State private var isSaving = false
+
+    private var text: CalendarEventText { CalendarEventText(locale: PresentationLocalization.resolvedLocale(locale)) }
 
     var body: some View {
         List {
             InkPageTitleRow("Doğum günü ekle")
-            if let error = calendar.writeErrorText {
-                InfoBand(kind: .error, verbatim: error).inkListRow()
+            if let error = calendar.writeError {
+                InfoBand(kind: .error, verbatim: text.message(error)).inkListRow()
             }
             InkCard(padded: false) {
                 DatePicker(
-                    "Tarih", selection: Binding(get: { date ?? clockNow() }, set: { date = $0 }),
+                    "Tarih", selection: Binding(get: { date ?? initialDate }, set: { date = $0 }),
                     displayedComponents: [.date]
                 )
                 .font(.subheadline)
                 .frame(minHeight: TapTarget.minimumLength)
                 .padding(.horizontal, InkSpacing.cardPadding)
+                .accessibilityIdentifier("picker.birthday.date")
             }
             .inkListRow()
             Text("Her yıl tekrarlayan tüm gün etkinliği olarak takvime yazılır.")
                 .font(.ink.meta)
                 .foregroundStyle(Color.ink.secondaryText)
                 .inkListRow()
+            if calendars?.isEmpty == true {
+                Text("Yazılabilir takvim yok.")
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .inkListRow()
+            }
         }
         .listStyle(.plain)
         .inkPageScrollColumn()
-        .disabled(calendar.isWriting)
+        .disabled(calendar.isWriting || isSaving)
         .inkSheet(
-            "Doğum günü ekle", confirm: .create, isBusy: calendar.isWriting, isCancelEnabled: !calendar.isWriting,
+            "Doğum günü ekle", confirm: .create, isConfirmEnabled: calendars?.isEmpty == false,
+            isBusy: calendar.isWriting || isSaving, isCancelEnabled: !(calendar.isWriting || isSaving),
             cancelIdentifier: "button.birthday.cancel", confirmIdentifier: "button.birthday.save"
-        ) {
-            let draft = CalendarEventDraft.birthday(
-                name: name, on: date ?? clockNow(), calendarID: calendarID, locale: locale)
-            Task { if await calendar.save(draft) { dismiss() } }
-        }
+        ) { save() }
         .accessibilityIdentifier("sheet.birthday")
         .task {
-            let calendars = await calendar.writableCalendars()
-            calendarID = await calendar.resolvedDefaultCalendarID(among: calendars)
+            let found = await calendar.writableCalendars()
+            calendarID = await calendar.resolvedDefaultCalendarID(among: found)
+            calendars = found
         }
         .onDisappear { calendar.clearWriteError() }
+    }
+
+    /// The field's day (its yearless form on this year), else today.
+    private var initialDate: Date {
+        let today = LocalDay.today(at: clockNow())
+        guard let day = birthday?.firstDay(currentYear: today.year) else { return clockNow() }
+        return LocalDay.instant(for: day)
+    }
+
+    /// A second tap, or a birthday added meanwhile elsewhere, never writes a second series.
+    private func save() {
+        guard !isSaving else { return }
+        isSaving = true
+        let draft = CalendarEventDraft.birthday(
+            name: names.fullName, on: date ?? initialDate, calendarID: calendarID, locale: locale)
+        Task {
+            defer { isSaving = false }
+            let start = Calendar.current.startOfDay(for: clockNow())
+            if await calendar.personEvents(names: names, from: start)?.birthday != nil {
+                dismiss()
+                return
+            }
+            if await calendar.save(draft) { dismiss() }
+        }
     }
 }

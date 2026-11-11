@@ -53,6 +53,10 @@ struct EntityView: View {
             aliases: model.aliases, incomingLinks: 0)
     }
 
+    private var calendarNames: CalendarPersonNames {
+        CalendarPersonNames(fullName: current.name, aliases: model.aliases)
+    }
+
     private var kindLabel: String {
         EntityTypeChoices.choices(store.entityTypes, language: locale.language.languageCode?.identifier ?? "en")
             .first { $0.id == current.kind }?.name
@@ -165,11 +169,12 @@ struct EntityView: View {
         }
         .task(
             id: EntityCalendarLoadKey(
-                names: [current.name] + model.aliases, changes: calendar?.changeCount ?? 0,
+                fullName: current.name, aliases: model.aliases, changes: calendar?.changeCount ?? 0,
                 canRead: calendar?.authorization.canRead ?? false)
         ) {
-            guard current.kind == "person", let calendar else { return }
-            await calendarModel.load(calendar: calendar, names: [current.name] + model.aliases, now: clockNow())
+            // The same gate as the day pages: a test or a tour never reads the real calendar.
+            guard current.kind == "person", let calendar, AppLaunchPolicy.allowsCalendarLoad() else { return }
+            await calendarModel.load(calendar: calendar, names: calendarNames, now: clockNow())
         }
         .preference(
             key: ImportantDatesReadyKey.self,
@@ -246,7 +251,10 @@ struct EntityView: View {
         }
         EntityOpenTasksView(store: store, rows: openTasks).id(model.path)
         if current.kind == "person", calendar != nil {
-            EntityCalendarSection(name: current.name, model: calendarModel)
+            EntityCalendarSection(
+                names: calendarNames,
+                birthday: PersonBirthday.find(in: model.fields.map { ($0.key, $0.value) }),
+                model: calendarModel)
         }
         UnlinkedMentionsSection(model: unlinkedMentions).id(model.path)
         timelineSection

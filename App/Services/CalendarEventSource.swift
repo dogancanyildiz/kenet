@@ -15,7 +15,12 @@ struct CalendarEvent: Identifiable, Sendable, Equatable {
     var calendarID: String? = nil
     var calendarTitle: String = ""
     var recurrence: CalendarRecurrence = .none
-    /// False for subscribed, holiday and birthday calendars: no edit and no delete.
+    /// The last day a dated repeat rule allows; nil for an endless rule.
+    var recurrenceEnd: Date? = nil
+    /// The occurrence's original start in its series (EventKit `occurrenceDate`).
+    var occurrenceDate: Date? = nil
+    /// False for subscribed, holiday and birthday calendars and for invitations someone else
+    /// organizes: no edit and no delete.
     var isEditable: Bool = false
     /// The event comes from the system's birthdays calendar.
     var isFromBirthdayCalendar: Bool = false
@@ -51,7 +56,8 @@ enum CalendarAuthorization: Sendable, CaseIterable {
 }
 
 enum CalendarWriteError: Error, Equatable {
-    case unsupported, notFound, noCalendar, readOnly
+    /// `notFound`: the event changed or went away in the calendar meanwhile.
+    case unsupported, notFound, noCalendar, readOnly, failed
 }
 
 /// A read-only source (tests, widget snapshot) writes nothing.

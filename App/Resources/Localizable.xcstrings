@@ -449,6 +449,22 @@
         }
       }
     },
+    "%@ tarihine kadar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "until %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ tarihine kadar"
+          }
+        }
+      }
+    },
     "%@ tarihine kadar ertelendi" : {
       "localizations" : {
         "en" : {
@@ -5603,6 +5619,22 @@
         }
       }
     },
+    "Bu etkinlik burada düzenlenemez." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This event can't be edited here."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu etkinlik burada düzenlenemez."
+          }
+        }
+      }
+    },
     "Bu görevi silmek istiyor musun?" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5953,22 +5985,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bu süreyi aşan kayıt yok."
-          }
-        }
-      }
-    },
-    "Bu takvim salt okunur." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This calendar is read-only."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bu takvim salt okunur."
           }
         }
       }
@@ -6917,6 +6933,22 @@
         }
       }
     },
+    "Doğum günü ekle · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add birthday · %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doğum günü ekle · %@"
+          }
+        }
+      }
+    },
     "Duraklat" : {
       "localizations" : {
         "en" : {
@@ -7452,6 +7484,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Etkinlik silinsin mi?"
+          }
+        }
+      }
+    },
+    "Etkinlik takvimde değişmiş. Listeyi yenileyip yeniden dene." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The event changed in the calendar. Refresh the list and try again."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Etkinlik takvimde değişmiş. Listeyi yenileyip yeniden dene."
           }
         }
       }

@@ -45,7 +45,8 @@ struct CalendarEventDraft: Equatable, Sendable {
     /// Nil: the default calendar (Settings, then the system's).
     var calendarID: String?
 
-    /// A new event on `day`: today starts at the next full hour, another day at 09:00; one hour long.
+    /// A new event on `day`, one hour long: another day starts at 09:00, today at the next full
+    /// hour, and after 23:00 (whose next hour is tomorrow) at the current five minutes.
     static func new(
         on day: CalendarDate, now: Date, calendarID: String?, timeZone: TimeZone = .current
     ) -> CalendarEventDraft {
@@ -53,11 +54,13 @@ struct CalendarEventDraft: Equatable, Sendable {
         calendar.timeZone = timeZone
         let dayStart = calendar.startOfDay(for: LocalDay.instant(for: day, timeZone: timeZone))
         var start = calendar.date(bySettingHour: 9, minute: 0, second: 0, of: dayStart) ?? dayStart
-        if LocalDay.today(at: now, timeZone: timeZone) == day,
-            let hour = calendar.dateInterval(of: .hour, for: now)?.end,
-            calendar.isDate(hour, inSameDayAs: dayStart)
-        {
-            start = hour
+        if LocalDay.today(at: now, timeZone: timeZone) == day, let hour = calendar.dateInterval(of: .hour, for: now) {
+            if calendar.isDate(hour.end, inSameDayAs: dayStart) {
+                start = hour.end
+            } else {
+                let minute = calendar.component(.minute, from: now)
+                start = hour.start.addingTimeInterval(Double(minute - minute % 5) * 60)
+            }
         }
         return CalendarEventDraft(
             title: "", start: start, end: start.addingTimeInterval(3600), isAllDay: false,
@@ -108,22 +111,35 @@ struct CalendarEventDraft: Equatable, Sendable {
             var calendar = Calendar(identifier: .gregorian)
             calendar.timeZone = timeZone
             copy.start = calendar.startOfDay(for: start)
-            copy.end = max(copy.start, calendar.startOfDay(for: end))
+            // An end exactly at midnight closes the day before: 23:00–00:00 stays one day.
+            let lastDay = end > start && calendar.startOfDay(for: end) == end ? end.addingTimeInterval(-1) : end
+            copy.end = max(copy.start, calendar.startOfDay(for: lastDay))
         } else if end < start {
             copy.end = start
         }
         return copy
     }
 
-    /// Choices for saving a change to `original`: a changed repeat rule only applies from here on.
+    /// Choices for saving a change to `original`: a changed repeat rule or calendar only applies
+    /// from here on (one occurrence cannot move to another calendar).
     static func spans(saving draft: CalendarEventDraft, over original: CalendarEvent) -> [CalendarEditSpan] {
         guard original.recurrence != .none else { return [.thisEvent] }
-        return draft.recurrence == original.recurrence ? [.thisEvent, .futureEvents] : [.futureEvents]
+        let movesCalendar = draft.calendarID != nil && draft.calendarID != original.calendarID
+        return draft.recurrence == original.recurrence && !movesCalendar
+            ? [.thisEvent, .futureEvents] : [.futureEvents]
     }
 }
 
-/// Matches calendar events to a person by name or alias (decision 2026-11-11). Whole words, with the
-/// recognizer's name fold: case, Turkish dotted and dotless i.
+/// The names a person answers to on the calendar (decision 2026-11-11): the file's full name and
+/// its aliases.
+struct CalendarPersonNames: Equatable, Sendable {
+    let fullName: String
+    let aliases: [String]
+}
+
+/// Matches calendar events to a person. A name of several words matches whole adjacent title words
+/// or an attendee's whole name; a one-word name or alias ("Can", "Deniz") is a common word too,
+/// so it matches an attendee's whole name only. The recognizer's fold: case, Turkish İ/ı.
 enum CalendarPersonMatch {
     static func words(_ text: String) -> [String] {
         nameComparisonFold(text)
@@ -131,54 +147,58 @@ enum CalendarPersonMatch {
             .map(String.init)
     }
 
-    static func matches(_ event: CalendarEvent, names: [String]) -> Bool {
-        let wanted = names.map(words).filter { !$0.isEmpty }
+    static func matches(_ event: CalendarEvent, names: CalendarPersonNames) -> Bool {
+        let wanted = ([names.fullName] + names.aliases).map(words).filter { !$0.isEmpty }
         guard !wanted.isEmpty else { return false }
         let title = words(event.title)
         let people = event.attendees.filter { !$0.isCurrentUser }.map { words($0.name) }
         return wanted.contains { name in
-            contains(title, name) || people.contains(name)
+            people.contains(name) || (name.count > 1 && contains(title, name))
         }
     }
 
     /// The person's upcoming events, earliest first; at most `limit`.
-    static func upcoming(_ events: [CalendarEvent], names: [String], limit: Int = 5) -> [CalendarEvent] {
+    static func upcoming(_ events: [CalendarEvent], names: CalendarPersonNames, limit: Int = 5) -> [CalendarEvent] {
         Array(
             events.filter { matches($0, names: names) }
                 .sorted { ($0.start, $0.title, $0.id) < ($1.start, $1.title, $1.id) }
                 .prefix(limit))
     }
 
-    private static func contains(_ haystack: [String], _ needle: [String]) -> Bool {
-        guard needle.count <= haystack.count else { return false }
-        for index in 0...(haystack.count - needle.count)
-        where Array(haystack[index..<(index + needle.count)]) == needle {
-            return true
-        }
-        return false
+    static func contains(_ haystack: [String], _ needle: [String]) -> Bool {
+        guard !needle.isEmpty, needle.count <= haystack.count else { return false }
+        return (0...(haystack.count - needle.count)).contains { Array(haystack[$0..<($0 + needle.count)]) == needle }
     }
 }
 
-/// Which matched event counts as the person's birthday.
+/// Which event is the person's birthday: its title, without the marker and the small words around
+/// it, is exactly the person's full name. Another "Ayşe Kaya doğum günü" is never Ayşe's.
 enum CalendarBirthday {
-    /// Words that mark a birthday title, folded: "doğum günü", "birthday".
+    /// "doğum günü", "birthday".
     private static let markers: [[String]] = [["doğum", "günü"], ["birthday"]].map {
         $0.map(nameComparisonFold)
     }
+    /// Possessive endings split off by the apostrophe and the birthdays calendar's Turkish
+    /// wording ("Ayşe Kaya adlı kişinin doğum günü").
+    private static let fillers: Set<String> = Set(
+        ["s", "in", "ın", "un", "ün", "nin", "nın", "nun", "nün", "adlı", "kişinin"].map(nameComparisonFold))
 
-    static func isBirthday(_ event: CalendarEvent) -> Bool {
-        if event.isFromBirthdayCalendar { return true }
-        guard event.isAllDay, event.recurrence == .yearly else { return false }
-        let title = CalendarPersonMatch.words(event.title)
-        return markers.contains { marker in
-            title.count >= marker.count
-                && (0...(title.count - marker.count)).contains { Array(title[$0..<($0 + marker.count)]) == marker }
-        }
+    static func isBirthday(_ event: CalendarEvent, fullName: String) -> Bool {
+        let name = CalendarPersonMatch.words(fullName)
+        guard !name.isEmpty else { return false }
+        if !event.isFromBirthdayCalendar, !(event.isAllDay && event.recurrence == .yearly) { return false }
+        var title = CalendarPersonMatch.words(event.title)
+        guard let marker = markers.first(where: { CalendarPersonMatch.contains(title, $0) }),
+            let at = (0...(title.count - marker.count)).first(where: {
+                Array(title[$0..<($0 + marker.count)]) == marker
+            })
+        else { return false }
+        title.removeSubrange(at..<(at + marker.count))
+        return title.filter { !fillers.contains($0) } == name
     }
 
-    /// The first birthday among the person's matched events.
-    static func find(in events: [CalendarEvent], names: [String]) -> CalendarEvent? {
-        events.filter { CalendarPersonMatch.matches($0, names: names) && isBirthday($0) }
-            .min { $0.start < $1.start }
+    /// The person's first birthday event.
+    static func find(in events: [CalendarEvent], fullName: String) -> CalendarEvent? {
+        events.filter { isBirthday($0, fullName: fullName) }.min { $0.start < $1.start }
     }
 }

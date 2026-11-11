@@ -1,4 +1,5 @@
 import SwiftUI
+import VaultFormat
 
 /// The person's upcoming calendar events, matched by name or alias in the title or among the
 /// attendees (decision 2026-11-11). The vault stays as it is: nothing here writes a file.
@@ -6,7 +7,7 @@ import SwiftUI
 final class EntityCalendarModel {
     private(set) var result: CalendarPersonEvents?
 
-    func load(calendar: CalendarService, names: [String], now: Date) async {
+    func load(calendar: CalendarService, names: CalendarPersonNames, now: Date) async {
         // From the start of today: an event already under way today still counts.
         let answer = await calendar.personEvents(names: names, from: Calendar.current.startOfDay(for: now))
         guard !Task.isCancelled else { return }
@@ -15,14 +16,17 @@ final class EntityCalendarModel {
 }
 
 struct EntityCalendarLoadKey: Hashable {
-    let names: [String]
+    let fullName: String
+    let aliases: [String]
     let changes: Int
     let canRead: Bool
 }
 
 /// List rows of the section; the model is loaded from the page (an empty row is never mounted).
 struct EntityCalendarSection: View {
-    let name: String
+    let names: CalendarPersonNames
+    /// The person file's birthday field, read only; it fills the form's date.
+    let birthday: PersonBirthday?
     let model: EntityCalendarModel
     @Environment(\.locale) private var locale
     @State private var route: CalendarSheetRoute?
@@ -30,16 +34,15 @@ struct EntityCalendarSection: View {
     var body: some View {
         if let result = model.result {
             Section {
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    SectionHeader("Yaklaşan etkinlikler")
-                    if result.birthday == nil {
-                        Button {
-                            route = .birthday(name: name)
-                        } label: {
-                            Text("Doğum günü ekle").tapTarget()
-                        }
-                        .buttonStyle(InkTextButtonStyle())
-                        .accessibilityIdentifier("button.entity.addBirthday")
+                // Side by side when both fit; else the button goes under the title, whole.
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        SectionHeader("Yaklaşan etkinlikler")
+                        birthdayButton(result).fixedSize()
+                    }
+                    VStack(alignment: .leading, spacing: 0) {
+                        SectionHeader("Yaklaşan etkinlikler")
+                        birthdayButton(result)
                     }
                 }
                 // On the always-present header row: a sheet on a `Section` never presents.
@@ -56,6 +59,25 @@ struct EntityCalendarSection: View {
                 }
             }
         }
+    }
+
+    @ViewBuilder private func birthdayButton(_ result: CalendarPersonEvents) -> some View {
+        if result.birthday == nil {
+            Button {
+                route = .birthday(names, birthday: birthday)
+            } label: {
+                birthdayLabel.tapTarget()
+            }
+            .buttonStyle(InkTextButtonStyle())
+            .accessibilityIdentifier("button.entity.addBirthday")
+        }
+    }
+
+    /// "Doğum günü ekle", with the file's date when there is one: "Doğum günü ekle · 12 Nis".
+    private var birthdayLabel: Text {
+        guard let birthday, let day = birthday.firstDay(currentYear: 2000) else { return Text("Doğum günü ekle") }
+        let date = LocalDay.instant(for: day).formatted(.dateTime.day().month(.abbreviated).locale(locale))
+        return Text("Doğum günü ekle · \(date)")
     }
 
     private func row(_ event: CalendarEvent) -> some View {

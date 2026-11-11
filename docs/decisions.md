@@ -85,7 +85,7 @@ Harita konuları gösterir; satırların tam metni karar günlüğündedir. Bir 
 
 ```mermaid
 timeline
-    title Karar takvimi, 350 karar
+    title Karar takvimi, 351 karar
     2026-10-02 : 58 karar : Ürün kapsamı ve platform : Kasa biçimi ve ayrıştırıcı : Git, sürüm ve CI
     2026-10-03 : 19 karar : Yazma doğrulaması : İndeks ve arama : Varlık sayfası ve hızlı giriş
     2026-10-04 : 31 karar : Birleştirme ve kayıp yok : VaultStore ve dosya izleme : Görev, hedef ve otomasyon : Özet, graph ve harita
@@ -110,10 +110,10 @@ timeline
     2026-11-01 : 1 karar : Mac menü komutları kimlikli eylem, App sahnesi döngüsü
     2026-11-09 : 15 karar : Gün kopyası birleştirmesi varsayılan açık : Tasarım yönü Şafak ve Aşama 17 : Ekran davranışları
     2026-11-10 : 8 karar : CI kapısı simülatörü kayıt betiğiyle aynı : Görüntü referansı boyut tavanı 80 MiB : Hafta ölçeği kart sütunları : Graph dönemleri gün sayısı : Paylaşım kuyruğunda satır kimliği : D2 dalı D4 içinde : Katalog birleşiminde dev esas : Yazım kuralları ve terim sözlüğü repoda
-    2026-11-11 : 4 karar : Tamamlanan hedef halkası vurgu rengi : Kenar çubuğu seçimi yumuşak ton : Liste seçimi kart ve çubuk : Takvim etkinliği yazma
+    2026-11-11 : 5 karar : Tamamlanan hedef halkası vurgu rengi : Kenar çubuğu seçimi yumuşak ton : Liste seçimi kart ve çubuk : Takvim etkinliği yazma
 ```
 
-Sayılar karar günlüğündeki satır sayısıdır. Toplam 350 satırdır.
+Sayılar karar günlüğündeki satır sayısıdır. Toplam 351 satırdır.
 
 ## Karar günlüğü
 
@@ -471,6 +471,7 @@ Sayılar karar günlüğündeki satır sayısıdır. Toplam 350 satırdır.
 | 2026-11-11 | Mac ve iPad kenar çubuğunun seçili satırı `accentSoft` dolgu, `text` yazı ve vurgu simgesi alır; öteki simgeler `secondaryText` çizgisidir. Önceki değer: vurgu dolgusu, vurgu üstü yazı ve simge. Geri alma: `MacSidebarChrome` belirteçlerini eski değere döndürmek | Şafak `c-mac` çizimi (fark2 D1, D2). Dolu mürdüm hap sayfanın en güçlü öğesi oluyordu |
 | 2026-11-11 | Liste sütununda seçili satır kâğıt üstünde `surface` karttır; kartın 4 pt içinde 3 pt vurgu çubuğu durur. Bölüm kartındaki satır `accentSoft` dolgu alır. Önceki değer: `accentSoft` dolgu ve kenara yapışık 2 pt çizgi. Geri alma: `InkListSelectionChrome.fill` değerini `accentSoft` yapmak | Şafak `c-mac` ve `j-mac2` çizimi (fark2 D4, D10). iPad'deki sistem odak çerçevesi de satırda kapatıldı |
 | 2026-11-11 | Uygulama cihaz takvimine etkinlik ekler, düzenler ve siler: başlık, başlangıç–bitiş ya da tüm gün, tekrar (yok, her gün, her hafta, her ay, her yıl) ve hedef takvim. Etkinlik EventKit'te yaşar; kasaya aktarılmaz, `vault-format.md` değişmez. Görev ve olay takvime yazılmaz. Form uygulamanın kendi Şafak formudur; EventKitUI kullanılmaz. Varsayılan takvim cihaz tercihidir: `UserDefaults` anahtarı `calendar.defaultCalendarID`. Kişi sayfası başlığı ya da katılımcısı kişinin adı veya takma adıyla eşleşen yaklaşan etkinlikleri gösterir. "Doğum günü ekle" yıllık tüm gün etkinliği yazar: "<Ad> doğum günü". Önceki değer: EventKit salt okunur (kararlar 2026-10-04 ve 2026-10-11). Geri alma: `CalendarEventSource` yazma işlevlerini, formu ve kişi bölümünü kaldırmak; izin metnini eski haline döndürmek | Kullanıcı kararı (2026-11-11): ders, toplantı ve doğum günü uygulamadan eklenebilmeli. EventKitUI Mac'te yoktur ve Şafak diline uymaz. Etkinliğin tek kaynağı takvim kalır; kasada kopya olmaz. Sahte kaynakla birim testi yazılabilir |
+| 2026-11-11 | Kişi dosyasındaki doğum günü alanı "Doğum günü ekle" formunun tarihini verir. Anahtarlar: `doğum günü`, `doğum_günü`, `birthday`. Biçimler: `YYYY-MM-DD` ve yılsız `--MM-DD`. Uygulama alanı yalnız okur; okunamazsa tarih elle seçilir. Ayrıştırıcı Core'dadır: `PersonBirthday`. Önceki değer: uygulama anahtar adına anlam yüklemezdi, tarih bugünden başlardı. Geri alma: `PersonBirthday` çağrısını formdan kaldırmak; `vault-format.md` "Doğum günü alanı" bölümünü silmek | Kullanıcı kararı (2026-11-11): tarih kişi dosyasında zaten yazılı. Anlam yalnız bu üç anahtara ve yalnız takvim formuna verilir; yıl dönümü kuralı değişmez. Yılsız biçim vCard ve ISO 8601 ile uyumludur |
 
 Satır sırası ekleme sırasıdır; tablonun ilk satırları tarih sırasında değildir. Sonradan değişen bir kararın gerekçe hücresi değişikliği tarihiyle anar. Güncel durum notları kararın verildiği günden sonraki gerçek durumu söyler.
 

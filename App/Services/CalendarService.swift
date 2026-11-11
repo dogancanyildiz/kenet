@@ -9,8 +9,8 @@ final class CalendarService {
     private(set) var errorText: String?
     private var days: [CalendarDate: [CalendarEvent]] = [:]
     private var loadedDays: Set<CalendarDate> = []
-    /// The last failed write, shown in the sheet that asked for it.
-    private(set) var writeErrorText: String?
+    /// The last failed write, shown in the sheet that asked for it in the page's language.
+    private(set) var writeError: CalendarWriteError?
     private(set) var isWriting = false
     /// Bumped after each write and store change, so pages that query on their own reload.
     private(set) var changeCount = 0
@@ -22,13 +22,15 @@ final class CalendarService {
     @ObservationIgnored private let source: any CalendarEventSource
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private var revision = 0
+    /// Our own save already refreshed; the store's echo of it inside this window is not a change.
+    @ObservationIgnored private var echoQuietUntil = Date.distantPast
 
     init(source: any CalendarEventSource = EventKitCalendarSource(), defaults: UserDefaults = .standard) {
         self.source = source
         self.defaults = defaults
         authorization = source.authorization
         defaultCalendarID = defaults.string(forKey: Self.defaultCalendarKey)
-        source.onChange = { [weak self] in Task { await self?.refresh() } }
+        source.onChange = { [weak self] in Task { await self?.sourceChanged() } }
     }
 
     func events(on day: CalendarDate) -> [CalendarEvent] { days[day] ?? [] }
@@ -65,31 +67,39 @@ final class CalendarService {
         await write { try await source.delete(event, span: span) }
     }
 
-    func clearWriteError() { writeErrorText = nil }
+    func clearWriteError() { writeError = nil }
 
-    /// Upcoming events naming the person (title or attendee), plus the birthday among them.
-    /// Nil without read access.
-    func personEvents(names: [String], from start: Date, days: Int = 365) async -> CalendarPersonEvents? {
+    /// Upcoming events naming the person, plus their birthday. One read of the source; the
+    /// matching runs off the main actor. Nil without read access.
+    func personEvents(names: CalendarPersonNames, from start: Date, days: Int = 365) async -> CalendarPersonEvents? {
         guard source.authorization.canRead else { return nil }
         guard let end = Calendar(identifier: .gregorian).date(byAdding: .day, value: days, to: start),
             let all = try? await source.events(from: start, to: end)
         else { return nil }
-        return CalendarPersonEvents(
-            upcoming: CalendarPersonMatch.upcoming(all, names: names),
-            birthday: CalendarBirthday.find(in: all, names: names))
+        return await Task.detached(priority: .userInitiated) {
+            CalendarPersonEvents(
+                upcoming: CalendarPersonMatch.upcoming(all, names: names),
+                birthday: CalendarBirthday.find(in: all, fullName: names.fullName))
+        }.value
+    }
+
+    private func sourceChanged() async {
+        guard !isWriting, Date() >= echoQuietUntil else { return }
+        await refresh()
     }
 
     private func write(_ body: () async throws -> Void) async -> Bool {
         guard source.authorization.canRead, !isWriting else { return false }
         isWriting = true
-        writeErrorText = nil
+        writeError = nil
         defer { isWriting = false }
         do {
             try await body()
+            echoQuietUntil = Date().addingTimeInterval(1)
             await refresh()
             return true
         } catch {
-            writeErrorText = String(localized: "Etkinlik takvime yazılamadı.")
+            writeError = (error as? CalendarWriteError) ?? .failed
             return false
         }
     }

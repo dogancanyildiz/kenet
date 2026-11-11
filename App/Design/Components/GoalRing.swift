@@ -16,6 +16,7 @@ struct GoalRing: View {
 
     @ScaledMetric(relativeTo: .body) private var defaultSide = InkSize.goalRing
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.locale) private var locale
 
     private var side: CGFloat { diameter ?? defaultSide }
     private var clamped: Double { GoalRingProgress.clamped(progress) }
@@ -67,14 +68,24 @@ struct GoalRing: View {
     }
 
     private var accessibilityValue: String {
+        Self.accessibilityValue(
+            isComplete: isComplete, isBoolean: isBoolean, progress: clamped, locale: locale)
+    }
+
+    /// VoiceOver value in the view's language: `String(localized:)` alone reads the process
+    /// language, not `\.locale` (fark3 Y8).
+    nonisolated static func accessibilityValue(
+        isComplete: Bool, isBoolean: Bool, progress: Double, locale: Locale
+    ) -> String {
+        let bundle = PresentationLocalization.bundle(locale)
+        let resolved = PresentationLocalization.resolvedLocale(locale)
         if isComplete {
-            return String(localized: "Tamamlandı")
+            return String(localized: "Tamamlandı", bundle: bundle, locale: resolved)
         }
         if isBoolean {
-            return String(localized: "Açık")
+            return String(localized: "Açık", bundle: bundle, locale: resolved)
         }
-        let percent = Int((clamped * 100).rounded())
-        return "\(percent)%"
+        return "\(Int((progress * 100).rounded()))%"
     }
 }
 

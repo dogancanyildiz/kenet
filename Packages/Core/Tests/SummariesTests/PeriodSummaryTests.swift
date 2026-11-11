@@ -25,8 +25,9 @@ struct PeriodSummaryTests {
                 period: period, containing: day, data: try index.summaryInput(from: first, to: bounds.upperBound),
                 today: today)
             let expected = try #require(fixture["expected"] as? [String: Any])
+            // A case compares only the fields it carries.
             #expect(
-                try canonical(snapshot(summary)) == canonical(expected),
+                try canonical(snapshot(summary).filter { expected[$0.key] != nil }) == canonical(expected),
                 Comment(rawValue: fixture["id"] as? String ?? ""))
         }
     }
@@ -64,11 +65,32 @@ struct PeriodSummaryTests {
         #expect(summary.counts.createdTasks == 0 && summary.counts.completedTasks == 1)
         #expect(summary.counts.overdueTasks == 1 && summary.counts.undatedTasks == 1)
         #expect(summary.previous.overdueTasks == 2)
-        // A task outside day files opens on today: the week of today counts it, the week before does not.
-        let running = PeriodSummary.compute(
+        // A task outside day files opens on today. On the week's last day the week counts it; the week before
+        // holds the same task, so the change does not read it as new.
+        let lastDay = PeriodSummary.compute(
             period: .week, containing: CalendarDate("2026-09-20")!, data: data, today: CalendarDate("2026-09-20"))
-        #expect(running.counts.overdueTasks == 2 && running.counts.undatedTasks == 1)
-        #expect(running.counts.createdTasks == 0 && running.previous.overdueTasks == 2)
+        #expect(lastDay.counts.overdueTasks == 2 && lastDay.counts.undatedTasks == 1)
+        #expect(lastDay.counts.createdTasks == 0 && lastDay.previous.overdueTasks == 3)
+        #expect(lastDay.change.overdueTasks == -1 && lastDay.change.undatedTasks == 0)
+        // Once the week has ended, a later today leaves it out: the closed week reads as without today.
+        let ended = PeriodSummary.compute(
+            period: .week, containing: CalendarDate("2026-09-20")!, data: data, today: CalendarDate("2026-10-11"))
+        #expect(ended.counts.overdueTasks == 1 && ended.counts.undatedTasks == 1)
+        #expect(ended.previous.overdueTasks == 2)
+    }
+    @Test func sourceLessTasksLeaveTheChangeOfARunningPeriodUntouched() {
+        let today = CalendarDate("2026-10-11")!
+        let data = SummaryInput(tasks: [
+            .init(created: nil, status: .todo, due: nil, done: nil),
+            .init(created: nil, status: .todo, due: CalendarDate("2026-10-01"), done: nil),
+            .init(created: nil, status: .done, due: nil, done: CalendarDate("2026-10-05")),
+            .init(created: nil, status: .cancelled, due: nil, done: nil),
+        ])
+        let summary = PeriodSummary.compute(period: .month, containing: today, data: data, today: today)
+        #expect(summary.isRunning)
+        #expect(summary.counts.undatedTasks == 1 && summary.counts.overdueTasks == 1)
+        #expect(summary.previous.undatedTasks == 1 && summary.previous.overdueTasks == 1)
+        #expect(summary.change.undatedTasks == 0 && summary.change.overdueTasks == 0)
     }
     @Test func goalAggregationKeepsHistoryForStreakAndAnnualProgress() throws {
         let weekly = try #require(

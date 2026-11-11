@@ -640,7 +640,7 @@ flowchart LR
 | Birim sonu açık | Dönem sonu açık envanteri kuralının her ritim biriminin ölçülen son gününe uygulanmasıdır. Hafta birimi gün, ay birimi 1'inden başlayan 7 günlük dilim, yıl birimi aydır. Süren birim bugünde biter; başlamamış birimin noktası yoktur. Bitiş tarihi gelecekte olan açık görevler de dahildir. Önceki çizgi önceki dönemin bütün birim sonlarını gösterir. |
 | Devreden ve tarihsiz | Bitiş tarihi ölçülen son günden önceyse görev devredendir. Bitiş tarihi yoksa görev tarihsiz açıktır. |
 | Envanter dışı | İptaller ve tamamlanma tarihi olmayan tamamlanmış görevler. |
-| Kaynak günü olmayan görev | Proje ya da not dosyasındaki görevdir. Oluşturma sayısına girmez. Bugün ve sonrasında açık sayılır; Görevler listesiyle aynı sayıyı verir. Bugünden önceki günlerin sayısına girmez, geçmiş seri değişmez. Geçerli tamamlanma tarihi varsa tamamlanan sayısına girer. |
+| Kaynak günü olmayan görev | Proje ya da not dosyasındaki görevdir. Oluşturma sayısına girmez. Bugün ve sonrasında açık sayılır. Bugünden önceki günlere girmez; geçmiş seri değişmez. Bu yüzden biten dönemin sayısı bakılan güne bağlıdır. Örnek: Ekim'e 31 Ekim'de bakılırsa görev sayılır, 1 Kasım'da sayılmaz. Önceki dönem bugün açık olan bu görevleri aynen taşır; fark onları saymaz. Bu görevlerde tarihsiz sayısı Görevler listesiyle aynıdır. İki fark kalır: gelecek tarihli gün dosyasındaki görev bugün sayılmaz. Tamamlanma tarihi gelecekte olan görev Özetler'de açık sayılır. Geçerli tamamlanma tarihi varsa tamamlanan sayısına girer. |
 | Geri kurulamayan bilgi | Dosyalar durum ve değişiklik geçmişi tutmaz. Yeniden açma, iptal tarihi ve eski bitiş tarihi geri kurulamaz. |
 
 Özetler hedef ilerlemesi göstermez. Hedef ilerlemesi, zincir ve skor Hedefler sekmesindedir.

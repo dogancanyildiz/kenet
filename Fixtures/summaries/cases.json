@@ -543,7 +543,7 @@
         "overdueTasks": 0,
         "peopleMentions": 0,
         "placeMentions": 0,
-        "undatedTasks": 0,
+        "undatedTasks": 2,
         "writtenDays": 0
       },
       "change": {
@@ -555,47 +555,9 @@
         "overdueTasks": 11,
         "peopleMentions": 0,
         "placeMentions": 0,
-        "undatedTasks": 3,
+        "undatedTasks": 1,
         "writtenDays": 0
-      },
-      "people": [],
-      "places": [],
-      "goals": [
-        {
-          "change": 0,
-          "completionDate": null,
-          "contribution": 0,
-          "done": 0,
-          "id": "goals/Kitap.md",
-          "score": 40,
-          "streak": 0,
-          "streakChange": 0,
-          "target": 620
-        },
-        {
-          "change": 0,
-          "completionDate": null,
-          "contribution": 0,
-          "done": 0,
-          "id": "goals/Spor.md",
-          "score": null,
-          "streak": 0,
-          "streakChange": -2,
-          "target": 15
-        },
-        {
-          "change": 0,
-          "completionDate": null,
-          "contribution": 0,
-          "done": 0,
-          "id": "goals/Su.md",
-          "score": 37,
-          "streak": 0,
-          "streakChange": 0,
-          "target": 248
-        }
-      ],
-      "isEmpty": true
+      }
     }
   }
 ]

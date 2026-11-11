@@ -184,6 +184,15 @@ extension AccessibilityAuditExemption {
             type: .textClipped, element: .identifier("sectionHeader.count"),
             reason: "position-dependent like the section title; the counter is fixedSize and drawn whole",
             screens: ["unlinkedMentions"]),
+        // MARK: contrast
+        // Today's task rows scroll under the quick entry shelf, whose top fades from clear to paper
+        // (screens.md, Bugün). With the keyboard up a row's "Devreden" label can sit inside that fade;
+        // the audit's element screenshot then shows only the fade (PR #381 run 42998327211). The same
+        // label on the card reads 6.5:1 and above (InkPalette warningOnPaper). Position, not colour.
+        .init(
+            type: .contrast, element: .catalogKey("Devreden"),
+            reason: "position-dependent: the row sits inside the quick entry shelf's fade",
+            screens: ["quickEntryNames"]),
         // MARK: hitRegion
         .init(
             type: .hitRegion, element: .systemLabel(["Hide Sidebar", "Kenar Çubuğunu Gizle", "Kenar çubuğunu gizle"]),

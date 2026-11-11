@@ -80,23 +80,27 @@ struct TasksPageTop<Actions: View, MenuRow: View>: View {
     let current: TasksViewState.Mode
     /// Künye of the view; `nil` gives the open and carried-over counts (Liste, Kanban).
     var byline: Text? = nil
+    /// The manşet: "Görevler" with the view tabs under it. A board the split shell hosts from
+    /// its own sidebar entry (Şafak drawing: Mac and iPad "Zaman çizelgesi") names itself and
+    /// draws no tabs; the sidebar is the view selector there.
+    var title: LocalizedStringKey = "Görevler"
+    var showsTabs = true
+    /// A small control before the manşet icons (the timeline's period pill).
+    var titleAccessory: AnyView? = nil
     @ViewBuilder var actions: Actions
     @ViewBuilder var menu: MenuRow
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // The künye highlights its numbers (Şafak rule 7): a styled byline of the manşet.
-            InkPageHeader("Görevler") {
-                actions
-                TaskFiltersMenu(model: tasks)
-                SearchButton()
+            header
+                // Same insets as ``InkPageTitleRow``.
+                .padding(.top, 8)
+                .padding(.bottom, 4)
+            if showsTabs {
+                TasksViewTabs(tasks: tasks, current: current)
+                    .padding(.vertical, Self.gap)
             }
-            .byline(byline ?? countsByline)
-            // Same insets as ``InkPageTitleRow``.
-            .padding(.top, 8)
-            .padding(.bottom, 4)
-            TasksViewTabs(tasks: tasks, current: current)
-                .padding(.vertical, Self.gap)
             menu
                 .padding(.vertical, Self.gap)
             if tasks.hasFilters {
@@ -110,6 +114,20 @@ struct TasksPageTop<Actions: View, MenuRow: View>: View {
         // The boards show the list's counts too; the list view loads them itself.
         .task(id: current == .kanban ? tasks.listRequest : nil) {
             if current == .kanban { await tasks.loadList() }
+        }
+    }
+
+    @ViewBuilder private var header: some View {
+        let header = InkPageHeader(title) {
+            actions
+            TaskFiltersMenu(model: tasks)
+            SearchButton()
+        }
+        .byline(byline ?? countsByline)
+        if let titleAccessory {
+            header.titleAccessory(titleAccessory)
+        } else {
+            header
         }
     }
 

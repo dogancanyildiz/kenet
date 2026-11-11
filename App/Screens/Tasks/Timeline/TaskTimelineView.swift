@@ -1,5 +1,6 @@
 import SwiftUI
 import VaultFormat
+import VaultIndex
 
 struct TaskTimelineView: View {
     @State private var model: TimelineModel
@@ -7,6 +8,7 @@ struct TaskTimelineView: View {
     @State private var editor: TimelineDateSelection?
     @State private var sourceDay: CalendarDate?
     @State private var todayRequest = UUID()
+    @State private var periodRequest: TimelinePeriodRequest?
     @State private var selectionAnswer = TaskSelectionAnswer()
     @State private var availableWidth: CGFloat = 0
     @State private var selectedDay: CalendarDate
@@ -95,7 +97,11 @@ struct TaskTimelineView: View {
     /// The chart with the detail panel beside it: the Mac window, and the split iOS shell while
     /// the panel fits (narrower, the detail opens in a sheet as on the phone).
     @ViewBuilder private var desktop: some View {
-        TasksPageTop(tasks: model.tasks, current: .timeline, byline: byline) {
+        TasksPageTop(
+            tasks: model.tasks, current: .timeline, byline: showsFilters ? hostedByline : byline,
+            title: showsFilters ? "Zaman çizelgesi" : "Görevler", showsTabs: !showsFilters,
+            titleAccessory: showsFilters ? AnyView(periodPill) : nil
+        ) {
             // Gün and Hafta boards are not grouped (screens.md "Mac gruplama": Hafta-Çeyrek chart).
             if model.scale.showsGrouping { groupingMenu }
         } menu: {
@@ -125,7 +131,7 @@ struct TaskTimelineView: View {
             } else if model.scale == .week {
                 ScrollView(.vertical) { weekBoard }
             } else {
-                TimelineDesktopView(model: model, todayRequest: todayRequest) {
+                TimelineDesktopView(model: model, todayRequest: todayRequest, periodRequest: periodRequest) {
                     selected = $0
                 } edit: {
                     editor = TimelineDateSelection(row: $0, edge: $1, root: model.store.vaultURL)
@@ -224,11 +230,12 @@ struct TaskTimelineView: View {
                 // The menu alone sets the row height (the text button is taller on Mac), so
                 // the row sits where the other views' menu rows sit. The Çeyrek chart scrolls
                 // through the periods itself; Gün and Hafta step a week at a time.
+                // A hosted board moves its period from the manşet's pill.
                 scaleTabs
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .overlay(alignment: .trailing) {
                         HStack(spacing: 4) {
-                            if model.scale != .quarter { periodButtons }
+                            if model.scale != .quarter && !showsFilters { periodButtons }
                             todayButton
                         }
                     }
@@ -254,7 +261,7 @@ struct TaskTimelineView: View {
     private func phoneControlsRow(showsPeriodButtons: Bool) -> some View {
         HStack(spacing: 10) {
             Text("Ölçek")
-                .font(.ink.byline)
+                .font(.ink.pageByline)
                 .foregroundStyle(.ink.secondaryText)
                 .fixedSize()
                 .accessibilityHidden(true)
@@ -293,14 +300,77 @@ struct TaskTimelineView: View {
     }
 
     private var todayButton: some View {
-        Button("Bugün") {
+        Button {
             model.showToday()
             selectedDay = model.today
             todayRequest = UUID()
+        } label: {
+            // The control row's size (15 pt), as the scale tabs beside it; the label's own font
+            // wins over the style's.
+            Text("Bugün").font(.ink.pageByline.weight(.semibold))
         }
         .buttonStyle(InkTextButtonStyle())
         .fixedSize(horizontal: true, vertical: false)
         .lineLimit(1)
+    }
+
+    /// The hosted chart's period (Şafak drawing: "‹ Eylül – Ekim 2026 ›" beside the manşet
+    /// icons): the week on Gün and Hafta, the months on screen on Çeyrek.
+    private var periodPill: some View {
+        HStack(spacing: 0) {
+            periodStep(-1)
+            Text(verbatim: periodTitle)
+                .font(.ink.pageByline.weight(.semibold))
+                .foregroundStyle(.ink.text)
+                .monospacedDigit()
+                .lineLimit(1)
+                .fixedSize()
+            periodStep(1)
+        }
+        .padding(.horizontal, 2)
+        .background(Capsule().fill(Color.ink.surface))
+        .overlay(Capsule().strokeBorder(Color.ink.line, lineWidth: InkStroke.rule))
+        .accessibilityElement(children: .contain)
+    }
+
+    private func periodStep(_ direction: Int) -> some View {
+        Button {
+            shiftPeriod(by: direction)
+        } label: {
+            Image(systemName: direction < 0 ? "chevron.left" : "chevron.right")
+                .font(.ink.meta.weight(.semibold))
+                .foregroundStyle(.ink.secondaryText)
+                .tapTarget()
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(direction < 0 ? Text("Önceki dönem") : Text("Sonraki dönem"))
+    }
+
+    private var periodTitle: String {
+        switch model.scale {
+        case .day, .week:
+            guard let first = weekDates.first, let last = weekDates.last else { return "" }
+            return (first..<last).formatted(.interval.day().month(.wide).year())
+        case .month, .quarter:
+            let range = model.visibleRange
+            return (LocalDay.instant(for: range.lowerBound)..<LocalDay.instant(for: range.upperBound))
+                .formatted(.interval.month(.wide).year())
+        }
+    }
+
+    /// Künye of the hosted chart: "**8** tarihli görev · 6 proje" on Çeyrek (the months are in
+    /// the period pill), the day and its count on Gün, the week's count on Hafta.
+    private var hostedByline: Text? {
+        switch model.scale {
+        case .day:
+            return byline
+        case .week:
+            return Text("\(TasksByline.number(weekRowCount)) görev")
+        case .month, .quarter:
+            let rows = model.groups.flatMap(\.rows)
+            let projects = Set(rows.compactMap { $0.project.map(VaultIndex.projectKey) }).count
+            return Text("\(TasksByline.number(rows.count)) tarihli görev · \(projects) proje")
+        }
     }
 
     /// Gün and Hafta move the selected day by a week (the week strip shows one week); the phone
@@ -310,7 +380,14 @@ struct TaskTimelineView: View {
         case .day, .week:
             selectedDay = selectedDay.addingDays(7 * direction) ?? selectedDay
         case .month, .quarter:
-            model.shiftWindow(by: direction * model.scale.daysAcross)
+            if style == .desktop {
+                // The chart scrolls through the periods itself: a step scrolls it by a month.
+                let target = model.visibleRange.lowerBound.addingDays(direction * 30) ?? model.today
+                let clamped = min(max(target, model.bounds.lowerBound), model.bounds.upperBound)
+                periodRequest = TimelinePeriodRequest(start: clamped)
+            } else {
+                model.shiftWindow(by: direction * model.scale.daysAcross)
+            }
         }
     }
 
@@ -452,4 +529,10 @@ enum TimelineDetailPlacement {
             shell == .split && width >= panelWidth + minimumChartWidth
         #endif
     }
+}
+
+/// A step of the hosted chart's period pill: the first day the chart scrolls to.
+struct TimelinePeriodRequest: Equatable {
+    let id = UUID()
+    let start: CalendarDate
 }

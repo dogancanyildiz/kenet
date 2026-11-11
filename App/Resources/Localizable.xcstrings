@@ -401,6 +401,22 @@
         }
       }
     },
+    "%@ tarihli görev · %lld proje" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ dated tasks · %2$lld projects"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ tarihli görev · %2$lld proje"
+          }
+        }
+      }
+    },
     "%@ ve %@" : {
       "localizations" : {
         "en" : {

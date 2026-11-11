@@ -13,10 +13,13 @@ struct EntityRenameView: View {
         NavigationStack {
             List {
                 InkPageTitleRow("Adı değiştir")
-                InkFilterField("Ad", text: $model.name, identifier: "field.entity.rename.name")
+                InkFilterField("Ad", text: $model.name, identifier: "field.entity.rename.name", showsClearButton: false)
                     .inkListRow()
-                InkFilterField("Ayırt edici", text: $model.qualifier, identifier: "field.entity.rename.qualifier")
-                    .inkListRow()
+                InkFilterField(
+                    "Ayırt edici", text: $model.qualifier, identifier: "field.entity.rename.qualifier",
+                    showsClearButton: false
+                )
+                .inkListRow()
                 if model.needsQualifier {
                     Text("Bu ad kullanılıyor. Farklı bir ad veya ayırt edici yazın.")
                         .font(.ink.meta)

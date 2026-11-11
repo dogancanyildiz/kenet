@@ -79,9 +79,7 @@ struct GoalValueChart: View {
     private func daily(_ series: GoalValueSeries) -> some View {
         if let average = series.average, let peak = series.peak {
             VStack(alignment: .leading, spacing: 8) {
-                header(
-                    String(
-                        localized: "Ortalama \(amount(average)) · \(series.metCount) günde hedefin üstünde"))
+                header(dailySummary(average: average, metCount: series.metCount))
                 lineChart(series, peak: peak)
                     .frame(height: chartHeight)
                     .accessibilityElement(children: .ignore)
@@ -98,6 +96,8 @@ struct GoalValueChart: View {
                     .font(.ink.meta.monospacedDigit())
                     .foregroundStyle(Color.ink.secondaryText)
                     .accessibilityHidden(true)
+                } else {
+                    legend(target: series.target)
                 }
             }
         } else {
@@ -113,7 +113,7 @@ struct GoalValueChart: View {
     /// The title row inside the card: title on the leading side, the summary on the trailing one
     /// (wrapping under the title at large sizes). Draws nothing without a ``title``.
     @ViewBuilder
-    private func header(_ summary: String?) -> some View {
+    private func header(_ summary: Text?) -> some View {
         if let title {
             ViewThatFits(in: .horizontal) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -138,9 +138,10 @@ struct GoalValueChart: View {
             .accessibilityIdentifier(SectionHeader.titleIdentifier)
     }
 
-    private func headerSummary(_ summary: String) -> some View {
-        Text(verbatim: summary)
-            .font(.ink.meta.monospacedDigit())
+    /// Caption size as in the drawing, so "Ortalama 25,2 · hedefin üstünde 78 gün" fits beside the title.
+    private func headerSummary(_ summary: Text) -> some View {
+        summary
+            .font(.caption.monospacedDigit())
             .foregroundStyle(Color.ink.secondaryText)
             .accessibilityHidden(true)
     }
@@ -236,7 +237,7 @@ struct GoalValueChart: View {
     private func periodic(_ totals: GoalPeriodTotals) -> some View {
         let peak = totals.peak
         VStack(alignment: .leading, spacing: 8) {
-            header(totalText(totals))
+            header(Text(totalText(totals)))
             barChart(totals)
                 .frame(height: chartHeight)
                 .accessibilityElement(children: .ignore)
@@ -325,6 +326,51 @@ struct GoalValueChart: View {
         return switch totals.unit {
         case .week: String(localized: "hedef \(value)")
         case .month: String(localized: "ayda \(value)")
+        }
+    }
+
+    /// The card's summary in the drawing's form: "Ortalama **25,2** · hedefin üstünde **78** gün". The
+    /// average carries no unit; the target's legend item names it.
+    private func dailySummary(average: Double, metCount: Int) -> Text {
+        let mean = Text(average.formatted(Self.axisNumber.locale(locale))).fontWeight(.semibold)
+            .foregroundStyle(Color.ink.text)
+        let days = Text(metCount.formatted(.number.locale(locale))).fontWeight(.semibold)
+            .foregroundStyle(Color.ink.text)
+        return Text("Ortalama \(mean) · hedefin üstünde \(days) gün")
+    }
+
+    /// The daily plot's key under the chart: filled point, ring, the 7-day line and the dashed target.
+    /// The chart already reads as one element with its own summary, so VoiceOver skips the key.
+    private func legend(target: Double) -> some View {
+        InkFlowLayout(spacing: 12, lineSpacing: 4) {
+            legendItem(Text("Ulaştı")) {
+                Circle().fill(Color.ink.accent).frame(width: 7, height: 7)
+            }
+            legendItem(Text("Altında")) {
+                Circle().strokeBorder(Color.ink.accent, lineWidth: 1.5).frame(width: 7, height: 7)
+            }
+            legendItem(Text("\(GoalValueSeries.window) gün ort.")) {
+                Capsule().fill(Color.ink.text).frame(width: 14, height: 2.5)
+            }
+            legendItem(Text("Hedef \(target.formatted(Self.axisNumber.locale(locale)))")) {
+                Path { path in
+                    path.move(to: CGPoint(x: 0, y: 1))
+                    path.addLine(to: CGPoint(x: 14, y: 1))
+                }
+                .stroke(Color.ink.secondaryText, style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
+                .frame(width: 14, height: 2)
+            }
+        }
+        .accessibilityHidden(true)
+    }
+
+    private func legendItem(_ label: Text, @ViewBuilder mark: () -> some View) -> some View {
+        HStack(spacing: 4) {
+            mark()
+            label
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 

@@ -23,6 +23,13 @@ struct PlacesMapView: View {
         _camera = State(
             initialValue: Self.framing(PlacesMapModel.pins(places: store.mapPlaces, usage: store.entityUsage)))
     }
+    /// "**4** konum · **12** ziyaret": the künye's numbers in semibold text colour.
+    private var bylineText: Text {
+        let places = GraphView.bylineNumber(pins.count, locale: locale)
+        let visits = GraphView.bylineNumber(pins.reduce(0) { $0 + $1.count }, locale: locale)
+        return Text("\(places) konum · \(visits) ziyaret")
+    }
+
     var body: some View {
         // Pinned manşet above the full-bleed map; its row carries the page's icons.
         VStack(alignment: .leading, spacing: 0) {
@@ -40,6 +47,7 @@ struct PlacesMapView: View {
                 .disabled(!location.authorization.canLocate || !location.isEnabled)
                 SearchButton()
             }
+            .byline(bylineText)
             content
         }
         .inkGlow()

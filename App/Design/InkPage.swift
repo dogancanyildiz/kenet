@@ -384,6 +384,37 @@ extension View {
     }
 }
 
+extension View {
+    /// A selectable column list (Günlük, Kişiler, Görevler) draws its own selection
+    /// (``InkListSelectionBackground``). The system focus halo would frame the selected row edge
+    /// to edge over it (iPad with a keyboard), so it is off on the Mac and in the split iOS
+    /// shell; the selection itself still follows focus and the arrow keys (design.md kural 12).
+    /// iPadOS draws the halo in the cell's tint, so the list's tint is clear there, as the
+    /// sidebar's; ``View/inkListRow(columnSelected:cardSegment:)`` gives the row's content the
+    /// accent back.
+    func inkColumnListFocus() -> some View {
+        modifier(InkColumnListFocus())
+    }
+}
+
+private struct InkColumnListFocus: ViewModifier {
+    #if os(iOS)
+        @Environment(\.shellKind) private var shellKind
+    #endif
+
+    func body(content: Content) -> some View {
+        #if os(iOS)
+            if shellKind == .split {
+                content.focusEffectDisabled().tint(Color.clear)
+            } else {
+                content
+            }
+        #else
+            content.focusEffectDisabled()
+        #endif
+    }
+}
+
 /// The page list row's insets (``View/inkListRow(columnSelected:cardSegment:)``).
 enum InkListRowInsets {
     static let vertical: CGFloat = 6
@@ -419,7 +450,9 @@ private struct InkListRowModifier: ViewModifier {
             }
         #else
             if shellKind == .split, columnSelected != nil {
-                content.inkPointerHighlight()
+                // The column list's tint is clear (``View/inkColumnListFocus()``); the row's own
+                // controls and links keep the accent.
+                content.tint(Color.ink.accent).inkPointerHighlight()
             } else {
                 content
             }

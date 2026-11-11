@@ -1327,7 +1327,7 @@ Adı `Pad` ile başlayan kümeler iPad tuvallerini çizer: `PadShellSnapshotTest
 
 Tam uygulama akışı için XCUITest dumanı kalır. CI dumanı `-only-testing:JournalUITests` ile koşturur. DEBUG derlemede `JOURNAL_UITEST_VAULT` verilen klasörü kasa olarak açar; otomatik gerçek kasa, bildirim ya da kilit başlamaz.
 
-Ekran turu (`ScreenTourUITests`, `sh .github/scripts/screen-tour.sh`) aynı testle iPhone'da ve `--pad` ile iPad simülatöründe koşar. iPad'de bölünmüş kabukta sekme yoktur: `UITestSupport` her sekme kimliğini kenar çubuğu satırına eşler (`tab.entities` → `sidebar.people`), Kanban, zaman çizelgesi, proje, Konumlar, Özetler, Graph ve harita kendi satırından açılır. iPad turu yatay koşar; `SCREEN_TOUR_ORIENTATION=portrait` dik koşturur. Erişilebilirlik denetimi (`AccessibilityAuditUITests`) aynı eşlemeyle iPad'de de koşar; bölünmüş kabukta aygıtı yatay döndürür ve bitince dik bırakır.
+Ekran turu (`ScreenTourUITests`, `sh .github/scripts/screen-tour.sh`) aynı testle iPhone'da ve `--pad` ile iPad simülatöründe koşar. iPad'de bölünmüş kabukta sekme yoktur: `UITestSupport` her sekme kimliğini kenar çubuğu satırına eşler (`tab.entities` → `sidebar.people`), Kanban, zaman çizelgesi, proje, Konumlar, Özetler, Graph ve harita kendi satırından açılır. iPad turu yatay koşar; `SCREEN_TOUR_ORIENTATION=portrait` dik koşturur. iPhone ve iPad turu iki koşudur: önce açık görünüm, sonra `20-koyu-*` görüntüleri. Betik ikinci koşudan önce simülatörü `simctl ui appearance dark` ile koyuya alır. Neden: `XCUIDevice.appearance` simülatörü koyuya çevirmedi. Erişilebilirlik denetimi (`AccessibilityAuditUITests`) aynı eşlemeyle iPad'de de koşar; bölünmüş kabukta aygıtı yatay döndürür ve bitince dik bırakır.
 
 ### CI
 

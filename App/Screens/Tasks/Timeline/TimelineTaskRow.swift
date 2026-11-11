@@ -34,27 +34,16 @@ struct TimelineTaskRow: View {
             presentation.usesSecondaryText ? Color.ink.secondaryText : Color.ink.text)
     }
 
+    /// The task's box (Şafak: every task row starts with it); the priority is inside it.
+    /// Decorative: the row opens the detail, where the task is completed.
+    private var boxState: TaskBoxState {
+        TaskBoxState(status: row.isClosed ? .done : KanbanModel.status(of: row), priority: row.priority)
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if row.start == nil && row.due == nil {
-                // An undated row has no date line: its marks (priority, done) sit beside the text.
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    title
-                    Spacer(minLength: 0)
-                    TimelineTaskFacts(model: model, row: row, presentation: presentation)
-                }
-            } else {
-                title
-                TimelineTaskFacts(model: model, row: row, presentation: presentation)
-            }
-            if let span = model.dates(for: row).span(on: model.today), span.isReversed {
-                HStack(spacing: 4) {
-                    Image(systemName: "exclamationmark.triangle")
-                    Text("Geçersiz tarih aralığı")
-                }
-                .font(.ink.meta)
-                .foregroundStyle(.ink.warning)
-            }
+        HStack(alignment: .top, spacing: 10) {
+            TaskBox(state: boxState, isDecorative: true)
+            content
         }
         .padding(.vertical, 6)
         .contentShape(Rectangle()).onTapGesture(perform: select)
@@ -64,6 +53,30 @@ struct TimelineTaskRow: View {
         .accessibilityAction(named: Text("Ayrıntıları göster"), select)
         .accessibilityAction(named: Text(verbatim: VoiceOverCopy.changeDateActionName())) {
             edit(.due)
+        }
+    }
+
+    private var content: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if row.start == nil && row.due == nil {
+                // An undated row has no date line: its marks (done) sit beside the text.
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    title
+                    Spacer(minLength: 0)
+                    TimelineTaskFacts(model: model, row: row, presentation: presentation, beside: .box)
+                }
+            } else {
+                title
+                TimelineTaskFacts(model: model, row: row, presentation: presentation, beside: .box)
+            }
+            if let span = model.dates(for: row).span(on: model.today), span.isReversed {
+                HStack(spacing: 4) {
+                    Image(systemName: "exclamationmark.triangle")
+                    Text("Geçersiz tarih aralığı")
+                }
+                .font(.ink.meta)
+                .foregroundStyle(.ink.warning)
+            }
         }
     }
 }
@@ -76,6 +89,11 @@ struct TimelineTaskFacts: View {
     let presentation: TaskStatusPresentation
     /// The phone chart's narrow label column: day and short month, no year ("1 Eki → 30 Kas").
     var compact = false
+    /// Where the facts sit: beside the row's ``TaskBox`` the box already shows the medium and
+    /// high priority and the done state; the label column has no box.
+    var beside: Placement = .label
+
+    enum Placement { case label, box }
 
     private var format: Date.FormatStyle {
         compact ? .dateTime.day().month(.abbreviated) : .dateTime.day().month().year()
@@ -108,10 +126,10 @@ struct TimelineTaskFacts: View {
                     .font(.ink.meta)
                     .foregroundStyle(.ink.secondaryText)
             }
-            if let priority = row.priority {
+            if let priority = row.priority, beside == .label || priority == .low {
                 TaskPriorityMark(priority: priority)
             }
-            if row.isClosed {
+            if row.isClosed && beside == .label {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.ink.meta)
                     .foregroundStyle(.ink.secondaryText)

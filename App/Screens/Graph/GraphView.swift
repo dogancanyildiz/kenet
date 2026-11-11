@@ -164,12 +164,27 @@ struct GraphView: View {
 
     /// The whole graph's manşet holds the kind filter; a day's graph names its day instead.
     private var masthead: InkPageTitle<some View> {
-        InkPageTitle(pageTitle, byline: day.map { Self.byline($0, locale: locale) } ?? rootByline) {
+        let title = InkPageTitle(pageTitle, byline: day.map { Self.byline($0, locale: locale) } ?? rootByline) {
             if day == nil {
                 GraphFilterMenu(filter: $model.filter, types: customTypes)
             }
             SearchButton()
         }
+        // The künye highlights its numbers (Şafak drawing: "**14** kişi · **9** konum").
+        return day == nil ? title.byline(rootBylineText) : title
+    }
+
+    private var rootBylineText: Text {
+        let nodes = model.graph.nodes
+        let people = Self.bylineNumber(nodes.filter { $0.kind == .person }.count, locale: locale)
+        let places = Self.bylineNumber(nodes.filter { $0.kind == .place }.count, locale: locale)
+        let days = Self.bylineNumber(nodes.filter { $0.kind == .day }.count, locale: locale)
+        return Text("\(people) kişi · \(places) konum · \(days) gün")
+    }
+
+    /// A künye number: semibold in the text colour, the rest of the line stays secondary.
+    static func bylineNumber(_ value: Int, locale: Locale) -> Text {
+        Text(value.formatted(.number.locale(locale))).fontWeight(.semibold).foregroundStyle(Color.ink.text)
     }
 
     /// Counts of what the graph draws for the chosen period.

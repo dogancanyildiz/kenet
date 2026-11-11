@@ -610,7 +610,6 @@ struct MacEntitiesColumn: View {
     var unseenReveal: UUID? = nil
     @State private var creationKind: VaultEntityKind?
     @State private var showsTypeGallery = false
-    @Environment(\.locale) private var locale
     #if os(iOS)
         @State private var showsContactPicker = false
     #endif
@@ -632,19 +631,21 @@ struct MacEntitiesColumn: View {
             EntityTypePicker(store: store, selection: $kind)
                 .padding(.horizontal, InkSpacing.margin)
                 .padding(.bottom, InkSpacing.section)
-            ForEach(EntityColumnAction.actions(forList: kind, types: store.entityTypes), id: \.self) { action in
-                actionButton(action)
-                    .buttonStyle(InkTextButtonStyle())
-                    .disabled(!store.canAddEvent || (action == .newType && !EntityTypeGalleryEntry.isEnabled(store)))
-                    .padding(.horizontal, InkSpacing.margin)
-                    .padding(.bottom, InkSpacing.section)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    // As the Günlük column's links: whole names before the list's height.
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+            // Şafak drawing: the filter right under the kind tabs, then one action row.
             EntityFilterField(search: $search)
                 .padding(.horizontal, InkSpacing.margin)
-                .padding(.bottom, InkSpacing.section)
+                .padding(.bottom, 4)
+            EntityActionRow(
+                store: store, kind: kind, create: { creationKind = $0 },
+                importContacts: {
+                    #if os(iOS)
+                        showsContactPicker = true
+                    #endif
+                },
+                newType: { showsTypeGallery = true }
+            )
+            .padding(.horizontal, InkSpacing.margin)
+            .padding(.bottom, 4)
             MacEntityList(
                 store: store,
                 entities: EntityListQuery.entities(
@@ -660,39 +661,6 @@ struct MacEntitiesColumn: View {
         #endif
     }
 
-    @ViewBuilder private func actionButton(_ action: EntityColumnAction) -> some View {
-        switch action {
-        case .create(let creatable):
-            Button {
-                creationKind = creatable
-            } label: {
-                Label(
-                    EntityCreateEntry.title(
-                        creatable, types: store.entityTypes,
-                        language: locale.language.languageCode?.identifier ?? "en"),
-                    systemImage: EntityCreateEntry.systemImage(creatable, types: store.entityTypes))
-            }
-            .accessibilityIdentifier(EntityCreateEntry.identifier(creatable))
-        case .importContacts:
-            #if os(iOS)
-                // The phone page's "Rehberden aktar" row, as a text button like "Yeni kişi".
-                Button {
-                    showsContactPicker = true
-                } label: {
-                    ContactImportEntry.label
-                }
-                .accessibilityIdentifier(ContactImportEntry.identifier)
-            #endif
-        case .newType:
-            Button {
-                showsTypeGallery = true
-            } label: {
-                Label("Yeni tip…", systemImage: EntityTypeGalleryEntry.systemImage)
-            }
-            .accessibilityIdentifier(EntityTypeGalleryEntry.identifier)
-        }
-    }
-
     /// The manşet follows the kind tab, which can differ from the sidebar row.
     private var title: LocalizedStringKey {
         switch kind {
@@ -700,25 +668,6 @@ struct MacEntitiesColumn: View {
         case "place": "Konumlar"
         default: sectionTitle
         }
-    }
-}
-
-/// The text buttons under the Kişiler / Konumlar column's kind tabs, top to bottom.
-enum EntityColumnAction: Hashable {
-    /// "Yeni kişi", "Yeni konum" or "Yeni <tip>" for a custom type the vault defines.
-    case create(VaultEntityKind)
-    /// "Rehberden aktar": people only, and only on iOS (the Mac has no contact picker).
-    case importContacts
-    /// "Yeni tip…": the type gallery, under every kind.
-    case newType
-
-    static func actions(forList kind: String, types: EntityTypeCatalog) -> [Self] {
-        var actions = EntityCreateEntry.kind(forList: kind, types: types).map { [Self.create($0)] } ?? []
-        #if os(iOS)
-            if ContactImportEntry.isShown(forList: kind) { actions.append(.importContacts) }
-        #endif
-        actions.append(.newType)
-        return actions
     }
 }
 
@@ -758,6 +707,7 @@ struct MacDayList<Top: View>: View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
+        .inkColumnListFocus()
     }
 }
 
@@ -798,6 +748,7 @@ struct MacEntityList: View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
+        .inkColumnListFocus()
         .entityListActivity(store: store, into: $activity)
         .entityDefinitionActions(
             store: store, editing: $editingEntity,

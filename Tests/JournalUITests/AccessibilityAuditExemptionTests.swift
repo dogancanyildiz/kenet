@@ -20,7 +20,7 @@ final class AccessibilityAuditExemptionTests: XCTestCase {
     func testFormatArgumentMatchesAnyText() {
         XCTAssertTrue(isExempt(.dynamicType, label: "Show all (13)"))
         XCTAssertTrue(isExempt(.dynamicType, label: "Tümünü göster (2)"))
-        XCTAssertTrue(isExempt(.dynamicType, label: "Person · Lale, Ortak · Last seen: Oct 10, 2026"))
+        XCTAssertTrue(isExempt(.dynamicType, label: "Person · Lale, Ortak · last seen Oct 10, 2026"))
     }
 
     func testCalendarWeekdayLettersInBothLanguages() {

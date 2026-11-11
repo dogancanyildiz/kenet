@@ -8,6 +8,12 @@ import XCTest
 /// names are the iPhone tour's, so the two sets line up. `JOURNAL_SCREEN_TOUR_ORIENTATION`
 /// (`landscape`, `portrait`) turns the device first and back to portrait when the tour ends.
 ///
+/// `JOURNAL_SCREEN_TOUR_PASS` splits the tour: `light` walks every screen, `dark` only the
+/// `20-koyu-*` images. The script turns the simulator dark between the two runs (`simctl ui
+/// appearance dark`): `XCUIDevice.appearance` did not change the simulator's appearance (the
+/// dark images came out light, status bar included). Without the key one run does both, the
+/// dark part through `XCUIDevice` (a device where that works).
+///
 /// Skipped unless `JOURNAL_SCREEN_TOUR_DIR` names an output folder, so the regular
 /// `-only-testing:JournalUITests` run does not pay for it. Run it through
 /// `.github/scripts/screen-tour.sh <folder>`; the folder must stay outside the repository.
@@ -19,6 +25,7 @@ final class ScreenTourUITests: XCTestCase {
     static let directoryKey = "JOURNAL_SCREEN_TOUR_DIR"
     static let treeDumpKey = "JOURNAL_SCREEN_TOUR_TREE"
     static let orientationKey = "JOURNAL_SCREEN_TOUR_ORIENTATION"
+    static let passKey = "JOURNAL_SCREEN_TOUR_PASS"
 
     private var vaultURL: URL?
     private var tour: ScreenTourDriver!
@@ -51,8 +58,14 @@ final class ScreenTourUITests: XCTestCase {
         let directory = URL(fileURLWithPath: environment[Self.directoryKey] ?? "", isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let vault = try XCTUnwrap(vaultURL)
-        XCUIDevice.shared.appearance = .light
-        defer { XCUIDevice.shared.appearance = .light }
+        let pass = environment[Self.passKey] ?? ""
+        // The script sets the simulator's appearance itself; only the one-run tour asks XCUIDevice.
+        if pass.isEmpty {
+            XCUIDevice.shared.appearance = .light
+        }
+        defer {
+            if pass.isEmpty { XCUIDevice.shared.appearance = .light }
+        }
         switch environment[Self.orientationKey] ?? "" {
         case "landscape": XCUIDevice.shared.orientation = .landscapeLeft
         case "portrait": XCUIDevice.shared.orientation = .portrait
@@ -67,23 +80,27 @@ final class ScreenTourUITests: XCTestCase {
         _ = tour.id("screen.today").waitForExistence(timeout: 30)
         tour.log("kabuk: \(tour.isSplitShell ? "bölünmüş" : "sekmeler"), ekran \(tour.app.frame.size)")
 
-        todayAndDays()
-        tasks()
-        taskSheets()
-        entities()
-        entityPages()
-        goals()
-        search(prefix: "13-arama")
-        settings()
-        quickEntry(prefix: "15-hizli-giris", withTaskMode: true)
-        darkPass()
+        if pass != "dark" {
+            todayAndDays()
+            tasks()
+            taskSheets()
+            entities()
+            entityPages()
+            goals()
+            search(prefix: "13-arama")
+            settings()
+            quickEntry(prefix: "15-hizli-giris", withTaskMode: true)
+        }
+        if pass != "light" {
+            darkPass(setsAppearance: pass.isEmpty)
+        }
 
         let fixture = UITestSupport.repositoryRoot().appendingPathComponent("Fixtures/vaults/sample")
         let changed = tour.changedVaultFiles(fixture: fixture)
         if !changed.isEmpty {
             tour.skip("UYARI kasa değişti", reason: changed.joined(separator: ", "))
         }
-        tour.writeSkipped()
+        tour.writeSkipped(fileName: pass == "dark" ? "atlananlar-koyu.txt" : "atlananlar.txt")
     }
 
     // MARK: Roots
@@ -187,6 +204,9 @@ final class ScreenTourUITests: XCTestCase {
             try openDays()
             try tour.row(pastDay).tap()
             try tour.waitFor(ids: ["screen.day"])
+            // The split shell keeps the day page scrolled from the step before; the scrolled
+            // manşet carries search only (screens.md), so the graph icon needs the page's top.
+            tour.scrollToTop()
             try tour.tap(ids: ["button.dayGraph"], labels: ["Günün grafiği"])
             try tour.waitFor(ids: ["screen.dayGraph"])
             tour.shot("02-gunun-grafigi", settle: 3)
@@ -341,7 +361,7 @@ final class ScreenTourUITests: XCTestCase {
             try openEntities("Konumlar")
             let field = try tour.field(
                 ids: ["field.entityFilter", "field.entitySearch", "field.entities.filter"],
-                placeholders: ["Kişi veya konum ara"])
+                placeholders: ["Süz"])
             tour.type("Li", into: field)
             tour.shot("09-konumlar-suzgec-dolu")
             tour.erase(2)
@@ -542,8 +562,12 @@ final class ScreenTourUITests: XCTestCase {
 
     // MARK: Dark appearance (selected base screens)
 
-    @MainActor private func darkPass() {
-        XCUIDevice.shared.appearance = .dark
+    /// `setsAppearance`: the one-run tour turns the device dark here; the script's dark run
+    /// starts on a simulator that is already dark.
+    @MainActor private func darkPass(setsAppearance: Bool) {
+        if setsAppearance {
+            XCUIDevice.shared.appearance = .dark
+        }
         tour.pause(1.5)
         tour.step("20-koyu-bugun") {
             try openToday()
@@ -594,6 +618,8 @@ final class ScreenTourUITests: XCTestCase {
             tour.shot("20-koyu-ayarlar-bildirimler")
         }
         quickEntry(prefix: "20-koyu-hizli-giris", withTaskMode: false)
-        XCUIDevice.shared.appearance = .light
+        if setsAppearance {
+            XCUIDevice.shared.appearance = .light
+        }
     }
 }

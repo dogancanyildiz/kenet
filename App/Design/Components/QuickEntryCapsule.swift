@@ -17,8 +17,18 @@ enum QuickEntryCapsuleLayout: Equatable, Sendable {
     /// The frames, not this number, are the visual gap.
     static let tapFrameGap: CGFloat = 2
 
+    /// Height of the rule after the mode words on the single row.
+    static let ruleHeight: CGFloat = 22
+
     static func resolve(dynamicTypeSize: DynamicTypeSize) -> Self {
         dynamicTypeSize.isAccessibilitySize ? .stacked : .singleRow
+    }
+
+    /// Whether the default-size capsule splits into two rows (mode words and time on top, field
+    /// and send below). Only a compact-width iPhone does; a regular-width iPad and the Mac keep
+    /// one row: Olay | Görev · time · field · send (drawing: iPad frame of `c-mac`, fark2 D7).
+    static func usesTwoRows(layout: Self, isCompactWidth: Bool) -> Bool {
+        layout == .singleRow && isCompactWidth
     }
 
     /// Stack spacing between the two kip words.
@@ -35,8 +45,9 @@ enum QuickEntryCapsuleLayout: Equatable, Sendable {
 /// Callers supply their own field; this view does not own text state.
 ///
 /// iPhone (drawing: Bugün): two rows in a rounded card: the mode words and, at the trailing
-/// end, the `accessory` (the time chip) on top, the field and send below. Mac keeps one row; there the accessory
-/// sits before the field.
+/// end, the `accessory` (the time chip) on top, the field and send below. iPad (regular width)
+/// and Mac keep one pill row; there a thin rule follows the mode words and the accessory sits
+/// before the field.
 struct QuickEntryCapsule<Field: View, Accessory: View>: View {
     @Binding var mode: QuickEntryMode
     var canSubmit: Bool
@@ -49,15 +60,19 @@ struct QuickEntryCapsule<Field: View, Accessory: View>: View {
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
+    #if os(iOS)
+        @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    #endif
 
     private var layout: QuickEntryCapsuleLayout {
         QuickEntryCapsuleLayout.resolve(dynamicTypeSize: dynamicTypeSize)
     }
 
-    /// The iPhone draws the default text sizes on two rows; Mac keeps one row.
+    /// The iPhone draws the default text sizes on two rows; iPad and Mac keep one row.
     private var usesTwoRows: Bool {
         #if os(iOS)
-            layout == .singleRow
+            QuickEntryCapsuleLayout.usesTwoRows(
+                layout: layout, isCompactWidth: horizontalSizeClass != .regular)
         #else
             false
         #endif
@@ -84,6 +99,7 @@ struct QuickEntryCapsule<Field: View, Accessory: View>: View {
                 case .singleRow:
                     HStack(alignment: .center, spacing: 6) {
                         modePicker
+                        modeRule
                         accessory()
                         fieldSlot
                         sendButton
@@ -122,6 +138,15 @@ struct QuickEntryCapsule<Field: View, Accessory: View>: View {
             RoundedRectangle(cornerRadius: InkSize.quickEntryCorner, style: .continuous)
                 .fill(color)
         }
+    }
+
+    /// Thin vertical rule between the mode words and the rest of the single row (drawing).
+    private var modeRule: some View {
+        Rectangle()
+            .fill(Color.ink.line)
+            .frame(width: InkStroke.rule, height: QuickEntryCapsuleLayout.ruleHeight)
+            .padding(.horizontal, 4)
+            .accessibilityHidden(true)
     }
 
     private var modePicker: some View {

@@ -152,7 +152,7 @@ struct AdaptiveShellTests {
         #expect(ShellColumnWidth.macSidebar == ShellColumnWidth(min: 180, ideal: 200, max: 240))
     }
 
-    /// The Kişiler column's text buttons: "Rehberden aktar" joins "Yeni kişi" on iOS (the split
+    /// The Kişiler action row ("+ Yeni kişi", then "…"): "Rehberden aktar" joins on iOS (the split
     /// shell's column, as on the phone page); the Mac has no contact picker. "Yeni tip…" closes
     /// every kind's list; a custom type the vault defines gets its own create button.
     @Test func entitiesColumnActionsFollowTheKindAndPlatform() {

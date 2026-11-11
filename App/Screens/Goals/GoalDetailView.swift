@@ -12,6 +12,9 @@ struct GoalDetailView: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.locale) private var locale
     @State private var isEditing = false
+    /// "Son kayıtlar" lists the newest ``recentLimit`` rows until the reader asks for all of them.
+    @State private var showsAllLogs = false
+    private static let recentLimit = 3
     @ScaledMetric(relativeTo: .caption) private var forgivenMark: CGFloat = 12
 
     init(store: IndexStore, goal: GoalDefinition, day: CalendarDate = LocalDay.today()) {
@@ -46,6 +49,11 @@ struct GoalDetailView: View {
 
                 if goal.kind != .milestone, showsStats(status) {
                     statsStrip(status: status)
+                        .padding(.horizontal, InkSpacing.margin)
+                }
+
+                if let forgiven = latestForgivenDay {
+                    forgivenLine(forgiven)
                         .padding(.horizontal, InkSpacing.margin)
                 }
 
@@ -217,7 +225,7 @@ struct GoalDetailView: View {
                     Label("Miktar gir", systemImage: "line.3.horizontal")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(InkSecondaryButtonStyle())
+                .buttonStyle(GoalAmountButtonStyle())
                 .disabled(!history.canEdit)
 
                 Button {
@@ -380,9 +388,10 @@ struct GoalDetailView: View {
                         .foregroundStyle(Color.ink.secondaryText)
                         .padding(InkSpacing.cardPadding)
                 } else {
+                    let shown = showsAllLogs ? logs : Array(logs.prefix(Self.recentLimit))
                     // One stack without the card's row gap: rows sit flush between hairlines.
                     VStack(spacing: 0) {
-                        ForEach(Array(logs.enumerated()), id: \.element.day) { index, log in
+                        ForEach(Array(shown.enumerated()), id: \.element.day) { index, log in
                             if index > 0 { InkCardDivider().padding(.leading, InkSpacing.cardPadding) }
                             Button {
                                 Task { await edit(log.day) }
@@ -395,7 +404,49 @@ struct GoalDetailView: View {
                     }
                 }
             }
+            let count = (history.logs[goal.key] ?? []).count
+            if count > Self.recentLimit {
+                Button {
+                    showsAllLogs.toggle()
+                } label: {
+                    Group {
+                        if showsAllLogs { Text("Daha az göster") } else { Text("Tüm kayıtlar (\(count))") }
+                    }
+                    .font(.ink.meta.weight(.semibold))
+                }
+                .buttonStyle(InkTextButtonStyle())
+                .accessibilityIdentifier("button.goal.allLogs")
+            }
         }
+    }
+
+    /// The newest forgiven miss in the last 90 days: the page explains why it did not break the chain.
+    private var latestForgivenDay: CalendarDate? {
+        GoalListPresentation.forgivenDays(
+            goal: goal, logs: history.logs[goal.key] ?? [], today: history.day
+        ).last
+    }
+
+    /// "⬚ 14 Eyl affedildi: önceki iki gün ve ertesi gün yapıldı." under the stats card. A miss is
+    /// forgiven only when the two days before it and the day after it were done (``GoalProgress``).
+    private func forgivenLine(_ day: CalendarDate) -> some View {
+        let date = LocalDay.instant(for: day).formatted(.dateTime.day().month(.abbreviated).locale(locale))
+        return HStack(alignment: .firstTextBaseline, spacing: 8) {
+            HeatmapCell(
+                kind: .forgiven, size: forgivenMark, accessibilityValue: Text("Affedildi"),
+                accessibilityLabel: Text("Affedildi")
+            )
+            .alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + 4 }
+            .accessibilityHidden(true)
+            Text(
+                "\(Text("\(date) affedildi:").fontWeight(.semibold).foregroundStyle(Color.ink.text)) önceki iki gün ve ertesi gün yapıldı."
+            )
+            .font(.ink.meta)
+            .foregroundStyle(Color.ink.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("goal.forgivenDay")
     }
 
     /// "19 Eyl Cumartesi … ✓ 25 sayfa ›": the check when the day met the target.

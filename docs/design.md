@@ -73,12 +73,12 @@ Seçim sürecinin, oylamanın ve jürinin ayrıntılı gerekçesi git geçmişin
 | 4 | Her renk belirtecinin 4 varyantı vardır: açık, koyu ve ikisinin Kontrastı Artır karşılığı. Gövde ve ikincil metin en az 4,5:1 kontrast taşır; hedef 7:1'dir. İri metin ve denetim sınırları en az 3:1 kontrast taşır. |
 | 5 | Durumu hiçbir zaman yalnız renk, gölge ya da opaklık anlatmaz. Bağlantı renkten başka bir ipucu daha taşır. Devreden görev işaret ve tarih taşır. Tamamlanan görev dolu onay işareti taşır ve metni okunur kalır. Zaman kartının sol çubuğu rengin yanında metin taşır: "14 Eyl'den", "Bitti". |
 | 6 | Geciken tarih kırmızı değildir; uyarı rengini ve işareti taşır. Kırmızı yalnız gerçek hatayı ve yıkıcı eylemi gösterir. |
-| 7 | Vurgu kalanı gösterir: yapılmış hedef ve tamamlanan görev geri plana geçer. Biten işin ayrı yeşili yoktur; biten iş ikincil metin rengini alır. Gün halkasının vurgu yayı ve ortasındaki sayı günün tamamlanan payıdır (yüzde). |
+| 7 | Vurgu kalanı gösterir: yapılmış hedef ve tamamlanan görev geri plana geçer. Biten işin ayrı yeşili yoktur; biten iş ikincil metin rengini alır. Hedef halkası istisnadır: tamamlanan halka tam vurgu halkasıdır. Gün halkasının vurgu yayı ve ortasındaki sayı günün tamamlanan payıdır (yüzde). |
 | 8 | Uygulama yalnız sistem yazı tiplerini kullanır: SF Pro; New York yalnız `content` rolü serife dönerse. Metin semantik stilleri kullanır ve Dynamic Type ile büyür. Sabit punto yoktur. |
 | 9 | iOS'ta hiçbir metin 12 pt'nin altında değildir. Etiketler cümle düzenindedir: hafta şeridinde "Pzt". Büyük harfli, geniş aralıklı etiket yoktur. |
 | 10 | Dokunma hedefleri en az 44 pt'dir. iOS'ta kısa sözcüklü metin düğmesi ("Geri", "İleri") 44 pt genişliğe uzar; sözcük başta kalır. Tek satırlık satır ve anahtar satırı 44 pt yüksekliktedir. Hafta şeridinin her günü 44 × 56 pt'dir. |
 | 11 | İçerikte zeminle zıt parlaklıkta büyük yüzey yoktur. Parıltı zeminin parlaklık ailesinde kalır; parıltı üstündeki ikincil metin en az 4,5:1 taşır. Böylece altından geçen sistem camı açık ile koyu arasında çevrilmez. |
-| 12 | Mac'te kenar çubuğu uygulamanın vurgu rengini taşır: mürdüm. Simgeler vurgu rengindedir. Seçili satır vurgu rengiyle dolar; yazısı ve simgesi vurgu üstü rengindedir. Kontrast açıkta 8,70:1, koyuda 7,28:1'dir; alt sınır 4,5:1'dir. Kenar çubuğu `elevated` zemindedir; parıltı yoktur. Yalnız seçili girdi vurgu alır: Görevler'in altındaki Kanban, Zaman çizelgesi ve projeler ayrı satırdır. Seçimin kendisi sistemindir: ok tuşları, odak, VoiceOver. Yalnız çizim uygulamanındır. Bölünmüş kabukta (iPhone Duo iç ekranı, iPad) aynı kural geçerlidir: sistemin seçim vurgusu ve odak çerçevesi dolgunun üstüne çizilmez. |
+| 12 | Mac'te kenar çubuğunun seçili satırı `accentSoft` ile dolar. Seçili satırın simgesi vurgu rengindedir: mürdüm. Seçili satırın yazısı `text` rengindedir ve yarı kalındır. Öteki satırların simgesi `secondaryText` rengindedir. Kontrast `accentSoft` üstünde yazıda açıkta 13,41:1, koyuda 13,50:1'dir. Simgede açıkta 6,45:1, koyuda 5,87:1'dir. Önceki değer: vurgu dolgusu, vurgu üstü yazı ve simge; Şafak çizimi `c-mac` 2026-11-11'de değiştirdi. Kenar çubuğu `elevated` zemindedir; parıltı yoktur. Yalnız seçili girdi vurgu alır: Görevler'in altındaki Kanban, Zaman çizelgesi ve projeler ayrı satırdır. Seçimin kendisi sistemindir: ok tuşları, odak, VoiceOver. Yalnız çizim uygulamanındır. Bölünmüş kabukta (iPhone Duo iç ekranı, iPad) aynı kural geçerlidir: sistemin seçim vurgusu ve odak çerçevesi dolgunun üstüne çizilmez. |
 | 13 | Hareket sistem varsayılanlarıyla sınırlıdır ve Hareketi Azalt ayarına uyar. Parıltı ve hale durağandır: nabız, dönme ve renk geçişi yoktur. Tek istisna Graph'tır: düğümler kuvvet benzetimiyle hareket eder, çünkü içerik hareketin kendisidir. Hareketi Azalt açıkken Graph da canlı oynamaz; uygulama oturmuş düzeni tek seferde gösterir. |
 
 **DİKKAT:** Kural numaralarını değiştirme; kod kural 12'ye `MacSidebar.swift` içinde, Şafak kuralı 4'e `InkLinkStyle.swift` içinde numarayla gönderme yapar.
@@ -202,9 +202,9 @@ flowchart LR
 
 | Biçim | Görünüm |
 |---|---|
-| Sekme | Sola yaslı sözcükler. Seçili sözcük metin rengindedir ve altı vurgu rengiyle çizilidir. Ötekiler ikincil renktedir. Hızlı girişteki Olay \| Görev ile aynı bileşendir. Örnekler: Graph dönemi (Bu ay \| 3 ay \| Yıl), zaman çizelgesi ölçeği (Gün \| Hafta \| Çeyrek), hedef türü (İşaret \| Sayı \| Kilometre taşı). |
+| Sekme | Sola yaslı sözcükler, `subheadline` boyutunda. Seçili sözcük metin rengindedir ve altı vurgu rengiyle çizilidir. Ötekiler ikincil renktedir. Hızlı girişteki Olay \| Görev ile aynı bileşendir. Örnekler: Graph dönemi (Bu ay \| 3 ay \| Yıl), zaman çizelgesi ölçeği (Gün \| Hafta \| Çeyrek), hedef türü (İşaret \| Sayı \| Kilometre taşı). |
 | Sekme istisnası | Görev önceliği 4 seçeneklidir ama sekmedir: Düşük · Normal · ! Orta · !! Yüksek. Sözcükler kısadır ve tek satıra sığar. |
-| Menü | Sola yaslı. Solda ikincil renkte etiket durur: "Bölüm", "Grupla", "Tür". Sağda vurgu renginde seçili değer ve ok durur. Dokunuş sistem menüsünü açar. |
+| Menü | Sola yaslı, `subheadline` boyutunda. Solda ikincil renkte etiket durur: "Bölüm", "Grupla", "Tür". Sağda vurgu renginde, yarı kalın seçili değer ve ok durur. Dokunuş sistem menüsünü açar. |
 | Yasak | Sistem segmentini, onay kutucuğu dizisini, etiketsiz ya da ortalı menüyü ve gezinme çubuğundaki seçiciyi kullanma. |
 
 ### 5. Sırala ve filtrele
@@ -344,7 +344,7 @@ Açık modda `tertiaryText` `#5E6168` değerindedir; önceki değer `#666972` id
 | `tertiaryText` (yeni) | `InkTertiaryText` | Yer tutucu, hafta şeridinde geçmiş gün, takvimde gelecek gün |
 | `accent` | `InkAccent`, `AccentColor` | Artı, gönder, seçili sekme, kip çizgisi, birincil düğme dolgusu |
 | `onAccent` | `InkOnAccent` | Vurgu dolgusundaki yazı ve simge |
-| `accentSoft` (yeni) | `InkAccentSoft` | Seçili liste satırı, seçili zaman kartı, seçili gün kartı |
+| `accentSoft` (yeni) | `InkAccentSoft` | Kart içindeki seçili liste satırı, seçili zaman kartı, seçili gün kartı |
 | `warning` | `InkWarning` | Yalnız devreden tarihi ve işareti; geciken zaman kartının çerçevesi |
 | `danger` | `InkDanger` | Yalnız yıkıcı eylem ve hata metni; yıkıcı eylem örneği silmedir |
 | `person` | `InkPerson` | Düz alt çizgi, simge, Graph dairesi |
@@ -403,7 +403,8 @@ Parıltı bilgi taşımaz. Kod karşılığı `.inkGlow()` değiştiricisidir; K
 | Gün adı, ay | `dayName` | SF Pro Semibold, ikincil | `title2` | 22 | 17 |
 | Künye cümlesi | `byline` | SF Pro Medium; sayılar Semibold ve metin rengi | `title3` | 20 | 15 |
 | Manşet künyesi | `pageByline` | SF Pro Regular, ikincil metin; alt sayfada `meta`, tek satır | `subheadline` | 15 | 13 |
-| Bölüm başlığı | `section` | SF Pro Semibold | `headline` | 17 | 13 |
+| Bölüm başlığı: kartın üstü | `sectionTitle` | SF Pro Bold | `title3` | 20 | 15 |
+| Küçük başlık: sütun, sheet alanı | `section` | SF Pro Semibold | `headline` | 17 | 13 |
 | İçerik | `content` | SF Pro Regular | `body` | 17; günlük paragrafında satır yüksekliği 26 | 13 |
 | Küçük içerik: gün önizlemesi, kısa alıntı | `contentSmall` | `content` ile aynı aile | `footnote` | 13 | 10 |
 | Yer tutucu | `placeholder` | `content` ailesi, italik değil | `body` | 17 | 13 |
@@ -435,7 +436,7 @@ flowchart LR
 | `r-md` | 16 pt | İç kart |
 | `r-lg` | 20 pt | Bölüm kartı (iPhone, iPad), iPhone'da iki satırlı hızlı giriş kartı |
 | `r-xl` | 24 pt | Sheet içi büyük kart, ilk açılış kartı |
-| `r-pill` | Kapsül | Çip, birincil düğme, Mac'te tek satırlı hızlı giriş, "+" düğmesi |
+| `r-pill` | Kapsül | Çip, birincil düğme, iPad ve Mac'te tek satırlı hızlı giriş, "+" düğmesi |
 
 ### Boşluk: `InkSpacing`
 
@@ -468,7 +469,7 @@ flowchart LR
 | `send` | 36 pt | Gönder düğmesi: daire |
 | `largeNumber` | 48 pt | Büyük rakam hedefi |
 | `modeUnderline` | 2 pt | Seçili kip ve sekme çizgisi; liste seçiminin sol çizgisi |
-| `listSelectionCorner` | 6 pt | Liste seçim dolgusunun köşesi |
+| `listSelectionCorner` | 16 pt (`r-md`) | Seçili satır kartının köşesi |
 | `chipCorner` | Kapsül | Etiket çipi, künye çipi, kapsam çipi ve öneri şeridi |
 | `kanbanCorner` | 12 pt | Kanban kartı, zaman kartı |
 | `timelineBar` | 4 pt | Zaman kartının ve kanban kartının sol çubuğu |
@@ -586,7 +587,7 @@ mindmap
 | Dosya | Durum | Not |
 |---|---|---|
 | `ComponentGalleryControls.swift`, `ComponentGalleryPatterns.swift`, `ComponentGalleryRows.swift` | Korunur, içerik güncellenir | Yeni bileşenleri de gösterir |
-| `EmptyState.swift` | Yeniden çizilir | Kartın içinde: simge rozeti, 1 cümle, eylem |
+| `EmptyState.swift` | Yeniden çizilir | Kartın içinde: simge rozeti, 1 cümle, eylem. Kartsız seçenek içeriği var olan bir kartın içine koyar: telefon zaman çizelgesinin boş dönemi. |
 | `GoalRing.swift` | Korunur | Renkler belirteçten |
 | `GraceDayBadge.swift` | Korunur | Kapsül çerçeve |
 | `HeatmapCell.swift`, `HeatmapCellKind.swift` | Korunur | Boş hücre `well` |
@@ -597,7 +598,7 @@ mindmap
 | `InkHeaderAction.swift`, `InkHeaderButtonStyle.swift` | Yeniden çizilir | iOS manşette yuvarlak çip; Mac'te çerçevesiz simge |
 | `InkLabeledMenu.swift` | Korunur | |
 | `InkLinkedText.swift`, `InkLinkStyle.swift` | Korunur | Mürekkep kuralı 4 göndermesi Şafak kuralı 4 olur |
-| `InkListSelection.swift` | Yeniden çizilir | `well` yerine `accentSoft`; solda 2 pt vurgu çizgisi kalır |
+| `InkListSelection.swift` | Yeniden çizilir | Seçili satır `surface` kart olur; içeride 3 pt vurgu çubuğu |
 | `InkPageHeader.swift` | Yeniden çizilir | Sans manşet; Bugün'de gün başlığı |
 | `InkPinnedMasthead.swift` | Korunur | Zemin `paper` |
 | `InkProgress.swift`, `InkProgressMath.swift` | Yeniden çizilir | Kapsül çubuk; hesap değişmez |
@@ -611,7 +612,7 @@ mindmap
 | `PageHeadline.swift` | Yeniden çizilir | Gün rakamı ve gün adı |
 | `QuickEntryCapsule.swift`, `QuickEntryMode.swift` | Yeniden çizilir | `surface` zemin, `line` sınır, gönderde hale |
 | `RhythmStrip.swift` | Korunur | |
-| `SectionHeader.swift` | Yeniden çizilir | Süs çizgisi kalkar; başlık `headline`, sayaç sağda `caption1` |
+| `SectionHeader.swift` | Yeniden çizilir | Süs çizgisi kalkar; başlık `sectionTitle`, sayaç sağda `meta` |
 | `SyncStatusIndicator.swift` | Korunur | |
 | `TagChip.swift` | Yeniden çizilir | Kapsül, `well` |
 | `TaskBox.swift` | Korunur | Köşeli kutu, öncelik içinde; köşe 6 pt |
@@ -777,10 +778,13 @@ Renk tek başına anlam taşımaz; proje adı ve durum metni yanında durur. Pro
 | Konu | Kural |
 |---|---|
 | Yer | Mac'te Görevler, Günlük, Kişiler ve Hedefler sütunları ve arama sonuçları. |
-| Dolgu | `accentSoft`, satırın içinde 6 pt yuvarlatılmış köşe. Dolgu satırın kenarından yatay 4 pt, dikey 2 pt içeridedir. |
-| İşaret | Solda 2 pt vurgu çizgisi. |
-| Yazı | Seçili satırdaki yazı belirteçleri `accentSoft` zeminde de alt sınır kontrastını taşır. |
-| iPad ve Duo, bölünmüş kabuk | Liste sütunlarında Mac'teki seçim. Arama sonucunda da aynı çizim. İşaretçi üstünde durduğu sütun satırını sistemin hafif vurgusuyla gösterir. |
+| Dolgu | Seçili satır kâğıt üstünde `surface` karttır: 16 pt köşe. Kart satırın kenarından yatay 4 pt, dikey 2 pt içeridedir. Mac'te kartın 1 pt `line` sınırı vardır. |
+| Kart içindeki satır | Görevler bölüm kartı zaten `surface` olduğu için seçili satır `accentSoft` dolgu alır. |
+| Kart satırı | Hedefler sütununda satır kendisi karttır. Seçilince kart 1 pt `line` sınır ve vurgu çubuğu alır. |
+| İşaret | Kartın sol kenarından 4 pt içeride 3 pt kapsül vurgu çubuğu. Çubuk üstten ve alttan 12 pt kısadır. |
+| Yazı | Seçili satırdaki yazı belirteçleri `surface` ve `accentSoft` zeminde alt sınır kontrastını taşır. |
+| Önceki değer | `accentSoft` dolgu, solda kenara yapışık 2 pt çizgi. Şafak `c-mac` ve `j-mac2` çizimi 2026-11-11'de değiştirdi. |
+| iPad ve Duo, bölünmüş kabuk | Liste sütunlarında Mac'teki seçim. Arama sonucunda da aynı çizim. Sistemin odak çerçevesi satıra çizilmez. İşaretçi üstünde durduğu sütun satırını sistemin hafif vurgusuyla gösterir. |
 | iPhone | Sekme kabuğunda satır `surface` kalır. Yalnız arama sonucunda klavye seçimi `accentSoft` alır. |
 | Görev sütunu | Kutu görevi tamamlar. Metindeki bağlantı kendi sayfasını açar. Satıra tıklamak ayrıntıyı seçer. Bağlam menüsündeki silme onay diyaloğuna gider. |
 
@@ -792,15 +796,15 @@ Kod karşılığı: `InkListSelectionBackground` ve `inkListRow(columnSelected:)
 
 | Satır durumu | Dolgu | Yazı | Simge |
 |---|---|---|---|
-| Seçili, etkin pencere | Vurgu | Vurgu üstü, yarı kalın | Vurgu üstü |
-| Seçili, etkin olmayan pencere | `accentSoft` | Metin, yarı kalın | Vurgu |
-| Seçili değil | Yok | Metin | Vurgu |
+| Seçili, etkin pencere | `accentSoft` | Metin, yarı kalın | Vurgu |
+| Seçili, etkin olmayan pencere | `accentSoft` | Metin, yarı kalın | `secondaryText` |
+| Seçili değil | Yok | Metin | `secondaryText` |
 
 | Konu | Kural |
 |---|---|
 | Zemin | Kenar çubuğu `elevated` zemindedir. Tepede arama alanı, altta hızlı giriş kartı durur. |
 | Dolgu yeri | Dolgu sistem seçiminin yerindedir: kenarlardan 10 pt içeride ve 8 pt köşeli. |
-| iPad ve Duo, bölünmüş kabuk | Aynı dolgu, yazı ve simge. Yüzen panel `elevated` rengindedir. Odak çerçevesi çizilmez; klavyeyle seçim odağı izler, dolgu odağın yerini gösterir. Satır adı tek satırdır, uzun ad sonda "…" ile kısalır. Erişilebilirlik yazı boyutlarında simge gizlenir ve satır yalnız addır: ad kısalmaz, sözcük aralarından sarılır. VoiceOver her boyutta yalnız adı okur. İşaretçi üstünde durduğu satırı sistemin hafif vurgusuyla gösterir. Kanban kartı işaretçi altında hafifçe kalkar. |
+| iPad ve Duo, bölünmüş kabuk | Aynı dolgu, yazı ve simge. Simgeler çizgidir; sistemin kenar çubuğu onları doldurmaz. Yüzen panel `elevated` rengindedir. Odak çerçevesi çizilmez; klavyeyle seçim odağı izler, dolgu odağın yerini gösterir. Satır adı tek satırdır, uzun ad sonda "…" ile kısalır. Erişilebilirlik yazı boyutlarında simge gizlenir ve satır yalnız addır: ad kısalmaz, sözcük aralarından sarılır. VoiceOver her boyutta yalnız adı okur. İşaretçi üstünde durduğu satırı sistemin hafif vurgusuyla gösterir. Kanban kartı işaretçi altında hafifçe kalkar. |
 | Kaydırma göstergesi | Uygulama dikey kaydırma göstergesini çizmez. Fare bağlıyken yer kaplayan çubuk satırı sağdan daraltmaz. |
 | Odak | Yerleşimi değiştiren her seçimden sonra uygulama odağı yeni kenar çubuğuna bir kez geri verir, yalnız odak serbestse. Odak o pencerede başka bir denetimdeyse uygulama isteği bırakır. |
 

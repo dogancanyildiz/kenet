@@ -120,11 +120,13 @@ private struct GoalListContent: View {
         List {
             InkScrolledMasthead(masthead)
             if let answer {
-                if !ringGoals.isEmpty {
+                // The split shell's column (Mac and iPad drawing) is a compact list: no summary
+                // card and no section title, one card per goal.
+                if !isColumn, !ringGoals.isEmpty {
                     summaryCard(answer: answer)
                         .inkListRow()
                 }
-                if !orderedGoals.isEmpty {
+                if !isColumn, !orderedGoals.isEmpty {
                     SectionHeader("Tüm hedefler", count: orderedGoals.count)
                         .padding(.top, 8)
                         .inkListRow()
@@ -183,6 +185,21 @@ private struct GoalListContent: View {
         }
     }
 
+    /// The split shell passes a selection: the list is its middle column.
+    private var isColumn: Bool { selection != nil }
+
+    @ViewBuilder
+    private func card(goal: GoalDefinition, status: GoalStatus, markedToday: Bool, markReadOnly: Bool) -> some View {
+        if isColumn, let open = openAction(goal: goal, status: status) {
+            GoalColumnRow(
+                goal: goal, status: status, day: model.day, logs: model.logs[goal.key] ?? [],
+                locale: locale, isDisabled: goal.kind == .milestone && (!model.canEdit || markReadOnly),
+                isSelected: selection?.wrappedValue == goal.id, onOpen: open)
+        } else {
+            listCard(goal: goal, status: status, markedToday: markedToday, markReadOnly: markReadOnly)
+        }
+    }
+
     @ViewBuilder
     private func row(goal: GoalDefinition, status: GoalStatus) -> some View {
         let markedToday = model.isMarkedToday(goal)
@@ -190,6 +207,37 @@ private struct GoalListContent: View {
             goal.kind == .milestone
             && status.completionDate != nil
             && status.completionDate != model.day
+        card(goal: goal, status: status, markedToday: markedToday, markReadOnly: markReadOnly)
+            .contextMenu {
+                // A read-only mark (yesterday already completed) hides only the mark items;
+                // Düzenle and Sil stay available.
+                DefinitionMenuButtons(
+                    items: DefinitionMenu.items(forGoal: goal.kind, markedToday: markedToday)
+                        .filter { !markReadOnly || ($0 != .markToday && $0 != .unmark) },
+                    canEdit: model.canEdit
+                ) { item in
+                    switch item {
+                    case .markToday, .unmark:
+                        Task { await model.toggle(goal) }
+                    case .enterAmount:
+                        editingAmount = GoalValueModel(dayModel: model, goal: goal)
+                    case .edit:
+                        editingGoal = GoalDefinitionSheetTarget(goal: goal)
+                    case .delete:
+                        deletingGoal = goal
+                        deletion = DefinitionDeletionModel()
+                        deletion.request(path: goal.id)
+                    case .copyLink: break
+                    }
+                }
+            }
+            // The column's card draws its own selection (``View/inkCardSelection(_:cornerRadius:)``).
+            .inkListRow(columnSelected: isColumn ? false : selection?.wrappedValue == goal.id)
+    }
+
+    private func listCard(
+        goal: GoalDefinition, status: GoalStatus, markedToday: Bool, markReadOnly: Bool
+    ) -> some View {
         GoalListCard(
             goal: goal,
             status: status,
@@ -205,30 +253,6 @@ private struct GoalListContent: View {
             onIncrement: { Task { await incrementOrToggle(goal) } },
             onUnmark: { Task { await model.toggle(goal) } }
         )
-        .contextMenu {
-            // A read-only mark (yesterday already completed) hides only the mark items;
-            // Düzenle and Sil stay available.
-            DefinitionMenuButtons(
-                items: DefinitionMenu.items(forGoal: goal.kind, markedToday: markedToday)
-                    .filter { !markReadOnly || ($0 != .markToday && $0 != .unmark) },
-                canEdit: model.canEdit
-            ) { item in
-                switch item {
-                case .markToday, .unmark:
-                    Task { await model.toggle(goal) }
-                case .enterAmount:
-                    editingAmount = GoalValueModel(dayModel: model, goal: goal)
-                case .edit:
-                    editingGoal = GoalDefinitionSheetTarget(goal: goal)
-                case .delete:
-                    deletingGoal = goal
-                    deletion = DefinitionDeletionModel()
-                    deletion.request(path: goal.id)
-                case .copyLink: break
-                }
-            }
-        }
-        .inkListRow(columnSelected: selection?.wrappedValue == goal.id)
     }
 
     /// Milestone first (mark), then Mac selection, else nil so the card uses ``NavigationLink``.
@@ -560,5 +584,145 @@ private struct GoalStreakLabelStyle: LabelStyle {
             configuration.icon.accessibilityHidden(true)
             configuration.title
         }
+    }
+}
+
+/// One goal in the split shell's Hedefler column (Mac and iPad drawing): a small ring, the name
+/// with its period chip and the value on one line; under it the last 7 days and "zincir 12"
+/// (daily), the year's bar and percent (yearly) or the milestone's state. The whole card selects
+/// the goal; marking stays in the context menu and on the detail page.
+private struct GoalColumnRow: View {
+    let goal: GoalDefinition
+    let status: GoalStatus
+    let day: CalendarDate
+    let logs: [GoalLog]
+    let locale: Locale
+    let isDisabled: Bool
+    var isSelected = false
+    let onOpen: () -> Void
+    @ScaledMetric(relativeTo: .body) private var ringSide: CGFloat = 28
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    private var progress: Double { GoalRowPresentation.progress(goal: goal, status: status) }
+
+    var body: some View {
+        Button(action: onOpen) {
+            HStack(alignment: .top, spacing: 12) {
+                GoalRing(progress: progress, diameter: ringSide, emphasizesArc: true)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 6) {
+                    titleLine
+                    subLine
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity, minHeight: TapTarget.minimumLength, alignment: .leading)
+            .modifier(InkCardModifier(cornerRadius: InkCorner.md))
+            .inkCardSelection(isSelected)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(isDisabled)
+        .accessibilityLabel(Text(verbatim: accessibilityLabelText))
+        .accessibilityHint(Text(goal.kind == .milestone ? "Bugünü işaretle" : "Ayrıntıları göster"))
+    }
+
+    private var titleLine: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                name
+                TagChip(title: GoalListPresentation.periodChip(goal.period, locale: locale))
+                Spacer(minLength: 4)
+                value
+            }
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    name
+                    TagChip(title: GoalListPresentation.periodChip(goal.period, locale: locale))
+                }
+                value
+            }
+        }
+    }
+
+    private var name: some View {
+        Text(verbatim: goal.name)
+            .font(.ink.content.weight(.semibold))
+            .foregroundStyle(Color.ink.text)
+            .lineLimit(typeSize.isAccessibilitySize ? nil : 1)
+    }
+
+    /// "**30** / 20 sayfa", "bu hafta **3**/3", or "—" for a milestone.
+    @ViewBuilder private var value: some View {
+        let done = status.progress.done.formatted(.number.locale(locale))
+        let target = goal.target.formatted(.number.locale(locale))
+        let unit = goal.unit.map { " " + $0 } ?? ""
+        HStack(alignment: .firstTextBaseline, spacing: 0) {
+            if goal.kind == .milestone {
+                Text(verbatim: "—")
+            } else {
+                if goal.period == .week {
+                    Text("bu hafta").padding(.trailing, 4)
+                }
+                Text(verbatim: done).fontWeight(.semibold).foregroundStyle(Color.ink.text)
+                Text(verbatim: goal.period == .week ? "/" + target : " / " + target + unit)
+            }
+        }
+        .font(.ink.meta.monospacedDigit())
+        .foregroundStyle(Color.ink.secondaryText)
+        .lineLimit(1)
+        .accessibilityHidden(true)
+    }
+
+    @ViewBuilder private var subLine: some View {
+        if goal.kind == .milestone {
+            if let meta = GoalRowPresentation.meta(goal: goal, status: status, locale: locale) {
+                Text(verbatim: meta)
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+            }
+        } else if goal.period == .day {
+            InkFlowLayout(spacing: 8, lineSpacing: 4) {
+                GoalTallyStrip(
+                    days: GoalListPresentation.tallyDays(
+                        goal: goal, logs: logs, today: day, graceSpent: Set(status.graceSpentDays)))
+                Text("zincir \(status.streak)")
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+                if let badge = GoalRowPresentation.graceBadge(goal: goal, status: status, locale: locale) {
+                    badge
+                }
+            }
+        } else if goal.period == .year {
+            HStack(spacing: 8) {
+                GeometryReader { proxy in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.ink.well)
+                        Capsule().fill(Color.ink.accent)
+                            .frame(width: proxy.size.width * min(max(status.progress.fraction, 0), 1))
+                    }
+                }
+                .frame(height: 6)
+                .accessibilityHidden(true)
+                Text(GoalListPresentation.percentLabel(done: status.progress.done, target: goal.target, locale: locale))
+                    .font(.ink.meta.monospacedDigit())
+                    .foregroundStyle(Color.ink.secondaryText)
+            }
+        } else if let remaining = GoalListPresentation.remainingText(goal: goal, status: status, locale: locale) {
+            Text(verbatim: remaining)
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.secondaryText)
+        }
+    }
+
+    private var accessibilityLabelText: String {
+        let detail =
+            GoalRowPresentation.valueText(goal: goal, status: status)
+            ?? GoalRowPresentation.meta(goal: goal, status: status, locale: locale)
+        let badge = GoalRowPresentation.graceBadge(goal: goal, status: status, locale: locale)?.label
+        return [goal.name, detail, badge].compactMap { $0 }.filter { !$0.isEmpty }
+            .joined(separator: ", ")
     }
 }

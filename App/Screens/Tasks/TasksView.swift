@@ -128,6 +128,7 @@ struct TasksView: View {
             }
         }
         .listStyle(.plain)
+        .inkColumnListFocus()
         .inkPage()
         // The whole page top stays, as it does above the boards: manşet, view tabs, menu row.
         // A Mac list insets even a row with no insets of its own; the strip does the same.
@@ -232,21 +233,18 @@ struct TasksView: View {
     @ViewBuilder private var listSections: some View {
         switch model.viewState.listSection {
         case .projects:
-            ForEach(model.projects, id: \.self) { project in
-                NavigationLink {
-                    ProjectView(store: store, name: project)
-                } label: {
-                    LabeledContent {
-                        Text(model.openCount(ofProject: project).formatted())
-                            .font(.ink.value)
-                            .foregroundStyle(.ink.secondaryText)
+            // Şafak: the project rows sit in one section card, each with its color dot and open count.
+            Section {
+                SectionHeader(title: String(localized: "Projeler"), count: model.projects.count)
+                    .inkListRow()
+                ForEach(Array(model.projects.enumerated()), id: \.element) { index, project in
+                    NavigationLink {
+                        ProjectView(store: store, name: project)
                     } label: {
-                        Text(verbatim: project)
-                            .font(.ink.content)
-                            .foregroundStyle(.ink.text)
+                        projectRow(project)
                     }
+                    .inkListRow(cardSegment: .position(index, of: model.projects.count))
                 }
-                .inkListRow()
             }
             if model.projects.isEmpty {
                 EmptyState("Henüz proje yok")
@@ -255,7 +253,7 @@ struct TasksView: View {
         case .upcoming:
             ForEach(model.agenda) { group in
                 Section {
-                    SectionHeader(title: headingTitle(group.date), count: group.rows.count)
+                    SectionHeader(title: headingTitle(group.date), counter: TasksCounter.tasks(group.rows.count))
                         .inkListRow()
                     rows(group.rows)
                 }.id(group.id)
@@ -266,7 +264,7 @@ struct TasksView: View {
             }
         case .undated:
             Section {
-                SectionHeader(title: String(localized: "Tarihsiz"), count: model.undated.count)
+                SectionHeader(title: String(localized: "Tarihsiz"), counter: TasksCounter.tasks(model.undated.count))
                     .inkListRow()
                 rows(model.undated)
             }
@@ -276,8 +274,10 @@ struct TasksView: View {
             }
         case .completed:
             Section {
-                SectionHeader(title: String(localized: "Tamamlanan"), count: model.completed.count)
-                    .inkListRow()
+                SectionHeader(
+                    title: String(localized: "Tamamlanan"), counter: TasksCounter.tasks(model.completed.count)
+                )
+                .inkListRow()
                 rows(model.completed)
             }
             if model.completed.isEmpty {
@@ -285,6 +285,30 @@ struct TasksView: View {
                     .inkListRow()
             }
         }
+    }
+
+    /// A row of the Projeler section: color dot, name, open count and "›".
+    private func projectRow(_ project: String) -> some View {
+        HStack(spacing: 10) {
+            Circle().fill(ProjectColor.color(for: project)).frame(width: 8, height: 8)
+                .accessibilityHidden(true)
+            Text(verbatim: project)
+                .font(.ink.content)
+                .foregroundStyle(.ink.text)
+            Spacer(minLength: 8)
+            Text(model.openCount(ofProject: project).formatted())
+                .font(.ink.value)
+                .foregroundStyle(.ink.secondaryText)
+            // The list hides the link's own indicator; the row draws the task rows' "›".
+            Image(systemName: "chevron.right")
+                .font(.ink.meta.weight(.semibold))
+                .foregroundStyle(.ink.tertiaryText)
+                .accessibilityHidden(true)
+        }
+        .padding(.horizontal, InkSpacing.cardPadding)
+        .frame(minHeight: TapTarget.minimumLength)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
     }
 
     /// A cold notification launch can arrive before the first index publication; the jump waits
@@ -322,14 +346,20 @@ struct TasksView: View {
         }
     }
 
+    /// The creation day (Tarihsiz) or the completion day (Tamamlanan). It joins the meta line
+    /// ("mobil · 19 Eyl"); the year shows only when it is not this year.
     private func footnote(for row: TaskRow) -> Text? {
-        if model.viewState.listSection == .undated, let date = row.createdDate {
-            return Text(LocalDay.instant(for: date), format: .dateTime.day().month().year())
-        }
-        if model.viewState.listSection == .completed, let date = row.done {
-            return Text(LocalDay.instant(for: date), format: .dateTime.day().month().year())
-        }
-        return nil
+        let date: CalendarDate? =
+            switch model.viewState.listSection {
+            case .undated: row.createdDate
+            case .completed: row.done
+            case .upcoming, .projects: nil
+            }
+        guard let date else { return nil }
+        let instant = LocalDay.instant(for: date)
+        return date.year == model.day.year
+            ? Text(instant, format: .dateTime.day().month(.abbreviated))
+            : Text(instant, format: .dateTime.day().month(.abbreviated).year())
     }
 
     private func headingTitle(_ date: CalendarDate?) -> String {
@@ -415,6 +445,11 @@ struct ProjectProgressBar: View {
         .frame(height: 4)
         .accessibilityValue(Text(verbatim: InkProgressMath.percentText(value)))
     }
+}
+
+/// A section's counter with its unit (Şafak drawing: "Bugün · 4 görev").
+enum TasksCounter {
+    static func tasks(_ count: Int) -> String { String(localized: "\(count) görev") }
 }
 
 /// Detail-column selection. A section or filter change clears it outright; a list refresh

@@ -12,6 +12,8 @@ struct TasksListRow: View {
     let isOverdue: Bool
     let isBusy: Bool
     var allowsReopening = false
+    /// The section's day (Tarihsiz: created, Tamamlanan: completed) on the meta line in place
+    /// of the due date.
     var footnote: Text? = nil
     var openDetail: () -> Void = {}
     /// The Tasks list names a task with no project "Projesiz" on its meta line; the project
@@ -172,18 +174,24 @@ struct TasksListRow: View {
                 if presentation.showsOverdueCue && row.due != nil {
                     overdueLine
                 } else {
+                    // The section's own day (created, completed) takes the due date's place.
+                    let shownDay = footnote != nil || row.due != nil
                     if let projectName {
                         projectName
                             .font(.ink.meta)
                             .foregroundStyle(.ink.secondaryText)
-                        if row.due != nil {
+                        if shownDay {
                             Text(verbatim: "·")
                                 .font(.ink.meta)
                                 .foregroundStyle(.ink.tertiaryText)
                                 .accessibilityHidden(true)
                         }
                     }
-                    if let date = row.due {
+                    if let footnote {
+                        footnote
+                            .font(.ink.meta)
+                            .foregroundStyle(.ink.secondaryText)
+                    } else if let date = row.due {
                         TaskDueDateLabel(date: date, presentation: presentation, asOf: day)
                     }
                 }
@@ -203,11 +211,6 @@ struct TasksListRow: View {
                     .foregroundStyle(.ink.secondaryText)
                 }
                 if isBusy { ProgressView().controlSize(.small) }
-            }
-            if let footnote {
-                footnote
-                    .font(.ink.meta)
-                    .foregroundStyle(.ink.secondaryText)
             }
             if let error = errorText {
                 Text(verbatim: error)

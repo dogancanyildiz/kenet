@@ -12,7 +12,7 @@ struct AccessibilityAuditExemption {
         case identifier(String)
         case identifierPrefix(String)
         case catalogKey(String)
-        /// A label that carries the key's text among other parts ("Kişi · … · Son görülme: …").
+        /// A label that carries the key's text among other parts ("Kişi · … · son görülme …").
         case containsCatalogKey(String)
         /// System chrome the catalog does not hold: its label in the test languages.
         case systemLabel([String])
@@ -131,7 +131,7 @@ extension AccessibilityAuditExemption {
             reason: Reason.entityPage),
         .init(type: .dynamicType, element: .catalogKey("Tümünü göster (%lld)"), reason: Reason.entityPage),
         .init(type: .dynamicType, element: .catalogKey("İlk geçiş"), reason: Reason.entityPage),
-        .init(type: .dynamicType, element: .containsCatalogKey("Son görülme: %@"), reason: Reason.entityPage),
+        .init(type: .dynamicType, element: .containsCatalogKey("son görülme %@"), reason: Reason.entityPage),
         .init(type: .dynamicType, element: .labelPattern(Pattern.shortDate), reason: Reason.entityPage),
         // Settings section rows (`PhoneSettingsView` InkCard): body text grows at AX3
         // (shellSheet.settingsSheetAX3.png); the audit's live size change does not reach list-cell text.
@@ -160,7 +160,7 @@ extension AccessibilityAuditExemption {
         // The entity page's byline (iPad detail column, a list cell): no line limit; it wraps and is
         // read whole at every size (entities.personDatesAX3.png; the iPad app measured at xxxLarge
         // and AX3). The audit reports it on the iPad only.
-        .init(type: .textClipped, element: .containsCatalogKey("Son görülme: %@"), reason: Reason.entityPage),
+        .init(type: .textClipped, element: .containsCatalogKey("son görülme %@"), reason: Reason.entityPage),
         // "Tümünü göster (n)" under the unlinked mentions: no line limit, it wraps. Reported only when
         // the row sits in the screen's lower third: the audit's size change grows the rows above and
         // pushes it under the tab bar; scrolled to the middle it is not reported (d5-ci-duzeltme.md).
@@ -178,6 +178,21 @@ extension AccessibilityAuditExemption {
             reason: "position-dependent: the swipe-scrolled page can stop with a section title on the"
                 + " viewport's lower edge (unlinkedMentions.light.png)",
             screens: ["unlinkedMentions"]),
+        // Its counter ("1 day") is `fixedSize` and drawn whole in the audit's own screenshot (PR #381
+        // run 42994956020); reported once on this swipe-scrolled page like the title above.
+        .init(
+            type: .textClipped, element: .identifier("sectionHeader.count"),
+            reason: "position-dependent like the section title; the counter is fixedSize and drawn whole",
+            screens: ["unlinkedMentions"]),
+        // MARK: contrast
+        // Today's task rows scroll under the quick entry shelf, whose top fades from clear to paper
+        // (screens.md, Bugün). With the keyboard up a row's "Devreden" label can sit inside that fade;
+        // the audit's element screenshot then shows only the fade (PR #381 run 42998327211). The same
+        // label on the card reads 6.5:1 and above (InkPalette warningOnPaper). Position, not colour.
+        .init(
+            type: .contrast, element: .catalogKey("Devreden"),
+            reason: "position-dependent: the row sits inside the quick entry shelf's fade",
+            screens: ["quickEntryNames"]),
         // MARK: hitRegion
         .init(
             type: .hitRegion, element: .systemLabel(["Hide Sidebar", "Kenar Çubuğunu Gizle", "Kenar çubuğunu gizle"]),

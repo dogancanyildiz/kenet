@@ -138,7 +138,8 @@
             else { return }
             #expect(Self.barWords(mount) == [HostedControls.word("Vazgeç"), HostedControls.word("Kaydet")])
             #expect(Self.has("field.textEditor", mount))
-            #expect(HostedControls.nodes(in: mount).contains { $0.label == HostedControls.word("Temizle") })
+            // A form field, not a search field (fark2 P21): no magnifier and no "Temizle" button.
+            #expect(!HostedControls.nodes(in: mount).contains { $0.label == HostedControls.word("Temizle") })
 
             model.text = "@De"
             let suggested = await waitUntil(timeout: .seconds(5)) {

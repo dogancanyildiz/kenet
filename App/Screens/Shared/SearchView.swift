@@ -8,6 +8,7 @@ struct SearchView: View {
     @State private var returnToField: ShellAction
     @FocusState private var searchFocused: Bool
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
 
     init(store: IndexStore, initialQuery: String = "") {
         let model = SearchModel(store: store)
@@ -121,7 +122,7 @@ struct SearchView: View {
                         let items = model.visibleResults.filter { $0.group == group }
                         if !items.isEmpty {
                             VStack(alignment: .leading, spacing: 8) {
-                                SectionHeader(title: group.title, count: items.count)
+                                groupHeader(group.title, count: items.count)
                                 InkCard(padded: false) {
                                     VStack(spacing: 0) {
                                         ForEach(items.indices, id: \.self) { index in
@@ -164,10 +165,38 @@ struct SearchView: View {
             accentSelection: true)
     }
 
-    /// Kind mark of a result row: people and places, events, notes on an accent-soft tile; a task
-    /// as its empty box.
+    /// Result group title (Şafak drawing): small grey "Kişiler" with its count at the trailing edge,
+    /// lighter than a page's section titles so the results lead.
+    private func groupHeader(_ title: String, count: Int) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(verbatim: title)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier(SectionHeader.titleIdentifier)
+            Spacer(minLength: 8)
+            Text(count.formatted(.number.grouping(.never).locale(locale)))
+                .monospacedDigit()
+                .accessibilityIdentifier(SectionHeader.counterIdentifier)
+        }
+        .font(.ink.meta.weight(.semibold))
+        .foregroundStyle(Color.ink.secondaryText)
+        .padding(.top, 4)
+    }
+
+    /// Kind mark of a result row: a person or place as its initials badge ("BT"); other entities,
+    /// events, notes on an accent-soft tile; a task as its empty box.
     @ViewBuilder
-    private func resultMark(_ group: SearchGroup) -> some View {
+    private func resultMark(_ item: SearchItem) -> some View {
+        if case .entity(let file) = item.destination, item.group != .entities,
+            let entity = store.content.entities.first(where: { $0.id == file })
+        {
+            EntityInitialBadge(entity: entity)
+        } else {
+            resultSymbol(item.group)
+        }
+    }
+
+    @ViewBuilder
+    private func resultSymbol(_ group: SearchGroup) -> some View {
         let symbol: String? =
             switch group {
             case .people: "person"
@@ -209,14 +238,15 @@ struct SearchView: View {
             open(item)
         } label: {
             HStack(alignment: .center, spacing: 12) {
-                resultMark(item.group)
+                resultMark(item)
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(highlighted(item.title))
                         .foregroundStyle(.ink.text)
                         .lineLimit(3)
-                    if !item.detail.isEmpty {
-                        Text(highlighted(item.detail))
+                    let detail = detailText(item)
+                    if !detail.isEmpty {
+                        Text(highlighted(detail))
                             .font(.ink.meta)
                             .foregroundStyle(.ink.secondaryText)
                             .lineLimit(2)
@@ -239,6 +269,48 @@ struct SearchView: View {
         .background(item.id == model.selectedID ? Color.ink.accentSoft : Color.clear)
         .accessibilityElement(children: .contain)
         .id(item.id)
+    }
+
+    /// The row's second line in the drawing's form. A person or place: "Kişi · son görülme 19 Eyl",
+    /// plus the matched alias when the name itself does not show the query. An event or a task:
+    /// "19 Eyl Cmt" (the year only outside the current year). Notes keep their name.
+    private func detailText(_ item: SearchItem) -> String {
+        switch item.destination {
+        case .entity(let file):
+            var parts = [kindLabel(item.group, file: file)]
+            let query = model.query.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !item.detail.isEmpty, !query.isEmpty,
+                item.title.range(of: query, options: [.caseInsensitive, .diacriticInsensitive], locale: locale) == nil
+            {
+                parts.append(item.detail)
+            }
+            if let last = store.entityUsage.first(where: { $0.file == file })?.lastDate {
+                parts.append(String(localized: "son görülme \(dayText(last, weekday: false))"))
+            }
+            return parts.joined(separator: " · ")
+        case .day(let day):
+            return dayText(day, weekday: true)
+        case .note:
+            return item.detail
+        }
+    }
+
+    private func kindLabel(_ group: SearchGroup, file: String) -> String {
+        switch group {
+        case .people: return String(localized: "Kişi")
+        case .places: return String(localized: "Konum")
+        default:
+            let kind = store.content.entities.first { $0.id == file }?.kind ?? ""
+            return EntityTypeChoices.choices(store.entityTypes).first { $0.id == kind }?.name ?? kind
+        }
+    }
+
+    /// "19 Eyl Cmt" or "19 Eyl" ("Sep 19, 2025" style with the year outside the current year).
+    private func dayText(_ day: CalendarDate, weekday: Bool) -> String {
+        var style = Date.FormatStyle.dateTime.day().month(.abbreviated)
+        if weekday { style = style.weekday(.abbreviated) }
+        if day.year != LocalDay.today().year { style = style.year() }
+        return LocalDay.instant(for: day).formatted(style.locale(locale))
     }
 
     /// Rows that open a page of their own (a person, a place, a note) end in "›"; events and tasks

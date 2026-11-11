@@ -34,7 +34,7 @@ struct SingleLineTextEditor<Assist: View>: View {
                             .accessibilityHidden(true)
                         InkFilterField(
                             placeholder, text: $text, selection: selection, isFocused: $isFocused,
-                            identifier: "field.textEditor"
+                            identifier: "field.textEditor", showsClearButton: false
                         )
                         .disabled(isDisabled)
                         .onSubmit { submit() }

@@ -81,6 +81,8 @@ struct DayView: View {
     @State private var showsMonthPicker = false
     /// The schedule card's leading icon box (the drawing's 32 pt square).
     @ScaledMetric(relativeTo: .body) private var scheduleIconBox: CGFloat = 32
+    /// The pinned manşet's small ring (the drawing's 30 pt).
+    @ScaledMetric(relativeTo: .body) private var compactRingSide: CGFloat = 30
     @State private var selectedScheduleItemID: String?
     @State private var editingScheduleEvent: EventEditorModel?
     @State private var deletingScheduleEvent: EventRow?
@@ -230,10 +232,19 @@ struct DayView: View {
         .safeAreaInset(edge: .top, spacing: 0) {
             // Today only: a past day keeps the navigation bar's title while it scrolls.
             if isToday && mastheadPlacement == .scrolled && isHeaderCompact {
-                todayHeader(presented, compact: true)
+                todayCompactHeader(presented)
                     .padding(.horizontal, InkSpacing.margin)
-                    .padding(.vertical, 8)
+                    .padding(.top, 4)
+                    .padding(.bottom, 6)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .inkPageColumn()
+                    // The drawing's pinned row ends on a hairline over the page.
+                    .overlay(alignment: .bottom) {
+                        Rectangle()
+                            .fill(Color.ink.rule)
+                            .frame(height: InkStroke.hairline(scale: displayScale))
+                            .accessibilityHidden(true)
+                    }
                     .background(Color.ink.paper)
             }
         }
@@ -317,12 +328,12 @@ struct DayView: View {
         }
         .navigationDestination(isPresented: $showsDayGraph) {
             GraphView(store: store, scope: .day(date))
-                .modifier(DayBackTitle(title: isToday ? nil : presented.headline))
+                .modifier(DayBackTitle(title: isToday ? nil : backTitle))
         }
         .navigationDestination(item: $goalDestination) { route in
             // As the Goals list opens it: the page's own day is today.
             GoalDetailView(store: store, goal: route.goal, day: LocalDay.today(at: clockNow()))
-                .modifier(DayBackTitle(title: isToday ? nil : presented.headline))
+                .modifier(DayBackTitle(title: isToday ? nil : backTitle))
         }
         .navigationDestination(item: $weekDestination) { day in
             DayView(
@@ -333,11 +344,11 @@ struct DayView: View {
                     navigation?.todayPath = NavigationPath()
                 }
             )
-            .modifier(DayBackTitle(title: isToday ? nil : presented.headline))
+            .modifier(DayBackTitle(title: isToday ? nil : backTitle))
         }
         .navigationDestination(item: $chipEntityDestination) { entity in
             EntityView(store: store, entity: entity)
-                .modifier(DayBackTitle(title: isToday ? nil : presented.headline))
+                .modifier(DayBackTitle(title: isToday ? nil : backTitle))
         }
         .onAppear { isVisible = true }
         .onDisappear { isVisible = false }
@@ -368,7 +379,7 @@ struct DayView: View {
                 NavigationStack {
                     ScrollView {
                         DaysCalendarView(
-                            store: store, selected: date, initialMonth: date
+                            store: store, selected: date, initialMonth: date, style: .card
                         ) { picked in
                             showsMonthPicker = false
                             handleWeekDay(picked, today: LocalDay.today(at: clockNow()))
@@ -671,6 +682,12 @@ struct DayView: View {
         closeDayRoute = CloseDayRoute(step: .journal)
     }
 
+    /// The back item of a page pushed from this past day: "17 Eyl" (drawing).
+    private var backTitle: String {
+        DayBackLabel.text(
+            for: date, today: LocalDay.today(at: clockNow()), locale: locale, calendar: calendarValue)
+    }
+
     private var journalRoute: JournalEditorRoute { JournalEditorRoute(day: date, isToday: isToday) }
 
     /// Whether this page's journal editor is open. With a shell the bridge holds the route, so
@@ -718,22 +735,86 @@ struct DayView: View {
             showsRing: TodayDayRing.showsRing(total: total), compact: compact,
             compactTitle: presented.shortHeadline
         ) {
-            if let dayGraph, dayGraph.date == date, dayGraph.isOffered {
-                InkHeaderAction(
-                    "Günün grafiği", systemImage: "point.3.connected.trianglepath.dotted",
-                    identifier: "button.dayGraph"
-                ) {
-                    showsDayGraph = true
+            if usesWideMasthead {
+                // iPad drawing: bare icons, the day's graph, settings, then search.
+                Group {
+                    dayGraphAction
+                    settingsAction
+                    SearchButton()
                 }
-            }
-            // Drawing order: search, then settings.
-            SearchButton()
-            if isToday, let openSettings {
-                InkHeaderAction("Ayarlar", systemImage: "gearshape", identifier: "button.settings") {
-                    openSettings()
-                }
+                .environment(\.inkHeaderActionChrome, .bare)
+            } else {
+                dayGraphAction
+                // iPhone drawing order: search, then settings.
+                SearchButton()
+                settingsAction
             }
         }
+    }
+
+    @ViewBuilder private var settingsAction: some View {
+        if isToday, let openSettings {
+            InkHeaderAction("Ayarlar", systemImage: "gearshape", identifier: "button.settings") {
+                openSettings()
+            }
+        }
+    }
+
+    /// The regular-width iOS page (iPad) draws its manşet icons as the iPad drawing does.
+    private var usesWideMasthead: Bool {
+        #if os(iOS)
+            horizontalSizeClass == .regular
+        #else
+            false
+        #endif
+    }
+
+    /// Today's pinned one-line manşet once the page scrolls (drawing): a small ring without its
+    /// number, "20 Eylül" with the weekday in secondary ink, and search alone.
+    private func todayCompactHeader(_ presented: TodayPresentation) -> some View {
+        let total = presented.goalCount
+        let completed = presented.completedGoalCount
+        let instant = LocalDay.instant(for: date, timeZone: calendarValue.timeZone)
+        return HStack(alignment: .center, spacing: 10) {
+            if TodayDayRing.showsRing(total: total) {
+                GoalRing(
+                    progress: TodayDayRing.progress(completed: completed, total: total),
+                    diameter: compactRingSide, emphasizesArc: true
+                )
+                .accessibilityLabel(
+                    Text(
+                        verbatim: TodayDayRing.accessibilityLabel(
+                            remaining: TodayDayRing.remaining(completed: completed, total: total),
+                            locale: locale)))
+            }
+            ViewThatFits(in: .horizontal) {
+                compactTitle(instant).fixedSize()
+                    .font(.ink.section)
+                Text(verbatim: presented.shortHeadline)
+                    .font(.ink.section)
+                    .foregroundStyle(Color.ink.text)
+                    .lineLimit(1)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isHeader)
+            Spacer(minLength: 0)
+            SearchButton()
+                .buttonStyle(InkHeaderButtonStyle())
+                .environment(\.inkHeaderActionChrome, .bare)
+        }
+        .accessibilityElement(children: .contain)
+    }
+
+    private func compactTitle(_ instant: Date) -> some View {
+        let resolved = PresentationLocalization.resolvedLocale(locale)
+        let style = Date.FormatStyle(locale: resolved, calendar: calendarValue, timeZone: calendarValue.timeZone)
+        return HStack(alignment: .firstTextBaseline, spacing: 5) {
+            Text(verbatim: instant.formatted(style.day().month(.wide)))
+                .foregroundStyle(Color.ink.text)
+            Text(verbatim: instant.formatted(style.weekday(.wide)))
+                .foregroundStyle(Color.ink.secondaryText)
+        }
+        .lineLimit(1)
     }
 
     private func weekStrip(todayInstant: Date) -> some View {
@@ -1236,10 +1317,13 @@ struct DayView: View {
         }
     #endif
 
-    /// A small accent row with a chevron under a hairline (the drawing).
+    /// A small accent row with a chevron under a full-width rule (the drawing's `--line`, 1 pt).
     private var closeDayEntry: some View {
         VStack(spacing: 4) {
-            InkCardDivider()
+            Rectangle()
+                .fill(Color.ink.line)
+                .frame(height: InkStroke.rule)
+                .accessibilityHidden(true)
             Button {
                 closeDayRoute = CloseDayRoute(step: .tasks)
             } label: {
@@ -1475,6 +1559,18 @@ struct TodayView: View {
     }
 }
 
+/// The short date a page pushed from a past day shows on its back item (unit-tested): day and
+/// abbreviated month ("17 Eyl"), with the year when it is not this year's.
+enum DayBackLabel {
+    static func text(for date: CalendarDate, today: CalendarDate, locale: Locale, calendar: Calendar) -> String {
+        let resolved = PresentationLocalization.resolvedLocale(locale)
+        var style = Date.FormatStyle(locale: resolved, calendar: calendar, timeZone: calendar.timeZone)
+            .day().month(.abbreviated)
+        if date.year != today.year { style = style.year() }
+        return LocalDay.instant(for: date, timeZone: calendar.timeZone).formatted(style)
+    }
+}
+
 /// When the day page offers its own graph (the manşet's Graph icon).
 enum DayGraphEntry {
     /// Pure rule (unit-tested): the day links at least one entity, so its graph has a node besides
@@ -1545,8 +1641,8 @@ private struct TodayDeskColumns: ViewModifier {
     }
 #endif
 
-/// Pages pushed from a past day show its date on their back item ("‹ 27 Eylül Pazar"); the
-/// destinations sit outside the day's own title modifier, so they would read the tab's name.
+/// Pages pushed from a past day show its short date on their back item ("‹ 17 Eyl", drawing);
+/// the destinations sit outside the day's own title modifier, so they would read the tab's name.
 private struct DayBackTitle: ViewModifier {
     let title: String?
 

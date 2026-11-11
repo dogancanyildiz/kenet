@@ -10,13 +10,6 @@ enum TimelineDesktopMetrics {
     static let axisHeight: CGFloat = 44
 }
 
-/// Center of the "Bugün" word, plus the date labels that must drop to clear it.
-struct TimelineTodayLabelPlacement: Equatable {
-    var centerX: CGFloat
-    var centerY: CGFloat
-    var loweredDateIndices: Set<Int>
-}
-
 /// Placement of an axis date label in the timeline axis overlay coordinate space.
 struct TimelineDateLabelPlacement: Equatable, Identifiable {
     var dayIndex: Int
@@ -26,157 +19,55 @@ struct TimelineDateLabelPlacement: Equatable, Identifiable {
     var id: Int { dayIndex }
 }
 
-/// Where "Bugün" sits. The word is wider than a quarter-scale cell, so centering it on the
-/// day runs the today line through the word and covers a neighboring date. The word moves
-/// beside the line, shifts inward when today is the first or last day of the range, and
-/// steps up when a date label would still cover it. A date that would still meet the raised
-/// word moves down by ``TimelineAxisLayout/loweredDateOffset``.
+/// Axis rules (unit-tested). The date labels share one row in the axis' upper part, kept
+/// inside the chart so the last one is never cut at the edge. "Bugün" is an accent capsule
+/// centered on the today line in the axis' lower part (Şafak drawing), under the date row,
+/// so it never covers a date and stays inside the scrolling axis.
 enum TimelineAxisLayout {
-    static let todayLabelHeight: CGFloat = 16
     static let dateLabelHeight: CGFloat = 16
-    /// Upper row. A midline date (center 22, height 16) occupies y 14…30; this clears it.
-    static let upperCenterY: CGFloat = 10
-    /// Drops a colliding date from the midline to y 26…42, under the raised word.
-    static let loweredDateOffset: CGFloat = 12
-    /// Gap kept between the today line and the word.
-    static let lineClearance: CGFloat = 4
+    /// Center of the date row.
+    static let dateRowCenterY: CGFloat = 14
 
-    static func todayLabelPlacement(
-        dayIndex: Int,
-        dayCount: Int,
-        dayWidth: CGFloat,
-        labelWidth: CGFloat,
-        dateLabelWidth: CGFloat,
-        dateLabelDayIndices: Set<Int>
-    ) -> TimelineTodayLabelPlacement {
-        let width = max(dayWidth, 0)
-        let chartWidth = CGFloat(max(dayCount, 1)) * width
-        let lineX = (CGFloat(dayIndex) + 0.5) * width
-        let label = max(labelWidth, 1)
-        let half = label / 2
-        let dateWidth = max(dateLabelWidth, 0)
-        let midline = TimelineDesktopMetrics.axisHeight / 2
-        let towardRight = clamped(lineX + lineClearance + half, half: half, label: label, chartWidth: chartWidth)
-        let towardLeft = clamped(lineX - lineClearance - half, half: half, label: label, chartWidth: chartWidth)
-        let preferRight = chartWidth - lineX >= lineX
-        let preferred = preferRight ? towardRight : towardLeft
-        let alternate = preferRight ? towardLeft : towardRight
-
-        if fits(
-            preferred, lineX: lineX, half: half, chartWidth: chartWidth, label: label, wordY: midline,
-            dateWidth: dateWidth, dayWidth: width, dateY: midline, dates: dateLabelDayIndices)
-        {
-            return TimelineTodayLabelPlacement(centerX: preferred, centerY: midline, loweredDateIndices: [])
-        }
-        if fits(
-            alternate, lineX: lineX, half: half, chartWidth: chartWidth, label: label, wordY: midline,
-            dateWidth: dateWidth, dayWidth: width, dateY: midline, dates: dateLabelDayIndices)
-        {
-            return TimelineTodayLabelPlacement(centerX: alternate, centerY: midline, loweredDateIndices: [])
-        }
-
-        let centerX = besideLine(preferred, alternate, lineX: lineX, half: half, chartWidth: chartWidth)
-        let word = wordFrame(centerX: centerX, centerY: upperCenterY, labelWidth: label)
-        let lowered = Set(
-            dateLabelDayIndices.filter { index in
-                word.intersects(
-                    dateFrame(dayIndex: index, dayWidth: width, dateLabelWidth: dateWidth, centerY: midline))
-            })
-        return TimelineTodayLabelPlacement(
-            centerX: centerX, centerY: upperCenterY, loweredDateIndices: lowered)
+    /// The capsule's center: its bottom edge on the axis' lower edge.
+    static func todayCenterY(badgeHeight: CGFloat) -> CGFloat {
+        TimelineDesktopMetrics.axisHeight - max(badgeHeight, 0) / 2 - 1
     }
 
-    private static func clamped(_ center: CGFloat, half: CGFloat, label: CGFloat, chartWidth: CGFloat) -> CGFloat {
-        guard chartWidth > label else { return chartWidth / 2 }
+    /// Center of a label of `labelWidth` on `dayIndex`, shifted inward at the chart's ends.
+    static func centerX(dayIndex: Int, dayWidth: CGFloat, labelWidth: CGFloat, chartWidth: CGFloat) -> CGFloat {
+        let center = (CGFloat(dayIndex) + 0.5) * max(dayWidth, 0)
+        let half = max(labelWidth, 0) / 2
+        guard chartWidth > half * 2 else { return chartWidth / 2 }
         return min(max(center, half), chartWidth - half)
     }
 
-    /// Inside the chart, clear of the today line, and clear of every date label on `dateY`.
-    private static func fits(
-        _ center: CGFloat, lineX: CGFloat, half: CGFloat, chartWidth: CGFloat, label: CGFloat, wordY: CGFloat,
-        dateWidth: CGFloat, dayWidth: CGFloat, dateY: CGFloat, dates: Set<Int>
-    ) -> Bool {
-        guard inside(center, half: half, chartWidth: chartWidth), !throughLine(center, lineX: lineX, half: half)
-        else { return false }
-        let word = wordFrame(centerX: center, centerY: wordY, labelWidth: label)
-        return !dates.contains { index in
-            word.intersects(
-                dateFrame(dayIndex: index, dayWidth: dayWidth, dateLabelWidth: dateWidth, centerY: dateY))
-        }
-    }
-
-    private static func besideLine(
-        _ preferred: CGFloat, _ alternate: CGFloat, lineX: CGFloat, half: CGFloat, chartWidth: CGFloat
-    ) -> CGFloat {
-        if inside(preferred, half: half, chartWidth: chartWidth), !throughLine(preferred, lineX: lineX, half: half) {
-            return preferred
-        }
-        if inside(alternate, half: half, chartWidth: chartWidth), !throughLine(alternate, lineX: lineX, half: half) {
-            return alternate
-        }
-        return preferred
-    }
-
-    private static func inside(_ center: CGFloat, half: CGFloat, chartWidth: CGFloat) -> Bool {
-        center - half >= -0.01 && center + half <= chartWidth + 0.01
-    }
-
-    private static func throughLine(_ center: CGFloat, lineX: CGFloat, half: CGFloat) -> Bool {
-        lineX > center - half && lineX < center + half
-    }
-
-    private static func wordFrame(centerX: CGFloat, centerY: CGFloat, labelWidth: CGFloat) -> CGRect {
-        CGRect(
-            x: centerX - labelWidth / 2, y: centerY - todayLabelHeight / 2, width: labelWidth,
-            height: todayLabelHeight)
-    }
-
-    private static func dateFrame(
-        dayIndex: Int, dayWidth: CGFloat, dateLabelWidth: CGFloat, centerY: CGFloat
-    ) -> CGRect {
-        let centerX = (CGFloat(dayIndex) + 0.5) * dayWidth
-        return CGRect(
-            x: centerX - dateLabelWidth / 2, y: centerY - dateLabelHeight / 2,
-            width: dateLabelWidth, height: dateLabelHeight)
-    }
-
-    static func dateLabelCenter(
-        dayIndex: Int,
-        dayWidth: CGFloat,
-        isLowered: Bool
-    ) -> CGPoint {
-        let midline = TimelineDesktopMetrics.axisHeight / 2
-        let centerY = midline + (isLowered ? loweredDateOffset : 0)
-        let centerX = (CGFloat(dayIndex) + 0.5) * max(dayWidth, 0)
-        return CGPoint(x: centerX, y: centerY)
-    }
-
-    static func dateLabelPlacement(
-        dayIndex: Int,
-        dayWidth: CGFloat,
-        isLowered: Bool
-    ) -> TimelineDateLabelPlacement {
-        let center = dateLabelCenter(dayIndex: dayIndex, dayWidth: dayWidth, isLowered: isLowered)
-        return TimelineDateLabelPlacement(dayIndex: dayIndex, centerX: center.x, centerY: center.y)
-    }
-
     static func dateLabelPlacements(
-        dayIndices: [Int],
-        dayWidth: CGFloat,
-        loweredDateIndices: Set<Int>
+        dayIndices: [Int], dayWidth: CGFloat, labelWidth: CGFloat, chartWidth: CGFloat
     ) -> [TimelineDateLabelPlacement] {
         dayIndices.map { index in
-            dateLabelPlacement(
+            TimelineDateLabelPlacement(
                 dayIndex: index,
-                dayWidth: dayWidth,
-                isLowered: loweredDateIndices.contains(index)
-            )
+                centerX: centerX(dayIndex: index, dayWidth: dayWidth, labelWidth: labelWidth, chartWidth: chartWidth),
+                centerY: dateRowCenterY)
         }
+    }
+
+    /// The "Bugün" capsule: on the today line, inside the chart.
+    static func todayCenter(
+        dayIndex: Int, dayWidth: CGFloat, labelWidth: CGFloat, badgeHeight: CGFloat, chartWidth: CGFloat
+    ) -> CGPoint {
+        CGPoint(
+            x: centerX(dayIndex: dayIndex, dayWidth: dayWidth, labelWidth: labelWidth, chartWidth: chartWidth),
+            y: todayCenterY(badgeHeight: badgeHeight))
     }
 
     static func showsAxisDateLabel(_ day: CalendarDate, scale: TimelineModel.Scale) -> Bool {
         scale == .week || (scale == .month && day.weekday == 0) || day.day == 1
     }
+
+    /// Weekend wells read as stripes once a day is a few points wide (Çeyrek): the drawing
+    /// shows a plain axis there.
+    static func showsWeekends(scale: TimelineModel.Scale) -> Bool { scale != .quarter }
 }
 
 /// Non-scrolling timeline chart shared by ``TimelineDesktopView`` and Mac snapshots:
@@ -191,6 +82,7 @@ struct TimelineDesktopContent: View {
     var maxRowsPerGroup: Int? = nil
     /// Floors until the drawn word and date labels report a larger width.
     @State private var todayLabelWidth: CGFloat = 48
+    @State private var todayBadgeHeight: CGFloat = 18
     @State private var dateLabelWidth: CGFloat = 64
     @Environment(\.timelineRowHeight) private var rowHeight
 
@@ -217,7 +109,9 @@ struct TimelineDesktopContent: View {
         }
         .frame(width: chartWidth)
         .background {
-            TimelineGrid(days: days, today: model.today, dayWidth: dayWidth)
+            TimelineGrid(
+                days: days, today: model.today, dayWidth: dayWidth,
+                showsWeekends: TimelineAxisLayout.showsWeekends(scale: model.scale))
         }
         .coordinateSpace(name: "timeline-axis")
     }
@@ -242,16 +136,15 @@ struct TimelineDesktopContent: View {
     }
 
     private var axis: some View {
-        let placement = todayPlacement
+        let chartWidth = CGFloat(days.count) * dayWidth
         let datePlacements = TimelineAxisLayout.dateLabelPlacements(
-            dayIndices: dateLabelDayIndices,
-            dayWidth: dayWidth,
-            loweredDateIndices: placement?.loweredDateIndices ?? []
-        )
+            dayIndices: dateLabelDayIndices, dayWidth: dayWidth, labelWidth: dateLabelWidth,
+            chartWidth: chartWidth)
+        let showsWeekends = TimelineAxisLayout.showsWeekends(scale: model.scale)
         return HStack(spacing: 0) {
             ForEach(days, id: \.self) { day in
                 ZStack {
-                    if day.weekday >= 5 { Color.ink.well }
+                    if showsWeekends && day.weekday >= 5 { Color.ink.well }
                     if day == model.today {
                         Color.ink.accent.opacity(0.12)
                     }
@@ -274,16 +167,16 @@ struct TimelineDesktopContent: View {
                         }
                         .position(x: item.centerX, y: item.centerY)
                 }
-                if let placement {
-                    Text("Bugün")
-                        .font(.ink.meta)
-                        .foregroundStyle(.ink.accent)
-                        .fixedSize()
-                        .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { width in
-                            if width > todayLabelWidth { todayLabelWidth = width }
+                if let index = days.firstIndex(of: model.today) {
+                    let center = TimelineAxisLayout.todayCenter(
+                        dayIndex: index, dayWidth: dayWidth, labelWidth: todayLabelWidth,
+                        badgeHeight: todayBadgeHeight, chartWidth: chartWidth)
+                    TimelineTodayBadge()
+                        .onGeometryChange(for: CGSize.self, of: { $0.size }) { size in
+                            if size.width > todayLabelWidth { todayLabelWidth = size.width }
+                            todayBadgeHeight = size.height
                         }
-                        .position(x: placement.centerX, y: placement.centerY)
-                        .accessibilityAddTraits(.isHeader)
+                        .position(x: center.x, y: center.y)
                 }
             }
         }
@@ -293,18 +186,21 @@ struct TimelineDesktopContent: View {
         days.indices.filter { showsAxisDateLabel(days[$0]) }
     }
 
-    private var todayPlacement: TimelineTodayLabelPlacement? {
-        guard let index = days.firstIndex(of: model.today) else { return nil }
-        return TimelineAxisLayout.todayLabelPlacement(
-            dayIndex: index,
-            dayCount: days.count,
-            dayWidth: dayWidth,
-            labelWidth: todayLabelWidth,
-            dateLabelWidth: dateLabelWidth,
-            dateLabelDayIndices: Set(dateLabelDayIndices))
-    }
-
     private func showsAxisDateLabel(_ day: CalendarDate) -> Bool {
         TimelineAxisLayout.showsAxisDateLabel(day, scale: model.scale)
+    }
+}
+
+/// "Bugün" on the chart axis: a filled accent capsule (Şafak drawing).
+struct TimelineTodayBadge: View {
+    var body: some View {
+        Text("Bugün")
+            .font(.ink.meta.weight(.bold))
+            .foregroundStyle(Color.ink.onAccent)
+            .fixedSize()
+            .padding(.horizontal, 6)
+            .padding(.vertical, 1)
+            .background(Capsule().fill(Color.ink.accent))
+            .accessibilityAddTraits(.isHeader)
     }
 }

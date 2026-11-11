@@ -300,59 +300,56 @@ struct EntityView: View {
                     .foregroundStyle(.ink.secondaryText)
                     .inkListRow()
             }
+            // Şafak drawing: one card per record, the day and time on the card's second line; no
+            // day heads. The day's graph moves to the card's context menu.
             ForEach(timeline) { day in
-                VStack(alignment: .leading, spacing: 8) {
-                    // Quiet day head (Şafak `dayhead`): the date, and the day's own graph on the right.
-                    HStack(alignment: .center) {
-                        Text(
-                            LocalDay.instant(for: day.date),
-                            format: .dateTime.weekday(.abbreviated).day().month().year()
-                        )
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(.ink.secondaryText)
-                        .accessibilityAddTraits(.isHeader)
-                        // Section title, not a manşet (manşet probes and audits key on this).
-                        .accessibilityIdentifier(SectionHeader.titleIdentifier)
-                        Spacer()
+                ForEach(day.rows) { row in
+                    Button {
+                        pushed = .day(day.date)
+                    } label: {
+                        timelineRow(row, date: day.date)
+                    }
+                    .buttonStyle(.borderless)
+                    .contextMenu {
                         Button {
                             pushed = .dayGraph(day.date)
                         } label: {
                             Label("Günün grafiği", systemImage: "point.3.connected.trianglepath.dotted")
-                                .labelStyle(.iconOnly)
-                                .font(.footnote)
-                                .foregroundStyle(.ink.secondaryText)
-                                .tapTarget()
                         }
-                        .buttonStyle(.borderless)
                     }
-                    ForEach(day.rows) { row in
-                        Button {
-                            pushed = .day(day.date)
-                        } label: {
-                            timelineRow(row)
-                        }
-                        // Several links share the list row: each keeps its own tap.
-                        .buttonStyle(.borderless)
-                    }
+                    .accessibilityAction(named: Text("Günün grafiği")) { pushed = .dayGraph(day.date) }
+                    .inkListRow()
                 }
-                .inkListRow()
             }
         }
     }
 
-    /// Card row of the timeline: icon box, the linked text, a chevron.
-    private func timelineRow(_ row: EntityTimelineRow) -> some View {
-        HStack(alignment: .center, spacing: 12) {
-            Image(systemName: "pencil")
+    /// Card row of the timeline: icon box (calendar for an event, pencil for journal text), the
+    /// linked text, under it "19 Eyl Cmt · 10:30" or "19 Eyl Cmt · günlük yazısı", a chevron.
+    private func timelineRow(_ row: EntityTimelineRow, date: CalendarDate) -> some View {
+        let isEvent = row.kind == "event"
+        return HStack(alignment: .center, spacing: 12) {
+            Image(systemName: isEvent ? "calendar" : "pencil")
                 .font(.footnote)
-                .foregroundStyle(.ink.secondaryText)
+                .foregroundStyle(isEvent ? Color.ink.accent : Color.ink.secondaryText)
                 .frame(width: badgeSide, height: badgeSide)
-                .background(Color.ink.well, in: RoundedRectangle(cornerRadius: InkCorner.xs, style: .continuous))
+                .background(
+                    isEvent ? Color.ink.accentSoft : Color.ink.well,
+                    in: RoundedRectangle(cornerRadius: InkCorner.xs, style: .continuous)
+                )
                 .accessibilityHidden(true)
-            LinkedTextView(text: row.text, store: store)
-                .font(.subheadline)
-                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 2)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading, spacing: 2) {
+                LinkedTextView(text: row.text, store: store)
+                    .font(.subheadline)
+                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 2)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text(verbatim: timelineMeta(row, date: date))
+                    .font(.ink.meta)
+                    .foregroundStyle(.ink.secondaryText)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
             Image(systemName: "chevron.right")
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(.ink.tertiaryText)
@@ -363,6 +360,18 @@ struct EntityView: View {
         .frame(minHeight: 56)
         .modifier(InkCardModifier(cornerRadius: InkCorner.md))
         .contentShape(Rectangle())
+    }
+
+    /// "19 Eyl Cmt · 10:30" for a timed event, "19 Eyl Cmt · günlük yazısı" for journal text; the
+    /// year only outside the current year.
+    private func timelineMeta(_ row: EntityTimelineRow, date: CalendarDate) -> String {
+        var style = Date.FormatStyle.dateTime.day().month(.abbreviated).weekday(.abbreviated)
+        if date.year != LocalDay.today().year { style = style.year() }
+        let day = LocalDay.instant(for: date).formatted(style.locale(locale))
+        if row.kind == "event" {
+            return row.time.map { day + " · " + $0 } ?? day
+        }
+        return String(localized: "\(day) · günlük yazısı")
     }
 
     @ScaledMetric(relativeTo: .body) private var badgeSide: CGFloat = 32

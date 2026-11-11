@@ -155,12 +155,23 @@ struct VaultDisplayTextTests {
             kindLabel: "Person",
             aliases: ["Ada", "A."],
             lastSeen: CalendarDate("2026-09-25")!,
+            today: CalendarDate("2027-01-02")!,
             locale: locale)
         #expect(text.contains("Person"))
         #expect(text.contains("Ada"))
         #expect(text.contains("A."))
         #expect(text.contains("2026"))
         #expect(!text.contains("2026-09-25"))
+    }
+
+    /// Drawing: "son görülme 19 Eyl": a day in the current year drops the year and the colon.
+    @Test func bylineDropsTheYearInTheCurrentYear() {
+        let text = EntityReadPresentation.byline(
+            kindLabel: "Kişi", aliases: [], lastSeen: CalendarDate("2026-09-25")!,
+            today: CalendarDate("2026-11-11")!, locale: Locale(identifier: "tr_TR"))
+        #expect(!text.contains("2026"))
+        #expect(!text.contains(":"))
+        #expect(text.contains("25"))
     }
 
     @Test func searchPreviewDropsFenceOpenersAndHeadingMarks() {

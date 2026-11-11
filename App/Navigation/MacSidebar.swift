@@ -64,7 +64,8 @@ enum MacSidebarEntry: Hashable {
         switch self {
         case .section(let section): section.symbol
         case .kanban: "rectangle.split.3x1"
-        case .timeline: "chart.bar.xaxis"
+        // An outline Gantt like the drawing's `tm-i-gantt`; `chart.bar.xaxis` is solid bars.
+        case .timeline: "align.horizontal.left"
         case .project: "folder"
         }
     }
@@ -122,26 +123,25 @@ enum MacSidebar {
     }
 #endif
 
-/// Colors of a sidebar row (`docs/design.md`, rule 12): the selected row is filled with the
-/// app accent and written in on-accent ink; in a window that is not key the fill is the rule
-/// tone and the row keeps its ordinary ink.
+/// Colors of a sidebar row (`docs/design.md`, rule 12, Şafak drawing `c-mac`): the selected row
+/// is the accent's soft tone with the accent icon and semibold ink; the other rows keep ordinary
+/// ink and a gray outline icon. In a window that is not key the selected icon turns gray too.
 enum MacSidebarChrome {
     /// Fill inset from the sidebar edges, like the system selection.
     static let fillInset: CGFloat = 10
 
-    /// `nil`: no fill (a row that is not selected).
+    /// `nil`: no fill (a row that is not selected). One tone in both window states: it stays
+    /// visible on the elevated sidebar (`well` did not).
     static func fillToken(isSelected: Bool, isWindowActive: Bool) -> InkPalette.Token? {
-        guard isSelected else { return nil }
-        // Inactive selection: accentSoft stays visible on elevated sidebar (well did not).
-        return isWindowActive ? .accent : .accentSoft
+        isSelected ? .accentSoft : nil
     }
 
     static func titleToken(isSelected: Bool, isWindowActive: Bool) -> InkPalette.Token {
-        isSelected && isWindowActive ? .onAccent : .text
+        .text
     }
 
     static func iconToken(isSelected: Bool, isWindowActive: Bool) -> InkPalette.Token {
-        isSelected && isWindowActive ? .onAccent : .accent
+        isSelected && isWindowActive ? .accent : .secondaryText
     }
 
     /// iOS row names: icon and name on one line, cut at the end. At accessibility text sizes
@@ -298,6 +298,8 @@ struct MacSidebarRow: View {
 
     private var icon: some View {
         Image(systemName: entry.symbol)
+            // The drawing's icons are outlines: the iPadOS sidebar would fill some of them.
+            .symbolVariant(.none)
             .foregroundStyle(
                 color(MacSidebarChrome.iconToken(isSelected: isSelected, isWindowActive: isWindowActive)))
     }

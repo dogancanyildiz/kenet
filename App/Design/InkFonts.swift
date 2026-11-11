@@ -35,6 +35,10 @@ extension Font {
         /// Section title: SF Pro Semibold ≈ headline (17).
         static var section: Font { .system(.headline, design: .default, weight: .semibold) }
 
+        /// Section header above a card (``SectionHeader``): SF Pro Bold ≈ title3 (20). The
+        /// drawing sets every card's section title one step above ``section`` (fark2 P4).
+        static var sectionTitle: Font { .system(.title3, design: .default, weight: .bold) }
+
         /// Meta: SF Pro Regular ≈ footnote (13).
         static var meta: Font { .footnote }
 

@@ -292,7 +292,7 @@ final class ScreenTourMacUITests: XCTestCase {
         tour.step("09-konumlar-suzgec-dolu") {
             try tour.sidebar("Konumlar")
             let field = try tour.field(
-                ids: ["field.entities.filter", "field.entityFilter"], placeholders: ["Kişi veya konum ara"])
+                ids: ["field.entities.filter", "field.entityFilter"], placeholders: ["Süz"])
             tour.type(typedPlace, into: field)
             tour.shot("09-konumlar-suzgec-dolu")
             tour.erase(typedPlace.count)

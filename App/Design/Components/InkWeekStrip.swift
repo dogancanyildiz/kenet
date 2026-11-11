@@ -225,6 +225,9 @@ struct InkWeekStrip: View {
     {
         let formatter = DateFormatter()
         formatter.calendar = calendar
+        // The calendar's zone, not the system's: otherwise day names drift from day numbers
+        // when the two differ (fark2 M1: "Paz 14 … Cmt 20").
+        formatter.timeZone = calendar.timeZone
         formatter.locale = locale
         formatter.setLocalizedDateFormatFromTemplate(template)
         return formatter

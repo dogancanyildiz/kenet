@@ -147,60 +147,17 @@ struct EntitiesView: View {
             .first { $0.id == kind }?.plural ?? kind
     }
 
-    /// One action row (Şafak drawing "+ Yeni kişi"): the create button, then a "…" menu with
-    /// "Rehberden aktar" (people, iPhone) and "Yeni tip…", so the list starts on the first screen.
+    /// The shared action row: "+ Yeni kişi", then the "…" menu (``EntityActionRow``).
     private var actionRow: some View {
-        HStack(spacing: 12) {
-            if let creatable = EntityCreateEntry.kind(forList: kind, types: store.entityTypes) {
-                Button {
-                    creationKind = creatable
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "plus").accessibilityHidden(true)
-                        Text(
-                            verbatim: EntityCreateEntry.title(
-                                creatable, types: store.entityTypes,
-                                language: locale.language.languageCode?.identifier ?? "en"))
-                    }
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.ink.accent)
-                    .frame(minHeight: TapTarget.minimumLength)
-                    .contentShape(Rectangle())
-                }
-                // Two controls share the list row: each keeps its own tap.
-                .buttonStyle(.borderless)
-                .disabled(!store.canAddEvent)
-                .accessibilityIdentifier(EntityCreateEntry.identifier(creatable))
-            }
-            Spacer(minLength: 0)
-            Menu {
+        EntityActionRow(
+            store: store, kind: kind, create: { creationKind = $0 },
+            importContacts: {
                 #if os(iOS)
-                    if ContactImportEntry.isShown(forList: kind) {
-                        Button {
-                            showsContactPicker = true
-                        } label: {
-                            ContactImportEntry.label
-                        }
-                        .disabled(!store.canAddEvent)
-                        .accessibilityIdentifier(ContactImportEntry.identifier)
-                    }
+                    showsContactPicker = true
                 #endif
-                Button {
-                    showsTypeGallery = true
-                } label: {
-                    Label("Yeni tip…", systemImage: EntityTypeGalleryEntry.systemImage)
-                }
-                .disabled(!EntityTypeGalleryEntry.isEnabled(store))
-                .accessibilityIdentifier(EntityTypeGalleryEntry.identifier)
-            } label: {
-                Label("Diğer eylemler", systemImage: "ellipsis")
-                    .labelStyle(.iconOnly)
-                    .foregroundStyle(.ink.accent)
-                    .tapTarget()
-            }
-            .buttonStyle(.borderless)
-            .accessibilityIdentifier("menu.entities.more")
-        }
+            },
+            newType: { showsTypeGallery = true }
+        )
         .inkListRow()
     }
 
@@ -335,12 +292,21 @@ struct EntityRow: View {
     }
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.shellKind) private var shellKind
 
-    /// "iş · Son görüşme 3 gün önce · 9 bağ": the qualifier joins the meta line.
+    /// The split shell's Kişiler column (Mac and iPad drawing): "son 3 gün önce" under the name
+    /// and the 12-month day count on the right instead of the mini bar.
+    private var isColumn: Bool { shellKind == .split }
+
+    /// "iş · Son görüşme 3 gün önce · 9 bağ": the qualifier joins the meta line. In the column:
+    /// "iş · son 3 gün önce".
     private var rowMeta: String? {
-        let meta = EntityRowPresentation.meta(
-            kind: entity.kind, lastDate: lastDate, links: relationCount,
-            today: LocalDay.today(at: clockNow()), locale: locale)
+        let today = LocalDay.today(at: clockNow())
+        let meta =
+            isColumn
+            ? EntityRowPresentation.columnMeta(lastDate: lastDate, today: today, locale: locale)
+            : EntityRowPresentation.meta(
+                kind: entity.kind, lastDate: lastDate, links: relationCount, today: today, locale: locale)
         let parts = [entity.qualifier, meta].compactMap { $0 }
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
@@ -365,7 +331,15 @@ struct EntityRow: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 // Never-mentioned entities have no bar (docs/screens.md, Liste satırı).
-                if lastDate != nil, let mentionData {
+                if isColumn {
+                    if let days = activity?.recentDays.count, days > 0 {
+                        Text("\(days) gün")
+                            .font(.ink.meta.monospacedDigit())
+                            .foregroundStyle(.ink.secondaryText)
+                            .fixedSize()
+                            .accessibilityLabel(Text("Son 12 ayda \(days) gün"))
+                    }
+                } else if lastDate != nil, let mentionData {
                     EntityMonthlyBarChart(data: mentionData, compact: true)
                 }
             }
@@ -433,8 +407,8 @@ extension View {
 }
 
 /// Tür renkli baş harf rozeti: tinted circle with up to two initials ("BT"), person or place
-/// colour (custom types use person).
-private struct EntityInitialBadge: View {
+/// colour (custom types use person). Also the search sheet's person and place mark.
+struct EntityInitialBadge: View {
     let entity: EntitySummary
     @Environment(\.locale) private var locale
     @ScaledMetric(relativeTo: .body) private var side: CGFloat = 40
@@ -465,6 +439,18 @@ enum EntityInitials {
 
 /// The row's meta line: "Son görüşme 3 gün önce · 14 bağ" ("Son ziyaret" for places).
 enum EntityRowPresentation {
+    /// The split shell column's short line: "son 3 gün önce", "son dün"; nil before any encounter.
+    static func columnMeta(lastDate: CalendarDate?, today: CalendarDate, locale: Locale) -> String? {
+        guard let lastDate, lastDate.ordinal <= today.ordinal else { return nil }
+        let formatter = RelativeDateTimeFormatter()
+        formatter.locale = locale
+        formatter.dateTimeStyle = .named
+        formatter.unitsStyle = .full
+        let relative = formatter.localizedString(from: DateComponents(day: lastDate.ordinal - today.ordinal))
+        return String(
+            localized: "son \(relative)", bundle: PresentationLocalization.bundle(locale), locale: locale)
+    }
+
     static func meta(
         kind: String, lastDate: CalendarDate?, links: Int, today: CalendarDate, locale: Locale
     ) -> String? {

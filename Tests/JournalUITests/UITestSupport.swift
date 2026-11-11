@@ -102,6 +102,21 @@ enum UITestSupport {
         XCTAssertTrue(element.waitForExistence(timeout: timeout), "Missing element: \(element)")
     }
 
+    /// Taps a text field until it holds keyboard focus, then returns. A tap that lands while the sheet
+    /// holding the field is still rising selects nothing, and `typeText` then fails with "Neither element
+    /// nor any descendant has keyboard focus" (dev run 43079654060, CalendarEventUITests).
+    @MainActor
+    static func focus(_ field: XCUIElement, attempts: Int = 3) {
+        waitForExistence(field)
+        let focused = NSPredicate(format: "hasKeyboardFocus == true")
+        for _ in 0..<attempts {
+            field.tap()
+            let wait = XCTNSPredicateExpectation(predicate: focused, object: field)
+            if XCTWaiter().wait(for: [wait], timeout: 5) == .completed { return }
+        }
+        XCTFail("\(field) did not take keyboard focus after \(attempts) taps")
+    }
+
     @MainActor
     static func element(in app: XCUIApplication, identifier: String) -> XCUIElement {
         app.descendants(matching: .any).matching(identifier: identifier).firstMatch

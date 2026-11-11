@@ -15,16 +15,26 @@ struct GraphView: View {
     ///   - focus: The node selected and framed first. A custom type entity switches its type on.
     ///   - scope: `.day` draws that day's own graph (the day page's Graph icon).
     init(store: IndexStore, focus: String? = nil, scope: GraphScope = .all, liveMotion: Bool = true) {
-        self.store = store
+        self.init(model: Self.makeModel(store: store, focus: focus, scope: scope), liveMotion: liveMotion)
+    }
+
+    /// A graph over a model the caller keeps: image tests read ``GraphScreenModel/hasLoaded`` to
+    /// capture the drawn graph, not its loading row.
+    init(model: GraphScreenModel, liveMotion: Bool = true) {
+        self.store = model.store
         self.liveMotion = liveMotion
-        _model = State(
-            initialValue: GraphScreenModel(
-                store: store, focus: focus,
-                filter: Self.initialFilter(
-                    scope: scope,
-                    focusKind: focus.flatMap { id in
-                        store.content.entities.first { $0.id == id }?.kind
-                    })))
+        _model = State(initialValue: model)
+    }
+
+    /// The model a graph opens with: `focus` selected, the filter of ``initialFilter(scope:focusKind:)``.
+    static func makeModel(store: IndexStore, focus: String? = nil, scope: GraphScope = .all) -> GraphScreenModel {
+        GraphScreenModel(
+            store: store, focus: focus,
+            filter: initialFilter(
+                scope: scope,
+                focusKind: focus.flatMap { id in
+                    store.content.entities.first { $0.id == id }?.kind
+                }))
     }
 
     /// The filter a graph opens with: the default, in `scope`; a focused custom type entity's

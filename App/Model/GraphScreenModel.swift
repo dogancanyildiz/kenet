@@ -15,6 +15,8 @@ final class GraphScreenModel {
     private(set) var camera = GraphCamera()
     private(set) var graph = GraphModel(nodes: [], edges: [])
     private(set) var isLoading = false
+    /// A load has put a graph in place; with `isLoading` false the drawn graph is the latest one.
+    private(set) var hasLoaded = false
     @ObservationIgnored private var request = UUID()
     /// A rearranged layout is on screen but the view is still framed for the previous graph.
     @ObservationIgnored private var awaitsFraming = false
@@ -68,6 +70,7 @@ final class GraphScreenModel {
         // may have arranged by hand; only names and kinds are taken over.
         let unchanged = motion.isLive == live && !motion.nodes.isEmpty && result.0.hasSameShape(as: graph)
         graph = result.0
+        hasLoaded = true
         if !graph.nodes.contains(where: { $0.id == selected }) { selected = nil }
         guard !unchanged else {
             motion.refresh(nodes: graph.nodes)
@@ -154,6 +157,7 @@ final class GraphScreenModel {
         request = UUID()
         selected = nil
         graph = GraphModel(nodes: [], edges: [])
+        hasLoaded = false
         motion.install(.empty, live: motion.isLive)
         awaitsFraming = false
         camera = GraphCamera()

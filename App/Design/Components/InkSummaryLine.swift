@@ -43,6 +43,9 @@ struct InkSummaryLine: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: Self.spoken(parts)))
+        // A sentence, not a control: without the trait the combined element is a bare "Other", and the
+        // audit's hit region check took it for a control too small to tap (dev run 43004609707).
+        .accessibilityAddTraits(.isStaticText)
     }
 
     /// Spoken words for unit tests (glue + resolved count keys with their glued suffix).

@@ -12,12 +12,14 @@ struct KanbanView: View {
     let showsFilters: Bool
     let openDay: (String) -> Void
 
+    /// - Parameter board: A board model the caller keeps (image tests wait for its rows); `nil`
+    ///   makes ``KanbanModel/board(for:)``.
     init(
-        tasks: TasksModel, showsFilters: Bool = false, selection: TaskRow? = nil,
+        tasks: TasksModel, showsFilters: Bool = false, selection: TaskRow? = nil, board: KanbanModel? = nil,
         openDay: @escaping (String) -> Void = { _ in }
     ) {
         _selectedRow = State(initialValue: selection)
-        _model = State(initialValue: KanbanModel.board(for: tasks))
+        _model = State(initialValue: board ?? KanbanModel.board(for: tasks))
         self.showsFilters = showsFilters
         self.openDay = openDay
     }

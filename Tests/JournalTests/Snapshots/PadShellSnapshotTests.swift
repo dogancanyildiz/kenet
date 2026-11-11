@@ -176,6 +176,8 @@
             masks: [CGRect] = [],
             /// Checks on the hosted window before the capture; `draws: false` skips the capture.
             inspect: (@MainActor (UIHostingController<AnyView>) -> Void)? = nil,
+            /// A page's own load on top of the index going idle (a board's rows, its byline counts).
+            isReady: @MainActor () -> Bool = { true },
             draws: Bool = true,
             file: StaticString = #filePath,
             line: UInt = #line,
@@ -251,14 +253,18 @@
                     top: max(0, wanted.top - actual.top), left: max(0, wanted.left - actual.left),
                     bottom: max(0, wanted.bottom - actual.bottom), right: max(0, wanted.right - actual.right))
                 // Wait for the index, the presented content, then several idle frames.
+                // Up to 10 s: a slow runner's load, not a fixed delay, decides when the capture is taken.
                 var idleFrames = 0
-                for _ in 0..<100 where idleFrames < 8 {
+                for _ in 0..<200 where idleFrames < 8 {
                     // Frame pump: SwiftUI and UIKit draw on a later run-loop turn and report no event to await.
                     try? await Task.sleep(for: .milliseconds(50))
                     host.view.layoutIfNeeded()
                     host.presentedViewController?.view.layoutIfNeeded()
                     let sheetReady = !presentsSheet || host.presentedViewController?.view.window != nil
-                    idleFrames = !store.isProcessing && sheetReady ? idleFrames + 1 : 0
+                    idleFrames = !store.isProcessing && sheetReady && isReady() ? idleFrames + 1 : 0
+                }
+                if !isReady() {
+                    Issue.record("Snapshot \(name): the page never reported ready before capture.")
                 }
                 if presentsSheet && host.presentedViewController == nil {
                     Issue.record("Snapshot \(name): the sheet was never presented.")

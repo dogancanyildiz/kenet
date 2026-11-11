@@ -70,6 +70,8 @@ struct GoalDefinitionForm: View {
         }
         .frame(minWidth: 320, minHeight: 420)
         .task(id: store.lastUpdated) { await model.load() }
+        // The target is read the way the app's language writes numbers ("7.500" in Turkish).
+        .onChange(of: locale, initial: true) { _, locale in model.locale = locale }
     }
 
     /// Period and kind: tabs (two or three choices), or plain rows on a milestone, which keeps both.

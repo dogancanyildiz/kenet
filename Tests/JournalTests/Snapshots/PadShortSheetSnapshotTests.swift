@@ -5,17 +5,9 @@
     @testable import Journal
 
     enum PadShortSheetCase: String, CaseIterable, Sendable {
-        case taskDateLight, taskRecurrenceLight, taskTextLight, goalAmountLight
+        case taskDateLight, taskRecurrenceLight, taskTextLight
 
         @MainActor func editor(store: IndexStore) async throws -> AnyView {
-            if self == .goalAmountLight {
-                let day = GoalDayModel(store: store, day: goalsSnapshotDay)
-                await day.load()
-                let goal = try #require(day.goals.first { $0.key == "kitap" })
-                return AnyView(
-                    NavigationStack { GoalValueEditor(model: GoalValueModel(dayModel: day, goal: goal)) }
-                        .inkAdaptiveSheetPresentation(fitsContent: true, usesPhoneDetents: false))
-            }
             let rows = try await store.allTasks()
             let row = try #require(rows.first { !$0.isClosed && $0.due == snapshotDay })
             let model = TaskEditorModel(store: store, row: row)
@@ -35,8 +27,6 @@
                     NavigationStack { TaskTextEditor(model: model) }
                         .frame(minWidth: 320, minHeight: 200)
                         .inkAdaptiveSheetPresentation(fitsContent: true))
-            case .goalAmountLight:
-                preconditionFailure("Handled above")
             }
         }
     }
@@ -58,7 +48,7 @@
     @Suite(.serialized, .enabled("iPad simulator only", PadSnapshotHost.isPadSimulator))
     struct PadShortSheetSnapshotTests {
         @Test(arguments: [
-            PadShortSheetCase.taskDateLight, .taskRecurrenceLight, .goalAmountLight,
+            PadShortSheetCase.taskDateLight, .taskRecurrenceLight,
         ])
         func sheet(_ sheet: PadShortSheetCase) async throws {
             try await PadSnapshotHost.assertWindow(

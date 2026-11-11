@@ -177,6 +177,40 @@
         }
       }
     },
+    "%@ düzenleniyor" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editing %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ düzenleniyor"
+          }
+        }
+      }
+    },
+    "%@ ekle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ekle"
+          }
+        }
+      }
+    },
     "%@ görev" : {
       "localizations" : {
         "en" : {
@@ -1144,6 +1178,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@, işareti kaldır"
+          }
+        }
+      }
+    },
+    "%@, miktar gir" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, enter amount"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, miktar gir"
           }
         }
       }
@@ -5620,6 +5671,40 @@
         }
       }
     },
+    "Bu günü işaretle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mark this day"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu günü işaretle"
+          }
+        }
+      }
+    },
+    "Bu günün değeri bu arada değişti; yazdığın değer kaydedilmedi." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This day's value changed meanwhile; your value was not saved."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu günün değeri bu arada değişti; yazdığın değer kaydedilmedi."
+          }
+        }
+      }
+    },
     "Bu hafta" : {
       "localizations" : {
         "en" : {
@@ -6133,6 +6218,23 @@
         }
       }
     },
+    "Bugüne dön" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to today"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugüne dön"
+          }
+        }
+      }
+    },
     "Bugüne git" : {
       "localizations" : {
         "en" : {
@@ -6513,6 +6615,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Değer"
+          }
+        }
+      }
+    },
+    "Değer kaydedilemedi; yeniden dene." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The value could not be saved; try again."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Değer kaydedilemedi; yeniden dene."
           }
         }
       }
@@ -9452,6 +9571,23 @@
         }
       }
     },
+    "Hedef sayfasını açar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens the goal page"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hedef sayfasını açar"
+          }
+        }
+      }
+    },
     "Hedef tanımını düzenler" : {
       "localizations" : {
         "en" : {
@@ -9480,6 +9616,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hedef tanımını kontrol et: ad boş olmamalı, miktar sıfırdan büyük olmalı."
+          }
+        }
+      }
+    },
+    "Hedefe tamamla" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Complete the target"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hedefe tamamla"
           }
         }
       }
@@ -12041,6 +12194,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Miktar gir"
+          }
+        }
+      }
+    },
+    "Miktar, hedef %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Amount, target %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Miktar, hedef %@"
           }
         }
       }

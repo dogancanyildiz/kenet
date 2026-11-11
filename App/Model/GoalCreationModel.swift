@@ -33,11 +33,13 @@ final class GoalCreationModel {
         reservedKeys = keys
     }
 
+    /// How the typed target is read, as the amount panel reads it ("7.500" is 7500 in Turkish).
+    var locale: Locale = .current
     var key: String { VaultStore.goalKey(for: name, reserving: reservedKeys) }
     var canSave: Bool {
         root != nil && root == store.vaultURL && !isWriting && !isSaved && store.canAddEvent
             && !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && (kind == .milestone || (GoalValueModel.number(target) ?? 0) > 0)
+            && (kind == .milestone || (GoalValueModel.number(target, locale: locale) ?? 0) > 0)
     }
     func apply(_ template: GoalTemplate, locale: Locale = .current) {
         name = template.localizedName(locale: locale)
@@ -59,7 +61,8 @@ final class GoalCreationModel {
     }
 
     func save() async -> Bool {
-        guard canSave, let target = kind == .milestone ? 1 : GoalValueModel.number(target) else { return false }
+        guard canSave, let target = kind == .milestone ? 1 : GoalValueModel.number(target, locale: locale)
+        else { return false }
         isWriting = true
         defer { isWriting = false }
         errorText = nil

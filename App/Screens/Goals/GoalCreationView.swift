@@ -157,6 +157,8 @@ struct GoalCreationView: View {
         )
         .frame(minWidth: 320, minHeight: 350)
         .task(id: model.store.lastUpdated) { await model.load() }
+        // The target is read the way the app's language writes numbers ("7.500" in Turkish).
+        .onChange(of: locale, initial: true) { _, locale in model.locale = locale }
     }
 
     private func fieldLabel(_ title: LocalizedStringKey) -> some View {

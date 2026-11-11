@@ -11,7 +11,9 @@ import VaultFormat
 /// Use inside the sheet's `NavigationStack`.
 struct CloseDayView: View {
     @State private var model: CloseDayModel
-    @State private var editing: GoalValueModel?
+    /// The number goal whose amount panel is open under its row (no separate sheet: the flow
+    /// is already a sheet, and leaving it for the goal page would break the evening pass).
+    @State private var amountGoalID: String?
     @FocusState private var sentenceFocused: Bool
     @Environment(GeofenceService.self) private var geofences: GeofenceService?
     @Environment(\.locale) private var locale
@@ -71,13 +73,6 @@ struct CloseDayView: View {
         .preference(key: GoalsStripReadyKey.self, value: model.goals.hasLoaded && !model.goals.isLoading)
         .task(id: model.store.lastUpdated) { await model.goals.load() }
         .task(id: model.store.lastUpdated) { await model.loadTasks() }
-        .sheet(item: $editing) { editor in
-            NavigationStack { GoalValueEditor(model: editor) }
-                .inkAdaptiveSheetPresentation(fitsContent: true, usesPhoneDetents: false)
-                .onChange(of: editor.isSaved) { _, saved in
-                    if saved { geofences?.clearLockedMarkNotice() }
-                }
-        }
         // The page changes under the same title: VoiceOver starts over and reads the new step.
         .onChange(of: model.step) { AccessibilityNotification.ScreenChanged().post() }
         // "Yaz" keeps the focus and the field empties: the outcome is read out.
@@ -282,25 +277,33 @@ struct CloseDayView: View {
         let goals = model.goals
         let marked = goals.isComplete(for: goal)
         let isBooleanMark = goal.kind == .boolean || goal.kind == .milestone
+        let addsOne = GoalAmountPresentation.usesQuickIncrement(goal)
         InkGoalRow(
             name: goal.name,
             progress: GoalStripPresentation.progressValue(status: goals.status(for: goal)),
             isBoolean: GoalStripPresentation.isBooleanRing(goal: goal),
             valueText: valueText(for: goal),
-            onIncrement: goals.canEdit && !(isBooleanMark && marked)
+            onIncrement: goals.canEdit && !(isBooleanMark && marked) && addsOne
                 ? {
                     Task {
                         if isBooleanMark { await toggle(goal) } else { await increment(goal) }
                     }
                 } : nil,
             onValueTap: goals.canEdit && goal.kind == .number
-                ? { editing = GoalValueModel(dayModel: goals, goal: goal) } : nil,
+                ? { amountGoalID = amountGoalID == goal.id ? nil : goal.id } : nil,
             onMarkTap: goals.canEdit && isBooleanMark && marked
                 ? { Task { await toggle(goal) } } : nil,
             showsPlus: !(isBooleanMark && marked),
             incrementLabel: LocalizedStringKey(isBooleanMark && marked ? "İşareti kaldır" : "Artır")
         )
         .disabled(!goals.canEdit)
+        if amountGoalID == goal.id, goal.kind == .number {
+            GoalAmountPanel(
+                model: goals, goal: goal, isCompact: true, focusToken: 1,
+                onWrite: { geofences?.clearLockedMarkNotice() }
+            )
+            .padding(.leading, InkSpacing.gutter + 10)
+        }
     }
 
     private func valueText(for goal: GoalDefinition) -> String? {

@@ -25,7 +25,9 @@ final class CalendarEventUITests: XCTestCase {
         // Adding and deleting an event writes to the calendar only: the vault stays byte for byte.
         let vaultBefore = try Self.contents(of: vaultURL)
 
-        let add = app.buttons["button.calendar.add"]
+        // An empty day offers one way to add: the card's row (the header "+" comes with events).
+        XCTAssertFalse(app.buttons["button.calendar.add"].exists, "an empty day shows two add buttons")
+        let add = app.buttons["button.calendar.addEmpty"]
         scrollUntilHittable(add, in: app)
         add.tap()
 
@@ -46,6 +48,12 @@ final class CalendarEventUITests: XCTestCase {
 
         let delete = app.buttons["button.calendarEvent.delete"]
         UITestSupport.waitForExistence(delete)
+        // "Vazgeç" in the edit form goes back to the detail, not out of the sheet.
+        app.buttons["button.calendarEvent.edit"].tap()
+        let cancel = app.buttons["button.calendarEvent.cancel"]
+        UITestSupport.waitForExistence(cancel)
+        cancel.tap()
+        XCTAssertTrue(delete.waitForExistence(timeout: 10), "Vazgeç left the event's detail")
         delete.tap()
         let confirm = app.buttons.matching(NSPredicate(format: "label == %@", "Etkinliği sil"))
             .allElementsBoundByIndex.last { $0.isHittable && $0.identifier != "button.calendarEvent.delete" }

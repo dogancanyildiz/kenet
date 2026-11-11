@@ -392,6 +392,19 @@ struct InkCalendarRow: View {
     var time: String?
     let title: String
     var endLabel: String? = nil
+    /// The calendar's color mark (a dot) before the secondary line; decorative.
+    var calendarColor: AnyView? = nil
+
+    init(time: String?, title: String, endLabel: String? = nil) {
+        self.time = time
+        self.title = title
+        self.endLabel = endLabel
+    }
+
+    init(time: String?, title: String, endLabel: String?, calendarColor: some View) {
+        self.init(time: time, title: title, endLabel: endLabel)
+        self.calendarColor = AnyView(calendarColor)
+    }
 
     var body: some View {
         MarginRow(kind: .external, time: time) {
@@ -399,10 +412,31 @@ struct InkCalendarRow: View {
                 .foregroundStyle(.ink.text)
         } secondary: {
             if let endLabel, !endLabel.isEmpty {
-                Text(verbatim: endLabel)
-                    .font(.ink.meta)
-                    .foregroundStyle(.ink.secondaryText)
+                HStack(alignment: .center, spacing: 6) {
+                    calendarColor
+                    Text(verbatim: endLabel)
+                        .font(.ink.meta)
+                        .foregroundStyle(.ink.secondaryText)
+                }
             }
         }
     }
+}
+
+/// The calendar's own color as a small dot (Bugün's event row, the event detail). The color is
+/// the user's calendar's, not a token: it tells calendars apart as the calendar app does.
+struct CalendarColorDot: View {
+    let color: CalendarEventColor
+    @ScaledMetric(relativeTo: .caption) private var size: CGFloat = 8
+
+    var body: some View {
+        Circle()
+            .fill(color.swatch)
+            .frame(width: size, height: size)
+            .accessibilityHidden(true)
+    }
+}
+
+extension CalendarEventColor {
+    fileprivate var swatch: Color { Color(red: red, green: green, blue: blue, opacity: alpha) }
 }

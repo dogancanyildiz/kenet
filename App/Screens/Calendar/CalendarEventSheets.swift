@@ -45,15 +45,16 @@ struct CalendarEventText {
         return event.start.formatted(.dateTime.hour().minute().locale(locale))
     }
 
-    func end(_ event: CalendarEvent) -> String? {
+    /// "19:00–20:00"; an event that ends on another day names that day: "23:00 – 12 Kas 01:00".
+    /// Nil all day long.
+    func range(_ event: CalendarEvent) -> String? {
         if event.isAllDay { return nil }
-        let end: String
+        let start = event.start.formatted(.dateTime.hour().minute().locale(locale))
         if LocalDay.today(at: event.start) != LocalDay.today(at: event.end) {
-            end = event.end.formatted(.dateTime.day().month(.abbreviated).hour().minute().locale(locale))
-        } else {
-            end = event.end.formatted(.dateTime.hour().minute().locale(locale))
+            let end = event.end.formatted(.dateTime.day().month(.abbreviated).hour().minute().locale(locale))
+            return start + " – " + end
         }
-        return String(localized: "Until \(end)", bundle: bundle, locale: locale)
+        return start + "–" + event.end.formatted(.dateTime.hour().minute().locale(locale))
     }
 
     func title(_ event: CalendarEvent) -> String {
@@ -93,6 +94,13 @@ struct CalendarEventText {
         String(localized: String.LocalizationValue(value.catalogKey), bundle: bundle, locale: locale)
     }
 
+    /// "11 Kas Çar · 19:00–20:00", or all day long the date alone.
+    func span(_ event: CalendarEvent) -> String {
+        let day = event.start.formatted(.dateTime.day().month(.abbreviated).weekday(.abbreviated).locale(locale))
+        guard let range = range(event) else { return day }
+        return day + " · " + range
+    }
+
     /// "12 Nis Cmt" or, all day long, the date alone; with the time otherwise.
     func when(_ event: CalendarEvent) -> String {
         let day = event.start.formatted(.dateTime.day().month(.abbreviated).weekday(.abbreviated).locale(locale))
@@ -115,7 +123,8 @@ struct CalendarEventDetail: View {
 
     var body: some View {
         if isEditing {
-            CalendarEventForm(original: event, day: day) { dismiss() }
+            // "Vazgeç" goes back to the detail; a save closes the sheet.
+            CalendarEventForm(original: event, day: day, onDone: { dismiss() }, onCancel: { isEditing = false })
         } else {
             reading
         }
@@ -129,10 +138,10 @@ struct CalendarEventDetail: View {
             }
             InkCard(padded: false) {
                 VStack(alignment: .leading, spacing: 0) {
-                    row("Zaman", value: timeRange)
+                    row("Zaman", value: text.span(event))
                     if !event.calendarTitle.isEmpty {
                         InkCardDivider()
-                        row("Takvim", value: event.calendarTitle)
+                        row("Takvim", value: event.calendarTitle, color: event.color)
                     }
                     if event.recurrence != .none {
                         InkCardDivider()
@@ -153,38 +162,14 @@ struct CalendarEventDetail: View {
                     .foregroundStyle(Color.ink.secondaryText)
                     .inkListRow()
             }
-            VStack(alignment: .leading, spacing: 8) {
-                if event.isEditable {
-                    Button("Düzenle") {
-                        calendar.clearWriteError()
-                        isEditing = true
-                    }
-                    .buttonStyle(InkTextButtonStyle())
-                    .tapTarget()
-                    .accessibilityIdentifier("button.calendarEvent.edit")
-                }
-                if let day {
-                    Button("Olay taslağı") {
-                        CalendarDraftInbox.shared.post(event, on: day)
-                        dismiss()
-                    }
-                    .buttonStyle(InkTextButtonStyle())
-                    .tapTarget()
-                    .accessibilityIdentifier("button.calendarEvent.draft")
-                }
-                if event.isEditable {
-                    Button("Etkinliği sil", role: .destructive) { isConfirmingDelete = true }
-                        .buttonStyle(InkDestructiveButtonStyle())
-                        .disabled(calendar.isWriting)
-                        .padding(.top, InkSpacing.section)
-                        .accessibilityIdentifier("button.calendarEvent.delete")
-                }
+            if event.isEditable || day != nil {
+                actions.inkListRow()
             }
-            .inkListRow()
         }
         .listStyle(.plain)
         .inkPageScrollColumn()
-        .inkSheet(verbatim: text.title(event), closeIdentifier: "button.calendarEvent.close")
+        // The title is the user's text: on its own line under "Kapat", never beside it.
+        .inkSheet(verbatim: text.title(event), closeIdentifier: "button.calendarEvent.close", titleInBar: false)
         .accessibilityIdentifier("sheet.calendarEvent")
         .confirmationDialog("Etkinlik silinsin mi?", isPresented: $isConfirmingDelete, titleVisibility: .visible) {
             if event.recurrence == .none {
@@ -198,21 +183,92 @@ struct CalendarEventDetail: View {
         .onDisappear { calendar.clearWriteError() }
     }
 
-    private var timeRange: String {
-        guard let end = text.end(event) else { return text.when(event) }
-        return text.when(event) + " · " + end
+    /// The rare actions on one small row with icons (drawing: Hedefler's edit and delete row);
+    /// when the row does not fit (large text) they stack.
+    private var actions: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .center, spacing: 16) {
+                editButton
+                draftButton
+                Spacer(minLength: 0)
+                deleteButton
+            }
+            VStack(alignment: .leading, spacing: 4) {
+                editButton
+                draftButton
+                deleteButton
+            }
+        }
+    }
+
+    /// Icon and word close together (a `Label` spaces them as a list row does).
+    private func actionLabel(_ title: LocalizedStringKey, systemImage: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 5) {
+            Image(systemName: systemImage)
+                .accessibilityHidden(true)
+            Text(title)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .font(.subheadline.weight(.medium))
+        .accessibilityElement(children: .combine)
+    }
+
+    @ViewBuilder private var editButton: some View {
+        if event.isEditable {
+            Button {
+                calendar.clearWriteError()
+                isEditing = true
+            } label: {
+                actionLabel("Düzenle", systemImage: "pencil")
+            }
+            .buttonStyle(InkTextButtonStyle())
+            .tapTarget()
+            .accessibilityIdentifier("button.calendarEvent.edit")
+        }
+    }
+
+    @ViewBuilder private var draftButton: some View {
+        if let day {
+            Button {
+                CalendarDraftInbox.shared.post(event, on: day)
+                dismiss()
+            } label: {
+                actionLabel("Olay taslağı", systemImage: "square.and.pencil")
+            }
+            .buttonStyle(InkTextButtonStyle())
+            .tapTarget()
+            .accessibilityIdentifier("button.calendarEvent.draft")
+        }
+    }
+
+    @ViewBuilder private var deleteButton: some View {
+        if event.isEditable {
+            Button(role: .destructive) {
+                isConfirmingDelete = true
+            } label: {
+                actionLabel("Etkinliği sil", systemImage: "trash")
+            }
+            .buttonStyle(InkDestructiveButtonStyle())
+            .tapTarget()
+            .disabled(calendar.isWriting)
+            .accessibilityIdentifier("button.calendarEvent.delete")
+        }
     }
 
     private func delete(_ span: CalendarEditSpan) {
         Task { if await calendar.delete(event, span: span) { dismiss() } }
     }
 
-    private func row(_ key: LocalizedStringKey, value: String) -> some View {
+    /// `color`: the calendar's own color, as a dot before its name.
+    private func row(_ key: LocalizedStringKey, value: String, color: CalendarEventColor? = nil) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 12) {
             Text(key)
                 .font(.subheadline)
                 .foregroundStyle(Color.ink.secondaryText)
             Spacer(minLength: 8)
+            if let color {
+                CalendarColorDot(color: color)
+            }
             Text(verbatim: value)
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(Color.ink.text)
@@ -230,6 +286,8 @@ struct CalendarEventForm: View {
     let day: CalendarDate?
     /// Nil: the form is the sheet's root and dismisses itself.
     let onDone: (() -> Void)?
+    /// "Vazgeç"; nil: as `onDone`.
+    let onCancel: (() -> Void)?
     @Environment(CalendarService.self) private var calendar
     @Environment(\.dismiss) private var dismiss
     @Environment(\.clockNow) private var clockNow
@@ -240,10 +298,13 @@ struct CalendarEventForm: View {
 
     private var text: CalendarEventText { CalendarEventText(locale: PresentationLocalization.resolvedLocale(locale)) }
 
-    init(original: CalendarEvent?, day: CalendarDate?, onDone: (() -> Void)?) {
+    init(
+        original: CalendarEvent?, day: CalendarDate?, onDone: (() -> Void)?, onCancel: (() -> Void)? = nil
+    ) {
         self.original = original
         self.day = day
         self.onDone = onDone
+        self.onCancel = onCancel
         _draft = State(initialValue: original.map(CalendarEventDraft.init(event:)))
     }
 
@@ -269,7 +330,7 @@ struct CalendarEventForm: View {
             title, confirm: original == nil ? .create : .save,
             isConfirmEnabled: (draft?.canSave ?? false) && !calendars.isEmpty, isBusy: calendar.isWriting,
             isCancelEnabled: !calendar.isWriting, cancelIdentifier: "button.calendarEvent.cancel",
-            confirmIdentifier: "button.calendarEvent.save", onCancel: finish
+            confirmIdentifier: "button.calendarEvent.save", onCancel: cancel
         ) { confirm() }
         .accessibilityIdentifier("sheet.calendarEventForm")
         .interactiveDismissDisabled(calendar.isWriting)
@@ -318,12 +379,13 @@ struct CalendarEventForm: View {
                 )
                 .frame(minHeight: TapTarget.minimumLength)
                 InkCardDivider()
-                InkLabeledMenu(
+                // Same row as the date pickers: the label on the left, the value on the right.
+                CalendarFormMenuRow(
                     "Tekrar", selection: draft.recurrence, options: recurrenceOptions,
                     identifier: "menu.calendarEvent.recurrence")
                 InkCardDivider()
                 // One occurrence of a series cannot move to another calendar: the menu is closed.
-                InkLabeledMenu(
+                CalendarFormMenuRow(
                     "Takvim", selection: calendarBinding(draft),
                     options: calendars.map { InkMenuOption(verbatim: $0.title, value: $0.id) },
                     identifier: "menu.calendarEvent.calendar"
@@ -346,7 +408,8 @@ struct CalendarEventForm: View {
         var values = CalendarRecurrence.choices
         // A rule the plain choices cannot write stays on the menu, kept until changed.
         if let kept = original?.recurrence, !values.contains(kept) { values.append(kept) }
-        return values.map { InkMenuOption(LocalizedStringKey($0.catalogKey), value: $0) }
+        // Under the label "Tekrar" the empty choice reads "Yok", not "Tekrar yok" (drawing: Görev).
+        return values.map { InkMenuOption(LocalizedStringKey($0 == .none ? "Yok" : $0.catalogKey), value: $0) }
     }
 
     /// Moving the start keeps the event's length.
@@ -385,6 +448,10 @@ struct CalendarEventForm: View {
 
     private func finish() {
         if let onDone { onDone() } else { dismiss() }
+    }
+
+    private func cancel() {
+        if let onCancel { onCancel() } else { finish() }
     }
 }
 
@@ -478,5 +545,61 @@ struct CalendarBirthdayForm: View {
             }
             if await calendar.save(draft) { dismiss() }
         }
+    }
+}
+
+/// A form row of the event sheet: the label on the left as the date pickers' ("Başlangıç"), the
+/// chosen value on the right in the accent with the menu's arrows.
+private struct CalendarFormMenuRow<Value: Hashable>: View {
+    let label: LocalizedStringKey
+    @Binding var selection: Value
+    let options: [InkMenuOption<Value>]
+    let identifier: String
+    @Environment(\.isEnabled) private var isEnabled
+
+    init(
+        _ label: LocalizedStringKey, selection: Binding<Value>, options: [InkMenuOption<Value>],
+        identifier: String
+    ) {
+        self.label = label
+        _selection = selection
+        self.options = options
+        self.identifier = identifier
+    }
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+            Text(label)
+                .foregroundStyle(Color.ink.text)
+                .accessibilityHidden(true)
+            Spacer(minLength: 8)
+            Menu {
+                Picker(selection: $selection) {
+                    ForEach(options) { $0.text.tag($0.value) }
+                } label: {
+                    EmptyView()
+                }
+                .pickerStyle(.inline)
+            } label: {
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    (options.first { $0.value == selection }?.text ?? Text(verbatim: ""))
+                        .multilineTextAlignment(.trailing)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.caption2.weight(.semibold))
+                        .accessibilityHidden(true)
+                }
+                .foregroundStyle(isEnabled ? Color.ink.accent : Color.ink.secondaryText)
+                .tapTarget()
+                .contentShape(Rectangle())
+            }
+            .menuStyle(.button)
+            .buttonStyle(.plain)
+            .menuIndicator(.hidden)
+            .accessibilityLabel(Text(label))
+            .accessibilityValue(options.first { $0.value == selection }?.text ?? Text(verbatim: ""))
+            .accessibilityIdentifier(identifier)
+        }
+        .frame(minHeight: TapTarget.minimumLength)
     }
 }

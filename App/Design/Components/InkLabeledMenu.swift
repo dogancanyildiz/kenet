@@ -25,7 +25,7 @@ struct InkMenuOption<Value: Hashable>: Identifiable {
         self.systemImage = systemImage
     }
 
-    fileprivate var text: Text {
+    var text: Text {
         switch title {
         case .key(let key): Text(key)
         case .verbatim(let text): Text(verbatim: text)

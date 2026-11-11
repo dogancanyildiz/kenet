@@ -268,17 +268,18 @@ Varsayılan boyutta hızlı giriş iki satırlı karttır: üstte kip, çipler v
 | İzin sorulmadı | Bölüm "Takvim etkinliklerini göstermek için izin ver" düğmesini gösterir. |
 | İzin var | Bölüm her zaman görünür. Etkinlik yoksa kartta tek satır durur: "Takvime etkinlik ekle". Okuma hatasında bantta "Yeniden dene" durur. |
 | İzin yok | Bölüm, satır ve eylem yoktur. |
-| Ekle | Başlığın sağındaki "+" düğmesi etkinlik formunu o günle açar. VoiceOver adı "Takvime etkinlik ekle"dir. |
+| Ekle | Etkinlik varken başlığın sağındaki "+" düğmesi formu o günle açar. Boş günde "+" yoktur; kartın satırı açar. VoiceOver adı "Takvime etkinlik ekle"dir. |
 | Test ve tur | UI testinde ve ekran turunda takvim yalnız bellekteki sahte takvimden okunur; gerçek takvim okunmaz. Kişi sayfası da aynı kuralla çalışır. |
-| Satır | Satıra dokunma etkinlik ayrıntısı sheet'ini açar. Satırın altında takvimin adı yazar; tekrarlayan etkinlikte tekrar da yazar. |
+| Satır | Satıra dokunma etkinlik ayrıntısı sheet'ini açar. Alt satırda takvimin renkli noktası, saat aralığı ve takvimin adı durur: "19:00–20:00 · Ev". Tekrarlayan etkinlikte tekrar da yazar. |
 | Olay taslağı | Satırın bağlam menüsündeki ve ayrıntı sheet'indeki **Olay taslağı** etkinliği o günün hızlı girişine taslak olarak koyar. VoiceOver'da aynı adlı eylem vardır. Ayrıntı [Hızlı giriş](#hızlı-giriş-1-2) bölümündedir. |
 
 **Etkinlik ayrıntısı sheet'i (11).**
 
 | Konu | Davranış |
 |---|---|
-| İçerik | Başlık manşette. Altında tarih ve saat aralığı, takvimin adı, tekrar ve katılımcılar. |
-| Eylemler | "Düzenle", "Olay taslağı" ve kırmızı "Etkinliği sil". Kapat sağ üsttedir. |
+| İçerik | Kapat sağ üsttedir. Başlık onun altında, kendi satırında manşettir. Altında tarih ve saat aralığı ("11 Kas Çar · 19:00–20:00"), renkli noktayla takvimin adı, tekrar ve katılımcılar. |
+| Eylemler | Kartın altında tek satır, küçük ve simgeli: "Düzenle", "Olay taslağı", sağda kırmızı "Etkinliği sil". Satır sığmazsa alt alta dizilir. |
+| Düzenle | Form sheet içinde açılır. "Vazgeç" ayrıntıya döner. "Kaydet" sheet'i kapatır. |
 | Salt okunur etkinlik | Yazılamayan takvimde (abonelik, doğum günleri) ve düzenleyeni başkası olan davette "Düzenle" ve "Sil" yoktur. Sheet "Bu etkinlik burada düzenlenemez." yazar. |
 | 29 Şubat | Şubatın son günü kuralı tekrar satırında "Her yıl, şubatın son günü" yazar. Form bu kuralı menüde gösterir ve değiştirilmedikçe korur. |
 | Tekrar bitişi | Kuralın bitiş tarihi varsa tekrar satırı onu da yazar: "Her hafta · 1 Oca 2027 tarihine kadar". |
@@ -293,6 +294,7 @@ Varsayılan boyutta hızlı giriş iki satırlı karttır: üstte kip, çipler v
 | Başlık | Tek satır metin alanı. |
 | Tüm gün | Anahtar. Açıkken başlangıç ve bitiş yalnız tarih seçer. |
 | Başlangıç ve bitiş | Tarih ve saat seçicileri. Yeni etkinlik bir sonraki tam saatte başlar ve 1 saat sürer. Bugün saat 23'ten sonra yeni etkinlik şimdiki 5 dakikada başlar. Başka günde 09:00'da başlar. Bitiş başlangıçtan önce olamaz. Gece yarısında biten etkinlik tüm güne geçince o tek gün olur. |
+| Satır dili | Bütün satırlarda etiket solda, değer ya da denetim sağdadır. Tekrar ve Takvim değeri vurgu renginde menüdür. |
 | Tekrar | Menü: Yok, Her gün, Her hafta, Her ay, Her yıl. Takvimde başka bir kural varsa menüde "Özel" görünür; uygulama o kurala dokunmaz. Sayıyla biten kural da özeldir. Tarihle biten kuralda tekrar değişirse bitiş tarihi korunur. |
 | Takvim | Menü: yazılabilir takvimler. Yeni etkinlikte seçim Ayarlar'daki varsayılan takvimdir. Tekrarlayan etkinlikte menü kapalıdır. Yazılabilir takvim yoksa "Oluştur" kapalıdır. |
 | Tekrarlayan etkinliği kaydetme | Uygulama sorar: "Yalnız bu etkinlik" ya da "Bu ve sonrakiler". Tekrar değiştiyse yalnız ikincisi vardır. |

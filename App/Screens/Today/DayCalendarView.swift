@@ -65,7 +65,8 @@ struct DayCalendarView: View {
                 title: String(
                     localized: "Takvim",
                     bundle: PresentationLocalization.bundle(locale), locale: locale))
-            if calendar.authorization.canRead {
+            // An empty day has the card's "Takvime etkinlik ekle" row: one way to add, not two.
+            if calendar.authorization.canRead, !calendar.events(on: date).isEmpty || calendar.errorText != nil {
                 Button {
                     route = .create(date)
                 } label: {
@@ -84,11 +85,13 @@ struct DayCalendarView: View {
             route = .detail(event, day: date)
         } label: {
             VStack(alignment: .leading, spacing: 4) {
-                // "Bitiş 13:00 · İş · Her hafta": one secondary line under the title.
+                // "13:00–14:00 · İş · Her hafta": one secondary line under the title, the
+                // calendar's color before it.
                 InkCalendarRow(
                     time: text.start(event), title: text.title(event),
-                    endLabel: ([text.end(event)] + [text.caption(event)])
-                        .compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · "))
+                    endLabel: ([text.range(event)] + [text.caption(event)])
+                        .compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · "),
+                    calendarColor: CalendarColorDot(color: event.color))
             }
             .contentShape(Rectangle())
         }

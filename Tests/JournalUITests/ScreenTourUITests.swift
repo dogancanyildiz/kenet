@@ -554,6 +554,10 @@ final class ScreenTourUITests: XCTestCase {
                 tour.optional(prefix + "-gorev") {
                     try tour.tap(ids: ["quickEntry.mode.task"], labels: ["Görev"])
                     tour.shot(prefix + "-gorev")
+                    // Task mode with a recognized name: on iPhone the date and the name chip share
+                    // the capsule's top row, clear of the goal cards above.
+                    tour.app.typeText("Deniz")
+                    tour.shot(prefix + "-gorev-ad", settle: 1.2)
                 }
             }
             tour.relaunch()

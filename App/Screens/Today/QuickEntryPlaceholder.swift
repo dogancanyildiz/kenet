@@ -7,6 +7,10 @@ struct QuickEntryBar: View {
     @Environment(LocationService.self) private var location
     @Environment(IntentNavigation.self) private var navigation: IntentNavigation?
     @Environment(\.journalingSuggestionsAvailable) private var suggestionsAvailable
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    #if os(iOS)
+        @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    #endif
     private let acceptsPeopleMentions: Bool
     let store: IndexStore
     let isEnabled: Bool
@@ -54,6 +58,29 @@ struct QuickEntryBar: View {
             return model.text[..<range.lowerBound].utf8.count
         }
         return nil
+    }
+
+    /// The two-row iPhone capsule carries the date control and the recognized chips in its top
+    /// row; iPad, Mac and accessibility sizes keep them in a row above the capsule.
+    private var chipsInCapsule: Bool {
+        #if os(iOS)
+            QuickEntryCapsuleLayout.carriesChips(
+                dynamicTypeSize: dynamicTypeSize, isCompactWidth: horizontalSizeClass != .regular)
+        #else
+            false
+        #endif
+    }
+
+    private var taskControlsDisabled: Bool {
+        !isEnabled || model.isSubmitting || model.isCreating || store.isWriting
+    }
+
+    private func taskControls(_ part: QuickEntryTaskControls.Part) -> some View {
+        QuickEntryTaskControls(model: model, showsPicker: $showsDatePicker, part: part) {
+            selection = nil
+            isFocused = true
+        }
+        .disabled(taskControlsDisabled)
     }
 
     private var capsuleMode: Binding<QuickEntryMode> {
@@ -133,11 +160,9 @@ struct QuickEntryBar: View {
                     action: canTake ? { takeNextSuggestion() } : nil,
                     onDismiss: queue == nil ? nil : { model.dropSuggestions() })
             }
-            QuickEntryTaskControls(model: model, showsPicker: $showsDatePicker) {
-                selection = nil
-                isFocused = true
+            if !chipsInCapsule {
+                taskControls(.row)
             }
-            .disabled(!isEnabled || model.isSubmitting || model.isCreating || store.isWriting)
             if !model.awaitingResolution {
                 ForEach(model.projectSuggestions(at: insertionOffset), id: \.self) { project in
                     Button {
@@ -185,10 +210,17 @@ struct QuickEntryBar: View {
                     }
                 }
             } accessory: {
-                // The time chip sits on the capsule's top row beside the mode words (drawing).
+                // The time chip sits on the capsule's top row beside the mode words (drawing); in
+                // task mode the two-row capsule puts the task date in its place.
                 if model.mode == .event {
                     timeButton
                         .dynamicTypeSize(...DynamicTypeSize.accessibility2)
+                } else if chipsInCapsule {
+                    taskControls(.date)
+                }
+            } chips: {
+                if chipsInCapsule {
+                    taskControls(.chips)
                 }
             }
             #if os(macOS)
@@ -393,7 +425,7 @@ struct QuickEntryBar: View {
 }
 
 /// The quick-entry bar's backdrop. iOS: the drawing's scrim, a fade from clear to paper over the
-/// bar's top 44 pt (the row of recognized names or the task's date), then paper down to the screen
+/// bar's top 44 pt (on iPad and at accessibility sizes the row of recognized names or the task's date), then paper down to the screen
 /// edge, under the software keyboard too. Reduce Transparency and the Mac keep opaque paper.
 private struct QuickEntryShelf: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency

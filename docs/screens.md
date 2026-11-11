@@ -212,7 +212,7 @@ Uygulama açılışta Bugün ekranını gösterir. Bölüm 2–9 kartlarda durur
 | Görevler | Kalan görev sayısı. |
 | Olaylar | Olay sayısı. |
 
-Varsayılan yazı boyutunda hızlı giriş iki satırlı bir karttır: üstte kip ve saat çipi, altta alan ve gönder. Ölçü 390×844 ekran ve yaklaşık 84 pt alt güvenli alandır. Bu ölçüde gün başlığı, hedefler, görevler ve ilk olay satırı kaydırmadan görünür.
+Varsayılan boyutta hızlı giriş iki satırlı karttır: üstte kip, çipler ve saat ya da tarih, altta alan ve gönder. Ölçü 390×844 ekran ve yaklaşık 84 pt alt güvenli alandır. Bu ölçüde gün başlığı, hedefler, görevler ve ilk olay satırı kaydırmadan görünür.
 
 #### Gün başlığı
 
@@ -409,9 +409,9 @@ Uygulama önce dosyaya yazar, sonra indeksi günceller. Yazma hata verirse kutu 
 | Öğe | Yer | Davranış |
 |---|---|---|
 | Kip | iPhone'da üst satırın başı; Mac'te kutunun başı | İki sözcük: **Olay** ve **Görev**. Seçili olan yarı kalındır ve altında vurgu çizgisi taşır. Varsayılan Olay'dır. Mac'te ⌘⇧T kipi değiştirir. |
-| Saat | Olay kipinde kipin yanında saat simgeli hap ("⏱ 09:41"); saatsizken "⏱ Saat" | Olay varsayılan olarak şu anki saati alır. Kullanıcı saati kaldırabilir ya da değiştirebilir. |
-| Çip satırı | Kutunun üstü | Ad çipleri, tarih, öncelik ve tekrar çipleri, takvim katılımcı çipleri ve konum önerisi çipi. Kutunun içinde vurgu yoktur. |
-| Tarih denetimi | Görev kipinde çip satırında | Metinden okunan tarihi onay için gösterir. Kullanıcı dokunup düzeltir. |
+| Saat | Olay kipinde üst satırın sonunda saat simgeli hap ("⏱ 09:41"); saatsizken "⏱ Saat". iPad ve Mac'te kipin yanında | Olay varsayılan olarak şu anki saati alır. Kullanıcı saati kaldırabilir ya da değiştirebilir. |
+| Çip satırı | iPhone'da kutunun üst satırı, kip ile saat ya da tarih arası; iPad'de, Mac'te ve erişilebilirlik boyutlarında kutunun üstü | Ad çipleri, öncelik ve tekrar çipleri, takvim katılımcı çipleri. Sığmayan çipler yana kayar. iPhone'da kutu satır eklemez; klavye açıkken sayfayı örtmez. Alanın içinde vurgu yoktur. |
+| Tarih denetimi | Görev kipinde; iPhone'da üst satırın sonunda, saat hapının yerinde; öteki düzenlerde çip satırının başında | Metinden okunan tarihi onay için gösterir. Kullanıcı dokunup düzeltir. |
 | Proje önerisi | Kutunun üstü | Görev kipinde `#project/` yazınca var olan proje adları çıkar. |
 | Anma şeridi | Kutunun üstü | `@` önerileri, "hangisi?" sorusu ve yeni varlık oluşturma. |
 | Öneriler | Olay kipinde boş kutunun sonu, yalnız iPhone | Simge sistemin günlük önerileri seçicisini açar. iPad, Mac ve çerçevesi olmayan yapı simgeyi göstermez. Kutu dolunca simge gider. |
@@ -436,7 +436,7 @@ Uygulama önce dosyaya yazar, sonra indeksi günceller. Yazma hata verirse kutu 
 | `@` önerisi | `@` kişi ve konum önerilerini açar. Aynı `@` şeridi olay metni düzenleme sheet'inde ve günlük yazısı düzenleyicisinde de vardır. |
 | `@` olmadan tanıma | Uygulama bilinen adları yazarken de tanır. |
 | Rakam adı | Uygulama adı tamamen rakam olan varlığı (`12`) yalnız `@` ile tanır. Öneriden seçilen rakam adı metne `@12` olarak girer. Gönderim onu bağlantıya çevirir. |
-| Ad çipi | `@` olmadan yazılıp tanınan her ad, olay ve görev kipinde, kutunun üstündeki tek çip satırında bir çiptir: `Deniz ✕`. |
+| Ad çipi | `@` olmadan yazılıp tanınan her ad, olay ve görev kipinde, tek çip satırında bir çiptir: `Deniz ✕`. |
 | Belirsiz ad çipi | Birden çok varlığa uyan adın çipi işaretlidir: `Mert Aksu? ✕`. |
 | Çipe dokunma | Uygulama o geçişi bu girişte bağlamaz. Uygulama adı dosyaya düz metin olarak yazar: ekiyle birlikte `Deniz'le`. Hangisi olduğunu sormaz. Uygulama aynı satırdaki başka bir `Deniz` geçişini yine bağlar. |
 | Çip almayan adlar | Kullanıcının `@` ile yazdığı ad, öneriden seçtiği ad, takvim taslağının ve konum önerisinin sabitlediği `@Ad`. Kullanıcı bu adları kendisi istedi. Vazgeçmek için metni düzenler. |

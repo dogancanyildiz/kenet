@@ -2,49 +2,86 @@ import EntityRecognition
 import SwiftUI
 import VaultFormat
 
-/// The one row above the field: in task mode the date control and the recognized expressions,
-/// in both modes the recognized names, and a calendar draft's unknown attendees.
+/// The recognized-content controls of the quick entry: in task mode the date control and the
+/// recognized expressions, in both modes the recognized names, and a calendar draft's unknown
+/// attendees. iPad, Mac and accessibility sizes show them as one row above the capsule
+/// (``Part/row``). The two-row iPhone capsule takes them into its top row instead: the date
+/// control in the trailing slot (``Part/date``), the chips between it and the mode words
+/// (``Part/chips``), so the capsule grows no row while the keyboard is up.
 struct QuickEntryTaskControls: View {
+    enum Part: Sendable {
+        /// Date control and chips together, as one row that scrolls sideways.
+        case row
+        /// The task date control alone (task mode only).
+        case date
+        /// The chips without the date control, as a strip that scrolls sideways.
+        case chips
+    }
+
     @Bindable var model: QuickEntryModel
     @Binding var showsPicker: Bool
+    var part: Part = .row
     /// Called after an attendee chip put its name into the text.
     var onAddAttendee: () -> Void = {}
 
     @Environment(\.locale) private var locale
 
+    /// Whether ``Part/chips`` has anything to show for this model.
+    static func hasChips(_ model: QuickEntryModel) -> Bool {
+        let taskChips =
+            model.mode == .task
+            && (!model.taskExpressions.isEmpty
+                || (model.recurrenceExpression == nil && model.taskRecurrence != nil))
+        return taskChips || !model.recognizedNames.isEmpty || !model.unknownAttendees.isEmpty
+            || !model.suggestedNames.isEmpty
+    }
+
     var body: some View {
+        switch part {
+        case .date:
+            if model.mode == .task { dateButton }
+        case .chips:
+            if Self.hasChips(model) {
+                strip(includesDate: false)
+            }
+        case .row:
+            if model.mode == .task || Self.hasChips(model) {
+                strip(includesDate: true)
+            }
+        }
+    }
+
+    /// It scrolls sideways instead of wrapping or clipping.
+    private func strip(includesDate: Bool) -> some View {
         let names = model.recognizedNames
         let attendees = model.unknownAttendees
         let suggested = model.suggestedNames
-        if model.mode == .task || !names.isEmpty || !attendees.isEmpty || !suggested.isEmpty {
-            // It scrolls sideways instead of wrapping or clipping.
-            ScrollView(.horizontal) {
-                HStack(spacing: 8) {
-                    if model.mode == .task {
-                        dateButton
-                        // A recurrence recognized in the text is one of the chips instead.
-                        if model.recurrenceExpression == nil, let recurrence = model.taskRecurrence {
-                            TaskRecurrenceLabel(recurrence: recurrence)
-                                .font(.ink.meta)
-                                .foregroundStyle(Color.ink.secondaryText)
-                        }
-                        ForEach(model.taskExpressions) { expression in
-                            chip(expression)
-                        }
+        return ScrollView(.horizontal) {
+            HStack(spacing: 8) {
+                if model.mode == .task {
+                    if includesDate { dateButton }
+                    // A recurrence recognized in the text is one of the chips instead.
+                    if model.recurrenceExpression == nil, let recurrence = model.taskRecurrence {
+                        TaskRecurrenceLabel(recurrence: recurrence)
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.secondaryText)
                     }
-                    ForEach(names) { name in
-                        chip(name)
-                    }
-                    ForEach(attendees, id: \.self) { name in
-                        attendeeChip(name)
-                    }
-                    ForEach(suggested, id: \.self) { name in
-                        suggestedNameChip(name)
+                    ForEach(model.taskExpressions) { expression in
+                        chip(expression)
                     }
                 }
+                ForEach(names) { name in
+                    chip(name)
+                }
+                ForEach(attendees, id: \.self) { name in
+                    attendeeChip(name)
+                }
+                ForEach(suggested, id: \.self) { name in
+                    suggestedNameChip(name)
+                }
             }
-            .scrollIndicators(.hidden)
         }
+        .scrollIndicators(.hidden)
     }
 
     /// The whole chip is the button: the name stays in the text as plain words, without a link.
@@ -200,6 +237,9 @@ struct QuickEntryTaskControls: View {
                 }
                 if model.dateIsAssumed { Image(systemName: "questionmark.circle") }
             }
+            .lineLimit(1)
+            // In the capsule's top row the strip beside it gives way, never the date.
+            .fixedSize()
             .font(.ink.meta)
             .foregroundStyle(model.dateIsAssumed ? Color.ink.warning : Color.ink.accent)
             .modifier(QuickEntryPill(stroke: model.dateIsAssumed ? Color.ink.warning : Color.ink.control))

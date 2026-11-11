@@ -31,6 +31,13 @@ enum QuickEntryCapsuleLayout: Equatable, Sendable {
         layout == .singleRow && isCompactWidth
     }
 
+    /// Whether the capsule's top row carries the recognized chips (names, task date). Only the
+    /// two-row iPhone capsule does: a chip row above it would cover the page while the keyboard
+    /// is up. Elsewhere the caller keeps the chips in their own row above the capsule.
+    static func carriesChips(dynamicTypeSize: DynamicTypeSize, isCompactWidth: Bool) -> Bool {
+        usesTwoRows(layout: resolve(dynamicTypeSize: dynamicTypeSize), isCompactWidth: isCompactWidth)
+    }
+
     /// Stack spacing between the two kip words.
     static func stackSpacing(for layout: Self) -> CGFloat {
         #if os(macOS)
@@ -44,11 +51,12 @@ enum QuickEntryCapsuleLayout: Equatable, Sendable {
 /// Capsule chrome for the quick-entry bar: mode words, field slot, send.
 /// Callers supply their own field; this view does not own text state.
 ///
-/// iPhone (drawing: Bugün): two rows in a rounded card: the mode words and, at the trailing
-/// end, the `accessory` (the time chip) on top, the field and send below. iPad (regular width)
-/// and Mac keep one pill row; there a thin rule follows the mode words and the accessory sits
-/// before the field.
-struct QuickEntryCapsule<Field: View, Accessory: View>: View {
+/// iPhone (drawing: Bugün): two rows in a rounded card: the mode words, the `chips` strip (the
+/// recognized names) and, at the trailing end, the `accessory` (the time chip, or the task date)
+/// on top, the field and send below. iPad (regular width) and Mac keep one pill row; there a thin
+/// rule follows the mode words and the accessory sits before the field. Only the two-row layout
+/// draws `chips` (``QuickEntryCapsuleLayout/carriesChips(dynamicTypeSize:isCompactWidth:)``).
+struct QuickEntryCapsule<Field: View, Accessory: View, Chips: View>: View {
     @Binding var mode: QuickEntryMode
     var canSubmit: Bool
     var onSubmit: () -> Void
@@ -57,6 +65,22 @@ struct QuickEntryCapsule<Field: View, Accessory: View>: View {
     @ViewBuilder var field: () -> Field
     /// Top-row slot after the mode words (the time chip). Empty by default.
     @ViewBuilder var accessory: () -> Accessory
+    /// Two-row top row only: a strip between the mode words and the accessory. Empty by default.
+    @ViewBuilder var chips: () -> Chips
+
+    init(
+        mode: Binding<QuickEntryMode>, canSubmit: Bool, onSubmit: @escaping () -> Void,
+        isModeEnabled: Bool = true, @ViewBuilder field: @escaping () -> Field,
+        @ViewBuilder accessory: @escaping () -> Accessory, @ViewBuilder chips: @escaping () -> Chips
+    ) {
+        _mode = mode
+        self.canSubmit = canSubmit
+        self.onSubmit = onSubmit
+        self.isModeEnabled = isModeEnabled
+        self.field = field
+        self.accessory = accessory
+        self.chips = chips
+    }
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
@@ -82,9 +106,11 @@ struct QuickEntryCapsule<Field: View, Accessory: View>: View {
         Group {
             if usesTwoRows {
                 VStack(alignment: .leading, spacing: 0) {
-                    // Drawing: mode words on the left, the time chip at the row's trailing end.
+                    // Drawing: mode words on the left, the time chip at the row's trailing end. The
+                    // recognized chips scroll sideways between them, so the card keeps two rows.
                     HStack(alignment: .center, spacing: 6) {
                         modePicker
+                        chips()
                         Spacer(minLength: 0)
                         accessory()
                     }
@@ -239,13 +265,25 @@ enum QuickEntryModeLock {
     }
 }
 
-extension QuickEntryCapsule where Accessory == EmptyView {
+extension QuickEntryCapsule where Chips == EmptyView {
+    init(
+        mode: Binding<QuickEntryMode>, canSubmit: Bool, onSubmit: @escaping () -> Void,
+        isModeEnabled: Bool = true, @ViewBuilder field: @escaping () -> Field,
+        @ViewBuilder accessory: @escaping () -> Accessory
+    ) {
+        self.init(
+            mode: mode, canSubmit: canSubmit, onSubmit: onSubmit, isModeEnabled: isModeEnabled,
+            field: field, accessory: accessory, chips: { EmptyView() })
+    }
+}
+
+extension QuickEntryCapsule where Accessory == EmptyView, Chips == EmptyView {
     init(
         mode: Binding<QuickEntryMode>, canSubmit: Bool, onSubmit: @escaping () -> Void,
         isModeEnabled: Bool = true, @ViewBuilder field: @escaping () -> Field
     ) {
         self.init(
             mode: mode, canSubmit: canSubmit, onSubmit: onSubmit, isModeEnabled: isModeEnabled,
-            field: field, accessory: { EmptyView() })
+            field: field, accessory: { EmptyView() }, chips: { EmptyView() })
     }
 }

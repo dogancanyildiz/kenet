@@ -22,7 +22,7 @@
 | Widget | WidgetKit. Ana ekran zincir widget'ı, yalnız iOS: `JournalWidgets` hedefi. Veriyi App Group'taki anlık görüntüden okur. iCloud kasasında açık evet/hayır hedefini kendi sürecinde işaretler |
 | Paylaşım uzantısı | Share extension, yalnız iOS: `JournalShare` hedefi. Paylaşılan metni ya da sayfa bağlantısını olay olarak ekler |
 | Sistem girişleri | App Intents: Kısayollar ve Siri |
-| Takvim | EventKit, salt okunur |
+| Takvim | EventKit: okuma; kullanıcı isteğiyle etkinlik ekleme, düzenleme ve silme |
 | Konum | CoreLocation; harita için MapKit |
 | Bildirim ve kilit | UserNotifications, LocalAuthentication |
 | Rehber | ContactsUI kişi seçicisi, yalnız iOS. Uygulama rehber izni istemez |

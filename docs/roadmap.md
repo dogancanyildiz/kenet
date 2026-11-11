@@ -36,18 +36,18 @@ timeline
         Aşama 17 Tasarım yenileme : 9 kutu bitti : 0 kutu açık
     section Açık kutusu var
         Aşama 8 Sağlamlaştırma : 28 kutu bitti : 1 kutu açık
-        Aşama 11 Kimlik, eşitleme ve widget'lar : Aktif aşama : 6 kutu bitti : 4 kutu açık
+        Aşama 11 Kimlik, eşitleme ve widget'lar : Aktif aşama : 8 kutu bitti : 3 kutu açık
         Aşama 13 Uyarlanır düzen : Duo kabuğu ve iPad bitti : 4 kutu bitti : 2 kutu açık
     section Hazırlık sürüyor
         Aşama 12 Yayın : 4 kutu açık
 ```
 
-**135 kutunun durumu:**
+**136 kutunun durumu:**
 
 ```mermaid
 pie title Kutular
     "Bitti" : 126
-    "Açık" : 9
+    "Açık" : 10
 ```
 
 | İşaret | Anlamı |
@@ -55,7 +55,7 @@ pie title Kutular
 | `[x]` | Kod `dev` dalında, testlerden ve CI'dan geçti. CI, sürekli bütünleştirme demektir. |
 | `[ ]` | Madde açık. Durum tablosu kalan işi söyler. |
 
-**Durum (2026-11-10).** Aşama 0–10, 14, 15, 16 ve 17'nin teknik maddeleri `dev` dalındadır. Aşama 11'in 10 maddesinden 6'sı bitti. İlk sürüm `v0.9.0` `main` dalındadır. TestFlight'ta iPhone/iPad ve Mac için dahili test sürüyor. Aşama 16 tamamlandı; olay düzeyinde bağ (W1, #333), paragraf segmentleri (W1a, #334), günün grafiği (W2, #337) ve açık ilişkiler (W3, #341, #343, #347) `dev` dalındadır. Aşama 17 2026-11-09'da açıldı; 9 dalganın 9'u bitti (#371–#377 ve belge kapanışı). Aşamaların gerçek kullanım ölçütleri henüz ölçülmedi; "Gerçek kullanım ölçütleri" tablosu ölçütleri ayrıca izler.
+**Durum (2026-11-10).** Aşama 0–10, 14, 15, 16 ve 17'nin teknik maddeleri `dev` dalındadır. Aşama 11'in 11 maddesinden 8'i bitti. İlk sürüm `v0.9.0` `main` dalındadır. TestFlight'ta iPhone/iPad ve Mac için dahili test sürüyor. Aşama 16 tamamlandı; olay düzeyinde bağ (W1, #333), paragraf segmentleri (W1a, #334), günün grafiği (W2, #337) ve açık ilişkiler (W3, #341, #343, #347) `dev` dalındadır. Aşama 17 2026-11-09'da açıldı; 9 dalganın 9'u bitti (#371–#377 ve belge kapanışı). Aşamaların gerçek kullanım ölçütleri henüz ölçülmedi; "Gerçek kullanım ölçütleri" tablosu ölçütleri ayrıca izler.
 
 Ekim 2026'da çok modelli bir heyet projeyi inceledi. Heyet 4 iş yaptı: kod ve mimari denetimi, ekran görüntülü kullanım gezisi, sektör taraması, tasarım dili araştırması. İnceleme gerçek hatalar, ölçek sorunları ve vaatle uyuşmayan yerler buldu. Bu nedenle heyetten sonraki ilk iş yeni özellik değil, sağlamlaştırmaydı. Aşama 8 ve sonraki aşamalar heyetin önerdiği sırayı izler; kullanıcı onayı kapsamı ve sırayı kesinleştirir.
 
@@ -234,6 +234,7 @@ Aşama 10 sektör taramasından çıkan ilk dalgadır. Maddeler kimlik kararı g
 | Mac widget'ları | Açık. Sonraki dalga. | - |
 | Paylaşım uzantısı | Bitti, iOS. Metin ve Safari bağlantısı tek olay olur. iCloud kasasında uzantı gün dosyasına kendisi yazar; öteki durumlarda metin App Group kuyruğunda bekler ve uygulama açılınca işlenir. Mac uzantısı ve görsel paylaşımı kapsam dışı. | #324 |
 | Sistemin günlük önerileri | Bitti, iPhone. Hızlı girişte seçici; öneri metne dönüşür, kullanıcı gönderir. Cihaz denemesi bekliyor: yetki ve App ID yeteneği yalnız imzalı yapıda görülür. | #320 |
+| Takvim etkinliği ekleme ve düzenleme | Açık. Kullanıcı kararı 2026-11-11. Bugün, gün ekranı ve kişi sayfasından etkinlik ekleme, ayrıntı, düzenleme ve silme; kişi sayfasında yaklaşan etkinlikler ve doğum günü. Gerçek takvimle cihaz denemesi kullanıcıdadır. | - |
 
 Kimlik gerektirmeyen dilimler Aşama 10 ile birlikte yürüdü ve bitti. Karar günlüğü bu sırayı 2026-10-12'de kaydetti. Kimlikler 2026-10-21'de geldi; kimliğe bağlı ilk dalga 2026-10-22'de bitti. Kilit ekranı, hızlı giriş ve Mac widget'ları sonraki dalgadır. Güvenli yazmanın kalanı kullanıcının cihaz denemesini bekler. İşaretli maddelerin gerçek cihaz denemesi kullanıcıdadır. Mac TestFlight denemesi 2026-10-22'de başladı (#328).
 
@@ -272,6 +273,7 @@ Kimlik gerektirmeyen dilimler Aşama 10 ile birlikte yürüdü ve bitti. Karar g
 - [ ] Mac widget'ları. Madde Aşama 3'ten devretti.
 - [x] Paylaşım uzantısı: "olay olarak ekle".
 - [x] Sistemin günlük önerileri seçicisi. Apple'daki adı Journaling Suggestions.
+- [ ] Takvim etkinliği ekleme ve düzenleme: ders, toplantı, doğum günü; tekrar ve hedef takvim; kişi sayfasında yaklaşan etkinlikler. Görev ve olay takvime yazılmaz.
 
 **Çıkış ölçütü:** İki cihazda iki haftalık kullanımda kayıp ya da kopya dosya çıkmıyor. Kullanıcı alışkanlık uygulamasını ve Lockday'i telefondan sildi.
 

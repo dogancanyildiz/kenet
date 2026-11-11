@@ -286,7 +286,7 @@ struct DayView: View {
         // The strip draws nothing until its model has the goals; hosts wait for this, goals or none.
         .preference(key: GoalsStripReadyKey.self, value: goalModel.hasLoaded && !goalModel.isLoading)
         .task(id: date) {
-            if AppLaunchPolicy.allowsAutomaticStart() { await calendar.load(date) }
+            if AppLaunchPolicy.allowsCalendarLoad() { await calendar.load(date) }
         }
         .task(id: DayRequest(date: date, updated: store.lastUpdated)) {
             // One load: the day and its goal statuses as of that day are taken together.

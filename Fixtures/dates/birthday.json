@@ -1,0 +1,20 @@
+[
+  {"key": "doğum günü", "value": "1990-04-12", "expected": {"month": 4, "day": 12, "year": 1990}},
+  {"key": "doğum_günü", "value": "1985-11-30", "expected": {"month": 11, "day": 30, "year": 1985}},
+  {"key": "birthday", "value": "2001-01-01", "expected": {"month": 1, "day": 1, "year": 2001}},
+  {"key": "Birthday", "value": "1979-07-04", "expected": {"month": 7, "day": 4, "year": 1979}},
+  {"key": "DOĞUM GÜNÜ", "value": "1993-03-08", "expected": {"month": 3, "day": 8, "year": 1993}},
+  {"key": "doğum günü", "value": "--04-12", "expected": {"month": 4, "day": 12, "year": null}},
+  {"key": "birthday", "value": "--02-29", "expected": {"month": 2, "day": 29, "year": null}},
+  {"key": "doğum günü", "value": "1996-02-29", "expected": {"month": 2, "day": 29, "year": 1996}},
+  {"key": "doğum günü", "value": "1995-02-29", "expected": null},
+  {"key": "doğum günü", "value": "1990-02-30", "expected": null},
+  {"key": "doğum günü", "value": "--13-01", "expected": null},
+  {"key": "doğum günü", "value": "--02-30", "expected": null},
+  {"key": "doğum günü", "value": "12 Nisan 1990", "expected": null},
+  {"key": "doğum günü", "value": "04-12", "expected": null},
+  {"key": "doğum günü", "value": "", "expected": null},
+  {"key": "tanışma", "value": "1990-04-12", "expected": null},
+  {"key": "dogum gunu", "value": "1990-04-12", "expected": null},
+  {"key": "birth", "value": "1990-04-12", "expected": null}
+]

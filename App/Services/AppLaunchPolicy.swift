@@ -24,6 +24,33 @@ enum AppLaunchPolicy {
         return nil
     }
 
+    /// DEBUG-only: `memory` puts an in-memory calendar with full access in place of EventKit.
+    static let uiTestCalendarKey = "JOURNAL_UITEST_CALENDAR"
+
+    @MainActor static func calendarSource(
+        environment: [String: String] = ProcessInfo.processInfo.environment
+    ) -> any CalendarEventSource {
+        #if DEBUG
+            if uiTestVaultPath(environment: environment) != nil, environment[uiTestCalendarKey] == "memory" {
+                return InMemoryCalendarSource()
+            }
+        #endif
+        return EventKitCalendarSource()
+    }
+
+    /// Days read the calendar on their own when the app starts normally, or in a UI test whose
+    /// calendar is the in-memory one (never the developer's real calendar).
+    static func allowsCalendarLoad(
+        environment: [String: String] = ProcessInfo.processInfo.environment
+    ) -> Bool {
+        if allowsAutomaticStart(environment: environment) { return true }
+        #if DEBUG
+            return uiTestVaultPath(environment: environment) != nil && environment[uiTestCalendarKey] == "memory"
+        #else
+            return false
+        #endif
+    }
+
     static func uiTestVaultPath(
         environment: [String: String] = ProcessInfo.processInfo.environment,
         arguments: [String] = ProcessInfo.processInfo.arguments

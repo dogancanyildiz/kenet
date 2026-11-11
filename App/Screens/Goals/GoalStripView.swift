@@ -50,8 +50,12 @@ enum GoalStripPresentation {
 }
 
 /// A goal page pushed from the Today strip; the page reads the goal's newest definition by id.
+/// `focusesAmount` opens a number goal with its amount field focused (the card's pencil);
+/// `amountDay` is the strip's day, edited on the page when it is not today.
 struct GoalDetailRoute: Hashable {
     let goal: GoalDefinition
+    var focusesAmount = false
+    var amountDay: CalendarDate?
 
     static func == (lhs: Self, rhs: Self) -> Bool { lhs.goal.id == rhs.goal.id }
     func hash(into hasher: inout Hasher) { hasher.combine(goal.id) }
@@ -60,7 +64,6 @@ struct GoalDetailRoute: Hashable {
 struct GoalStripView: View {
     @Environment(GeofenceService.self) private var geofences: GeofenceService?
     @Environment(\.locale) private var locale
-    @State private var editing: GoalValueModel?
     /// The order taken once the day's history first loaded (open goals first); later loads keep
     /// it. The strip is a new view per day and vault (``GoalStripIdentity``), with a new order.
     @State private var keptOrder: [String]?
@@ -73,15 +76,19 @@ struct GoalStripView: View {
     private let countedGoalIDs: [String]
     private let counter: String?
     private let onOpen: ((GoalDefinition) -> Void)?
+    /// A large number goal's pencil and "Miktar gir": the goal page with the amount focused.
+    private let onEnterAmount: ((GoalDefinition) -> Void)?
 
     init(
         model: GoalDayModel, countedGoalIDs: [String] = [], counter: String? = nil,
-        onOpen: ((GoalDefinition) -> Void)? = nil
+        onOpen: ((GoalDefinition) -> Void)? = nil,
+        onEnterAmount: ((GoalDefinition) -> Void)? = nil
     ) {
         self.model = model
         self.countedGoalIDs = countedGoalIDs
         self.counter = counter
         self.onOpen = onOpen
+        self.onEnterAmount = onEnterAmount
     }
 
     var body: some View {
@@ -132,13 +139,6 @@ struct GoalStripView: View {
             }
             .onChange(of: model.hasLoaded, initial: true) { keepOrder() }
             .onChange(of: model.goals.map(\.id)) { keepOrder() }
-            .sheet(item: $editing) { editor in
-                NavigationStack { GoalValueEditor(model: editor) }
-                    .inkAdaptiveSheetPresentation(fitsContent: true, usesPhoneDetents: false)
-                    .onChange(of: editor.isSaved) { _, saved in
-                        if saved { geofences?.clearLockedMarkNotice() }
-                    }
-            }
         }
     }
 
@@ -191,9 +191,34 @@ struct GoalStripView: View {
     /// A goal's own card: filled while open; a finished goal keeps only the outline and recedes.
     private func goalCard(_ goal: GoalDefinition) -> some View {
         let complete = GoalStripPresentation.isPeriodComplete(status: model.status(for: goal))
-        return goalColumn(goal, metaText: goal.period == .day ? nil : periodMeta(for: goal))
+        let status = model.status(for: goal)
+        let metaText = goal.period == .day ? nil : periodMeta(for: goal)
+        return goalColumn(goal, metaText: metaText)
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
+            // The whole card opens the goal page; ring and plus on top keep their own taps
+            // (screens.md, Dokunma). Behind the content, so VoiceOver meets it by sort priority.
+            .background {
+                Button {
+                    onOpen?(goal)
+                } label: {
+                    Color.clear.contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(onOpen == nil)
+                // Label is the name alone; value and chain ride on the value (screens.md: name,
+                // value and the "Ayrıntıları göster" hint).
+                .accessibilityLabel(Text(verbatim: goal.name))
+                .accessibilityValue(
+                    Text(
+                        verbatim: openAccessibilityValue(
+                            value: valueText(for: goal), meta: metaText, streak: status.streak,
+                            locale: locale))
+                )
+                .accessibilityHint(Text("Ayrıntıları göster"))
+                // VoiceOver meets the goal by name first, then its ring and plus.
+                .accessibilitySortPriority(2)
+            }
             .background {
                 if !complete {
                     RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
@@ -203,6 +228,24 @@ struct GoalStripView: View {
             .overlay {
                 RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
                     .stroke(Color.ink.rule, lineWidth: 1)
+                    .allowsHitTesting(false)
+            }
+            // One container per goal: columns sit side by side, so without it VoiceOver would
+            // read every ring and plus across the strip before the first name.
+            .accessibilityElement(children: .contain)
+            .contextMenu {
+                if goal.kind == .number, let onEnterAmount {
+                    Button("Miktar gir") { onEnterAmount(goal) }
+                }
+                if model.canEdit, goal.kind == .boolean || goal.kind == .milestone,
+                    model.isComplete(for: goal)
+                {
+                    Button("İşareti kaldır") {
+                        Task {
+                            if await model.toggle(goal) { geofences?.clearLockedMarkNotice() }
+                        }
+                    }
+                }
             }
     }
 
@@ -213,8 +256,6 @@ struct GoalStripView: View {
         let marked = isBooleanMark && model.isComplete(for: goal)
         let complete = GoalStripPresentation.isPeriodComplete(status: status)
         let value = valueText(for: goal)
-        let openValue = openAccessibilityValue(
-            value: value, meta: metaText, streak: status.streak, locale: locale)
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .center) {
                 ringControl(goal: goal, progress: progress, marked: marked, isBooleanMark: isBooleanMark)
@@ -223,9 +264,7 @@ struct GoalStripView: View {
                     goal: goal, marked: marked, isBooleanMark: isBooleanMark, complete: complete)
             }
             .frame(height: markSide)
-            // The name and meta block opens the goal; the open button lies under the block so
-            // its hit area spans the whole block (at least 44 pt tall, accessibility audit: hit
-            // region) while the value button on top keeps its own taps (screens.md, Dokunma).
+            // Name, value and meta take no touches: they reach the card's open button behind.
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: goal.name)
                     .font(.subheadline.weight(complete ? .medium : .semibold))
@@ -236,28 +275,16 @@ struct GoalStripView: View {
                     .allowsHitTesting(false)
 
                 if let value {
-                    Button {
-                        if model.canEdit { editing = GoalValueModel(dayModel: model, goal: goal) }
-                    } label: {
-                        // 44 pt tall to the touch, one line to the eye: the frame reaches into the
-                        // name above and the card padding below without taking layout room.
-                        Text(valueAttributed(value, complete: complete))
-                            .font(.ink.meta)
-                            .foregroundStyle(Color.ink.secondaryText)
-                            .monospacedDigit()
-                            .lineLimit(2)
-                            .frame(
-                                maxWidth: .infinity, minHeight: TapTarget.minimumLength,
-                                alignment: .leading
-                            )
-                            .contentShape(Rectangle())
-                            .padding(.vertical, -valueOverlap)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(!model.canEdit)
-                    .accessibilityLabel(Text(verbatim: value))
-                    .accessibilityHint(Text("Miktar gir"))
-                    .accessibilitySortPriority(1)
+                    // Plain text: a touch on the value opens the goal page like the rest of the
+                    // card (the amount is typed there, ``GoalAmountPanel``).
+                    Text(valueAttributed(value, complete: complete))
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                        .monospacedDigit()
+                        .lineLimit(2)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityHidden(true)
+                        .allowsHitTesting(false)
                 } else if let metaText {
                     // No line limit: at large Dynamic Type sizes the period line wraps in its
                     // narrow column instead of being cut (accessibility audit: text clipped).
@@ -270,42 +297,7 @@ struct GoalStripView: View {
                         .allowsHitTesting(false)
                 }
                 if let badge = GraceDayPresentation.badge(status: status, locale: locale) {
-                    badge
-                }
-            }
-            // Top-aligned: a short block (one-line name and value) is under 44 pt, so the open
-            // button reaches past its bottom into the card's padding instead of growing the card.
-            .background(alignment: .top) {
-                Button {
-                    onOpen?(goal)
-                } label: {
-                    Color.clear
-                        .frame(minHeight: TapTarget.minimumLength)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .disabled(onOpen == nil)
-                // Label is the name alone; value and chain ride on the value (screens.md: name,
-                // value and the "Ayrıntıları göster" hint).
-                .accessibilityLabel(Text(verbatim: goal.name))
-                .accessibilityValue(Text(verbatim: openValue))
-                .accessibilityHint(Text("Ayrıntıları göster"))
-                // VoiceOver meets the goal by name first, then its value, ring and plus.
-                .accessibilitySortPriority(2)
-            }
-        }
-        // One container per goal: columns sit side by side, so without it VoiceOver would read
-        // every ring and plus across the strip before the first name.
-        .accessibilityElement(children: .contain)
-        .contextMenu {
-            if model.canEdit, goal.kind == .number {
-                Button("Miktar gir") { editing = GoalValueModel(dayModel: model, goal: goal) }
-            }
-            if model.canEdit, marked {
-                Button("İşareti kaldır") {
-                    Task {
-                        if await model.toggle(goal) { geofences?.clearLockedMarkNotice() }
-                    }
+                    badge.allowsHitTesting(false)
                 }
             }
         }
@@ -333,7 +325,7 @@ struct GoalStripView: View {
                         localized: "\(goal.name), işareti kaldır",
                         bundle: PresentationLocalization.bundle(locale), locale: locale)))
         } else {
-            ring.accessibilityHidden(true)
+            ring.accessibilityHidden(true).allowsHitTesting(false)
         }
     }
 
@@ -354,11 +346,26 @@ struct GoalStripView: View {
             .foregroundStyle(Color.ink.secondaryText)
             .lineLimit(1)
             .fixedSize()
+            .allowsHitTesting(false)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(
                 Text(
                     verbatim: String(
                         localized: "Tamamlandı",
+                        bundle: PresentationLocalization.bundle(locale), locale: locale)))
+        } else if !GoalAmountPresentation.usesQuickIncrement(goal) {
+            // 7500 steps: one more is no use; the pencil opens the page with the amount focused.
+            Button {
+                onEnterAmount?(goal)
+            } label: {
+                trailingGlyph("pencil")
+            }
+            .buttonStyle(.plain)
+            .disabled(onEnterAmount == nil)
+            .accessibilityLabel(
+                Text(
+                    verbatim: String(
+                        localized: "\(goal.name), miktar gir",
                         bundle: PresentationLocalization.bundle(locale), locale: locale)))
         } else {
             Button {
@@ -370,15 +377,7 @@ struct GoalStripView: View {
                     Task { await increment(goal) }
                 }
             } label: {
-                Image(systemName: "plus")
-                    .font(.ink.meta.weight(.semibold))
-                    .foregroundStyle(Color.ink.accent)
-                    .frame(width: markSide, height: markSide)
-                    .background(Circle().fill(Color.ink.accentSoft))
-                    // 44 pt to the touch around the 30 pt mark, without growing the row.
-                    .frame(width: TapTarget.minimumLength, height: TapTarget.minimumLength)
-                    .contentShape(Rectangle())
-                    .padding(-(TapTarget.minimumLength - markSide) / 2)
+                trailingGlyph("plus")
                     .opacity(model.canEdit ? 1 : InkGoalRowTrailing.busyPlusOpacity)
             }
             .buttonStyle(.plain)
@@ -391,8 +390,17 @@ struct GoalStripView: View {
         }
     }
 
-    /// How far the value button's 44 pt frame reaches past its one line of text, each side.
-    private var valueOverlap: CGFloat { max(0, (TapTarget.minimumLength - 20) / 2) }
+    /// The 30 pt "+" or pencil in its soft circle, 44 pt to the touch without growing the row.
+    private func trailingGlyph(_ systemName: String) -> some View {
+        Image(systemName: systemName)
+            .font(.ink.meta.weight(.semibold))
+            .foregroundStyle(Color.ink.accent)
+            .frame(width: markSide, height: markSide)
+            .background(Circle().fill(Color.ink.accentSoft))
+            .frame(width: TapTarget.minimumLength, height: TapTarget.minimumLength)
+            .contentShape(Rectangle())
+            .padding(-(TapTarget.minimumLength - markSide) / 2)
+    }
 
     /// "**12**/20 sayfa": the amount done stands out.
     private func valueAttributed(_ value: String, complete: Bool) -> AttributedString {

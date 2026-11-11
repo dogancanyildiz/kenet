@@ -332,8 +332,11 @@ struct DayView: View {
         }
         .navigationDestination(item: $goalDestination) { route in
             // As the Goals list opens it: the page's own day is today.
-            GoalDetailView(store: store, goal: route.goal, day: LocalDay.today(at: clockNow()))
-                .modifier(DayBackTitle(title: isToday ? nil : backTitle))
+            GoalDetailView(
+                store: store, goal: route.goal, day: LocalDay.today(at: clockNow()),
+                focusesAmount: route.focusesAmount, amountDay: route.amountDay
+            )
+            .modifier(DayBackTitle(title: isToday ? nil : backTitle))
         }
         .navigationDestination(item: $weekDestination) { day in
             DayView(
@@ -496,7 +499,8 @@ struct DayView: View {
             GoalStripView(
                 model: goalModels.model(store: store, day: date), countedGoalIDs: presented.countedGoalIDs,
                 counter: loadedGoals?.day == date ? presented.counter(for: .goals) : nil,
-                onOpen: { goalDestination = GoalDetailRoute(goal: $0) }
+                onOpen: { goalDestination = GoalDetailRoute(goal: $0) },
+                onEnterAmount: { goalDestination = GoalDetailRoute(goal: $0, focusesAmount: true, amountDay: date) }
             )
             .id(GoalStripIdentity.key(day: date, vaultPath: store.vaultURL?.path))
 
@@ -605,7 +609,8 @@ struct DayView: View {
                 model: goalModels.model(store: store, day: date),
                 countedGoalIDs: presented.countedGoalIDs,
                 counter: loadedGoals?.day == date ? presented.counter(for: .goals) : nil,
-                onOpen: { goalDestination = GoalDetailRoute(goal: $0) }
+                onOpen: { goalDestination = GoalDetailRoute(goal: $0) },
+                onEnterAmount: { goalDestination = GoalDetailRoute(goal: $0, focusesAmount: true, amountDay: date) }
             )
             .id(GoalStripIdentity.key(day: date, vaultPath: store.vaultURL?.path))
 

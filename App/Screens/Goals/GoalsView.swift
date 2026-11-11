@@ -27,7 +27,6 @@ struct GoalsView: View {
     var selection: Binding<String?>? = nil
     @State private var showsCreation = false
     @State private var editingGoal: GoalDefinitionSheetTarget?
-    @State private var editingAmount: GoalValueModel?
     @State private var loaded: GoalListStatuses?
     @Environment(\.clockNow) private var clockNow
     var body: some View {
@@ -36,17 +35,13 @@ struct GoalsView: View {
             GoalListContent(
                 store: store, day: day, selection: selection,
                 showsCreation: $showsCreation, loaded: $loaded,
-                editingGoal: $editingGoal, editingAmount: $editingAmount
+                editingGoal: $editingGoal
             )
             .id(day.description + (store.vaultURL?.path ?? ""))
         }
         .inkRootPageNavigationTitle("Hedefler")
         .sheet(item: $editingGoal) { goal in
             NavigationStack { GoalDefinitionForm(store: store, goal: goal.goal) }
-        }
-        .sheet(item: $editingAmount) { editor in
-            NavigationStack { GoalValueEditor(model: editor) }
-                .inkAdaptiveSheetPresentation(fitsContent: true, usesPhoneDetents: false)
         }
         .sheet(isPresented: $showsCreation) {
             NavigationStack { GoalCreationView(store: store) }
@@ -60,7 +55,8 @@ private struct GoalListContent: View {
     @Binding var showsCreation: Bool
     @Binding var loaded: GoalListStatuses?
     @Binding var editingGoal: GoalDefinitionSheetTarget?
-    @Binding var editingAmount: GoalValueModel?
+    /// iPhone: the goal page opened with its amount focused (pencil, "Miktar gir").
+    @State private var amountRoute: GoalDetailRoute?
     @State private var deletion = DefinitionDeletionModel()
     @State private var deletingGoal: GoalDefinition?
     @State private var model: GoalDayModel
@@ -69,14 +65,13 @@ private struct GoalListContent: View {
     init(
         store: IndexStore, day: CalendarDate, selection: Binding<String?>?,
         showsCreation: Binding<Bool>, loaded: Binding<GoalListStatuses?>,
-        editingGoal: Binding<GoalDefinitionSheetTarget?>, editingAmount: Binding<GoalValueModel?>
+        editingGoal: Binding<GoalDefinitionSheetTarget?>
     ) {
         self.store = store
         self.selection = selection
         _showsCreation = showsCreation
         _loaded = loaded
         _editingGoal = editingGoal
-        _editingAmount = editingAmount
         _model = State(initialValue: GoalDayModel(store: store, day: day))
     }
 
@@ -171,6 +166,9 @@ private struct GoalListContent: View {
                 }
             }
         }
+        .navigationDestination(item: $amountRoute) { route in
+            GoalDetailView(store: store, goal: route.goal, day: model.day, focusesAmount: true)
+        }
         .task(id: store.lastUpdated) { await model.load() }
         .task(id: GoalListRequest(day: model.day, updated: store.lastUpdated)) {
             let vault = store.vaultURL
@@ -220,7 +218,7 @@ private struct GoalListContent: View {
                     case .markToday, .unmark:
                         Task { await model.toggle(goal) }
                     case .enterAmount:
-                        editingAmount = GoalValueModel(dayModel: model, goal: goal)
+                        enterAmount(goal)
                     case .edit:
                         editingGoal = GoalDefinitionSheetTarget(goal: goal)
                     case .delete:
@@ -251,6 +249,7 @@ private struct GoalListContent: View {
             opensDetail: goal.kind != .milestone && selection == nil,
             detail: { GoalDetailView(store: store, goal: goal, day: model.day) },
             onIncrement: { Task { await incrementOrToggle(goal) } },
+            onEnterAmount: { enterAmount(goal) },
             onUnmark: { Task { await model.toggle(goal) } }
         )
     }
@@ -311,6 +310,15 @@ private struct GoalListContent: View {
             }
             .buttonStyle(.plain)
             .navigationLinkIndicatorVisibility(.hidden)
+        }
+    }
+
+    /// The goal page with the amount field focused: pushed on iPhone, selected in the split shell.
+    private func enterAmount(_ goal: GoalDefinition) {
+        if let selection {
+            selection.wrappedValue = goal.id
+        } else {
+            amountRoute = GoalDetailRoute(goal: goal, focusesAmount: true)
         }
     }
 
@@ -386,6 +394,8 @@ private struct GoalListCard<Detail: View>: View {
     var opensDetail: Bool
     @ViewBuilder var detail: () -> Detail
     let onIncrement: () -> Void
+    /// A large number goal's pencil (``GoalAmountPresentation/usesQuickIncrement(_:)``).
+    let onEnterAmount: () -> Void
     let onUnmark: () -> Void
 
     @ScaledMetric(relativeTo: .body) private var plusSide: CGFloat = 46
@@ -552,6 +562,12 @@ private struct GoalListCard<Detail: View>: View {
                 .disabled(!canEdit || markReadOnly)
                 .accessibilityLabel(Text(goal.kind == .milestone ? "Bugünü işaretle" : "Artır"))
             }
+        } else if !GoalAmountPresentation.usesQuickIncrement(goal) {
+            Button(action: onEnterAmount) {
+                trailingGlyph("pencil")
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text("Miktar gir"))
         } else {
             Button(action: onIncrement) {
                 plusGlyph
@@ -563,7 +579,12 @@ private struct GoalListCard<Detail: View>: View {
     }
 
     private var plusGlyph: some View {
-        Image(systemName: "plus")
+        trailingGlyph("plus")
+            .opacity(canEdit && !markReadOnly ? 1 : InkGoalRowTrailing.busyPlusOpacity)
+    }
+
+    private func trailingGlyph(_ systemName: String) -> some View {
+        Image(systemName: systemName)
             .font(.title3.weight(.medium))
             .foregroundStyle(Color.ink.accent)
             .frame(width: plusSide, height: plusSide)
@@ -573,7 +594,6 @@ private struct GoalListCard<Detail: View>: View {
             }
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
-            .opacity(canEdit && !markReadOnly ? 1 : InkGoalRowTrailing.busyPlusOpacity)
     }
 }
 

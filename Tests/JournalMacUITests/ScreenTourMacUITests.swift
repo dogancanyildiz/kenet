@@ -371,11 +371,12 @@ final class ScreenTourMacUITests: XCTestCase {
             tour.shot("12-hedef-olusturma-sheet")
         }
         tour.step("12-hedef-miktar-sheet") {
-            // Secondary click: the row's plus button would add to today's value.
+            // Secondary click: the card's plus button would add to today's value.
             try tour.sidebar("Bugün")
             try tour.macRow(numberGoal, in: tour.mainWindow).rightClick()
             try tour.chooseMenuItem("Miktar gir")
-            try tour.waitForSheet()
+            // The goal page opens with its amount field focused (no separate sheet).
+            _ = try tour.macRequire(["Hedefe tamamla"])
             tour.shot("12-hedef-miktar-sheet")
         }
     }

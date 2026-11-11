@@ -8,7 +8,11 @@ struct GoalDetailView: View {
     let store: IndexStore
     private let original: GoalDefinition
     @State private var history: GoalDayModel
-    @State private var editing: GoalValueModel?
+    /// A past day picked from the heatmap or the log list: the amount panel and the mark button
+    /// edit it until "Bugüne dön". Nil edits the page's own day.
+    @State private var pickedDay: GoalDayModel?
+    /// Each change focuses the amount field (a card's pencil, a picked day).
+    @State private var focusToken: Int
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.locale) private var locale
     @State private var isEditing = false
@@ -17,11 +21,25 @@ struct GoalDetailView: View {
     private static let recentLimit = 3
     @ScaledMetric(relativeTo: .caption) private var forgivenMark: CGFloat = 12
 
-    init(store: IndexStore, goal: GoalDefinition, day: CalendarDate = LocalDay.today()) {
+    /// - Parameter focusesAmount: a number goal's page opens with the amount field focused (the
+    ///   card's pencil, "Miktar gir").
+    init(
+        store: IndexStore, goal: GoalDefinition, day: CalendarDate = LocalDay.today(),
+        focusesAmount: Bool = false, amountDay: CalendarDate? = nil
+    ) {
         self.store = store
         original = goal
         _history = State(initialValue: GoalDayModel(store: store, day: day))
+        _focusToken = State(initialValue: focusesAmount && goal.kind == .number ? 1 : 0)
+        initialAmountDay = amountDay == day ? nil : amountDay
     }
+
+    /// A past day's strip opened the page: that day is picked once the page appears.
+    private let initialAmountDay: CalendarDate?
+    @State private var pickedInitialDay = false
+
+    /// The day the amount panel and the mark button edit.
+    private var editedDay: GoalDayModel { pickedDay ?? history }
 
     /// The goal's newest definition by id, as the history model last loaded it; the one the page
     /// was opened with until then, and once the file is gone.
@@ -37,62 +55,74 @@ struct GoalDetailView: View {
 
     var body: some View {
         let status = history.status(for: goal)
-        ScrollView {
-            VStack(alignment: .leading, spacing: InkSpacing.section) {
-                InkScrolledMasthead(masthead)
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: InkSpacing.section) {
+                    InkScrolledMasthead(masthead)
 
-                hero(status: status)
-                    .padding(.horizontal, InkSpacing.margin)
+                    if let picked = pickedDay {
+                        pickedDayLine(picked.day)
+                            .padding(.horizontal, InkSpacing.margin)
+                    }
 
-                actions(status: status)
-                    .padding(.horizontal, InkSpacing.margin)
-
-                if goal.kind != .milestone, showsStats(status) {
-                    statsStrip(status: status)
+                    hero(status: status)
                         .padding(.horizontal, InkSpacing.margin)
-                }
+                        .id(Self.heroID)
 
-                if let forgiven = latestForgivenDay {
-                    forgivenLine(forgiven)
+                    actions(status: status)
                         .padding(.horizontal, InkSpacing.margin)
-                }
 
-                if goal.period == .day, let balance = GraceDayPresentation.balance(status: status) {
-                    graceDayLine(balance)
+                    if goal.kind != .milestone, showsStats(status) {
+                        statsStrip(status: status)
+                            .padding(.horizontal, InkSpacing.margin)
+                    }
+
+                    if let forgiven = latestForgivenDay {
+                        forgivenLine(forgiven)
+                            .padding(.horizontal, InkSpacing.margin)
+                    }
+
+                    if goal.period == .day, let balance = GraceDayPresentation.balance(status: status) {
+                        graceDayLine(balance)
+                            .padding(.horizontal, InkSpacing.margin)
+                    }
+
+                    if GoalValueChart.isShown(for: goal) {
+                        chartSection
+                    } else if goal.kind == .boolean {
+                        heatmapSection(status: status)
+                    }
+
+                    if goal.kind == .number {
+                        heatmapSection(status: status)
+                    }
+
+                    recentLogs
                         .padding(.horizontal, InkSpacing.margin)
-                }
 
-                if GoalValueChart.isShown(for: goal) {
-                    chartSection
-                } else if goal.kind == .boolean {
-                    heatmapSection(status: status)
-                }
-
-                if goal.kind == .number {
-                    heatmapSection(status: status)
-                }
-
-                recentLogs
-                    .padding(.horizontal, InkSpacing.margin)
-
-                footerActions
-                    .padding(.horizontal, InkSpacing.margin)
-
-                if let error = history.errorText {
-                    InfoBand(kind: .error, verbatim: error)
+                    footerActions
                         .padding(.horizontal, InkSpacing.margin)
+
+                    if let error = history.errorText {
+                        InfoBand(kind: .error, verbatim: error)
+                            .padding(.horizontal, InkSpacing.margin)
+                    }
+                    if let error = deletion.errorText {
+                        InfoBand(kind: .error, verbatim: error)
+                            .padding(.horizontal, InkSpacing.margin)
+                    }
+                    if history.isLoading {
+                        InkProgress(kind: .indeterminate(label: "Yükleniyor…"))
+                            .padding(.horizontal, InkSpacing.margin)
+                    }
                 }
-                if let error = deletion.errorText {
-                    InfoBand(kind: .error, verbatim: error)
-                        .padding(.horizontal, InkSpacing.margin)
-                }
-                if history.isLoading {
-                    InkProgress(kind: .indeterminate(label: "Yükleniyor…"))
-                        .padding(.horizontal, InkSpacing.margin)
-                }
+                .padding(.vertical, 12)
+                .inkPageColumn()
             }
-            .padding(.vertical, 12)
-            .inkPageColumn()
+            .scrollDismissesKeyboard(.interactively)
+            .onChange(of: pickedDay?.day) { _, _ in
+                withAnimation { proxy.scrollTo(Self.heroID, anchor: .top) }
+            }
         }
         .inkPinnedMasthead(masthead, insets: EdgeInsets(top: 12, leading: 0, bottom: 8, trailing: 0))
         .inkPage()
@@ -101,9 +131,10 @@ struct GoalDetailView: View {
             .toolbar(.hidden, for: .tabBar)
         #endif
         .task(id: store.lastUpdated) { await history.load() }
-        .sheet(item: $editing, onDismiss: { Task { await history.load() } }) { model in
-            NavigationStack { GoalValueEditor(model: model) }
-                .inkAdaptiveSheetPresentation(fitsContent: true, usesPhoneDetents: false)
+        .task {
+            guard let day = initialAmountDay, !pickedInitialDay else { return }
+            pickedInitialDay = true
+            await edit(day)
         }
         .sheet(isPresented: $isEditing) {
             NavigationStack { GoalDefinitionForm(store: store, goal: goal) }
@@ -171,9 +202,17 @@ struct GoalDetailView: View {
         .padding(.horizontal, InkSpacing.margin)
     }
 
+    private static let heroID = "goal.hero"
+
     private func hero(status: GoalStatus) -> some View {
         Group {
-            if goal.kind == .milestone {
+            if goal.kind == .number {
+                GoalAmountPanel(
+                    model: editedDay, goal: goal, focusToken: focusToken,
+                    onWrite: { if pickedDay != nil { await history.load() } }
+                )
+                .id(editedDay.day)
+            } else if goal.kind == .milestone {
                 GoalProgressLabel(goal: goal, status: status)
             } else {
                 HStack(alignment: .center, spacing: 16) {
@@ -214,42 +253,30 @@ struct GoalDetailView: View {
 
     @ViewBuilder
     private func actions(status: GoalStatus) -> some View {
-        let marked = history.isMarkedToday(goal)
+        let day = editedDay
+        let marked = day.isMarkedToday(goal)
         let markReadOnly =
-            status.completionDate != nil && status.completionDate != history.day
-        if goal.kind == .number {
-            HStack(spacing: 12) {
-                Button {
-                    editing = GoalValueModel(dayModel: history, goal: goal)
-                } label: {
-                    Label("Miktar gir", systemImage: "line.3.horizontal")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(GoalAmountButtonStyle())
-                .disabled(!history.canEdit)
-
-                Button {
-                    Task { await increment() }
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(Color.ink.onAccent)
-                        .frame(width: 44, height: 44)
-                        .background(Circle().fill(Color.ink.accent))
-                }
-                .buttonStyle(.plain)
-                .disabled(!history.canEdit)
-                .accessibilityLabel(Text("Artır"))
-            }
-        } else if goal.kind == .boolean || goal.kind == .milestone {
+            status.completionDate != nil && status.completionDate != day.day
+        // A number goal's amount is the panel at the top (``GoalAmountPanel``).
+        if goal.kind == .boolean || goal.kind == .milestone {
             Button {
-                Task { await history.toggle(goal) }
+                Task {
+                    if await day.toggle(goal), pickedDay != nil { await history.load() }
+                }
             } label: {
-                Text(marked ? "İşareti kaldır" : "Bugünü işaretle")
-                    .frame(maxWidth: .infinity)
+                Group {
+                    if marked {
+                        Text("İşareti kaldır")
+                    } else if pickedDay != nil {
+                        Text("Bu günü işaretle")
+                    } else {
+                        Text("Bugünü işaretle")
+                    }
+                }
+                .frame(maxWidth: .infinity)
             }
             .buttonStyle(InkSecondaryButtonStyle())
-            .disabled(!history.canEdit || markReadOnly)
+            .disabled(!day.canEdit || markReadOnly)
         }
     }
 
@@ -531,16 +558,36 @@ struct GoalDetailView: View {
         .accessibilityIdentifier("goal.graceDays")
     }
 
-    private func increment() async {
-        let current: Double =
-            if case .number(let number) = history.value(for: goal) { number } else { 0 }
-        _ = await history.set(goal, value: .number(current + 1))
+    /// "12 Kas Perşembe düzenleniyor · Bugüne dön" over the panel while a past day is picked.
+    private func pickedDayLine(_ day: CalendarDate) -> some View {
+        let date = LocalDay.instant(for: day)
+            .formatted(.dateTime.day().month(.abbreviated).weekday(.wide).locale(locale))
+        return HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text("\(date) düzenleniyor")
+                .font(.ink.meta.weight(.semibold))
+                .foregroundStyle(Color.ink.text)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 8)
+            Button("Bugüne dön") {
+                focusToken = 0
+                pickedDay = nil
+            }
+            .buttonStyle(InkTextButtonStyle())
+            .accessibilityIdentifier("button.goal.backToToday")
+        }
     }
 
+    /// A heatmap cell or a log row: the panel at the top edits that day (no separate sheet).
     private func edit(_ day: CalendarDate) async {
-        let model = GoalDayModel(store: store, day: day)
-        await model.load()
-        if model.canEdit { editing = GoalValueModel(dayModel: model, goal: goal) }
+        if day == history.day {
+            pickedDay = nil
+        } else {
+            let model = GoalDayModel(store: store, day: day)
+            await model.load()
+            guard model.canEdit else { return }
+            pickedDay = model
+        }
+        if goal.kind == .number { focusToken += 1 }
     }
 }
 

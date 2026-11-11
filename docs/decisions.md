@@ -85,7 +85,7 @@ Harita konuları gösterir; satırların tam metni karar günlüğündedir. Bir 
 
 ```mermaid
 timeline
-    title Karar takvimi, 349 karar
+    title Karar takvimi, 350 karar
     2026-10-02 : 58 karar : Ürün kapsamı ve platform : Kasa biçimi ve ayrıştırıcı : Git, sürüm ve CI
     2026-10-03 : 19 karar : Yazma doğrulaması : İndeks ve arama : Varlık sayfası ve hızlı giriş
     2026-10-04 : 31 karar : Birleştirme ve kayıp yok : VaultStore ve dosya izleme : Görev, hedef ve otomasyon : Özet, graph ve harita
@@ -110,10 +110,10 @@ timeline
     2026-11-01 : 1 karar : Mac menü komutları kimlikli eylem, App sahnesi döngüsü
     2026-11-09 : 15 karar : Gün kopyası birleştirmesi varsayılan açık : Tasarım yönü Şafak ve Aşama 17 : Ekran davranışları
     2026-11-10 : 8 karar : CI kapısı simülatörü kayıt betiğiyle aynı : Görüntü referansı boyut tavanı 80 MiB : Hafta ölçeği kart sütunları : Graph dönemleri gün sayısı : Paylaşım kuyruğunda satır kimliği : D2 dalı D4 içinde : Katalog birleşiminde dev esas : Yazım kuralları ve terim sözlüğü repoda
-    2026-11-11 : 3 karar : Tamamlanan hedef halkası vurgu rengi : Kenar çubuğu seçimi yumuşak ton : Liste seçimi kart ve çubuk
+    2026-11-11 : 4 karar : Tamamlanan hedef halkası vurgu rengi : Kenar çubuğu seçimi yumuşak ton : Liste seçimi kart ve çubuk : Hedef miktarı ayrıntıda
 ```
 
-Sayılar karar günlüğündeki satır sayısıdır. Toplam 349 satırdır.
+Sayılar karar günlüğündeki satır sayısıdır. Toplam 350 satırdır.
 
 ## Karar günlüğü
 
@@ -470,6 +470,7 @@ Sayılar karar günlüğündeki satır sayısıdır. Toplam 349 satırdır.
 | 2026-11-11 | Tamamlanan hedef halkası tam vurgu halkasıdır. Önceki değer: ikincil metin renginde tam halka. Geri alma: `GoalRingProgress.completeColor` değerini `secondaryText` yapmak | Kullanıcı kararı: halkalar mürdümdür, yeşil yoktur. Gri halka bu kararın uygulama hatasıydı (fark2 O1) |
 | 2026-11-11 | Mac ve iPad kenar çubuğunun seçili satırı `accentSoft` dolgu, `text` yazı ve vurgu simgesi alır; öteki simgeler `secondaryText` çizgisidir. Önceki değer: vurgu dolgusu, vurgu üstü yazı ve simge. Geri alma: `MacSidebarChrome` belirteçlerini eski değere döndürmek | Şafak `c-mac` çizimi (fark2 D1, D2). Dolu mürdüm hap sayfanın en güçlü öğesi oluyordu |
 | 2026-11-11 | Liste sütununda seçili satır kâğıt üstünde `surface` karttır; kartın 4 pt içinde 3 pt vurgu çubuğu durur. Bölüm kartındaki satır `accentSoft` dolgu alır. Önceki değer: `accentSoft` dolgu ve kenara yapışık 2 pt çizgi. Geri alma: `InkListSelectionChrome.fill` değerini `accentSoft` yapmak | Şafak `c-mac` ve `j-mac2` çizimi (fark2 D4, D10). iPad'deki sistem odak çerçevesi de satırda kapatıldı |
+| 2026-11-11 | Sayı hedefinin miktarı ayrıntı ekranının üstünde yazılır: büyük sayı alanı, hızlı ekleme hapları, "Hedefe tamamla", "Kaydı kaldır". Kart dokunuşu her yerde ayrıntıyı açar. Hedefi `20`'den büyük sayı hedefinde kartta artı yerine kalem durur. Günü kapat miktarı satır içinde girer. Önceki değer: değer satırı ayrı miktar sayfasını (`GoalValueEditor`) açıyordu. Geri alma: sunumları `GoalValueEditor` sheet'ine döndürmek | Kullanıcı kararı (2026-11-11). Ayrı sayfa iki dokunuş ve ayrı ekran istiyordu. 7500 adımda 1 artırmanın anlamı yoktur. Veri yolu ve dosya biçimi aynı kalır |
 
 Satır sırası ekleme sırasıdır; tablonun ilk satırları tarih sırasında değildir. Sonradan değişen bir kararın gerekçe hücresi değişikliği tarihiyle anar. Güncel durum notları kararın verildiği günden sonraki gerçek durumu söyler.
 

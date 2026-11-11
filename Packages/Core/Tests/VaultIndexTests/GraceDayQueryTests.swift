@@ -12,7 +12,7 @@ struct GraceDayQueryTests {
         let index = try VaultIndex()
         try index.rebuild(vaultRoot: root)
         let today = CalendarDate("2026-09-17")!
-        let row = try #require(try index.goalStatus(key: "orbit", today: today))
+        let row = try #require(try index.goalStatuses(today: today).first { $0.definition.key == "orbit" })
         #expect(row.status.streak == 15)
         #expect(row.graceDaysAvailable == 0)
         #expect(row.graceSpentDays == [CalendarDate("2026-09-15")!, CalendarDate("2026-09-16")!])

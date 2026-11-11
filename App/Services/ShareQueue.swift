@@ -109,6 +109,10 @@ struct ShareImportReport: Equatable, Sendable {
         let elements = contents.elements
         guard !elements.isEmpty else { return }
         await store.refresh(directories: ["journal"])
+        // The extension checked each new `^id` against its day file alone.
+        for entry in elements.compactMap(\.entry) {
+            await store.renewClashingIdentifiers(of: entry)
+        }
         let ids = Set(elements.compactMap(\.entry?.id))
         result.added += ids.count
         try? file.remove(ids: ids, raws: Set(elements.filter { $0.entry == nil }.map(\.raw)))

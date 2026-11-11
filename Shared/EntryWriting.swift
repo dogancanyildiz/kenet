@@ -1,11 +1,10 @@
 import Foundation
 import VaultFormat
-import VaultIndex
 import VaultStore
 
 // The share extension's way into the vault (docs/architecture.md, "Paylaşım uzantısı"). The app and
 // the extension both compile this file: the extension adds a shared text, the app reads what the
-// extension left in the App Group. Foundation and Core only; no index is opened here.
+// extension left in the App Group. Foundation and Core only; no index on disk is opened here.
 
 /// Whether the shared text becomes an event line (`- HH:MM …`) or an open task (`- [ ] …`).
 enum ShareEntryKind: String, Codable, CaseIterable, Sendable {
@@ -116,6 +115,11 @@ struct ShareEntry: Codable, Equatable, Sendable {
     /// open-or-any task with that text, or an event with that text at the record's time (both
     /// untimed when the record has none). Lines without an identifier are not the app's and never count.
     func matchingLineIDs(in document: RawDocument, text: String) -> [String] {
+        matchingLines(in: document, text: text).compactMap(\.id)
+    }
+
+    /// The lines in `document` that read as this record written as `text`, with or without an identifier.
+    func matchingLines(in document: RawDocument, text: String) -> [LineBlock] {
         let lines = document.bodyLines
         switch kind {
         case .event:
@@ -123,9 +127,9 @@ struct ShareEntry: Codable, Equatable, Sendable {
             return lines.events.filter { event in
                 event.block.text == text && event.time?.hour == clock?.hour
                     && event.time?.minute == clock?.minute
-            }.compactMap(\.block.id)
+            }.map(\.block)
         case .task:
-            return lines.tasks.filter { $0.block.text == text }.compactMap(\.block.id)
+            return lines.tasks.filter { $0.block.text == text }.map(\.block)
         }
     }
 
@@ -270,8 +274,9 @@ enum ShareTargetFile {
 /// Every change is a coordinated read, change and atomic write of the whole file, so the extension
 /// appending and the app removing never lose each other's record. Elements are kept as raw JSON:
 /// a record this version cannot read stays in the list until the app moves it aside. A file that
-/// is not such a list, or that cannot be read at all, is moved aside (`ShareFiles.damaged`, beside
-/// the list) before the next change, never dropped or written over.
+/// is not such a list is moved aside (`ShareFiles.damaged`, beside the list) before the next
+/// change, never dropped or written over. A file that cannot be read now fails the change and
+/// stays in place.
 struct ShareListFile: Sendable {
     let url: URL
     static let format = 1
@@ -325,7 +330,8 @@ struct ShareListFile: Sendable {
         }
     }
 
-    /// Moves an unreadable file aside so the next change starts a new list; true if it did.
+    /// Moves a file that is not a list aside so the next change starts a new list; true if it did.
+    /// A file that cannot be read now throws and stays.
     @discardableResult func setAsideIfUnreadable() throws -> Bool {
         var moved = false
         try change(movedAside: &moved) { _ in }
@@ -342,12 +348,17 @@ struct ShareListFile: Sendable {
         var setAside = false
         try coordinatedWrite(url) {
             var elements: [Data] = []
-            if FileManager.default.fileExists(atPath: url.path) {
-                if let data = try? Data(contentsOf: url), let read = Self.elements(in: data) {
+            // A read that fails now (no permission, a passing I/O error) throws: the list stays where
+            // it is and a later change reads it. Taking it for an empty list or moving it aside would
+            // lose its records, since nothing reads the set-aside files back.
+            let data: Data?
+            do { data = try Data(contentsOf: url) } catch CocoaError.fileReadNoSuchFile { data = nil }
+            if let data {
+                if let read = Self.elements(in: data) {
                     elements = read
                 } else {
-                    // Not a list, or a file this process cannot read: its bytes move aside whole
-                    // before a new list takes the name. A failed move throws; nothing is replaced.
+                    // Bytes that are not a list move aside whole before a new list takes the name.
+                    // A failed move throws; nothing is replaced.
                     try FileManager.default.moveItem(
                         at: url, to: ShareFiles.damaged(inShareDirectory: url.deletingLastPathComponent()))
                     setAside = true
@@ -425,6 +436,8 @@ struct ShareEntryWriter: Sendable {
     /// The coordination Core's writer holds around the day file (`NSFileCoordinator` in the extension).
     let coordination: any FileCoordination
     var randomValue: @Sendable () -> UInt64 = { UInt64.random(in: .min ... .max) }
+    /// The throwaway index's file reader; tests count its reads.
+    var indexReadFile: @Sendable (URL) throws -> Data = { try Data(contentsOf: $0) }
 
     func add(_ entry: ShareEntry) async throws -> Outcome {
         guard let group else { throw Failure.groupUnavailable }
@@ -450,9 +463,13 @@ struct ShareEntryWriter: Sendable {
             entry.isWritable
         else { return false }
         do {
-            // An empty index in memory: the writer checks identifiers against the day file only.
+            // A throwaway index: the update after the write reads the day file alone, not the whole
+            // vault inside the day's coordinated write. The writer checks identifiers against the
+            // day file only; the app renews one another file holds when it takes the marker
+            // (`ShareQueueProcessor`).
             let store = VaultStore(
-                vaultRoot: root, index: try VaultIndex(), randomValue: randomValue, fileCoordination: coordination)
+                vaultRoot: root, index: try ThrowawayIndex.make(for: root, readFile: indexReadFile),
+                randomValue: randomValue, fileCoordination: coordination)
             switch entry.kind {
             case .event:
                 try await store.addingEvent(on: day, text: entry.text, time: entry.clock)

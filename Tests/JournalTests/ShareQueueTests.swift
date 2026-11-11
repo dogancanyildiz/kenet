@@ -328,6 +328,44 @@ struct ShareQueueTests {
         #expect(processor.report == ShareImportReport(added: 1))
     }
 
+    /// The extension checks a new line's `^id` against the day file alone. A line whose
+    /// identifier another file already holds gets a new one when the app takes the marker, so the
+    /// older block keeps its links; the other file is not touched.
+    @Test func aLineTheExtensionWroteGetsAnIdentifierNoOtherFileHolds() async throws {
+        let context = try CloudVaultContext()
+        defer { context.clean() }
+        let group = context.directory.appendingPathComponent("Group", isDirectory: true)
+        let lock = Lock()
+        let processor = ShareQueueProcessor(
+            store: context.store, group: FolderAppGroupStore(containerURL: group), isLocked: { lock.isLocked },
+            appLockEnabled: { lock.isEnabled })
+        await context.store.createCloudVault()
+        processor.publishTarget()
+        let root = ShareVault.cloudRoot(in: context.container)
+        let older = root.appendingPathComponent("journal/2000-01-05.md")
+        let olderBytes = Data("## Events\n- Eski olay ^abc123\n".utf8)
+        try olderBytes.write(to: older)
+        await context.store.refresh()
+
+        let container = context.container
+        let writer = ShareEntryWriter(
+            group: group, cloudContainer: { container }, coordination: DirectFileCoordination(),
+            randomValue: SequenceRandom.drawing("abc123").source)
+        let entry = ShareEntry(text: "Paylaşılanmakale", at: Date())
+        #expect(try await writer.add(entry) == .written)
+        let day = root.appendingPathComponent("journal/\(entry.day).md")
+        #expect(RawDocument(bytes: try Data(contentsOf: day)).bodyLines.events.last?.block.id == "abc123")
+
+        processor.process()
+        await processor.settle()
+
+        let id = try #require(RawDocument(bytes: try Data(contentsOf: day)).bodyLines.events.last?.block.id)
+        #expect(id != "abc123")
+        #expect(try Data(contentsOf: older) == olderBytes)
+        #expect(try await context.store.search("Paylaşılanmakale").count == 1)
+        #expect(processor.report == ShareImportReport(added: 1))
+    }
+
     @Test func queuedTaskBecomesAnOpenTaskOnItsDayAndIsNotDuplicatedAfterInterruptedRun() async throws {
         let harness = try Harness()
         defer { harness.context.clean() }

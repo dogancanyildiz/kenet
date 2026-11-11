@@ -1546,7 +1546,7 @@ extension IndexStore {
 
     /// An index query on a background task, under `answer`'s checks. With no index open the
     /// answer is `whenClosed`: an empty value, or `staleTarget` where the query has no empty answer.
-    private func indexQuery<Value: Sendable>(
+    func indexQuery<Value: Sendable>(
         seam: QuerySeam, whenClosed: ClosedIndexAnswer<Value>,
         _ body: @escaping @Sendable (VaultIndex) throws -> Value
     ) async throws -> Value {
@@ -1561,7 +1561,7 @@ extension IndexStore {
 }
 
 /// What an index query answers while no index is open.
-private enum ClosedIndexAnswer<Value> {
+enum ClosedIndexAnswer<Value> {
     /// The query's empty answer: no rows, no days, no tasks.
     case empty(Value)
     /// `staleTarget`: the query has no empty answer.

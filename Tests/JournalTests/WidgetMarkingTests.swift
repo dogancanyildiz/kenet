@@ -502,7 +502,7 @@ struct WidgetMarkingTests {
         let day = "journal/\(GraceDayVault.today).md"
 
         let reads = ReadLog()
-        let index = try WidgetGoalMarker.throwawayIndex(for: root) { url in
+        let index = try ThrowawayIndex.make(for: root) { url in
             reads.append(url.lastPathComponent)
             return try Data(contentsOf: url)
         }
@@ -512,6 +512,25 @@ struct WidgetMarkingTests {
         #expect(reads.names == ["\(GraceDayVault.today).md"])
         #expect(result.addedPaths == [day])
         #expect(try index.files().map(\.path).contains(day))
+    }
+
+    /// The day file has the mark but the throwaway index cannot read it back (Core's
+    /// `indexUpdateFailed` comes after the write): the tap counts and the snapshot shows the mark,
+    /// as the share extension counts its line.
+    @Test func aMarkSavedWithoutItsIndexUpdateStillShows() async throws {
+        let harness = try CloudWidgetHarness()
+        defer { harness.clean() }
+        await harness.start()
+        let id = try harness.goalID("esneme")
+        var marker = harness.marker()
+        marker.indexReadFile = { url in
+            if url.lastPathComponent == "\(GraceDayVault.today).md" { throw CocoaError(.fileReadUnknown) }
+            return try Data(contentsOf: url)
+        }
+
+        #expect(await marker.mark(goalID: id) == .marked)
+        #expect(try String(decoding: Data(contentsOf: harness.dayFile), as: UTF8.self) == Self.markedDay)
+        #expect(harness.snapshot?.markedAt == WidgetSnapshotTests.noon)
     }
 
     /// A container whose vault has not arrived yet (its settings file still an iCloud

@@ -32,8 +32,8 @@ struct GoalStatusQueryTests {
             #expect(row.status.yearDone == amount)
         }
         let su = try #require(rows.first { $0.definition.key == "su" })
-        #expect(try vault.index.goalStatus(key: "su", today: today) == su)
-        #expect(try vault.index.goalStatus(key: "yok", today: today) == nil)
+        #expect(try vault.index.goalStatuses(today: today).first { $0.definition.key == "su" } == su)
+        #expect(try vault.index.goalStatuses(today: today).first { $0.definition.key == "yok" } == nil)
     }
 
     @Test func syntheticVaultMatchesReadModelConstruction() throws {
@@ -160,7 +160,7 @@ struct GoalStatusQueryTests {
         #expect(su.status.streak == 400 && su.status.longestStreak == 400 && su.status.yearDone == 284)
         #expect(su.status.progress.done == 1 && su.status.isPendingToday == false)
         #expect(su.status.score == 96 && su.score == 96)
-        #expect(try vault.index.goalStatus(key: "su", today: today) == su)
+        #expect(try vault.index.goalStatuses(today: today).first { $0.definition.key == "su" } == su)
 
         // Logged yesterday and the day before, not today: the chain waits and the two scores differ.
         let ara = try #require(rows.first { $0.definition.key == "ara" })
@@ -180,8 +180,8 @@ struct GoalStatusQueryTests {
         let empty = try #require(rows.first { $0.definition.key == "bos" })
         #expect(empty.status.streak == 0 && empty.status.longestStreak == 0 && empty.status.yearDone == 0)
         #expect(empty.status.isPendingToday && empty.status.score == nil && empty.score == nil)
-        #expect(try vault.index.goalStatus(key: "bozuk", today: today) == nil)
-        #expect(try vault.index.goalStatus(key: "yok", today: today) == nil)
+        #expect(try vault.index.goalStatuses(today: today).first { $0.definition.key == "bozuk" } == nil)
+        #expect(try vault.index.goalStatuses(today: today).first { $0.definition.key == "yok" } == nil)
 
         // A past day's page: the status as of that day, from the logs up to it.
         let past = try vault.index.goalStatuses(today: pastPage)
@@ -221,7 +221,7 @@ struct GoalStatusQueryTests {
         let walk = try #require(live.first { $0.definition.name == "Yürüyüş" })
         #expect(walk.definition.key == "yuruyus" && walk.definition.unit == "adım")
         #expect(walk.status.streak == 0 && walk.status.score == nil && walk.score == nil)
-        #expect(try vault.index.goalStatus(key: "su", today: today) == su)
+        #expect(try vault.index.goalStatuses(today: today).first { $0.definition.key == "su" } == su)
     }
 }
 

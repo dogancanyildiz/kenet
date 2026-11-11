@@ -17,7 +17,7 @@ public enum VaultLayout {
     }
 
     /// The canonical spelling for a case-variant folder name, if any.
-    public static func expectedFolder(forVariant name: String) -> String? {
+    static func expectedFolder(forVariant name: String) -> String? {
         standardFolders.first { name.lowercased() == $0 && name != $0 }
     }
 }

@@ -56,6 +56,15 @@ extension RawDocument {
         }
     }
 
+    /// The bytes after the Journal heading up to the next section, as the editor shows them;
+    /// empty without a section. A writer compares it with what its caller read.
+    public func journalText() throws(EditError) -> String {
+        guard !isReadOnly else { throw .readOnlyDocument }
+        guard let section = daySections.section(.journal) else { return "" }
+        let bytes = lines[(section.headingLine + 1)..<section.lineRange.upperBound].flatMap(\.bytes)
+        return String(decoding: bytes, as: UTF8.self)
+    }
+
     /// Replaces Journal content while preserving its heading and trailing blank lines.
     /// Empty text leaves a missing section unchanged.
     public func replacingJournal(with text: String) throws(EditError) -> RawDocument {
@@ -67,8 +76,10 @@ extension RawDocument {
         let existing = daySections.section(.journal)
         if existing == nil, text.allSatisfy(\.isWhitespace) { return self }
         let base: RawDocument
+        var replaced: ArraySlice<RawLine> = []
         if let existing {
             let end = existing.lineRange.last { !lines[$0].content.allSatisfy(Syntax.isBlank) }! + 1
+            replaced = lines[(existing.headingLine + 1)..<end]
             base = try replacingLines(in: (existing.headingLine + 1)..<end, with: [])
         } else {
             base = self
@@ -80,8 +91,46 @@ extension RawDocument {
         // Keep a leading empty line from coalescing with a preceding CR into CRLF.
         let firstEnding: LineEnding? =
             inserted.lines[section.headingLine].ending == .cr && contents.first == "" ? .cr : nil
-        return try inserted.applying([
+        let written = try inserted.applying([
             LineEdit(range: start..<(start + 1 + contents.count), contents: contents, firstLineEnding: firstEnding)
         ])
+        return written.keepingEndings(of: Array(replaced), forLinesFrom: start, count: contents.count)
+    }
+
+    /// Gives each unchanged line of a rewritten range the ending it had before. Old and new lines
+    /// pair by content in order (the longest common subsequence); new and changed lines keep the
+    /// ending the rewrite gave them. An old CR ending is not kept where it would stand before an
+    /// empty LF line, nor an old LF ending of an empty line after a CR: the two would read as one
+    /// CRLF line and a blank line would be lost.
+    private func keepingEndings(of old: [RawLine], forLinesFrom start: Int, count: Int) -> RawDocument {
+        guard !old.isEmpty, count > 0 else { return self }
+        let new = lines[start..<(start + count)].map(\.content)
+        let difference = new.difference(from: old.map(\.content))
+        var removed = Set<Int>()
+        var inserted = Set<Int>()
+        for change in difference {
+            switch change {
+            case .remove(let offset, _, _): removed.insert(offset)
+            case .insert(let offset, _, _): inserted.insert(offset)
+            }
+        }
+        let keptOld = old.indices.filter { !removed.contains($0) }
+        let keptNew = (0..<count).filter { !inserted.contains($0) }
+        var result = lines
+        for (oldOffset, newOffset) in zip(keptOld, keptNew) {
+            let index = start + newOffset
+            guard let ending = old[oldOffset].ending, let current = result[index].ending, ending != current else {
+                continue
+            }
+            let line = result[index]
+            if ending == .cr, index + 1 < result.count, result[index + 1].content.isEmpty,
+                result[index + 1].ending == .lf
+            {
+                continue
+            }
+            if ending == .lf, line.content.isEmpty, index > 0, result[index - 1].ending == .cr { continue }
+            result[index] = RawLine(content: line.content, ending: ending)
+        }
+        return RawDocument(hasByteOrderMark: hasByteOrderMark, lines: result)
     }
 }

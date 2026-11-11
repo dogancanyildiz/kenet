@@ -2,6 +2,8 @@ import Foundation
 import Testing
 import VaultFormat
 
+@testable import VaultStore
+
 struct JournalTests {
     @Test func journalNewReplacementAndEmptyHaveExactBytes() async throws {
         let vault = try StoreVault()
@@ -58,4 +60,50 @@ struct JournalTests {
         try vault.check()
     }
 
+    /// Another process changes the section after the editor read it and before the write's turn:
+    /// the comparison with `expectedBody` runs inside the coordinated write, so the change stays.
+    @Test func journalChangedBeforeTheWriteIsStaleAndKept() async throws {
+        let external = "## Journal\nKitap\nSu\n"
+        let armed = OneShot()
+        let vault = try StoreVault(readFile: { url in
+            if url.lastPathComponent == "2026-09-27.md", armed.fire() {
+                try Data(external.utf8).write(to: url)
+            }
+            return try Data(contentsOf: url)
+        })
+        defer { vault.remove() }
+        try vault.write(storePath, "## Journal\nKitap\n")
+        try vault.index.rebuild(vaultRoot: vault.root)
+        armed.arm()
+        await #expect(throws: VaultStoreError.staleTarget) {
+            try await vault.store.changingJournal(on: storeDate, to: "Deniz", expectedBody: "Kitap\n")
+        }
+        #expect(try vault.bytes() == Data(external.utf8))
+    }
+
+    @Test func journalMatchingExpectedBodyIsWritten() async throws {
+        let vault = try StoreVault()
+        defer { vault.remove() }
+        try await vault.store.changingJournal(on: storeDate, to: "Kitap", expectedBody: "")
+        #expect(try vault.bytes() == Data("---\ntype: journal\ndate: 2026-09-27\n---\n\n## Journal\nKitap\n".utf8))
+        try await vault.store.changingJournal(on: storeDate, to: "Deniz", expectedBody: "Kitap\n")
+        #expect(try vault.bytes() == Data("---\ntype: journal\ndate: 2026-09-27\n---\n\n## Journal\nDeniz\n".utf8))
+        await #expect(throws: VaultStoreError.staleTarget) {
+            try await vault.store.changingJournal(on: storeDate, to: "Su", expectedBody: "Kitap\n")
+        }
+        try vault.check()
+    }
+}
+
+/// Fires once after `arm()`: the test's stand-in for another process writing at one exact moment.
+final class OneShot: @unchecked Sendable {
+    private let lock = NSLock()
+    private var armed = false
+    func arm() { lock.withLock { armed = true } }
+    func fire() -> Bool {
+        lock.withLock {
+            defer { armed = false }
+            return armed
+        }
+    }
 }

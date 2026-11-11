@@ -60,7 +60,7 @@ public enum ConflictCopyName {
     private static let marker = Array(" (conflict ".utf8)
     private static let suffix = Array(").md".utf8)
 
-    public static func isConflictCopy(path: String) -> Bool {
+    static func isConflictCopy(path: String) -> Bool {
         parse(path) != nil
     }
 

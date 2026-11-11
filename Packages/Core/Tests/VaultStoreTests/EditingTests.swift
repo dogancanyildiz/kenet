@@ -22,8 +22,8 @@ struct EditingTests {
         try vault.check()
         try vault.write(storePath, "## Events\n- Deniz\n")
         let event = try await vault.store.dayDocument(for: storeDate).bodyLines.events[0]
-        let time = try await vault.store.changingTime(of: event, at: storePath, to: LineClock(hour: 9, minute: 5))
-        #expect(time.bodyLines.events[0].block.id == "cccccc")
+        let retexted = try await vault.store.changingText(of: event.block, at: storePath, to: "Selin")
+        #expect(retexted.bodyLines.events[0].block.id == "cccccc")
         try vault.check()
     }
 
@@ -40,6 +40,31 @@ struct EditingTests {
         let retained = try await vault.store.changingText(of: owner, at: "journal/2026-09-14.md", to: "Kitap")
         #expect(retained.bodyLines.events[0].block.id == "duplicate")
         try vault.check()
+    }
+
+    /// A line written with only its own file's identifiers in view (the share extension) whose
+    /// identifier another file holds gets a new one; the other file and every other byte stay.
+    @Test func uniqueIdentifierRenewsOnlyAClash() async throws {
+        let vault = try StoreVault()
+        defer { vault.remove() }
+        try vault.write("journal/2026-09-14.md", "## Events\n- Deniz ^abc123\n")
+        try vault.write(storePath, "## Events\r\n- 09:00 Selin ^abc123\r\n- Su ^own001\r\n")
+        try vault.index.refresh(vaultRoot: vault.root)
+        let older = try vault.bytes("journal/2026-09-14.md")
+        let events = try await vault.store.dayDocument(for: storeDate).bodyLines.events
+
+        let unchanged = try await vault.store.givingUniqueIdentifier(to: events[1].block, at: storePath)
+        #expect(unchanged.bodyLines.events[1].block.id == "own001")
+        let renewed = try await vault.store.givingUniqueIdentifier(to: events[0].block, at: storePath)
+        #expect(renewed.bodyLines.events[0].block.id == "aaaaaa")
+        #expect(try vault.bytes() == Data("## Events\r\n- 09:00 Selin ^aaaaaa\r\n- Su ^own001\r\n".utf8))
+        #expect(try vault.bytes("journal/2026-09-14.md") == older)
+        try vault.check()
+
+        let stale = events[0].block
+        await #expect(throws: VaultStoreError.staleTarget) {
+            try await vault.store.givingUniqueIdentifier(to: stale, at: storePath)
+        }
     }
 
     @Test func sameDocumentDuplicateAndUnindexedIdentifiersAreChecked() async throws {
@@ -84,9 +109,6 @@ struct EditingTests {
         }
         await #expect(throws: VaultStoreError.staleTarget) {
             try await vault.store.changingStatus(of: task, at: storePath, to: .done, completionDate: storeDate)
-        }
-        await #expect(throws: VaultStoreError.staleTarget) {
-            try await vault.store.changingTime(of: event, at: storePath, to: nil)
         }
         await #expect(throws: VaultStoreError.staleTarget) {
             try await vault.store.deletingBlock(event.block, at: storePath)

@@ -2,12 +2,6 @@ import Foundation
 import GRDB
 import VaultFormat
 
-/// Open tasks grouped by their ISO due day, in ascending day order.
-public struct TaskDay: Sendable, Equatable {
-    public let date: CalendarDate
-    public let tasks: [IndexedBlock]
-}
-
 extension VaultIndex {
     /// All tasks due on a day, including closed tasks.
     public func tasks(dueOn date: CalendarDate) throws -> [IndexedBlock] {
@@ -17,23 +11,6 @@ extension VaultIndex {
     /// Open tasks whose due day precedes the supplied local day.
     public func overdueTasks(asOf date: CalendarDate) throws -> [IndexedBlock] {
         try taskQuery("dueDate<? AND status NOT IN ('done','cancelled')", arguments: [date.description])
-    }
-
-    /// Open tasks due on or after the supplied day; start dates do not hide due work.
-    public func upcomingTasks(from date: CalendarDate) throws -> [TaskDay] {
-        let rows = try taskQuery("dueDate>=? AND status NOT IN ('done','cancelled')", arguments: [date.description])
-        let groups = Dictionary(grouping: rows, by: { $0.dueDate! })
-        return groups.keys.sorted().map { TaskDay(date: CalendarDate($0)!, tasks: groups[$0]!) }
-    }
-
-    /// All open tasks without a valid due day, regardless of file kind.
-    public func undatedOpenTasks() throws -> [IndexedBlock] {
-        try taskQuery("dueDate IS NULL AND status NOT IN ('done','cancelled')")
-    }
-
-    /// Undated tasks physically stored in this day file, including closed tasks.
-    public func tasksCreated(on date: CalendarDate) throws -> [IndexedBlock] {
-        try taskQuery("dueDate IS NULL AND file=?", arguments: ["journal/" + date.description + ".md"])
     }
 
     /// Completed tasks, newest completion day first; dates absent in imported tasks sort last.

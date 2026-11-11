@@ -53,7 +53,10 @@ struct EntityInsightsCard: View {
             }
             if let mentions {
                 EntityMonthlyBarChart(data: mentions)
-                Entity90DayStrip(data: mentions, footnote: String(localized: "Günlükteki geçişlere dayanır."))
+                Entity90DayStrip(
+                    data: mentions,
+                    footnote: PresentationLocalization.string(
+                        localized: "Günlükteki geçişlere dayanır.", locale: locale))
             } else {
                 Text("Günlükteki geçişlere dayanır.")
                     .font(.ink.meta)
@@ -118,7 +121,7 @@ struct EntityInsightsCard: View {
             }
         }
         if let first = insight.firstDay {
-            labeled(String(localized: "İlk geçiş")) {
+            labeled(PresentationLocalization.string(localized: "İlk geçiş", locale: locale)) {
                 Text(LocalDay.instant(for: first), format: .dateTime.day().month().year())
                     .font(.ink.meta)
                     .foregroundStyle(.ink.text)

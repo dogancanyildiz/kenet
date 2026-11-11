@@ -211,14 +211,14 @@ struct GoalDetailView: View {
             GoalValueChart(
                 goal: goal, logs: history.logs[goal.key] ?? [], today: history.day,
                 title: GoalValueChart.title(
-                    for: goal, isAccessibilitySize: typeSize.isAccessibilitySize))
+                    for: goal, isAccessibilitySize: typeSize.isAccessibilitySize, locale: locale))
         }
         .padding(.horizontal, InkSpacing.margin)
     }
 
     private func heatmapSection(status: GoalStatus) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionHeader(title: String(localized: "Isı haritası"))
+            SectionHeader(title: PresentationLocalization.string(localized: "Isı haritası", locale: locale))
             InkCard(padded: true) {
                 GoalHeatmap(
                     goal: goal, logs: history.logs[goal.key] ?? [], today: history.day,
@@ -341,16 +341,16 @@ struct GoalDetailView: View {
     ) -> some View {
         if goal.period == .day {
             statCell(
-                title: String(
+                title: PresentationLocalization.string(
                     localized: "Zincir · en uzun \(status.longestStreak)", locale: locale),
-                value: String(localized: "\(status.streak) gün", locale: locale),
+                value: PresentationLocalization.string(localized: "\(status.streak) gün", locale: locale),
                 systemImage: "link"
             )
             statsDivider(axis: axis)
         }
         if let score = status.score {
             statCell(
-                title: String(localized: "Son 30 gün", locale: locale),
+                title: PresentationLocalization.string(localized: "Son 30 gün", locale: locale),
                 value: GoalListPresentation.scorePercentLabel(score, locale: locale)
             )
             if goal.period == .day { statsDivider(axis: axis) }
@@ -376,16 +376,16 @@ struct GoalDetailView: View {
             if let latest {
                 let date = LocalDay.instant(for: latest)
                     .formatted(.dateTime.day().month(.abbreviated).locale(locale))
-                return String(localized: "Affedildi · \(date)", locale: locale)
+                return PresentationLocalization.string(localized: "Affedildi · \(date)", locale: locale)
             }
-            return String(localized: "Affedildi", locale: locale)
+            return PresentationLocalization.string(localized: "Affedildi", locale: locale)
         }()
         return VStack(alignment: .leading, spacing: 2) {
             HStack(alignment: .center, spacing: 6) {
                 HeatmapCell(
                     kind: .forgiven, size: forgivenMark, accessibilityValue: Text("Affedildi"),
                     accessibilityLabel: Text("Affedildi"))
-                statValue(String(localized: "\(count) gün", locale: locale))
+                statValue(PresentationLocalization.string(localized: "\(count) gün", locale: locale))
             }
             statTitle(title)
         }
@@ -430,7 +430,7 @@ struct GoalDetailView: View {
     private var recentLogs: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
-                SectionHeader(title: String(localized: "Son kayıtlar"))
+                SectionHeader(title: PresentationLocalization.string(localized: "Son kayıtlar", locale: locale))
                 if history.canEdit, !(history.logs[goal.key] ?? []).isEmpty {
                     Text("Dokun, düzelt")
                         .font(.ink.meta)
@@ -554,26 +554,53 @@ struct GoalDetailView: View {
         .contentShape(Rectangle())
     }
 
+    /// "✎ Hedefi düzenle" leading and "🗑 Hedefi sil" trailing on one row (drawing `h-hedefler`),
+    /// in subheadline type; a large text size stacks them.
     private var footerActions: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            if store.canAddEvent {
-                Button("Hedefi düzenle") { isEditing = true }
-                    .buttonStyle(InkTextButtonStyle())
-                    .accessibilityIdentifier("button.goal.edit")
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .center, spacing: 16) {
+                footerEditButton
+                Spacer(minLength: 0)
+                footerDeleteButton
             }
-            Button("Hedefi sil", role: .destructive) {
-                deletion.request(path: goal.id)
+            VStack(alignment: .leading, spacing: 4) {
+                footerEditButton
+                footerDeleteButton
             }
-            .buttonStyle(InkDestructiveButtonStyle())
-            .disabled(!store.canAddEvent || deletion.isDeleting || deletion.isDeleted)
-            .accessibilityIdentifier("button.goal.delete")
         }
+    }
+
+    @ViewBuilder private var footerEditButton: some View {
+        if store.canAddEvent {
+            Button {
+                isEditing = true
+            } label: {
+                Label("Hedefi düzenle", systemImage: "pencil")
+                    .font(.subheadline.weight(.medium))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .buttonStyle(InkTextButtonStyle())
+            .accessibilityIdentifier("button.goal.edit")
+        }
+    }
+
+    private var footerDeleteButton: some View {
+        Button(role: .destructive) {
+            deletion.request(path: goal.id)
+        } label: {
+            Label("Hedefi sil", systemImage: "trash")
+                .font(.subheadline.weight(.medium))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .buttonStyle(InkDestructiveButtonStyle())
+        .disabled(!store.canAddEvent || deletion.isDeleting || deletion.isDeleted)
+        .accessibilityIdentifier("button.goal.delete")
     }
 
     private func graceDayLine(_ balance: Int) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Label {
-                Text(verbatim: GraceDayPresentation.balanceText(balance))
+                Text(verbatim: GraceDayPresentation.balanceText(balance, locale: locale))
                     .font(.ink.byline)
                     .foregroundStyle(Color.ink.text)
             } icon: {
@@ -581,7 +608,7 @@ struct GoalDetailView: View {
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
             }
-            Text(verbatim: GraceDayPresentation.explanation())
+            Text(verbatim: GraceDayPresentation.explanation(locale: locale))
                 .font(.ink.meta)
                 .foregroundStyle(Color.ink.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)

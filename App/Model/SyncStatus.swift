@@ -24,8 +24,10 @@ enum SyncStatus: Equatable, Sendable {
     func message(locale: Locale) -> String {
         switch self {
         case .idle: ""
-        case .downloading(let count): String(localized: "\(count) dosya iCloud’dan iniyor.", locale: locale)
-        case .mergingCopies(let count): String(localized: "\(count) gün kopyası birleştiriliyor.", locale: locale)
+        case .downloading(let count):
+            PresentationLocalization.string(localized: "\(count) dosya iCloud’dan iniyor.", locale: locale)
+        case .mergingCopies(let count):
+            PresentationLocalization.string(localized: "\(count) gün kopyası birleştiriliyor.", locale: locale)
         }
     }
 }

@@ -40,7 +40,7 @@ struct EntityAliasesEditor: View {
             }
             HStack(spacing: InkSpacing.margin) {
                 Button("Takma ad ekle") { values.append(Alias(text: "")) }
-                    .buttonStyle(InkTextButtonStyle())
+                    .buttonStyle(EntityEditorLinkStyle())
                 Button("Kaydet") {
                     let aliases = values.map(\.text)
                     Task {
@@ -52,7 +52,7 @@ struct EntityAliasesEditor: View {
                         draft?.report(id: draftID, dirty: isDirty)
                     }
                 }
-                .buttonStyle(InkTextButtonStyle())
+                .buttonStyle(EntityEditorLinkStyle())
             }
             if saveFailed {
                 Text(

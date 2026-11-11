@@ -176,6 +176,7 @@ struct SummaryTaskSection: View {
     let change: String
     var taskFlow: TaskFlowSeries? = nil
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.locale) private var locale
     var body: some View {
         InkCard {
             VStack(alignment: .leading, spacing: 12) {
@@ -204,10 +205,15 @@ struct SummaryTaskSection: View {
                     TaskFlowChart(series: taskFlow)
                 }
                 InkSegmentBar(segments: [
-                    .init(id: 0, title: String(localized: "Tamamlanan"), value: counts.completedTasks, style: .done),
-                    .init(id: 1, title: String(localized: "Devreden"), value: counts.overdueTasks, style: .carried),
                     .init(
-                        id: 2, title: String(localized: "Tarihsiz açık"), value: counts.undatedTasks, style: .outline),
+                        id: 0, title: PresentationLocalization.string(localized: "Tamamlanan", locale: locale),
+                        value: counts.completedTasks, style: .done),
+                    .init(
+                        id: 1, title: PresentationLocalization.string(localized: "Devreden", locale: locale),
+                        value: counts.overdueTasks, style: .carried),
+                    .init(
+                        id: 2, title: PresentationLocalization.string(localized: "Tarihsiz açık", locale: locale),
+                        value: counts.undatedTasks, style: .outline),
                 ])
             }
         }

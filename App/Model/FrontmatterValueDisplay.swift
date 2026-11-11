@@ -25,7 +25,7 @@ enum FrontmatterValueDisplay {
         case .empty:
             return ""
         case .boolean(let value):
-            return String(localized: value ? "Evet" : "Hayır", locale: locale)
+            return PresentationLocalization.string(localized: value ? "Evet" : "Hayır", locale: locale)
         case .date(let day):
             return LocalDay.instant(for: day).formatted(
                 .dateTime.day().month(.abbreviated).year().locale(locale))

@@ -10,7 +10,9 @@ struct SummaryGoalSection: View {
     @Environment(\.locale) private var locale
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            SectionHeader(title: String(localized: "Hedefler"), count: summary.goals.count)
+            SectionHeader(
+                title: PresentationLocalization.string(localized: "Hedefler", locale: locale),
+                count: summary.goals.count)
             ForEach(summary.goals, id: \.definition.id) { goal in
                 VStack(alignment: .leading, spacing: 6) {
                     InkGoalRow(

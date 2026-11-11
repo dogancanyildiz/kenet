@@ -5,11 +5,12 @@ struct TimelineGrid: View {
     let days: [CalendarDate]
     let today: CalendarDate
     let dayWidth: CGFloat
+    var showsWeekends = true
     var body: some View {
         Canvas { context, size in
             for (index, day) in days.enumerated() {
                 let x = CGFloat(index) * dayWidth
-                if day.weekday >= 5 {
+                if showsWeekends && day.weekday >= 5 {
                     context.fill(
                         Path(CGRect(x: x, y: 0, width: dayWidth, height: size.height)),
                         with: .color(Color.ink.well))

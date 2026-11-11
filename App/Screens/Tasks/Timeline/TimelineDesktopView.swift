@@ -4,6 +4,8 @@ import VaultFormat
 struct TimelineDesktopView: View {
     let model: TimelineModel
     let todayRequest: UUID
+    /// The period pill's step (hosted chart): scrolls the chart to its first day.
+    var periodRequest: TimelinePeriodRequest? = nil
     /// The phone's Çeyrek chart (tab shell): the chart sits in a card at the page margins with
     /// a narrow label column and one-line titles; the bars are not dragged (screens.md
     /// "Telefon": no drag), the date changes from the menu.
@@ -23,6 +25,8 @@ struct TimelineDesktopView: View {
                 compact ? 120 : 200, geometry.size.width - outerMargin * 2 - labelColumnWidth)
             let dayWidth = chartWidth / CGFloat(model.scale.daysAcross)
             let groups = model.groups
+            // Not while the first answer is on its way: an empty timeline must not show while it loads.
+            let isEmpty = groups.isEmpty && model.rows != nil
             let height =
                 TimelineDesktopMetrics.axisHeight
                 + groups.reduce(CGFloat(0)) { partial, group in
@@ -31,51 +35,61 @@ struct TimelineDesktopView: View {
                         + CGFloat(rows) * rowHeight
                 }
             ScrollView(.vertical) {
-                HStack(alignment: .top, spacing: 0) {
-                    labels(groups).frame(width: labelColumnWidth)
-                    ScrollViewReader { proxy in
-                        ScrollView(.horizontal) {
-                            TimelineDesktopContent(
-                                model: model,
-                                days: model.days,
-                                dayWidth: dayWidth,
-                                select: select,
-                                edit: edit
-                            )
+                VStack(spacing: 0) {
+                    HStack(alignment: .top, spacing: 0) {
+                        labels(groups).frame(width: labelColumnWidth)
+                        ScrollViewReader { proxy in
+                            ScrollView(.horizontal) {
+                                TimelineDesktopContent(
+                                    model: model,
+                                    days: model.days,
+                                    dayWidth: dayWidth,
+                                    select: select,
+                                    edit: edit
+                                )
+                            }
+                            .onScrollGeometryChange(for: ClosedRange<Int>.self) { value in
+                                let first = min(
+                                    model.days.count - 1, max(0, Int(floor(value.contentOffset.x / dayWidth))))
+                                let last = min(
+                                    model.days.count - 1,
+                                    max(
+                                        first,
+                                        Int(ceil((value.contentOffset.x + value.containerSize.width) / dayWidth)) - 1))
+                                return first...last
+                            } action: { _, indices in
+                                let days = model.days
+                                model.setVisibleRange(days[indices.lowerBound]...days[indices.upperBound])
+                            }
+                            .task {
+                                await Task.yield()
+                                scrollToday(proxy)
+                            }
+                            .onChange(of: todayRequest) { _, _ in scrollToday(proxy) }
+                            .onChange(of: periodRequest) { _, request in
+                                guard let request else { return }
+                                proxy.scrollTo(request.start.description, anchor: .leading)
+                            }
+                            .onChange(of: model.scale) { _, _ in scrollToday(proxy) }
+                        }.frame(height: height)
+                    }
+                    .frame(height: height)
+                    .environment(\.timelineRowHeight, rowHeight)
+                    .environment(\.timelineDragsBars, !compact)
+                    // The phone's empty period sits in the chart's card, under its axis (one card).
+                    if isEmpty {
+                        if compact {
+                            TimelineEmptyPeriod().padding(.vertical, InkSpacing.section)
+                        } else {
+                            EmptyState("Görev yok.")
+                                .padding()
                         }
-                        .onScrollGeometryChange(for: ClosedRange<Int>.self) { value in
-                            let first = min(
-                                model.days.count - 1, max(0, Int(floor(value.contentOffset.x / dayWidth))))
-                            let last = min(
-                                model.days.count - 1,
-                                max(
-                                    first,
-                                    Int(ceil((value.contentOffset.x + value.containerSize.width) / dayWidth)) - 1))
-                            return first...last
-                        } action: { _, indices in
-                            let days = model.days
-                            model.setVisibleRange(days[indices.lowerBound]...days[indices.upperBound])
-                        }
-                        .task {
-                            await Task.yield()
-                            scrollToday(proxy)
-                        }
-                        .onChange(of: todayRequest) { _, _ in scrollToday(proxy) }
-                        .onChange(of: model.scale) { _, _ in scrollToday(proxy) }
-                    }.frame(height: height)
+                    }
                 }
-                .frame(height: height)
-                .environment(\.timelineRowHeight, rowHeight)
-                .environment(\.timelineDragsBars, !compact)
                 .modifier(TimelineChartCard(isOn: compact))
                 .padding(.horizontal, outerMargin)
-                // Not while the first answer is on its way: an empty timeline must not show while it loads.
-                if groups.isEmpty && model.rows != nil {
-                    EmptyState("Görev yok.")
-                        .padding()
-                }
                 if !model.undated.isEmpty {
-                    if compact { compactUndated } else { undated }
+                    undatedCard
                 }
             }
         }
@@ -84,23 +98,11 @@ struct TimelineDesktopView: View {
         .background(compact ? Color.clear : Color.ink.paper)
     }
 
-    private var undated: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            SectionHeader(title: String(localized: "Tarihsiz"), count: model.undated.count)
-            ForEach(model.undated) { row in
-                TimelineTaskRow(model: model, row: row) {
-                    select(row)
-                } edit: {
-                    edit(row, $0)
-                }
-            }
-        }.padding()
-    }
-
-    /// The phone's undated tasks: a section header and the rows in one card, under the chart.
-    private var compactUndated: some View {
+    /// The undated tasks: a section header and the rows in one card, under the chart (the
+    /// phone, iPad and Mac alike).
+    private var undatedCard: some View {
         VStack(alignment: .leading, spacing: InkSpacing.row) {
-            SectionHeader(title: String(localized: "Tarihsiz"), count: model.undated.count)
+            SectionHeader(title: String(localized: "Tarihsiz"), counter: TasksCounter.tasks(model.undated.count))
             InkCard(padded: false) {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(model.undated.enumerated()), id: \.element.id) { index, row in
@@ -116,7 +118,7 @@ struct TimelineDesktopView: View {
                 }
             }
         }
-        .padding(.horizontal, InkSpacing.margin)
+        .padding(.horizontal, compact ? InkSpacing.margin : InkSpacing.cardPadding)
         .padding(.top, InkSpacing.section)
         .padding(.bottom, InkSpacing.section)
     }
@@ -199,6 +201,27 @@ struct TimelineDesktopView: View {
     }
 }
 
+/// ``EmptyState``'s content without its card: the phone chart's card already holds it.
+private struct TimelineEmptyPeriod: View {
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "tray")
+                .font(.title2)
+                .foregroundStyle(Color.ink.secondaryText)
+                .frame(width: 44, height: 44)
+                .background(Color.ink.well, in: Circle())
+                .accessibilityHidden(true)
+            Text("Görev yok.")
+                .font(.ink.placeholder)
+                .foregroundStyle(Color.ink.secondaryText)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+                .accessibilityIdentifier("emptyState")
+        }
+        .padding(.horizontal, InkSpacing.cardPadding)
+    }
+}
+
 /// Card chrome of the phone's chart (``TimelineDesktopView/compact``).
 private struct TimelineChartCard: ViewModifier {
     let isOn: Bool
@@ -214,18 +237,23 @@ private struct TimelineChartCard: ViewModifier {
     }
 }
 
-/// A count in a small capsule: phone chart groups and phone kanban columns.
+/// A count in a small capsule: phone chart groups and phone kanban columns. The column's pill
+/// is outlined and semibold so it reads on the page's glow, not only on a card (Şafak drawing).
 struct TasksCountPill: View {
     let count: Int
+    var isOutlined = false
 
     var body: some View {
         Text(count.formatted())
-            .font(.ink.meta)
+            .font(isOutlined ? .ink.meta.weight(.semibold) : .ink.meta)
             .monospacedDigit()
             .foregroundStyle(.ink.secondaryText)
-            .padding(.horizontal, 6)
+            .padding(.horizontal, isOutlined ? 8 : 6)
             .padding(.vertical, 1)
             .background(Capsule().fill(Color.ink.well))
+            .overlay {
+                if isOutlined { Capsule().strokeBorder(Color.ink.line, lineWidth: InkStroke.rule) }
+            }
     }
 }
 

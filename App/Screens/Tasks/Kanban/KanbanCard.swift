@@ -1,6 +1,7 @@
 import ObjectiveC
 import SwiftUI
 import UniformTypeIdentifiers
+import VaultFormat
 
 struct KanbanCard: View {
     let model: KanbanModel
@@ -88,9 +89,13 @@ struct KanbanCard: View {
                             KanbanProjectChip(project: project)
                         }
                         if let date = row.due {
-                            TaskDueDateLabel(
-                                date: date, presentation: presentation, asOf: model.tasks.day,
-                                includeCalendarIcon: true)
+                            if presentation.showsOverdueCue {
+                                KanbanCarriedLabel(date: date, today: model.tasks.day)
+                            } else {
+                                TaskDueDateLabel(
+                                    date: date, presentation: presentation, asOf: model.tasks.day,
+                                    includeCalendarIcon: true)
+                            }
                         }
                         if row.priority == .low {
                             TaskPriorityMark(priority: .low)
@@ -145,6 +150,27 @@ struct KanbanCard: View {
             provider, &KanbanDragSessionEndBox.associatedKey, endBox,
             .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         return provider
+    }
+}
+
+/// A carried-over card's short label (Şafak drawing): "↪ 14 Eyl'den" in amber semibold. The
+/// arrow and the ablative say "carried over" without the color; VoiceOver reads "Devreden".
+struct KanbanCarriedLabel: View {
+    let date: CalendarDate
+    let today: CalendarDate
+    @Environment(\.locale) private var locale
+    @Environment(\.calendar) private var calendar
+
+    var body: some View {
+        HStack(spacing: 3) {
+            Image(systemName: "arrow.uturn.right")
+                .accessibilityHidden(true)
+            Text(verbatim: TodayPresentation.carriedOverDate(date, today: today, locale: locale, calendar: calendar))
+        }
+        .font(.ink.meta.weight(.semibold))
+        .foregroundStyle(.ink.warning)
+        .lineLimit(1)
+        .overdueAccessibilityValue(true)
     }
 }
 

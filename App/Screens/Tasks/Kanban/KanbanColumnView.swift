@@ -94,7 +94,7 @@ struct KanbanColumnView: View {
                     .font(.ink.section)
                     .foregroundStyle(.ink.text)
                     .lineLimit(1)
-                TasksCountPill(count: column.rows.count)
+                TasksCountPill(count: column.rows.count, isOutlined: true)
                 Spacer(minLength: 0)
             }
             .accessibilityElement(children: .combine)

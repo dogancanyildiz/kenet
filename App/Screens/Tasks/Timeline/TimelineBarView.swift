@@ -82,16 +82,28 @@ struct TimelineBarView: View {
         return presentation.showsOverdueCue ? Color.ink.warning : ProjectColor.color(for: row.project)
     }
 
+    /// Şafak drawing (Mac Gantt): an open bar is filled in its project color; a carried-over one
+    /// is an amber outline over a soft amber fill; a completed one is a soft gray fill (its end
+    /// dot says done, not the color alone).
     @ViewBuilder private func barChrome(isPoint: Bool) -> some View {
-        if isPoint {
-            Circle().fill(barColor)
-        } else {
-            if row.isClosed {
-                // Completed: outline bar + filled end cap (not color alone).
-                Capsule()
-                    .strokeBorder(Color.ink.secondaryText, lineWidth: InkStroke.control)
+        switch TimelineBarChrome.make(isValid: dates.isValid, presentation: presentation) {
+        case .filled:
+            if isPoint { Circle().fill(barColor) } else { Capsule().fill(barColor) }
+        case .carried:
+            if isPoint {
+                Circle().fill(Color.ink.warning.opacity(TimelineBarChrome.softOpacity))
+                    .overlay { Circle().strokeBorder(Color.ink.warning, lineWidth: InkStroke.control) }
             } else {
-                Capsule().fill(barColor)
+                Capsule().fill(Color.ink.warning.opacity(TimelineBarChrome.softOpacity))
+                    .overlay { Capsule().strokeBorder(Color.ink.warning, lineWidth: InkStroke.control) }
+            }
+        case .done:
+            if isPoint {
+                Circle().fill(Color.ink.well)
+                    .overlay { Circle().strokeBorder(Color.ink.line, lineWidth: InkStroke.rule) }
+            } else {
+                Capsule().fill(Color.ink.well)
+                    .overlay { Capsule().strokeBorder(Color.ink.line, lineWidth: InkStroke.rule) }
             }
         }
     }
@@ -133,6 +145,20 @@ struct TimelineBarView: View {
     private func proposed(_ drag: TimelineDrag, edge: TimelineDates.Edge?, points: CGFloat) -> TimelineDates? {
         TimelineModel.proposedDates(
             from: TimelineDates(drag.row), edge: edge, points: Double(points), dayWidth: Double(dayWidth))
+    }
+}
+
+/// How a bar is drawn (unit-tested).
+enum TimelineBarChrome: Equatable {
+    case filled, carried, done
+
+    /// Soft amber under a carried-over bar's outline.
+    static let softOpacity = 0.14
+
+    static func make(isValid: Bool, presentation: TaskStatusPresentation) -> Self {
+        if presentation.usesSecondaryText { return .done }
+        if isValid && presentation.showsOverdueCue { return .carried }
+        return .filled
     }
 }
 

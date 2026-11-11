@@ -147,7 +147,10 @@ import VaultFormat
         let early = SummariesModel(store: context.store, today: { CalendarDate("2026-10-11")! }, period: .month)
         await early.load()
         #expect(early.summary?.isEmpty == true && early.summary?.isRunning == true)
-        #expect(early.summary?.counts.overdueTasks == 11 && early.summary?.counts.undatedTasks == 1)
+        // The two project tasks have no source day; on today they are open, as the task list's 3 undated tasks.
+        #expect(early.summary?.counts.overdueTasks == 11 && early.summary?.counts.undatedTasks == 3)
+        // The month before holds the same two tasks: the change leaves them out.
+        #expect(early.summary?.previous.undatedTasks == 2 && early.summary?.change.undatedTasks == 1)
         #expect(early.summary?.previous.events == 0)
         // On 31 October nothing is still to come: the whole of September is compared.
         let last = SummariesModel(store: context.store, today: { CalendarDate("2026-10-31")! }, period: .month)

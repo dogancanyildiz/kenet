@@ -510,5 +510,54 @@
       ],
       "isEmpty": true
     }
+  },
+  {
+    "id": "october-running-source-less",
+    "vault": "sample",
+    "period": "month",
+    "containing": "2026-10-11",
+    "today": "2026-10-11",
+    "expected": {
+      "start": "2026-10-01",
+      "end": "2026-10-31",
+      "previousStart": "2026-09-01",
+      "previousEnd": "2026-09-30",
+      "counts": {
+        "completedTasks": 0,
+        "createdTasks": 0,
+        "events": 0,
+        "firstPeople": 0,
+        "firstPlaces": 0,
+        "overdueTasks": 11,
+        "peopleMentions": 0,
+        "placeMentions": 0,
+        "undatedTasks": 3,
+        "writtenDays": 0
+      },
+      "previous": {
+        "completedTasks": 0,
+        "createdTasks": 0,
+        "events": 0,
+        "firstPeople": 0,
+        "firstPlaces": 0,
+        "overdueTasks": 0,
+        "peopleMentions": 0,
+        "placeMentions": 0,
+        "undatedTasks": 2,
+        "writtenDays": 0
+      },
+      "change": {
+        "completedTasks": 0,
+        "createdTasks": 0,
+        "events": 0,
+        "firstPeople": 0,
+        "firstPlaces": 0,
+        "overdueTasks": 11,
+        "peopleMentions": 0,
+        "placeMentions": 0,
+        "undatedTasks": 1,
+        "writtenDays": 0
+      }
+    }
   }
 ]

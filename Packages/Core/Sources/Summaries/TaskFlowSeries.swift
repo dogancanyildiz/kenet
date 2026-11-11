@@ -32,7 +32,7 @@ public struct TaskFlowSeries: Sendable, Equatable {
         let range = period.bounds(containing: day)
         let end = today.map { range.contains($0) ? $0 : range.upperBound } ?? range.upperBound
         func open(on day: CalendarDate) -> Int {
-            tasks.filter { $0.isOpen(on: day) }.count
+            tasks.filter { $0.isOpen(on: day, today: today) }.count
         }
         func units(containing day: CalendarDate, through end: CalendarDate) -> [Unit] {
             period.units(containing: day).enumerated().compactMap { index, range in
@@ -53,8 +53,10 @@ public struct TaskFlowSeries: Sendable, Equatable {
 
 extension SummaryInput.Task {
     /// Source day and completion date reconstruct inventory; cancellation history is unavailable.
-    func isOpen(on day: CalendarDate) -> Bool {
-        guard let created, created <= day, status != .cancelled else { return false }
+    /// A task outside day files has no source day: it is open from `today` on, as the task list shows it,
+    /// and stays out of every earlier day so the past inventory does not change. Without `today` it is left out.
+    func isOpen(on day: CalendarDate, today: CalendarDate?) -> Bool {
+        guard let since = created ?? today, since <= day, status != .cancelled else { return false }
         return status != .done || done.map { $0 > day } == true
     }
 }

@@ -70,8 +70,15 @@ public struct PeriodSummary: Sendable {
                 return prior.lowerBound...max(prior.lowerBound, same)
             }
         }
-        let counts = count(data, in: measured)
-        let previous = previousMeasured.map { count(data, in: $0) } ?? SummaryCounts()
+        let counts = count(data, in: measured, today: today)
+        var previous = previousMeasured.map { count(data, in: $0, today: nil) } ?? SummaryCounts()
+        if previousMeasured != nil {
+            // A task outside day files has no history: the period before holds the ones open now, so the
+            // change leaves them out instead of reading them as new every running period.
+            let carried = openTasks(data.tasks.filter { $0.created == nil }, at: measured.upperBound, today: today)
+            previous.overdueTasks += carried.overdue
+            previous.undatedTasks += carried.undated
+        }
         let mentions = mentionCounts(data, in: measured)
         let oldMentions = previousMeasured.map { mentionCounts(data, in: $0) } ?? [:]
         return Self(
@@ -168,7 +175,9 @@ public struct PeriodSummary: Sendable {
             return SummaryUnit(range: unit, events: total, writtenDays: writtenDays, measuredDays: measuredDays)
         }
     }
-    private static func count(_ data: SummaryInput, in range: ClosedRange<CalendarDate>) -> SummaryCounts {
+    private static func count(
+        _ data: SummaryInput, in range: ClosedRange<CalendarDate>, today: CalendarDate?
+    ) -> SummaryCounts {
         var result = SummaryCounts()
         let days = data.days.filter { range.contains($0.date) }
         result.events = days.reduce(0) { $0 + max(0, $1.events) }
@@ -185,11 +194,22 @@ public struct PeriodSummary: Sendable {
         for task in data.tasks {
             if task.created.map(range.contains) == true { result.createdTasks += 1 }
             if task.status == .done && task.done.map(range.contains) == true { result.completedTasks += 1 }
-            guard task.isOpen(on: range.upperBound) else { continue }
+        }
+        let open = openTasks(data.tasks, at: range.upperBound, today: today)
+        result.overdueTasks = open.overdue
+        result.undatedTasks = open.undated
+        return result
+    }
+    /// Open inventory at `day`: overdue when due before it, undated without a due date.
+    private static func openTasks(
+        _ tasks: [SummaryInput.Task], at day: CalendarDate, today: CalendarDate?
+    ) -> (overdue: Int, undated: Int) {
+        var result = (overdue: 0, undated: 0)
+        for task in tasks where task.isOpen(on: day, today: today) {
             if let due = task.due {
-                if due < range.upperBound { result.overdueTasks += 1 }
+                if due < day { result.overdue += 1 }
             } else {
-                result.undatedTasks += 1
+                result.undated += 1
             }
         }
         return result

@@ -1600,6 +1600,34 @@
         }
       }
     },
+    "%lld etkinlik" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld event"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld events"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld etkinlik"
+          }
+        }
+      }
+    },
     "%lld geçiş" : {
       "extractionState" : "manual",
       "localizations" : {

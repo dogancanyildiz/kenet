@@ -25,7 +25,8 @@ struct GoalDefinitionForm: View {
             InkPageTitleRow("Düzenle", byline: model.goal.name)
             Section {
                 textField(.name, text: $draft.name, font: .ink.content)
-                readOnlyRow(String(localized: "Anahtar"), value: model.goal.key)
+                readOnlyRow(
+                    PresentationLocalization.string(localized: "Anahtar", locale: locale), value: model.goal.key)
             }
             Section {
                 scheduleRows
@@ -36,7 +37,8 @@ struct GoalDefinitionForm: View {
                         if model.showsUnit(draft) {
                             textFieldColumn(
                                 .unit, text: $draft.unit, font: .ink.content,
-                                prompt: String(localized: "Birim (isteğe bağlı)"))
+                                prompt: PresentationLocalization.string(
+                                    localized: "Birim (isteğe bağlı)", locale: locale))
                         }
                     }
                     .inkListRow()

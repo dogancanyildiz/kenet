@@ -471,6 +471,15 @@ enum PresentationLocalization {
         return Locale(identifier: chosen)
     }
 
+    /// A catalog string in the given locale's language. `String(localized:locale:)` alone takes
+    /// the language from the process (`Bundle.main`'s preferred localization) and the locale only
+    /// for formatting: a Mac snapshot rendered in Turkish on an English test runner read English.
+    /// Pass the view's `@Environment(\.locale)`.
+    static func string(localized key: String.LocalizationValue, locale: Locale) -> String {
+        let resolved = resolvedLocale(locale)
+        return String(localized: key, bundle: bundle(resolved), locale: resolved)
+    }
+
     static func bundle(_ locale: Locale) -> Bundle {
         let resolved = resolvedLocale(locale)
         let language = resolved.language.languageCode?.identifier ?? resolved.identifier

@@ -84,7 +84,8 @@ struct GoalCreationView: View {
                                     value: $0)
                             },
                             identifier: "goal.create.period",
-                            accessibilityLabelPrefix: String(localized: "Dönem")
+                            accessibilityLabelPrefix: PresentationLocalization.string(
+                                localized: "Dönem", locale: locale)
                         )
                     }
                     .inkListRow()
@@ -99,7 +100,7 @@ struct GoalCreationView: View {
                                 value: $0)
                         },
                         identifier: "goal.create.kind",
-                        accessibilityLabelPrefix: String(localized: "Tür")
+                        accessibilityLabelPrefix: PresentationLocalization.string(localized: "Tür", locale: locale)
                     )
                 }
                 .inkListRow()

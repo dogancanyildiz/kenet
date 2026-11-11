@@ -12,13 +12,15 @@ enum GraceDayPresentation {
     }
 
     /// "2 zincir günü" / "2 streak saves". `bundle` selects the language.
-    static func balanceText(_ count: Int, bundle: Bundle = .main, locale: Locale = .current) -> String {
-        String(localized: "\(count) zincir günü", bundle: bundle, locale: locale)
+    static func balanceText(_ count: Int, bundle: Bundle? = nil, locale: Locale = .current) -> String {
+        String(
+            localized: "\(count) zincir günü", bundle: bundle ?? PresentationLocalization.bundle(locale), locale: locale
+        )
     }
 
     /// The one-sentence rule under the goal page's balance line.
-    static func explanation(bundle: Bundle = .main, locale: Locale = .current) -> String {
-        String(localized: rule, bundle: bundle, locale: locale)
+    static func explanation(bundle: Bundle? = nil, locale: Locale = .current) -> String {
+        String(localized: rule, bundle: bundle ?? PresentationLocalization.bundle(locale), locale: locale)
     }
 
     private static let rule: String.LocalizationValue =

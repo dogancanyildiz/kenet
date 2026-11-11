@@ -98,7 +98,7 @@ private struct GoalListContent: View {
         let done = ringGoals.filter {
             model.shownStatus(for: $0, answer: answer.statuses[$0.id]).progress.isComplete
         }.count
-        return String(localized: "Bugün \(done)/\(ringGoals.count) tamam", locale: locale)
+        return PresentationLocalization.string(localized: "Bugün \(done)/\(ringGoals.count) tamam", locale: locale)
     }
 
     private var masthead: InkPageTitleRow<some View> {
@@ -369,7 +369,7 @@ private struct GoalSummaryRingLabel: View {
             let amount =
                 status.progress.done.formatted(.number.locale(locale)) + "/"
                 + goal.target.formatted(.number.locale(locale))
-            return String(localized: "bu hafta \(amount)", locale: locale)
+            return PresentationLocalization.string(localized: "bu hafta \(amount)", locale: locale)
         }
         let base = GoalRowPresentation.valueText(goal: goal, status: status) ?? ""
         return complete ? "✓ \(base)" : base
@@ -475,7 +475,7 @@ private struct GoalListCard<Detail: View>: View {
                 TagChip(title: GoalListPresentation.periodChip(goal.period, locale: locale))
             }
             if goal.kind == .milestone {
-                Text(verbatim: GoalRowPresentation.meta(goal: goal, status: status) ?? "")
+                Text(verbatim: GoalRowPresentation.meta(goal: goal, status: status, locale: locale) ?? "")
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
             } else {
@@ -505,7 +505,7 @@ private struct GoalListCard<Detail: View>: View {
             ? status.score.map { GoalScoreCopy.sentence($0, locale: locale) }
             : GoalListPresentation.remainingText(goal: goal, status: status, locale: locale)
                 ?? (goal.period == .week
-                    ? String(localized: "Bu hafta", locale: locale) : nil)
+                    ? PresentationLocalization.string(localized: "Bu hafta", locale: locale) : nil)
         if let tail { line += AttributedString(" · " + tail) }
         return line
     }

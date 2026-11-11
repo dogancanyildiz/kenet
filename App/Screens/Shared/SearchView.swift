@@ -98,7 +98,7 @@ struct SearchView: View {
             List {
                 if model.isEmpty {
                     Section {
-                        SectionHeader(title: String(localized: "Son aramalar"))
+                        SectionHeader(title: PresentationLocalization.string(localized: "Son aramalar", locale: locale))
                             .inkListRow()
                         ForEach(model.recentQueries, id: \.self) { query in
                             Button {
@@ -124,12 +124,18 @@ struct SearchView: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 groupHeader(group.title, count: items.count)
                                 InkCard(padded: false) {
+                                    // Each row after the first carries its rule on its own top
+                                    // edge, so every pair of rows is parted alike (drawing); the
+                                    // selected row's tint stays inside the card's corners.
                                     VStack(spacing: 0) {
-                                        ForEach(items.indices, id: \.self) { index in
-                                            if index > 0 { InkCardDivider() }
-                                            resultRow(items[index])
+                                        ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                                            resultRow(item)
+                                                .overlay(alignment: .top) {
+                                                    if index > 0 { InkCardDivider() }
+                                                }
                                         }
                                     }
+                                    .clipShape(RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous))
                                 }
                             }
                             .inkListRow()
@@ -285,7 +291,9 @@ struct SearchView: View {
                 parts.append(item.detail)
             }
             if let last = store.entityUsage.first(where: { $0.file == file })?.lastDate {
-                parts.append(String(localized: "son görülme \(dayText(last, weekday: false))"))
+                parts.append(
+                    PresentationLocalization.string(
+                        localized: "son görülme \(dayText(last, weekday: false))", locale: locale))
             }
             return parts.joined(separator: " · ")
         case .day(let day):
@@ -297,8 +305,8 @@ struct SearchView: View {
 
     private func kindLabel(_ group: SearchGroup, file: String) -> String {
         switch group {
-        case .people: return String(localized: "Kişi")
-        case .places: return String(localized: "Konum")
+        case .people: return PresentationLocalization.string(localized: "Kişi", locale: locale)
+        case .places: return PresentationLocalization.string(localized: "Konum", locale: locale)
         default:
             let kind = store.content.entities.first { $0.id == file }?.kind ?? ""
             return EntityTypeChoices.choices(store.entityTypes).first { $0.id == kind }?.name ?? kind

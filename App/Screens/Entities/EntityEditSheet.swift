@@ -92,7 +92,7 @@ struct EntityEditSheet: View {
                 labeledRow("Ad", entity.name)
                 if let qualifier = entity.qualifier { labeledRow("Ayırt edici", qualifier) }
                 Button("Adı değiştir") { renamePresented = true }
-                    .buttonStyle(InkTextButtonStyle()).disabled(!model.canEdit)
+                    .buttonStyle(EntityEditorLinkStyle()).disabled(!model.canEdit)
             }
         }
         .inkListRow()
@@ -162,7 +162,7 @@ struct EntityEditSheet: View {
                             }
                         }
                     }
-                    .buttonStyle(InkTextButtonStyle())
+                    .buttonStyle(EntityEditorLinkStyle())
                 }
                 .disabled(!model.canEdit)
             }
@@ -317,15 +317,16 @@ private struct PersonCadenceEditor: View {
         SectionHeader("Görüşme ritmi")
             .inkListRow()
         VStack(alignment: .leading, spacing: InkSpacing.section) {
+            // The section header already says "Görüşme ritmi": the row names what it picks.
             InkLabeledMenu(
-                "Görüşme ritmi", selection: $draft.choice, options: options,
+                "Sıklık", selection: $draft.choice, options: options,
                 identifier: "entity.cadence.menu")
             if draft.choice == .custom {
                 InkFilterField("Gün sayısı", text: $draft.customText, showsClearButton: false)
                     .onSubmit { save() }
             }
             Button("Kaydet") { save() }
-                .buttonStyle(InkTextButtonStyle())
+                .buttonStyle(EntityEditorLinkStyle())
             if invalid {
                 Text("Alan için geçerli bir değer gir.")
                     .font(.ink.meta)
@@ -360,5 +361,24 @@ private struct PersonCadenceEditor: View {
             }
             draft.rebase(onto: model.personCadence.days)
         }
+    }
+}
+
+/// The edit sheet's in-section actions ("Kaydet", "Takma ad ekle", "Adı değiştir"): the text
+/// button's colours at subheadline size, so three sections' save links do not read as titles.
+/// The 44 pt target stays.
+struct EntityEditorLinkStyle: ButtonStyle {
+    /// "Alanı kaldır": the destructive button's colours at the same size.
+    var isDestructive = false
+    @Environment(\.isEnabled) private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        let chrome: InkButtonChrome = isDestructive ? .destructive : .text
+        let role = chrome.role(isPressed: configuration.isPressed, isEnabled: isEnabled)
+        return configuration.label
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(InkButtonChrome.color(for: role.foreground))
+            .frame(minWidth: TapTarget.minimumLength, minHeight: TapTarget.minimumLength, alignment: .leading)
+            .contentShape(Rectangle())
     }
 }

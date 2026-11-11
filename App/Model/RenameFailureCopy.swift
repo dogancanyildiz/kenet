@@ -14,7 +14,7 @@ enum RenameFailureCopy {
                 "Ön bilgi listesi güncellenemedi (\(key))."
             }
         if let locale {
-            return String(localized: value, locale: locale)
+            return PresentationLocalization.string(localized: value, locale: locale)
         }
         return String(localized: value)
     }

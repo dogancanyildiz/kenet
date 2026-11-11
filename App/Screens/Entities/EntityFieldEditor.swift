@@ -44,9 +44,9 @@ struct EntityFieldEditor: View {
             } else {
                 HStack(spacing: InkSpacing.margin) {
                     Button("Değeri boş bırak") { Task { await model.set(field.key, to: .text("")) } }
-                        .buttonStyle(InkTextButtonStyle())
+                        .buttonStyle(EntityEditorLinkStyle())
                     Button("Alanı kaldır", role: .destructive) { deleteConfirmation.request(.pending) }
-                        .buttonStyle(InkDestructiveButtonStyle())
+                        .buttonStyle(EntityEditorLinkStyle(isDestructive: true))
                 }
             }
         }

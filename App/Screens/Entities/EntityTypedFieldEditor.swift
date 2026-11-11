@@ -66,9 +66,9 @@ struct EntityTypedFieldEditor: View {
             .foregroundStyle(.ink.text)
             HStack(spacing: InkSpacing.margin) {
                 Button("Kaydet") { save() }
-                    .buttonStyle(InkTextButtonStyle())
+                    .buttonStyle(EntityEditorLinkStyle())
                 Button("Alanı kaldır", role: .destructive) { deleteConfirmation.request(.pending) }
-                    .buttonStyle(InkDestructiveButtonStyle())
+                    .buttonStyle(EntityEditorLinkStyle(isDestructive: true))
             }
             if invalid {
                 Text("Alan için geçerli bir değer gir.").font(.ink.meta).foregroundStyle(.ink.danger)

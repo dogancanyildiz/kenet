@@ -24,7 +24,7 @@ struct EntityTypePicker: View {
                         InkTabItem(verbatim: $0.plural, value: $0.id, identifier: "tab.entities." + $0.id)
                     },
                     identifier: "tabs.entities.kind",
-                    accessibilityLabelPrefix: String(localized: "Tür")
+                    accessibilityLabelPrefix: PresentationLocalization.string(localized: "Tür", locale: locale)
                 )
             } else {
                 InkLabeledMenu(

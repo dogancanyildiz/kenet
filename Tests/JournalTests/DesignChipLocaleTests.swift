@@ -5,6 +5,7 @@ import Testing
 @testable import Journal
 
 /// Third drawing-drift pass on shared components and the Mac sidebar (fark3 Y1, Y8).
+@MainActor
 struct DesignChipLocaleTests {
     /// Y1: a chip is a `well` capsule with a 1 pt `rule` border (Şafak `.chip`), filled or not.
     @Test func plainChipIsWellWithRuleBorder() {

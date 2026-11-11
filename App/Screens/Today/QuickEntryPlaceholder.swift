@@ -204,9 +204,11 @@ struct QuickEntryBar: View {
             // iPad hardware keyboard: in the background, so it adds no row to the stack's spacing.
             .background { modeShortcutButton }
         #endif
-        // Opaque paper shelf under the capsule (safeAreaInset content draws over the list).
+        // The shelf under the capsule (safeAreaInset content draws over the list): on iOS the
+        // drawing's scrim, so the page fades under the rows above the capsule instead of ending on
+        // a hard edge. It reaches down through the keyboard's region, opaque there.
         .background {
-            Color.ink.paper
+            QuickEntryShelf()
                 .ignoresSafeArea(edges: [.horizontal, .bottom])
         }
         .compositingGroup()
@@ -387,5 +389,32 @@ struct QuickEntryBar: View {
             selection = nil
             isFocused = true
         }
+    }
+}
+
+/// The quick-entry bar's backdrop. iOS: the drawing's scrim, a fade from clear to paper over the
+/// bar's top 44 pt (the row of recognized names or the task's date), then paper down to the screen
+/// edge, under the software keyboard too. Reduce Transparency and the Mac keep opaque paper.
+private struct QuickEntryShelf: View {
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @ScaledMetric(relativeTo: .body) private var fadeHeight: CGFloat = 44
+
+    var body: some View {
+        #if os(iOS)
+            if reduceTransparency {
+                Color.ink.paper
+            } else {
+                VStack(spacing: 0) {
+                    LinearGradient(
+                        colors: [Color.ink.paper.opacity(0), Color.ink.paper],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                    .frame(height: fadeHeight)
+                    Color.ink.paper
+                }
+            }
+        #else
+            Color.ink.paper
+        #endif
     }
 }

@@ -223,9 +223,9 @@ Varsayılan yazı boyutunda hızlı giriş iki satırlı bir karttır: üstte ki
 | Hafta şeridi | Cihaz takviminin hafta başından 7 gün: Pzt–Paz ya da Paz–Cmt. Şerit yarı saydam karttır. Bugün çerçeveli hücrededir; rakamı ve noktası vurgu rengindedir. Olaylı ya da yazılı her günün altında nokta durur. Bir güne dokunma o günün Gün ekranını açar. |
 | Künye cümlesi | Saate göre selamlama ve günün sayıları: "Günaydın. Bugün 2 olay, 6 görev ve 3 hedef var." Selamlama 05:00–11:59 "Günaydın", 12:00–17:59 "İyi günler", öteki saatlerde "İyi akşamlar"dır. Sayılar olay, kalan görev ve kalan hedeftir (günlük ve haftalık, sayaçla aynı küme); sayı ve sözcüğü öne çıkar. Sıfır olan parçayı yazmaz. Hiçbir sayı yoksa yalnız selamlama durur. |
 | Künye çipleri | 3 çip: zincir ("12 gün zincir"), dünün olay sayısı ("Dün 4 olay"), son görüşülen kişi. Her çip yalnız verisi varken görünür. Kişi çipi kişinin ekranını açar. |
-| Kaydırma | Kaydırınca gün başlığı tek satıra iner: gün rakamı, gün adı ve simgeler üstte kalır. |
+| Kaydırma | Kaydırınca gün başlığı tek satıra iner: sayısız küçük halka, "20 Eylül Pazar" ve arama. Satırın altında ince çizgi durur. |
 | Gezinme çubuğu | Bugün sekmesi gezinme çubuğunu gizler. |
-| Arama ve Ayarlar | Gün başlığının sağında, önce arama sonra Ayarlar. Ayarlar düğmesi yalnız telefondadır: `button.settings`. |
+| Arama ve Ayarlar | iPhone'da gün başlığının sağında önce arama, sonra Ayarlar durur. iPad'de sıra Günün grafiği, Ayarlar, aramadır; simgeler çerçevesizdir. Kimlik `button.settings`. |
 | Günün grafiği | Gün başlığında Graph simgesi: arama ve Ayarlar'ın solunda. Satırda en çok 3 simge durur. Simge yalnız gün dosyası en az bir kişi, konum ya da özel tip varlığına çözülen bağlantı içerirken görünür. Mac'te sabit manşet şeridindedir. Dokunma o günün grafiğini açar: [Günün grafiği](#günün-grafiği). Kimlik `button.dayGraph`. |
 | Büyük yazı boyutları | Erişilebilirlik yazı boyutlarında düğmeler ayrı satırdadır. Gün halkası gün rakamının üstüne çıkar. Hafta şeridi 2 satıra iner: 4 + 3 gün. |
 | VoiceOver | Künye cümlesi tek öğedir. Hafta şeridi her günü "20 Eylül Pazar, bugün, 3 olay" biçiminde okur. `navigationTitle` VoiceOver ve geçmiş için tarih metnidir. |
@@ -530,6 +530,7 @@ flowchart TD
 | Parıltı | Yoktur: Gün ekranı alt sayfadır. |
 | Boş gün | "Bu gün henüz bir şey yazılmadı." |
 | Taşıma | Gün ekranında görev taşıma menüsü ve VoiceOver taşıma eylemleri yoktur. |
+| İtilen sayfa | Gün ekranından açılan sayfanın geri öğesi günün kısa tarihidir: "‹ 17 Eyl". Başka yılın gününde yıl da yazar. |
 
 Kullanıcı geçmiş bir güne olay ekler ve o günün hedef kayıtlarını düzeltir. Bağlam ve "Günü kapat" yalnız Bugün'dedir.
 
@@ -1077,7 +1078,7 @@ Telefonda serbest not okuma ve basit düzenleme vardır. Kullanıcı nota aramad
 | Hızlı giriş kartı | Kenar çubuğunun altında sabit kart: "Hızlı giriş" ve genel kısayolun adı, örneğin ⌥Space. Karta tıklama hızlı giriş penceresini açar. Kısayol her uygulamadan aynı pencereyi açar. |
 | Pencere adı | Araç çubuğunda başlık yoktur. Pencerenin adı seçili kenar çubuğu girdisidir. |
 | Liste sütunu | En az 280, ideal 320, en çok 400 pt. Her liste sütunu manşetle başlar: Günlük, Görevler, proje adı, Kişiler / Konumlar, Hedefler. |
-| Günlük sütunu | Manşetin altında yan yana Özetler ve Haftalık inceleme çipleri. Altında ay takvimi kartı ve gün listesi. Mac'te manşet ve iki çip sabittir; takvim ve gün listesi altında birlikte kayar. |
+| Günlük sütunu | Manşetin altında Özetler ve Haftalık inceleme bağlantıları durur. Altında ay takvimi ve gün listesi gelir. Takvimde ay adı ortadadır, vurgu renkli oklar iki yandadır, gün adları tek harftir. iPad'de takvim kartsızdır, Mac'te karttadır. Gün satırı kalın "20 Eylül Pazar", sağda "2 olay · 6 görev" ve altında günün ilk satırını gösterir. Mac'te manşet ve bağlantılar sabittir; takvim ve gün listesi birlikte kayar. |
 | Kişiler / Konumlar sütunu | Manşet satırında sıralama simgesi. Altında tür seçici ve süzgeç alanı. |
 | Ekran genişliği | Uygulama ekranları en çok 680 pt genişlikte ortalar. |
 | Pencere boyutu | Ana pencerenin en küçük boyutu belirteçlerle sabittir: 1000 × 560 pt. |

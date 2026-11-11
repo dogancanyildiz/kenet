@@ -39,7 +39,7 @@ struct DaysView: View {
             }
             Section {
                 DaysCalendarView(
-                    store: store, selected: selectedDay ?? previewSelectedDay
+                    store: store, selected: selectedDay ?? previewSelectedDay, style: .card
                 ) { selectedDay = $0 }
                 .inkListRow()
             }
@@ -209,6 +209,8 @@ struct DayRow: View {
     /// the whole row opens the day).
     var entityLookup: [String: EntitySummary]? = nil
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.locale) private var locale
+    @Environment(\.clockNow) private var clockNow
     @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
     @Environment(\.colorSchemeContrast) private var contrast
 
@@ -229,6 +231,65 @@ struct DayRow: View {
 
     @ViewBuilder
     private var rowContent: some View {
+        if showsMonth && !showsChevron {
+            columnRowContent
+        } else {
+            listRowContent
+        }
+    }
+
+    /// The Günlük column of the iPad and the Mac (drawings c-mac, j-mac2): the full date in bold
+    /// with the counts on the trailing side, the day's opening line under it.
+    private var columnRowContent: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            let layout =
+                dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2))
+                : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
+            layout {
+                Text(verbatim: Self.columnTitle(day.date, today: today, locale: locale))
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(isToday ? .ink.accent : .ink.text)
+                    .fixedSize(horizontal: false, vertical: true)
+                if !dynamicTypeSize.isAccessibilitySize {
+                    Spacer(minLength: 0)
+                }
+                // Today is named in words too, not by the accent alone.
+                HStack(spacing: 4) {
+                    if isToday {
+                        Text("Bugün").foregroundStyle(.ink.accent)
+                        Text(verbatim: "·")
+                    }
+                    Text("\(day.eventCount) olay · \(day.taskCount) görev")
+                }
+                .font(.ink.meta)
+                .monospacedDigit()
+                .foregroundStyle(.ink.secondaryText)
+                .lineLimit(1)
+                .fixedSize()
+            }
+            if let preview = day.displayPreview {
+                previewText(preview)
+                    .foregroundStyle(.ink.secondaryText)
+                    .lineLimit(1)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 4)
+    }
+
+    private var today: CalendarDate { LocalDay.today(at: clockNow()) }
+
+    /// "20 Eylül Pazar"; another year's day adds its year (unit-tested).
+    nonisolated static func columnTitle(_ date: CalendarDate, today: CalendarDate, locale: Locale) -> String {
+        let resolved = PresentationLocalization.resolvedLocale(locale)
+        var style = Date.FormatStyle(locale: resolved).day().month(.wide).weekday(.wide)
+        if date.year != today.year { style = style.year() }
+        return LocalDay.instant(for: date).formatted(style)
+    }
+
+    @ViewBuilder
+    private var listRowContent: some View {
         let layout =
             dynamicTypeSize.isAccessibilitySize
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))

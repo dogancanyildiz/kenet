@@ -138,19 +138,22 @@ struct GoalAmountPanel: View {
             if let error = editor.errorText {
                 InfoBand(kind: .error, verbatim: error)
             }
-            // A small link, not a button row: removing is rare and asks first.
-            Button(role: .destructive) {
-                removal.request(.pending)
-            } label: {
-                Text("Kaydı kaldır")
-                    .font(.ink.meta)
-                    .foregroundStyle(canRemove ? Color.ink.danger : Color.ink.tertiaryText)
-                    .frame(minHeight: TapTarget.minimumLength)
-                    .contentShape(Rectangle())
+            // A small link, not a button row: removing is rare and asks first. Only a day with a
+            // record shows it (fark4 G1); a write or a load in flight keeps it, switched off.
+            if editor.hasRecord {
+                Button(role: .destructive) {
+                    removal.request(.pending)
+                } label: {
+                    Text("Kaydı kaldır")
+                        .font(.ink.meta)
+                        .foregroundStyle(canRemove ? Color.ink.danger : Color.ink.tertiaryText)
+                        .frame(minHeight: TapTarget.minimumLength)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(!canRemove)
+                .accessibilityIdentifier("button.goal.amount.remove")
             }
-            .buttonStyle(.plain)
-            .disabled(!canRemove)
-            .accessibilityIdentifier("button.goal.amount.remove")
         }
         .onChange(of: locale, initial: true) { _, locale in editor.locale = locale }
         .onChange(of: editor.dayValue) { _, _ in editor.refresh() }

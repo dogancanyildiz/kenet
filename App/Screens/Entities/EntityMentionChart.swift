@@ -172,10 +172,9 @@ struct Entity90DayStrip: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             stripRows
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(Text(verbatim: data.recentIntervalText))
+                .accessibilityHidden(true)
 
-            Text(verbatim: [data.recentIntervalText, footnote].compactMap { $0 }.joined(separator: ". "))
+            Text(verbatim: line)
                 .font(.ink.meta)
                 .foregroundStyle(Color.ink.secondaryText)
                 // Two sentences on one line: at larger text sizes they wrap, never cut (audit).
@@ -183,6 +182,15 @@ struct Entity90DayStrip: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityHidden(true)
         }
+        // Strip and note read as one element: the strip alone is 18 pt tall, under the audit's
+        // 44 pt hit region once the card is no longer a list of rows.
+        .frame(minHeight: InkButtonChrome.minimumHeight, alignment: .topLeading)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: line))
+    }
+
+    private var line: String {
+        [data.recentIntervalText, footnote].compactMap { $0 }.joined(separator: ". ")
     }
 
     static func computeCellSize(availableWidth: CGFloat, columns: Int, spacing: CGFloat = 1) -> CGFloat {

@@ -74,7 +74,7 @@ struct EntityUsagePublishTests {
         #expect(model.entityUsage() != nil)
         model.markNeedsFullReconcile()
         #expect(model.entityUsage() == nil)
-        #expect(model.usageRecount(since: nil).isNeedsIndex)
+        #expect(model.usageRecount(since: nil).readsIndex)
     }
 
     /// Writes keep the store's usage equal to the index's: a line without a link keeps the rows,
@@ -212,6 +212,34 @@ struct EntityUsagePublishTests {
         #expect(store.lastUpdated != nil)
     }
 
+    /// A waiter woken while its condition held only for a moment checks again once it runs and
+    /// waits on; it returns only when the condition holds then.
+    @Test func aWokenWaiterChecksItsConditionAgain() async throws {
+        let context = try TaskTestContext(sample: true)
+        defer { context.clean() }
+        await context.start()
+        let store = context.store
+        @MainActor final class Flag { var value = false }
+        let flag = Flag()
+        var returned = false
+        let waiter = await startedTask {
+            let held = await store.testingWaitUntil { flag.value }
+            returned = true
+            return held
+        }
+        // Wakes the waiter while the condition holds, then breaks it before the waiter runs.
+        flag.value = true
+        store.testingOccupyWriteSlot()
+        flag.value = false
+        for _ in 0..<20 { await Task.yield() }
+        #expect(!returned)
+
+        flag.value = true
+        store.testingReleaseWriteSlot()
+        #expect(await waiter.value)
+        #expect(returned)
+    }
+
     @Test func backgroundReadFailuresShowUntilTheNextSuccess() async throws {
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
@@ -227,8 +255,4 @@ struct EntityUsagePublishTests {
         store.noteBackgroundRead(.widget, failure: nil)
         #expect(store.backgroundReadFailures.isEmpty)
     }
-}
-
-extension UsageRecount {
-    fileprivate var isNeedsIndex: Bool { if case .needsIndex = self { true } else { false } }
 }

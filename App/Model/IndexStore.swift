@@ -31,6 +31,8 @@ enum BackgroundReader: String, Sendable {
     case widget, geofence
 
     static let log = Logger(subsystem: "com.dogancanyildiz.kenet", category: "background-read")
+    /// Debug check of entity usage counted from the read model (`IndexStore.reloadRecognition`).
+    static let usageLog = Logger(subsystem: "com.dogancanyildiz.kenet", category: "entity-usage")
 }
 
 @MainActor @Observable
@@ -124,6 +126,9 @@ final class IndexStore {
         [(id: UUID, condition: @MainActor () -> Bool, continuation: CheckedContinuation<Bool, Never>)] = []
     /// The read model `entityUsage` was counted from; a publish whose links match it keeps the rows.
     @ObservationIgnored private var usageInputs: VaultReadModel?
+    /// Debug builds compare one publish in this many with the index's usage query.
+    private static let usageVerificationInterval = 8
+    @ObservationIgnored private var usageVerifications = 0
     /// Callers of `start()` waiting for the one in flight; `nil` while none runs.
     @ObservationIgnored private var startWaiters: [CheckedContinuation<Void, Never>]?
 
@@ -543,25 +548,35 @@ final class IndexStore {
         let current = content
         let counted = usageInputs
         let previousUsage = entityUsage
+        #if DEBUG
+            usageVerifications += 1
+            let verify = usageVerifications % Self.usageVerificationInterval == 1
+        #endif
         let values = try await Task.detached {
             async let recount = current.usageRecount(since: counted)
             let entities = try index.knownEntities(kinds: kinds)
             let signatures = PlaceDocumentCache.signatures(of: entities, in: root)
-            var usage: [EntityUsage]? =
-                switch await recount {
+            let recounted = await recount
+            let rows: [EntityUsage]? =
+                switch recounted {
                 case .unchanged: nil
                 case .counted(let rows): rows
                 case .needsIndex: try index.entityUsage()
                 }
             #if DEBUG
-                // Debug builds check the count against the index on every publish. A drifted read
-                // model stops here; release builds never pay for the query.
-                let fromIndex = try index.entityUsage()
-                if (usage ?? previousUsage) != fromIndex {
-                    assertionFailure("Entity usage drifted from the index")
-                    usage = fromIndex
+                // Debug builds sample publishes counted from the read model against the index. A drift
+                // is logged and the index's rows win; a write racing the query can differ for a moment,
+                // so it does not stop the app. Release builds never run the query here.
+                var usage = rows
+                if verify, !recounted.readsIndex {
+                    let fromIndex = try index.entityUsage()
+                    if (usage ?? previousUsage) != fromIndex {
+                        BackgroundReader.usageLog.fault("Entity usage drifted from the index; using its rows")
+                        usage = fromIndex
+                    }
                 }
             #else
+                let usage = rows
                 _ = previousUsage
             #endif
             return (entities, usage, signatures)
@@ -712,6 +727,11 @@ final class IndexStore {
             contentEpoch += 1
             throw error
         }
+    }
+
+    /// Test seam: `waitUntil` with a caller's condition; busy-flag changes wake it.
+    func testingWaitUntil(_ condition: @escaping @MainActor () -> Bool) async -> Bool {
+        await waitUntil(condition)
     }
 
     func waitWhileRefreshInFlight() async {

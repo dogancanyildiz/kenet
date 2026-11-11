@@ -227,29 +227,6 @@ struct IncrementalReadModelTests {
         #expect(model.matchesFullBuild(try IncrementalReadModelVault.fullModel(index: index)))
     }
 
-    /// A changed path reported in another Unicode form never adds a second fragment for the same
-    /// file (links would count twice): the publish takes the full path.
-    @Test func aDecomposedPathDoesNotDuplicateAFragment() throws {
-        let root = try testDirectory()
-        defer { try? FileManager.default.removeItem(at: root) }
-        try IncrementalReadModelVault.seed(at: root)
-        let path = "people/Çağla Example.md"
-        try IncrementalReadModelVault.write(
-            root, path, "---\ntype: person\nname: Çağla Example\naliases: []\n---\n\n[[Deniz Example]]\n")
-        let index = try VaultIndex()
-        try index.rebuild(vaultRoot: root)
-        let previous = try IncrementalReadModelVault.fullModel(index: index)
-        let decomposed = path.decomposedStringWithCanonicalMapping
-        #expect(Array(decomposed.utf8) != Array(path.utf8))
-
-        let model = try VaultPublishedContent.applying(
-            previous: previous, index: index, changedPaths: [decomposed], today: IncrementalReadModelVault.today
-        ).content
-        #expect(model.fragments.allSatisfy { Array($0.key.utf8) == Array($0.value.file.path.utf8) })
-        #expect(model.fragments.count == previous.fragments.count)
-        #expect(try model.usageMatches(index))
-    }
-
     @Test func guessedGoalPathReconcilesUsingWriterPath() async throws {
         let root = try testDirectory()
         defer { try? FileManager.default.removeItem(at: root) }

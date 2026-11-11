@@ -8,6 +8,8 @@ enum UsageRecount: Sendable {
     case counted([EntityUsage])
     /// The model may not match the index: read usage from the index.
     case needsIndex
+
+    var readsIndex: Bool { if case .needsIndex = self { true } else { false } }
 }
 
 extension VaultReadModel {

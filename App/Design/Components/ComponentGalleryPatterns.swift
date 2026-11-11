@@ -138,7 +138,7 @@
                     InkPageTitleRow("Yeni hedef")
                     SectionHeader(title: "Tanım")
                         .inkListRow()
-                    InkFilterField("Ad", text: $name)
+                    InkFilterField("Ad", text: $name, showsClearButton: false)
                         .inkListRow()
                     // No tint of its own: the sheet chrome supplies the accent.
                     Toggle(isOn: $reminds) {

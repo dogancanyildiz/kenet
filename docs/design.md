@@ -73,7 +73,7 @@ Seçim sürecinin, oylamanın ve jürinin ayrıntılı gerekçesi git geçmişin
 | 4 | Her renk belirtecinin 4 varyantı vardır: açık, koyu ve ikisinin Kontrastı Artır karşılığı. Gövde ve ikincil metin en az 4,5:1 kontrast taşır; hedef 7:1'dir. İri metin ve denetim sınırları en az 3:1 kontrast taşır. |
 | 5 | Durumu hiçbir zaman yalnız renk, gölge ya da opaklık anlatmaz. Bağlantı renkten başka bir ipucu daha taşır. Devreden görev işaret ve tarih taşır. Tamamlanan görev dolu onay işareti taşır ve metni okunur kalır. Zaman kartının sol çubuğu rengin yanında metin taşır: "14 Eyl'den", "Bitti". |
 | 6 | Geciken tarih kırmızı değildir; uyarı rengini ve işareti taşır. Kırmızı yalnız gerçek hatayı ve yıkıcı eylemi gösterir. |
-| 7 | Vurgu kalanı gösterir: yapılmış hedef ve tamamlanan görev geri plana geçer. Biten işin ayrı yeşili yoktur; biten iş ikincil metin rengini alır. Gün halkasının vurgu yayı ve ortasındaki sayı günün tamamlanan payıdır (yüzde). |
+| 7 | Vurgu kalanı gösterir: yapılmış hedef ve tamamlanan görev geri plana geçer. Biten işin ayrı yeşili yoktur; biten iş ikincil metin rengini alır. Hedef halkası istisnadır: tamamlanan halka tam vurgu halkasıdır. Gün halkasının vurgu yayı ve ortasındaki sayı günün tamamlanan payıdır (yüzde). |
 | 8 | Uygulama yalnız sistem yazı tiplerini kullanır: SF Pro; New York yalnız `content` rolü serife dönerse. Metin semantik stilleri kullanır ve Dynamic Type ile büyür. Sabit punto yoktur. |
 | 9 | iOS'ta hiçbir metin 12 pt'nin altında değildir. Etiketler cümle düzenindedir: hafta şeridinde "Pzt". Büyük harfli, geniş aralıklı etiket yoktur. |
 | 10 | Dokunma hedefleri en az 44 pt'dir. iOS'ta kısa sözcüklü metin düğmesi ("Geri", "İleri") 44 pt genişliğe uzar; sözcük başta kalır. Tek satırlık satır ve anahtar satırı 44 pt yüksekliktedir. Hafta şeridinin her günü 44 × 56 pt'dir. |
@@ -202,9 +202,9 @@ flowchart LR
 
 | Biçim | Görünüm |
 |---|---|
-| Sekme | Sola yaslı sözcükler. Seçili sözcük metin rengindedir ve altı vurgu rengiyle çizilidir. Ötekiler ikincil renktedir. Hızlı girişteki Olay \| Görev ile aynı bileşendir. Örnekler: Graph dönemi (Bu ay \| 3 ay \| Yıl), zaman çizelgesi ölçeği (Gün \| Hafta \| Çeyrek), hedef türü (İşaret \| Sayı \| Kilometre taşı). |
+| Sekme | Sola yaslı sözcükler, `subheadline` boyutunda. Seçili sözcük metin rengindedir ve altı vurgu rengiyle çizilidir. Ötekiler ikincil renktedir. Hızlı girişteki Olay \| Görev ile aynı bileşendir. Örnekler: Graph dönemi (Bu ay \| 3 ay \| Yıl), zaman çizelgesi ölçeği (Gün \| Hafta \| Çeyrek), hedef türü (İşaret \| Sayı \| Kilometre taşı). |
 | Sekme istisnası | Görev önceliği 4 seçeneklidir ama sekmedir: Düşük · Normal · ! Orta · !! Yüksek. Sözcükler kısadır ve tek satıra sığar. |
-| Menü | Sola yaslı. Solda ikincil renkte etiket durur: "Bölüm", "Grupla", "Tür". Sağda vurgu renginde seçili değer ve ok durur. Dokunuş sistem menüsünü açar. |
+| Menü | Sola yaslı, `subheadline` boyutunda. Solda ikincil renkte etiket durur: "Bölüm", "Grupla", "Tür". Sağda vurgu renginde, yarı kalın seçili değer ve ok durur. Dokunuş sistem menüsünü açar. |
 | Yasak | Sistem segmentini, onay kutucuğu dizisini, etiketsiz ya da ortalı menüyü ve gezinme çubuğundaki seçiciyi kullanma. |
 
 ### 5. Sırala ve filtrele
@@ -403,7 +403,8 @@ Parıltı bilgi taşımaz. Kod karşılığı `.inkGlow()` değiştiricisidir; K
 | Gün adı, ay | `dayName` | SF Pro Semibold, ikincil | `title2` | 22 | 17 |
 | Künye cümlesi | `byline` | SF Pro Medium; sayılar Semibold ve metin rengi | `title3` | 20 | 15 |
 | Manşet künyesi | `pageByline` | SF Pro Regular, ikincil metin; alt sayfada `meta`, tek satır | `subheadline` | 15 | 13 |
-| Bölüm başlığı | `section` | SF Pro Semibold | `headline` | 17 | 13 |
+| Bölüm başlığı: kartın üstü | `sectionTitle` | SF Pro Bold | `title3` | 20 | 15 |
+| Küçük başlık: sütun, sheet alanı | `section` | SF Pro Semibold | `headline` | 17 | 13 |
 | İçerik | `content` | SF Pro Regular | `body` | 17; günlük paragrafında satır yüksekliği 26 | 13 |
 | Küçük içerik: gün önizlemesi, kısa alıntı | `contentSmall` | `content` ile aynı aile | `footnote` | 13 | 10 |
 | Yer tutucu | `placeholder` | `content` ailesi, italik değil | `body` | 17 | 13 |
@@ -435,7 +436,7 @@ flowchart LR
 | `r-md` | 16 pt | İç kart |
 | `r-lg` | 20 pt | Bölüm kartı (iPhone, iPad), iPhone'da iki satırlı hızlı giriş kartı |
 | `r-xl` | 24 pt | Sheet içi büyük kart, ilk açılış kartı |
-| `r-pill` | Kapsül | Çip, birincil düğme, Mac'te tek satırlı hızlı giriş, "+" düğmesi |
+| `r-pill` | Kapsül | Çip, birincil düğme, iPad ve Mac'te tek satırlı hızlı giriş, "+" düğmesi |
 
 ### Boşluk: `InkSpacing`
 
@@ -611,7 +612,7 @@ mindmap
 | `PageHeadline.swift` | Yeniden çizilir | Gün rakamı ve gün adı |
 | `QuickEntryCapsule.swift`, `QuickEntryMode.swift` | Yeniden çizilir | `surface` zemin, `line` sınır, gönderde hale |
 | `RhythmStrip.swift` | Korunur | |
-| `SectionHeader.swift` | Yeniden çizilir | Süs çizgisi kalkar; başlık `headline`, sayaç sağda `caption1` |
+| `SectionHeader.swift` | Yeniden çizilir | Süs çizgisi kalkar; başlık `sectionTitle`, sayaç sağda `meta` |
 | `SyncStatusIndicator.swift` | Korunur | |
 | `TagChip.swift` | Yeniden çizilir | Kapsül, `well` |
 | `TaskBox.swift` | Korunur | Köşeli kutu, öncelik içinde; köşe 6 pt |

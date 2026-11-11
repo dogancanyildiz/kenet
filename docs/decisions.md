@@ -85,7 +85,7 @@ Harita konuları gösterir; satırların tam metni karar günlüğündedir. Bir 
 
 ```mermaid
 timeline
-    title Karar takvimi, 346 karar
+    title Karar takvimi, 347 karar
     2026-10-02 : 58 karar : Ürün kapsamı ve platform : Kasa biçimi ve ayrıştırıcı : Git, sürüm ve CI
     2026-10-03 : 19 karar : Yazma doğrulaması : İndeks ve arama : Varlık sayfası ve hızlı giriş
     2026-10-04 : 31 karar : Birleştirme ve kayıp yok : VaultStore ve dosya izleme : Görev, hedef ve otomasyon : Özet, graph ve harita
@@ -110,9 +110,10 @@ timeline
     2026-11-01 : 1 karar : Mac menü komutları kimlikli eylem, App sahnesi döngüsü
     2026-11-09 : 15 karar : Gün kopyası birleştirmesi varsayılan açık : Tasarım yönü Şafak ve Aşama 17 : Ekran davranışları
     2026-11-10 : 8 karar : CI kapısı simülatörü kayıt betiğiyle aynı : Görüntü referansı boyut tavanı 80 MiB : Hafta ölçeği kart sütunları : Graph dönemleri gün sayısı : Paylaşım kuyruğunda satır kimliği : D2 dalı D4 içinde : Katalog birleşiminde dev esas : Yazım kuralları ve terim sözlüğü repoda
+    2026-11-11 : 1 karar : Tamamlanan hedef halkası vurgu rengi
 ```
 
-Sayılar karar günlüğündeki satır sayısıdır. Toplam 346 satırdır.
+Sayılar karar günlüğündeki satır sayısıdır. Toplam 347 satırdır.
 
 ## Karar günlüğü
 
@@ -466,6 +467,7 @@ Sayılar karar günlüğündeki satır sayısıdır. Toplam 346 satırdır.
 | 2026-11-10 | D2 (Bugün) dalı ayrı birleşmedi; D4 (Günlük ve gün ekranı) dalının içinde tek PR olarak geldi. Bugün akışı D2'den, geçmiş gün akışı D4'ten alındı. Künyedeki selamlama sahne etkinleşince enjekte saati okur; donmuş saat (önizleme, referans) `Date()` ile ezilmez. Geri alma: tek PR olduğu için yalnız birlikte geri alınır | İki dal `DayView.swift` dosyasını baştan yazıyordu; ayrı birleşme iki kez çatışma çözümü isterdi. Donmuş saat görüntü referanslarını kararlı tutar (PR #376) |
 | 2026-11-10 | String Catalog birleştirme çatışmasında `dev`'deki anahtar esastır: iki tarafın anahtarları birleşir, aynı anahtarda `dev`'in değeri kalır; çıktı Xcode biçimindedir ve anahtarlar sıralıdır. Önceki yol: elle çözüm. Geri alma: çatışmayı elle çözmek | `dev`'e girmiş metin incelemeden geçmiştir. Elle çözüm binlerce satırlık JSON'da anahtar kaybettiriyordu; `check-docs.sh` biçimi ve tr/en tamlığını denetler |
 | 2026-11-10 | Yazım kuralları ve terim sözlüğü repoya yazıldı: doküman türü tablosu ve cümle kuralları `AGENTS.md` "Belge kuralları" bölümünde, terim sözlüğü `docs/design.md` sonunda. `check-docs.sh` 20 sözcüğü aşan cümle sayısını tavanla ve sır kalıplarını denetler. Başka depoyla ortak dosya yoktur. Önceki durum: kurallar yalnız brief'lerde. Geri alma: iki tabloyu, sözlüğü ve iki denetimi silmek | Kullanıcı kararı (2026-11-10). Repo herkese açıktır ve tek başına okunmalıdır; başka depoya gönderme kırılır. Tavan, uzun cümle sayısının artmasını CI'da durdurur |
+| 2026-11-11 | Tamamlanan hedef halkası tam vurgu halkasıdır. Önceki değer: ikincil metin renginde tam halka. Geri alma: `GoalRingProgress.completeColor` değerini `secondaryText` yapmak | Kullanıcı kararı: halkalar mürdümdür, yeşil yoktur. Gri halka bu kararın uygulama hatasıydı (fark2 O1) |
 
 Satır sırası ekleme sırasıdır; tablonun ilk satırları tarih sırasında değildir. Sonradan değişen bir kararın gerekçe hücresi değişikliği tarihiyle anar. Güncel durum notları kararın verildiği günden sonraki gerçek durumu söyler.
 

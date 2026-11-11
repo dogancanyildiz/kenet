@@ -201,7 +201,7 @@ Uygulama açılışta Bugün ekranını gösterir. Bölüm 2–9 kartlarda durur
 | 7 | Günlük yazısı | 1 | Serbest yazının ilk 4 satırı ve "Devamını yaz". | Her zaman. |
 | 8 | Bu güne bağlananlar | 10 | Başka dosyalardan bu güne bağlanan satırlar. | Satır varken. |
 | 9 | Günü kapat | 10 | Tek satırlık kart. | Yalnız Bugün'de, kalan bir şey varken. |
-| — | Hızlı giriş kapsülü | 1 | En altta sabit, opak kapsül. İçeriğin üstüne binmez. Yüzen "+" düğmesi yoktur. | Her zaman. |
+| — | Hızlı giriş kapsülü | 1 | En altta sabit, opak kapsül. İçeriğin üstüne binmez. Yüzen "+" düğmesi yoktur. iPhone'da iki satırdır. iPad ve Mac'te tek satırdır: Olay \| Görev, ince çizgi, saat, yazı, gönder. | Her zaman. |
 | — | Boş gün metni | 1 | Bugün'de "Gününden bir an yaz; @ ile kişi ekle". | Gün tümüyle boşken. |
 
 **Bölüm başlıklarındaki sayaçlar.**

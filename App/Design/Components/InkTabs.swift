@@ -20,6 +20,9 @@ enum InkTabsChrome {
         isSelected ? .accent : nil
     }
 
+    /// Word size of the page-size tab row: subheadline (15 pt iOS).
+    static var pageFont: Font { .subheadline }
+
     /// Gap between words on the page-size tab row.
     static let pageSpacing: CGFloat = 20
 
@@ -182,12 +185,14 @@ private struct InkTabWordModifier: ViewModifier {
         let color = InkButtonChrome.color(for: InkTabsChrome.token(isSelected: isSelected))
         switch size {
         case .page:
+            // Drawing (component sheet, Mac columns): tab words are subheadline (15), not a
+            // byline; a tab row must not be the page's second-largest text (fark2 P5, P25).
             content
-                .font(Font.ink.byline)
+                .font(InkTabsChrome.pageFont)
                 .fontWeight(isSelected ? .semibold : .regular)
                 .foregroundStyle(color)
         case .compact:
-            // Footnote stays compact inside the capsule; `.ink.section` is now headline (page sections).
+            // Footnote stays compact inside the capsule.
             content
                 .font(
                     isSelected

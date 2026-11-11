@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Goal / day ring. Progress is an arc; a completed ring is a full ring that recedes to the
-/// secondary text color (rule 7). Any diameter: pass ``diameter`` for the large summary ring.
+/// Goal / day ring. Progress is an arc; a completed ring is a full accent ring (user decision
+/// 2026-11-09: rings are mürdüm, no done green and no receding gray). Any diameter: pass ``diameter`` for the large summary ring.
 struct GoalRing: View {
     /// 0…1 progress. Boolean goals use 0 or 1; numeric goals use the fraction.
     var progress: Double
@@ -34,9 +34,9 @@ struct GoalRing: View {
             Circle()
                 .strokeBorder(trackColor, lineWidth: strokeWidth)
             if isComplete {
-                // A full ring in the receding color, not a filled disc (drawing; no done green).
+                // A full accent ring, not a filled disc (drawing; rings are mürdüm, no done green).
                 Circle()
-                    .strokeBorder(Color.ink.secondaryText, lineWidth: strokeWidth)
+                    .strokeBorder(GoalRingProgress.completeColor, lineWidth: strokeWidth)
             } else if isBoolean {
                 EmptyView()
             } else if clamped > 0 {
@@ -79,6 +79,9 @@ struct GoalRing: View {
 }
 
 enum GoalRingProgress {
+    /// Color of a completed ring: the accent, like the progress arc (fark2 O1).
+    static var completeColor: Color { Color.ink.accent }
+
     static func clamped(_ progress: Double) -> Double {
         min(1, max(0, progress))
     }

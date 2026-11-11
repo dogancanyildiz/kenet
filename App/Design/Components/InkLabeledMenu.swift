@@ -38,6 +38,9 @@ enum InkLabeledMenuChrome {
     /// Below this many options the pattern asks for ``InkTabs`` instead.
     static let minimumCount = InkTabsChrome.maximumCount + 1
 
+    /// Label and value size: subheadline (15), the drawing's control row; the value is semibold.
+    static var font: Font { .subheadline }
+
     /// The option shown as the current value; `nil` when the selection is not among the options.
     static func selected<Value: Hashable>(
         _ selection: Value, in sections: [[InkMenuOption<Value>]]
@@ -115,7 +118,8 @@ struct InkLabeledMenu<Value: Hashable>: View {
                 HStack(alignment: .firstTextBaseline, spacing: 6) { labelParts(wraps: false) }
                 VStack(alignment: .leading, spacing: 2) { labelParts(wraps: true) }
             }
-            .font(Font.ink.byline)
+            // Drawing: a small control row ("Grupla Durum ⌄", 15 pt), not a byline (fark2 P5).
+            .font(InkLabeledMenuChrome.font)
             .tapTarget()
             .frame(maxWidth: expands ? .infinity : nil, alignment: .leading)
             .contentShape(Rectangle())
@@ -136,6 +140,7 @@ struct InkLabeledMenu<Value: Hashable>: View {
             .fixedSize(horizontal: !wraps, vertical: true)
         HStack(alignment: .firstTextBaseline, spacing: 4) {
             (selected?.text ?? Text(verbatim: ""))
+                .fontWeight(.semibold)
                 .fixedSize(horizontal: !wraps, vertical: true)
             Image(systemName: "chevron.down")
                 .imageScale(.small)

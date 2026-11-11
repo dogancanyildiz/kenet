@@ -49,15 +49,15 @@ struct SectionHeader: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             titleText
-                .font(.ink.section)
+                .font(.ink.sectionTitle)
                 .foregroundStyle(.ink.text)
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier(Self.titleIdentifier)
             Spacer(minLength: 0)
             if let counterText {
                 Text(verbatim: counterText)
-                    // Drawing: a small counter beside the section title ("6 kaldı", "2/3").
-                    .font(.caption.monospacedDigit())
+                    // Drawing: a footnote counter beside the section title ("6 kaldı", "4 görev").
+                    .font(.ink.meta.monospacedDigit())
                     .foregroundStyle(.ink.secondaryText)
                     // Whole at every text size, never cut (audit "Text clipped" on "1 day"); the
                     // title beside it wraps instead.

@@ -58,11 +58,16 @@
 
         // MARK: Selection colors (`docs/design.md` rules 4 and 12)
 
-        @Test func onlyTheSelectedRowIsFilledAndAnInactiveWindowFadesIt() {
+        /// Şafak drawing `c-mac`: the selected row is the soft accent with the accent icon; a
+        /// window that is not key keeps the fill and grays the icon.
+        @Test func onlyTheSelectedRowIsFilledAndAnInactiveWindowFadesItsIcon() {
             #expect(MacSidebarChrome.fillToken(isSelected: false, isWindowActive: true) == nil)
             #expect(MacSidebarChrome.fillToken(isSelected: false, isWindowActive: false) == nil)
-            #expect(MacSidebarChrome.fillToken(isSelected: true, isWindowActive: true) == .accent)
+            #expect(MacSidebarChrome.fillToken(isSelected: true, isWindowActive: true) == .accentSoft)
             #expect(MacSidebarChrome.fillToken(isSelected: true, isWindowActive: false) == .accentSoft)
+            #expect(MacSidebarChrome.titleToken(isSelected: true, isWindowActive: true) == .text)
+            #expect(MacSidebarChrome.iconToken(isSelected: true, isWindowActive: true) == .accent)
+            #expect(MacSidebarChrome.iconToken(isSelected: true, isWindowActive: false) == .secondaryText)
         }
 
         /// Audit finding 5: white on the dark accent was 2.03:1. Both window states, all four
@@ -82,35 +87,38 @@
             #expect(iconRatio >= 3, "\(icon.rawValue) on fill, \(appearance.rawValue): \(iconRatio)")
         }
 
-        @Test func unselectedRowKeepsOrdinaryInkAndAccentIcon() {
+        @Test func unselectedRowKeepsOrdinaryInkAndGrayIcon() {
             for active in [true, false] {
                 #expect(MacSidebarChrome.titleToken(isSelected: false, isWindowActive: active) == .text)
-                #expect(MacSidebarChrome.iconToken(isSelected: false, isWindowActive: active) == .accent)
+                #expect(MacSidebarChrome.iconToken(isSelected: false, isWindowActive: active) == .secondaryText)
             }
         }
 
-        /// Sidebar ground is `elevated`: unselected text stays above 4.5:1; accent icon ≥ 3:1.
+        /// Sidebar ground is `elevated`: unselected text stays above 4.5:1; the gray icon ≥ 3:1.
         @Test(arguments: InkPalette.Appearance.allCases)
         func elevatedSidebarKeepsUnselectedTextReadable(appearance: InkPalette.Appearance) {
             let ground = InkPalette.Token.elevated.variant.hex(for: appearance)
             let title = InkPalette.Token.text.variant.hex(for: appearance)
-            let icon = InkPalette.Token.accent.variant.hex(for: appearance)
+            let icon = MacSidebarChrome.iconToken(isSelected: false, isWindowActive: true).variant.hex(
+                for: appearance)
             let titleRatio = InkPalette.contrastRatio(foreground: title, background: ground)
             let iconRatio = InkPalette.contrastRatio(foreground: icon, background: ground)
             #expect(titleRatio >= 4.5, "text on elevated, \(appearance.rawValue): \(titleRatio)")
-            #expect(iconRatio >= 3, "accent icon on elevated, \(appearance.rawValue): \(iconRatio)")
+            #expect(iconRatio >= 3, "gray icon on elevated, \(appearance.rawValue): \(iconRatio)")
         }
 
-        /// Rule 12 pinned ratios: on-accent on accent is 8.70 (light) and 7.28 (dark).
+        /// Rule 12 pinned ratios: text on the soft accent is 13.41 (light) and 13.50 (dark), the
+        /// accent icon 6.45 and 5.87.
         @Test func selectedRowPinsRule12ContrastNumbers() {
-            let light = InkPalette.contrastRatio(
-                foreground: InkPalette.Token.onAccent.variant.hex(for: .light),
-                background: InkPalette.Token.accent.variant.hex(for: .light))
-            let dark = InkPalette.contrastRatio(
-                foreground: InkPalette.Token.onAccent.variant.hex(for: .dark),
-                background: InkPalette.Token.accent.variant.hex(for: .dark))
-            #expect(abs(light - 8.70) < 0.05, "light onAccent/accent: \(light)")
-            #expect(abs(dark - 7.28) < 0.05, "dark onAccent/accent: \(dark)")
+            func ratio(_ foreground: InkPalette.Token, _ appearance: InkPalette.Appearance) -> Double {
+                InkPalette.contrastRatio(
+                    foreground: foreground.variant.hex(for: appearance),
+                    background: InkPalette.Token.accentSoft.variant.hex(for: appearance))
+            }
+            #expect(abs(ratio(.text, .light) - 13.41) < 0.05, "light text/accentSoft")
+            #expect(abs(ratio(.text, .dark) - 13.50) < 0.05, "dark text/accentSoft")
+            #expect(abs(ratio(.accent, .light) - 6.45) < 0.05, "light accent/accentSoft")
+            #expect(abs(ratio(.accent, .dark) - 5.87) < 0.05, "dark accent/accentSoft")
         }
     }
 
@@ -602,7 +610,7 @@
 
             let rep = try Self.bitmap(of: scroll)
             let gaps = try #require(
-                Self.fillGaps(in: rep, accent: Self.accent),
+                Self.fillGaps(in: rep, fill: Self.fill),
                 "no selection fill in \(rep.pixelsWide)x\(rep.pixelsHigh)")
             let inset = Int(MacSidebarChrome.fillInset.rounded())
             #expect(
@@ -631,9 +639,9 @@
             }
         }
 
-        /// Light accent (`#7A2C6E`); the hosted window is pinned to aqua.
-        private static var accent: Sample {
-            let hex = InkPalette.Token.accent.variant.hex(for: .light)
+        /// Light soft accent (`#E4DBE6`), the selected fill; the hosted window is pinned to aqua.
+        private static var fill: Sample {
+            let hex = InkPalette.Token.accentSoft.variant.hex(for: .light)
             return Sample(
                 r: CGFloat((hex >> 16) & 0xFF) / 255,
                 g: CGFloat((hex >> 8) & 0xFF) / 255,
@@ -645,9 +653,9 @@
             var right: Int
         }
 
-        /// Widest horizontal run of the fill. Icons are accent-coloured too, and much narrower
-        /// than the selected row.
-        private static func fillGaps(in rep: NSBitmapImageRep, accent: Sample) -> Gaps? {
+        /// Widest horizontal run of the fill. The tolerance is tight: the elevated ground
+        /// (`#FAFAFC`) is only 0.09 away from the soft fill.
+        private static func fillGaps(in rep: NSBitmapImageRep, fill: Sample) -> Gaps? {
             let width = rep.pixelsWide
             var bestLeft = 0
             var bestRight = 0
@@ -656,7 +664,7 @@
                 var minX = width
                 var maxX = -1
                 for x in 0..<width {
-                    guard let color = sample(rep, x: x, y: y), color.near(accent) else { continue }
+                    guard let color = sample(rep, x: x, y: y), color.near(fill, tolerance: 0.03) else { continue }
                     minX = min(minX, x)
                     maxX = max(maxX, x)
                 }

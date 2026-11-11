@@ -217,14 +217,15 @@ final class ScreenTourDriver {
         }
     }
 
-    func writeSkipped() {
+    /// `fileName`: the script's dark run writes its own list; the script joins the two.
+    func writeSkipped(fileName: String = "atlananlar.txt") {
         let text = skipped.isEmpty ? "" : skipped.joined(separator: "\n") + "\n"
         do {
             try text.write(
-                to: directory.appendingPathComponent("atlananlar.txt"), atomically: true, encoding: .utf8)
+                to: directory.appendingPathComponent(fileName), atomically: true, encoding: .utf8)
         } catch {
             let attachment = XCTAttachment(string: text)
-            attachment.name = "atlananlar.txt"
+            attachment.name = fileName
             attachment.lifetime = .keepAlways
             test.add(attachment)
         }

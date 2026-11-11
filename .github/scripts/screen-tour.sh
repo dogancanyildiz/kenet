@@ -2,6 +2,8 @@
 # Ekran turu: uygulamayı kurgusal örnek kasayla simülatörde gezer, her ekranın PNG'sini verilen
 # klasöre yazar (Tests/JournalUITests/ScreenTourUITests.swift). Tasarım işinde önce / sonra
 # karşılaştırması içindir; CI'da koşmaz.
+# iOS ve iPad turu iki koşudur: açık görünümde bütün ekranlar, sonra simülatör koyuya alınıp
+# 20-koyu-* görüntüleri. Koşu bitince simülatör açık görünüme döner.
 #
 #   sh .github/scripts/screen-tour.sh <çıktı klasörü> [simülatör kimliği]
 #   sh .github/scripts/screen-tour.sh --pad <çıktı klasörü> [simülatör kimliği]
@@ -57,12 +59,14 @@ APP=$(sed -n 's/^ *APP_BUNDLE_IDENTIFIER: *//p' project.yml)
 [ -n "$APP" ] || { echo "project.yml içinde APP_BUNDLE_IDENTIFIER bulunamadı" >&2; exit 1; }
 WORK=$(mktemp -d)
 RESULT="$WORK/tour.xcresult"
+# iOS turunun koyu koşusu (aşağıda); Mac turu tek koşudur.
+RESULT_DARK="$WORK/tour-dark.xcresult"
 trap 'rm -rf "$WORK"' EXIT
 echo "Çıktı: $OUT"
 
 # Önceki koşunun görüntüleri yeni koşunun atladığı adımı gizlemesin.
 clear_output() {
-  find "$OUT" -maxdepth 1 -type f \( -name '[0-9][0-9]-*.png' -o -name 'atlananlar.txt' \) -delete
+  find "$OUT" -maxdepth 1 -type f \( -name '[0-9][0-9]-*.png' -o -name 'atlananlar*.txt' \) -delete
   rm -rf "$OUT/agac"
 }
 
@@ -161,37 +165,53 @@ xcodebuild build-for-testing \
   CODE_SIGNING_ALLOWED=NO \
   -quiet
 status=$?
-if [ "$status" -eq 0 ]; then
+# İki koşu: önce açık görünümde bütün ekranlar, sonra koyu görünümde 20-koyu-* görüntüleri.
+# Görünümü betik değiştirir: XCUIDevice.appearance simülatörü koyuya çevirmedi (koyu görüntüler
+# açık çıktı). Koyu koşu kendi atlananlar listesini yazar; liste aşağıda birleştirilir.
+run_pass() {
   TEST_RUNNER_JOURNAL_SCREEN_TOUR_DIR="$OUT" \
   TEST_RUNNER_JOURNAL_SCREEN_TOUR_TREE="${SCREEN_TOUR_TREE:-}" \
   TEST_RUNNER_JOURNAL_SCREEN_TOUR_ORIENTATION="$ORIENTATION" \
+  TEST_RUNNER_JOURNAL_SCREEN_TOUR_PASS="$1" \
   xcodebuild test-without-building \
     -project Journal.xcodeproj \
     -scheme Journal_iOS \
     -destination "platform=iOS Simulator,id=$ID" \
     -derivedDataPath "$DERIVED" \
     -only-testing:JournalUITests/ScreenTourUITests \
-    -resultBundlePath "$RESULT" \
+    -resultBundlePath "$2" \
     CODE_SIGNING_ALLOWED=NO \
     -quiet
+}
+if [ "$status" -eq 0 ]; then
+  run_pass light "$RESULT"
   status=$?
+  xcrun simctl ui "$ID" appearance dark
+  run_pass dark "$RESULT_DARK"
+  dark_status=$?
+  xcrun simctl ui "$ID" appearance light
+  [ "$status" -ne 0 ] || status=$dark_status
 fi
 set -e
 
 fi
 
 # Tur bir ekrana ulaşamayınca düşmez; düştüyse neden (uygulama açılmadı, simülatör yanıt vermedi) buradadır.
-if [ "$status" -ne 0 ] && [ -d "$RESULT" ]; then
-  xcrun xcresulttool get test-results summary --path "$RESULT" 2>/dev/null | python3 -c '
+for result in "$RESULT" "$RESULT_DARK"; do
+  [ "$status" -ne 0 ] && [ -d "$result" ] || continue
+  xcrun xcresulttool get test-results summary --path "$result" 2>/dev/null | python3 -c '
 import json, sys
 for failure in json.load(sys.stdin).get("testFailures", []):
     print("Hata:", failure.get("testName", ""), "-", failure.get("failureText", ""))
 ' >&2 || true
-fi
+done
 
 # Koşucu ana makine yoluna yazamadıysa görüntüler sonuç paketine eklenmiştir: oradan çıkar.
-if [ -d "$RESULT" ] && ! ls "$OUT"/[0-9][0-9]-*.png >/dev/null 2>&1; then
-  if xcrun xcresulttool export attachments --path "$RESULT" --output-path "$WORK/ekler" >/dev/null 2>&1; then
+if ! ls "$OUT"/[0-9][0-9]-*.png >/dev/null 2>&1; then
+  for result in "$RESULT" "$RESULT_DARK"; do
+    [ -d "$result" ] || continue
+    rm -rf "$WORK/ekler"
+    xcrun xcresulttool export attachments --path "$result" --output-path "$WORK/ekler" >/dev/null 2>&1 || continue
     python3 - "$WORK/ekler" "$OUT" <<'PY'
 import json, os, re, shutil, sys
 source, target = sys.argv[1], sys.argv[2]
@@ -201,13 +221,19 @@ for test in manifest:
     for item in test.get("attachments", []):
         # "06-gorevler-kanban_0_<UUID>.png" -> "06-gorevler-kanban.png"
         name = re.sub(r"_\d+_[0-9A-Fa-f-]{36}(\.\w+)$", r"\1", item.get("suggestedHumanReadableName", ""))
-        if re.match(r"\d\d-.*\.png$", name) or name == "atlananlar.txt":
+        if re.match(r"\d\d-.*\.png$", name) or name in ("atlananlar.txt", "atlananlar-koyu.txt"):
             shutil.copyfile(os.path.join(source, item["exportedFileName"]), os.path.join(target, name))
         elif name.startswith("agac-") and name.endswith(".txt"):
             os.makedirs(os.path.join(target, "agac"), exist_ok=True)
             shutil.copyfile(os.path.join(source, item["exportedFileName"]), os.path.join(target, "agac", name[5:]))
 PY
-  fi
+  done
+fi
+
+# Koyu koşunun atlananları ana listeye eklenir.
+if [ -f "$OUT/atlananlar-koyu.txt" ]; then
+  [ -f "$OUT/atlananlar.txt" ] && cat "$OUT/atlananlar-koyu.txt" >> "$OUT/atlananlar.txt"
+  rm -f "$OUT/atlananlar-koyu.txt"
 fi
 
 count=$(find "$OUT" -maxdepth 1 -type f -name '[0-9][0-9]-*.png' | wc -l | tr -d ' ')

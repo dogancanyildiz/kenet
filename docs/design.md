@@ -78,7 +78,7 @@ Seçim sürecinin, oylamanın ve jürinin ayrıntılı gerekçesi git geçmişin
 | 9 | iOS'ta hiçbir metin 12 pt'nin altında değildir. Etiketler cümle düzenindedir: hafta şeridinde "Pzt". Büyük harfli, geniş aralıklı etiket yoktur. |
 | 10 | Dokunma hedefleri en az 44 pt'dir. iOS'ta kısa sözcüklü metin düğmesi ("Geri", "İleri") 44 pt genişliğe uzar; sözcük başta kalır. Tek satırlık satır ve anahtar satırı 44 pt yüksekliktedir. Hafta şeridinin her günü 44 × 56 pt'dir. |
 | 11 | İçerikte zeminle zıt parlaklıkta büyük yüzey yoktur. Parıltı zeminin parlaklık ailesinde kalır; parıltı üstündeki ikincil metin en az 4,5:1 taşır. Böylece altından geçen sistem camı açık ile koyu arasında çevrilmez. |
-| 12 | Mac'te kenar çubuğu uygulamanın vurgu rengini taşır: mürdüm. Simgeler vurgu rengindedir. Seçili satır vurgu rengiyle dolar; yazısı ve simgesi vurgu üstü rengindedir. Kontrast açıkta 8,70:1, koyuda 7,28:1'dir; alt sınır 4,5:1'dir. Kenar çubuğu `elevated` zemindedir; parıltı yoktur. Yalnız seçili girdi vurgu alır: Görevler'in altındaki Kanban, Zaman çizelgesi ve projeler ayrı satırdır. Seçimin kendisi sistemindir: ok tuşları, odak, VoiceOver. Yalnız çizim uygulamanındır. Bölünmüş kabukta (iPhone Duo iç ekranı, iPad) aynı kural geçerlidir: sistemin seçim vurgusu ve odak çerçevesi dolgunun üstüne çizilmez. |
+| 12 | Mac'te kenar çubuğunun seçili satırı `accentSoft` ile dolar. Seçili satırın simgesi vurgu rengindedir: mürdüm. Seçili satırın yazısı `text` rengindedir ve yarı kalındır. Öteki satırların simgesi `secondaryText` rengindedir. Kontrast `accentSoft` üstünde yazıda açıkta 13,41:1, koyuda 13,50:1'dir. Simgede açıkta 6,45:1, koyuda 5,87:1'dir. Önceki değer: vurgu dolgusu, vurgu üstü yazı ve simge; Şafak çizimi `c-mac` 2026-11-11'de değiştirdi. Kenar çubuğu `elevated` zemindedir; parıltı yoktur. Yalnız seçili girdi vurgu alır: Görevler'in altındaki Kanban, Zaman çizelgesi ve projeler ayrı satırdır. Seçimin kendisi sistemindir: ok tuşları, odak, VoiceOver. Yalnız çizim uygulamanındır. Bölünmüş kabukta (iPhone Duo iç ekranı, iPad) aynı kural geçerlidir: sistemin seçim vurgusu ve odak çerçevesi dolgunun üstüne çizilmez. |
 | 13 | Hareket sistem varsayılanlarıyla sınırlıdır ve Hareketi Azalt ayarına uyar. Parıltı ve hale durağandır: nabız, dönme ve renk geçişi yoktur. Tek istisna Graph'tır: düğümler kuvvet benzetimiyle hareket eder, çünkü içerik hareketin kendisidir. Hareketi Azalt açıkken Graph da canlı oynamaz; uygulama oturmuş düzeni tek seferde gösterir. |
 
 **DİKKAT:** Kural numaralarını değiştirme; kod kural 12'ye `MacSidebar.swift` içinde, Şafak kuralı 4'e `InkLinkStyle.swift` içinde numarayla gönderme yapar.
@@ -792,15 +792,15 @@ Kod karşılığı: `InkListSelectionBackground` ve `inkListRow(columnSelected:)
 
 | Satır durumu | Dolgu | Yazı | Simge |
 |---|---|---|---|
-| Seçili, etkin pencere | Vurgu | Vurgu üstü, yarı kalın | Vurgu üstü |
-| Seçili, etkin olmayan pencere | `accentSoft` | Metin, yarı kalın | Vurgu |
-| Seçili değil | Yok | Metin | Vurgu |
+| Seçili, etkin pencere | `accentSoft` | Metin, yarı kalın | Vurgu |
+| Seçili, etkin olmayan pencere | `accentSoft` | Metin, yarı kalın | `secondaryText` |
+| Seçili değil | Yok | Metin | `secondaryText` |
 
 | Konu | Kural |
 |---|---|
 | Zemin | Kenar çubuğu `elevated` zemindedir. Tepede arama alanı, altta hızlı giriş kartı durur. |
 | Dolgu yeri | Dolgu sistem seçiminin yerindedir: kenarlardan 10 pt içeride ve 8 pt köşeli. |
-| iPad ve Duo, bölünmüş kabuk | Aynı dolgu, yazı ve simge. Yüzen panel `elevated` rengindedir. Odak çerçevesi çizilmez; klavyeyle seçim odağı izler, dolgu odağın yerini gösterir. Satır adı tek satırdır, uzun ad sonda "…" ile kısalır. Erişilebilirlik yazı boyutlarında simge gizlenir ve satır yalnız addır: ad kısalmaz, sözcük aralarından sarılır. VoiceOver her boyutta yalnız adı okur. İşaretçi üstünde durduğu satırı sistemin hafif vurgusuyla gösterir. Kanban kartı işaretçi altında hafifçe kalkar. |
+| iPad ve Duo, bölünmüş kabuk | Aynı dolgu, yazı ve simge. Simgeler çizgidir; sistemin kenar çubuğu onları doldurmaz. Yüzen panel `elevated` rengindedir. Odak çerçevesi çizilmez; klavyeyle seçim odağı izler, dolgu odağın yerini gösterir. Satır adı tek satırdır, uzun ad sonda "…" ile kısalır. Erişilebilirlik yazı boyutlarında simge gizlenir ve satır yalnız addır: ad kısalmaz, sözcük aralarından sarılır. VoiceOver her boyutta yalnız adı okur. İşaretçi üstünde durduğu satırı sistemin hafif vurgusuyla gösterir. Kanban kartı işaretçi altında hafifçe kalkar. |
 | Kaydırma göstergesi | Uygulama dikey kaydırma göstergesini çizmez. Fare bağlıyken yer kaplayan çubuk satırı sağdan daraltmaz. |
 | Odak | Yerleşimi değiştiren her seçimden sonra uygulama odağı yeni kenar çubuğuna bir kez geri verir, yalnız odak serbestse. Odak o pencerede başka bir denetimdeyse uygulama isteği bırakır. |
 

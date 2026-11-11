@@ -145,12 +145,17 @@ extension View {
             .inkSheetNavigationTitle(title, titleInBar: true)
     }
 
-    /// Read-only sheet chrome with a non-localized title.
+    /// Read-only sheet chrome with a non-localized title. `titleInBar: false` keeps the title
+    /// in the page under "Kapat": a long user title (a calendar event's) would meet the word.
     func inkSheet(
-        verbatim title: String, closeIdentifier: String? = nil, onClose: (() -> Void)? = nil
+        verbatim title: String, closeIdentifier: String? = nil, onClose: (() -> Void)? = nil,
+        titleInBar: Bool = true
     ) -> some View {
-        modifier(InkSheetModifier(kind: .reading(closeIdentifier: closeIdentifier, onClose: onClose)))
-            .inkSheetNavigationTitle(verbatim: title, titleInBar: true)
+        modifier(
+            InkSheetModifier(
+                kind: .reading(closeIdentifier: closeIdentifier, onClose: onClose), allowsBarTitle: titleInBar)
+        )
+        .inkSheetNavigationTitle(verbatim: title, titleInBar: titleInBar)
     }
 
     /// Cancel-only sheet chrome: same background and title rules, one button: "Vazgeç" on the

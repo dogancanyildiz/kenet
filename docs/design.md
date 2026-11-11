@@ -231,7 +231,7 @@ flowchart TD
 | Konu | Kural |
 |---|---|
 | Zemin ve başlık | Zemin `elevated`'dır. Başlık sans manşettir. İçerikte bölümler karttır: bölüm başlığı kartın üstünde, satırlar kartın içinde. |
-| Başlık, iOS | Salt okunur sheet'in başlığı sistem çubuğunda, "Kapat" ile aynı satırdadır. Künyeli sheet başlığı sayfada tutar: "Günü kapat". Düzenleme sheet'inde başlık "Vazgeç" ve onay satırının altındadır. |
+| Başlık, iOS | Salt okunur sheet'in başlığı sistem çubuğunda, "Kapat" ile aynı satırdadır. Künyeli sheet başlığı sayfada tutar: "Günü kapat". Kullanıcı metni olan başlık da sayfada, "Kapat"ın altındadır: etkinlik ayrıntısı. Düzenleme sheet'inde başlık "Vazgeç" ve onay satırının altındadır. |
 | Düğme biçimi | Çubuktaki düğmeler düz yazıdır; dolu kapsül yoktur. "Vazgeç" ikincil renkte düz yazıdır. Onay vurgu renginde, yarı kalın düz yazıdır. "Bitti" yoktur. |
 | Toplu yazan akış | Örnek: kasa hazırlığı. Eylem taslak kaydetmek değildir. Çubukta yalnız "Vazgeç" durur. Eylem kendi adıyla sayfada birincil düğmedir ve Return tuşuna bağlı değildir. |
 | Paylaşım formu | Çubukta yalnız "Vazgeç" durur. Onay sayfada birincil düğmedir: "Kenet'e ekle". |

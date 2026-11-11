@@ -70,7 +70,7 @@ struct GoalDetailView: View {
                 VStack(alignment: .leading, spacing: InkSpacing.section) {
                     InkScrolledMasthead(masthead)
 
-                    if goal.kind != .milestone {
+                    if goal.kind != .milestone, showsEditedDay {
                         editedDayLine(editedDay.day)
                             .padding(.horizontal, InkSpacing.margin)
                     }
@@ -617,8 +617,12 @@ struct GoalDetailView: View {
         .accessibilityIdentifier("goal.graceDays")
     }
 
-    /// "12 Kas Perşembe düzenleniyor" over the panel, always: the day the panel and the mark
-    /// button write to. A past day adds "Bugüne dön".
+    /// Today needs no label (fark4 G2): the line shows only when the panel and the mark button
+    /// write to another day, a picked one or the past day the page was opened for.
+    private var showsEditedDay: Bool { pickedDay != nil || history.day != LocalDay.today() }
+
+    /// "12 Kas Perşembe düzenleniyor" over the panel when it edits a day other than today: the
+    /// day the panel and the mark button write to. A picked day adds "Bugüne dön".
     private func editedDayLine(_ day: CalendarDate) -> some View {
         let date = LocalDay.instant(for: day)
             .formatted(.dateTime.day().month(.abbreviated).weekday(.wide).locale(locale))

@@ -85,66 +85,76 @@ struct PhoneSettingsView: View {
             .navigationLinkIndicatorVisibility(.hidden)
             .inkListRow()
 
-            InkCard(padded: false) {
-                VStack(alignment: .leading, spacing: 0) {
-                    ForEach(Array(SettingsSection.allCases.enumerated()), id: \.element.id) {
-                        index, section in
-                        if index > 0 {
-                            InkCardDivider()
-                        }
-                        NavigationLink(value: section) {
-                            HStack(spacing: InkSpacing.row) {
-                                RoundedRectangle(cornerRadius: InkCorner.xs, style: .continuous)
-                                    .fill(Color.ink.well)
-                                    .frame(width: 30, height: 30)
-                                    .overlay {
-                                        Image(systemName: section.symbol)
-                                            .font(.ink.meta.weight(.semibold))
-                                            .foregroundStyle(Color.ink.accent)
-                                    }
-                                    .accessibilityHidden(true)
-                                VStack(alignment: .leading, spacing: 1) {
-                                    Text(section.title)
-                                        .font(.subheadline)
-                                        .foregroundStyle(Color.ink.text)
-                                        // On the title text the audit reads: NavigationLink cells
-                                        // drop identifiers on the link itself (settings a11y / AX3).
-                                        .accessibilityIdentifier("settings.section.\(section.rawValue)")
-                                    // VoiceOver reads the summary as the hint: in the label,
-                                    // "Eylem düğmesi" / "Action button" repeats the button trait.
-                                    Text(section.summary)
-                                        .font(.caption)
-                                        .foregroundStyle(Color.ink.secondaryText)
-                                        .accessibilityHidden(true)
-                                }
-                                .padding(.vertical, 6)
-                                .accessibilityHint(Text(section.summary))
-                                Spacer(minLength: 8)
-                                Image(systemName: "chevron.right")
-                                    .font(.ink.weekday)
-                                    .foregroundStyle(Color.ink.secondaryText)
-                                    .accessibilityHidden(true)
-                            }
-                            .frame(minHeight: InkButtonChrome.minimumHeight)
-                            .padding(.horizontal, InkSpacing.cardPadding)
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .navigationLinkIndicatorVisibility(.hidden)
-                    }
+            // One list row per section, the card drawn across the rows (InkCardSegment). Six
+            // links in one row's card made List fire the last link (Tanılama) for a tap on any of
+            // them: a row takes one tap target, whatever its buttons' style.
+            let sections = SettingsSection.allCases
+            ForEach(Array(sections.enumerated()), id: \.element.id) { index, section in
+                let segment = InkCardSegment.position(index, of: sections.count)
+                NavigationLink(value: section) {
+                    sectionRow(section, segment: segment)
                 }
+                .buttonStyle(.plain)
+                .inkListRow(cardSegment: segment)
             }
-            .inkListRow()
         }
         .listStyle(.plain)
+        // A section row is its text and the row insets (45 pt), as in the one card it was; the
+        // list's own minimum would make the middle rows taller than the first and last.
+        .environment(\.defaultMinListRowHeight, InkButtonChrome.minimumHeight - 2 * InkListRowInsets.vertical)
         .inkPageNavigationTitle("Ayarlar")
         .navigationDestination(for: SettingsSection.self) { section in
             settingsDestination(section)
+                // Each page answers to its section (SettingsHubUITests opens every row).
+                .accessibilityIdentifier("screen.settings.\(section.rawValue)")
         }
         .inkPage()
         .background(Color.ink.elevated)
         .inkPageScrollColumn()
         .accessibilityIdentifier("screen.settings")
+    }
+
+    /// A hub row inside the section card: icon tile, title over summary, "›". The list row's
+    /// insets (6 pt above and below) are the gap between rows; the card's closed ends add 6 pt
+    /// inside, so every row keeps the spacing it had in one card.
+    private func sectionRow(_ section: SettingsSection, segment: InkCardSegment) -> some View {
+        HStack(spacing: InkSpacing.row) {
+            RoundedRectangle(cornerRadius: InkCorner.xs, style: .continuous)
+                .fill(Color.ink.well)
+                .frame(width: 30, height: 30)
+                .overlay {
+                    Image(systemName: section.symbol)
+                        .font(.ink.meta.weight(.semibold))
+                        .foregroundStyle(Color.ink.accent)
+                }
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(section.title)
+                    .font(.subheadline)
+                    .foregroundStyle(Color.ink.text)
+                    // On the title text the audit reads: NavigationLink cells
+                    // drop identifiers on the link itself (settings a11y / AX3).
+                    .accessibilityIdentifier("settings.section.\(section.rawValue)")
+                // VoiceOver reads the summary as the hint: in the label,
+                // "Eylem düğmesi" / "Action button" repeats the button trait.
+                Text(section.summary)
+                    .font(.caption)
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .accessibilityHidden(true)
+            }
+            .padding(.top, segment.roundsTop ? InkListRowInsets.vertical : 0)
+            .padding(.bottom, segment.roundsBottom ? InkListRowInsets.vertical : 0)
+            .accessibilityHint(Text(section.summary))
+            Spacer(minLength: 8)
+            Image(systemName: "chevron.right")
+                .font(.ink.weekday)
+                .foregroundStyle(Color.ink.secondaryText)
+                .accessibilityHidden(true)
+        }
+        // With the row's insets the cell is at least 44 pt tall.
+        .frame(minHeight: InkButtonChrome.minimumHeight - 2 * InkListRowInsets.vertical)
+        .padding(.horizontal, InkSpacing.cardPadding)
+        .contentShape(Rectangle())
     }
 
     @ViewBuilder

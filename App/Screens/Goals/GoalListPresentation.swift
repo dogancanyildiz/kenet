@@ -5,7 +5,7 @@ import VaultFormat
 /// Pure list / detail copy and tally math for Goals (unit-tested). Core status stays unchanged.
 enum GoalListPresentation {
     /// Period chip on list and detail: Günlük / Haftalık / Yıllık.
-    static func periodChip(_ period: GoalPeriod, bundle: Bundle = .main, locale: Locale = .current)
+    static func periodChip(_ period: GoalPeriod, bundle: Bundle? = nil, locale: Locale = .current)
         -> String
     {
         let key: String.LocalizationValue =
@@ -14,18 +14,18 @@ enum GoalListPresentation {
             case .week: "Haftalık"
             case .year: "Yıllık"
             }
-        return String(localized: key, bundle: bundle, locale: locale)
+        return String(localized: key, bundle: bundle ?? PresentationLocalization.bundle(locale), locale: locale)
     }
 
     /// Kind tabs on create / edit: İşaret | Sayı | Kilometre taşı.
-    static func kindTab(_ kind: GoalKind, bundle: Bundle = .main, locale: Locale = .current) -> String {
+    static func kindTab(_ kind: GoalKind, bundle: Bundle? = nil, locale: Locale = .current) -> String {
         let key: String.LocalizationValue =
             switch kind {
             case .boolean: "İşaret"
             case .number: "Sayı"
             case .milestone: "Kilometre taşı"
             }
-        return String(localized: key, bundle: bundle, locale: locale)
+        return String(localized: key, bundle: bundle ?? PresentationLocalization.bundle(locale), locale: locale)
     }
 
     /// Unclamped percent for the ring center (30/20 → 150).
@@ -49,7 +49,7 @@ enum GoalListPresentation {
 
     /// VoiceOver summary for a 7-day tally.
     static func tallySummary(
-        _ days: [GoalTallyDay], bundle: Bundle = .main, locale: Locale = .current
+        _ days: [GoalTallyDay], bundle: Bundle? = nil, locale: Locale = .current
     ) -> String {
         let done = days.filter { $0.fill == .filled || $0.fill == .partial }.count
         let forgiven = days.filter { $0.fill == .forgiven }.count
@@ -57,21 +57,23 @@ enum GoalListPresentation {
         if forgiven > 0 {
             return String(
                 localized: "\(total) günün \(done)'i yapıldı, \(forgiven) affedildi",
-                bundle: bundle, locale: locale)
+                bundle: bundle ?? PresentationLocalization.bundle(locale), locale: locale)
         }
         return String(
-            localized: "\(total) günün \(done)'i yapıldı", bundle: bundle, locale: locale)
+            localized: "\(total) günün \(done)'i yapıldı", bundle: bundle ?? PresentationLocalization.bundle(locale),
+            locale: locale)
     }
 
     /// VoiceOver summary for yearly mini bars.
     static func yearBarsSummary(
-        _ bars: [GoalYearMonthBar], bundle: Bundle = .main, locale: Locale = .current
+        _ bars: [GoalYearMonthBar], bundle: Bundle? = nil, locale: Locale = .current
     ) -> String {
         let past = bars.filter { !$0.isFuture }
         let total = past.reduce(0.0) { $0 + $1.total }
         let amount = total.formatted(.number.precision(.fractionLength(0)).locale(locale))
         return String(
-            localized: "\(past.count) ayda \(amount)", bundle: bundle, locale: locale)
+            localized: "\(past.count) ayda \(amount)", bundle: bundle ?? PresentationLocalization.bundle(locale),
+            locale: locale)
     }
 
     /// Remaining amount; nil when complete or milestone.
@@ -83,22 +85,27 @@ enum GoalListPresentation {
 
     /// "Bugün · 8 sayfa kaldı" / "Today · 8 pages left". Nil when complete or milestone.
     static func remainingText(
-        goal: GoalDefinition, status: GoalStatus, bundle: Bundle = .main, locale: Locale = .current
+        goal: GoalDefinition, status: GoalStatus, bundle: Bundle? = nil, locale: Locale = .current
     ) -> String? {
         guard let left = remainingAmount(goal: goal, status: status) else { return nil }
         let amount = left.formatted(.number.precision(.fractionLength(0)).locale(locale))
         let piece = goal.unit.map { "\(amount) \($0)" } ?? amount
         if goal.period == .day {
-            return String(localized: "Bugün · \(piece) kaldı", bundle: bundle, locale: locale)
+            return String(
+                localized: "Bugün · \(piece) kaldı", bundle: bundle ?? PresentationLocalization.bundle(locale),
+                locale: locale)
         }
-        return String(localized: "\(piece) kaldı", bundle: bundle, locale: locale)
+        return String(
+            localized: "\(piece) kaldı", bundle: bundle ?? PresentationLocalization.bundle(locale), locale: locale)
     }
 
     /// "Zincir 12 gün" / "Streak 12 days".
     static func streakText(
-        _ streak: Int, bundle: Bundle = .main, locale: Locale = .current
+        _ streak: Int, bundle: Bundle? = nil, locale: Locale = .current
     ) -> String {
-        String(localized: "Zincir \(streak) gün", bundle: bundle, locale: locale)
+        String(
+            localized: "Zincir \(streak) gün", bundle: bundle ?? PresentationLocalization.bundle(locale), locale: locale
+        )
     }
 
     /// Open goals first, then complete; each group by name (rule 6).

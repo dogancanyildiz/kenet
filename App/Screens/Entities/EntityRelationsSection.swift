@@ -19,7 +19,10 @@ struct EntityRelationsSection: View {
                     model.clearSheetError()
                     isAdding = true
                 } label: {
+                    // A small link beside the section title (drawing), not a title-sized one:
+                    // the text button style's own font is the larger byline.
                     Text("Bağ kur")
+                        .font(.subheadline.weight(.semibold))
                         .tapTarget()
                 }
                 .buttonStyle(InkTextButtonStyle())

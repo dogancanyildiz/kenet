@@ -269,7 +269,9 @@ struct EntityView: View {
         InkCard(padded: false) {
             VStack(alignment: .leading, spacing: 0) {
                 if let qualifier = current.qualifier {
-                    kvRow(String(localized: "Ayırt edici"), qualifier, valueFont: .subheadline.weight(.medium))
+                    kvRow(
+                        PresentationLocalization.string(localized: "Ayırt edici", locale: locale), qualifier,
+                        valueFont: .subheadline.weight(.medium))
                     InkCardDivider()
                 }
                 if model.unreadableFrontmatter {
@@ -293,7 +295,8 @@ struct EntityView: View {
                     }
                 }
                 kvRow(
-                    String(localized: "Gelen bağlantılar"), current.incomingLinks.formatted(.number),
+                    PresentationLocalization.string(localized: "Gelen bağlantılar", locale: locale),
+                    current.incomingLinks.formatted(.number),
                     valueFont: .subheadline.monospacedDigit())
                 if !model.aliasesEditable, !model.aliasesSource.isEmpty {
                     Text(verbatim: model.aliasesSource).font(.ink.meta).foregroundStyle(.ink.secondaryText)
@@ -313,8 +316,9 @@ struct EntityView: View {
         let timeline = self.timeline ?? []
         Section {
             SectionHeader(
-                title: String(localized: "Zaman akışı"),
-                counter: timeline.isEmpty ? nil : String(localized: "\(timeline.count) gün")
+                title: PresentationLocalization.string(localized: "Zaman akışı", locale: locale),
+                counter: timeline.isEmpty
+                    ? nil : PresentationLocalization.string(localized: "\(timeline.count) gün", locale: locale)
             ).inkListRow()
             if timeline.isEmpty {
                 Text("Henüz günlük kaydı yok.")
@@ -393,7 +397,7 @@ struct EntityView: View {
         if row.kind == "event" {
             return row.time.map { day + " · " + $0 } ?? day
         }
-        return String(localized: "\(day) · günlük yazısı")
+        return PresentationLocalization.string(localized: "\(day) · günlük yazısı", locale: locale)
     }
 
     @ScaledMetric(relativeTo: .body) private var badgeSide: CGFloat = 32
@@ -401,7 +405,7 @@ struct EntityView: View {
 
     @ViewBuilder private var notesSection: some View {
         Section {
-            SectionHeader(title: String(localized: "Serbest notlar"))
+            SectionHeader(title: PresentationLocalization.string(localized: "Serbest notlar", locale: locale))
                 .inkListRow()
             let display = VaultDisplayText.multiline(model.body)
             if display.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {

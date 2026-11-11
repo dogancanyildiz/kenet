@@ -22,13 +22,15 @@ enum EntityReadPresentation {
         var parts = [kindLabel]
         let aliasText = aliases.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
             .joined(separator: ", ")
-        if !aliasText.isEmpty { parts.append(String(localized: "takma ad \(aliasText)", locale: locale)) }
+        if !aliasText.isEmpty {
+            parts.append(PresentationLocalization.string(localized: "takma ad \(aliasText)", locale: locale))
+        }
         if let lastSeen {
             let style: Date.FormatStyle =
                 lastSeen.year == today.year
                 ? .dateTime.day().month(.abbreviated) : .dateTime.day().month(.abbreviated).year()
             let date = LocalDay.instant(for: lastSeen).formatted(style.locale(locale))
-            parts.append(String(localized: "son görülme \(date)", locale: locale))
+            parts.append(PresentationLocalization.string(localized: "son görülme \(date)", locale: locale))
         }
         return parts.joined(separator: " · ")
     }

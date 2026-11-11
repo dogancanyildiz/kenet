@@ -36,7 +36,7 @@ struct PlacesMapView: View {
             // Both counts from the pins drawn: places with a coordinate and their visits.
             InkPageTitle(
                 "Harita",
-                byline: String(
+                byline: PresentationLocalization.string(
                     localized: "\(pins.count) konum · \(pins.reduce(0) { $0 + $1.count }) ziyaret", locale: locale)
             ) {
                 InkHeaderAction("Beni göster", systemImage: "location") {
@@ -261,9 +261,11 @@ private struct PlaceMapCard: View {
 
     /// "23 ziyaret · son 19 Eyl"; without a mention only the count.
     private var visitLine: String {
-        guard let lastDate else { return String(localized: "\(pin.count) ziyaret", locale: locale) }
+        guard let lastDate else {
+            return PresentationLocalization.string(localized: "\(pin.count) ziyaret", locale: locale)
+        }
         let date = LocalDay.instant(for: lastDate).formatted(.dateTime.day().month(.abbreviated).locale(locale))
-        return String(localized: "\(pin.count) ziyaret · son \(date)", locale: locale)
+        return PresentationLocalization.string(localized: "\(pin.count) ziyaret · son \(date)", locale: locale)
     }
 
     @ScaledMetric(relativeTo: .body) private var cardWidth: CGFloat = 200

@@ -27,13 +27,13 @@ struct PlaceCoordinateEditor: View {
                 coordinateField("Enlem", text: $draft.latitude, identifier: "field.place.latitude")
                 coordinateField("Boylam", text: $draft.longitude, identifier: "field.place.longitude")
                 Button("Şu anki konumumu kullan") { useCurrentLocation() }
-                    .buttonStyle(InkTextButtonStyle())
+                    .buttonStyle(EntityEditorLinkStyle())
                     .disabled(!canLocate)
                     .inkAccessibilityIdentifier("button.place.coordinates.current")
                 status
                 HStack(spacing: InkSpacing.margin) {
                     Button("Kaydet") { save() }
-                        .buttonStyle(InkTextButtonStyle())
+                        .buttonStyle(EntityEditorLinkStyle())
                         .inkAccessibilityIdentifier("button.place.coordinates.save")
                     if model.hasCoordinatesField {
                         Button("Koordinatı kaldır", role: .destructive) { deleteConfirmation.request(.pending) }

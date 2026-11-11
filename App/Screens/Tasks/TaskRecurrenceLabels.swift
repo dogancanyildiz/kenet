@@ -19,10 +19,10 @@ extension TaskRecurrence {
         count: Int, unit: TaskRecurrence.Unit, locale: Locale = .current
     ) -> String {
         switch unit {
-        case .day: String(localized: "Her \(count) gün", locale: locale)
-        case .week: String(localized: "Her \(count) hafta", locale: locale)
-        case .month: String(localized: "Her \(count) ay", locale: locale)
-        case .year: String(localized: "Her \(count) yıl", locale: locale)
+        case .day: PresentationLocalization.string(localized: "Her \(count) gün", locale: locale)
+        case .week: PresentationLocalization.string(localized: "Her \(count) hafta", locale: locale)
+        case .month: PresentationLocalization.string(localized: "Her \(count) ay", locale: locale)
+        case .year: PresentationLocalization.string(localized: "Her \(count) yıl", locale: locale)
         }
     }
 }

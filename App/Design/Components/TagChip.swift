@@ -1,11 +1,14 @@
 import SwiftUI
 
-/// Suggestion chip for tags, projects, or places: capsule on `well`.
-/// Selection is never color-only: thicker stroke and a checkmark.
+/// Suggestion chip for tags, projects, or places: a `well` capsule with a 1 pt `rule` border
+/// (`docs/design.md`, "İç alan, çip"; Şafak `.chip`). Selection is never color-only: an accent
+/// border and a checkmark. Borders sit inside the capsule (`strokeBorder`) so a parent's bounds
+/// never clip them.
 struct TagChip: View {
     var title: String
     var systemImage: String? = nil
     var isSelected: Bool = false
+    /// Kept for call sites; every chip is drawn on `well` since fark3 Y1.
     var filled: Bool = false
     /// Trailing tabular count, read after the title (summary name chips).
     var count: Int? = nil
@@ -51,27 +54,20 @@ struct TagChip: View {
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .background {
-                Capsule()
+                // A circular capsule: the default style rendered flattened ends on Mac, where
+                // the border read as brackets (fark3 Y1). One shape holds fill and border.
+                Capsule(style: .circular)
                     .fill(fill)
-            }
-            .overlay {
-                if accentSelection {
-                    Capsule()
-                        .strokeBorder(
-                            isSelected ? Color.clear : Color.ink.rule,
-                            lineWidth: InkStroke.hairline(scale: displayScale))
-                } else {
-                    Capsule()
-                        .stroke(
-                            isSelected ? Color.ink.accent : Color.ink.control,
-                            lineWidth: isSelected ? InkStroke.highPriority : InkStroke.control)
-                }
+                    .strokeBorder(border.color, lineWidth: border.width ?? InkStroke.hairline(scale: displayScale))
             }
     }
 
     private var fill: Color {
-        if accentSelection { return isSelected ? Color.ink.accentSoft : Color.ink.well }
-        return filled || isSelected ? Color.ink.well : Color.clear
+        TagChipChrome.fill(isSelected: isSelected, accentSelection: accentSelection)
+    }
+
+    private var border: (color: Color, width: CGFloat?) {
+        TagChipChrome.border(isSelected: isSelected, accentSelection: accentSelection)
     }
 
     private var titleColor: Color {
@@ -120,4 +116,15 @@ struct TagChip: View {
 enum TagChipChrome {
     /// How far a dismiss button's 44 pt target reaches past the chip's top and bottom edges.
     static let targetOverhang: CGFloat = 7
+
+    /// Every chip sits on `well`; a selected scope chip on `accentSoft`.
+    static func fill(isSelected: Bool, accentSelection: Bool) -> Color {
+        accentSelection && isSelected ? Color.ink.accentSoft : Color.ink.well
+    }
+
+    /// The border drawn inside the capsule. A `nil` width is one device pixel (scope chip rule).
+    static func border(isSelected: Bool, accentSelection: Bool) -> (color: Color, width: CGFloat?) {
+        if accentSelection { return (isSelected ? Color.clear : Color.ink.rule, nil) }
+        return isSelected ? (Color.ink.accent, InkStroke.highPriority) : (Color.ink.rule, InkStroke.rule)
+    }
 }

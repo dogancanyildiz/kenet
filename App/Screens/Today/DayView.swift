@@ -558,6 +558,17 @@ struct DayView: View {
         .modifier(TodayGlowBackground(isToday: isToday))
     }
 
+    /// iPad (regular width) and the Mac draw a past day as the wide drawing (`j-mac2`): the
+    /// column beside it already holds the calendar, so no week strip; goal cards, then one
+    /// "Program" card. The iPhone keeps its week strip and its "Saatsiz" list.
+    private var usesProgramLayout: Bool {
+        #if os(macOS)
+            true
+        #else
+            horizontalSizeClass == .regular
+        #endif
+    }
+
     @ViewBuilder
     private func pastDayScrollContent(
         presented: TodayPresentation, goalModel: GoalDayModel,
@@ -569,6 +580,64 @@ struct DayView: View {
             tasks: day == nil ? [] : (tasksModel.rows ?? []),
             dayFile: TodayDayPath.file(for: date)
         )
+        if usesProgramLayout {
+            programDayContent(
+                presented: presented, schedule: schedule, entitiesByID: entitiesByID, day: day,
+                isEmptyDay: isEmptyDay, todayInstant: todayInstant)
+        } else {
+            compactPastDayContent(
+                presented: presented, schedule: schedule, entitiesByID: entitiesByID, day: day,
+                isEmptyDay: isEmptyDay, todayInstant: todayInstant)
+        }
+    }
+
+    /// The wide past day: manşet, goal cards, the "Program" card, the calendar, the journal.
+    private func programDayContent(
+        presented: TodayPresentation, schedule: DaySchedulePresentation,
+        entitiesByID: [String: EntitySummary], day: DaySummary?, isEmptyDay: Bool, todayInstant: Date
+    ) -> some View {
+        VStack(alignment: .leading, spacing: InkSpacing.section) {
+            InkScrolledMasthead(mastheadBlock(presented, todayInstant: todayInstant))
+
+            if store.isProcessing && !store.isWriting {
+                InkProgress(kind: .indeterminate(label: "İndeks güncelleniyor…"))
+            }
+            if let error = store.errorText {
+                InfoBand(kind: .error, verbatim: error)
+            }
+            if isEmptyDay {
+                EmptyState("Bu gün henüz bir şey yazılmadı.")
+            }
+
+            GoalStripView(
+                model: goalModels.model(store: store, day: date),
+                countedGoalIDs: presented.countedGoalIDs,
+                counter: loadedGoals?.day == date ? presented.counter(for: .goals) : nil,
+                onOpen: { goalDestination = GoalDetailRoute(goal: $0, amountDay: date) },
+                onEnterAmount: { goalDestination = GoalDetailRoute(goal: $0, focusesAmount: true, amountDay: date) }
+            )
+            .id(GoalStripIdentity.key(day: date, vaultPath: store.vaultURL?.path))
+
+            if day != nil, !schedule.isEmpty {
+                programCard(schedule, presented: presented, entitiesByID: entitiesByID)
+            }
+
+            DayCalendarView(date: date)
+
+            journalSection
+                .dayBacklinks(store: store, date: date)
+        }
+        .padding(.horizontal, InkSpacing.margin)
+        .padding(.top, 8)
+        .padding(.bottom, 8)
+        .inkPageColumn()
+    }
+
+    @ViewBuilder
+    private func compactPastDayContent(
+        presented: TodayPresentation, schedule: DaySchedulePresentation,
+        entitiesByID: [String: EntitySummary], day: DaySummary?, isEmptyDay: Bool, todayInstant: Date
+    ) -> some View {
         VStack(alignment: .leading, spacing: InkSpacing.section) {
             InkScrolledMasthead(mastheadBlock(presented, todayInstant: todayInstant))
 
@@ -747,7 +816,7 @@ struct DayView: View {
             if usesWideMasthead {
                 // iPad drawing: bare icons, the day's graph, settings, then search.
                 Group {
-                    dayGraphAction
+                    dayGraphAction(alwaysShown: isToday)
                     settingsAction
                     SearchButton()
                 }
@@ -926,14 +995,20 @@ struct DayView: View {
         .accessibilityIdentifier("button.dayMonthPicker")
     }
 
-    @ViewBuilder private var dayGraphAction: some View {
-        if let dayGraph, dayGraph.date == date, dayGraph.isOffered {
+    @ViewBuilder private var dayGraphAction: some View { dayGraphAction(alwaysShown: false) }
+
+    /// The manşet's Graph icon, while the day links an entity. `alwaysShown` (the iPad Today
+    /// manşet, drawing `c-pad`) keeps the icon in its place and dims it until there is a graph.
+    @ViewBuilder private func dayGraphAction(alwaysShown: Bool) -> some View {
+        let isOffered = dayGraph.map { $0.date == date && $0.isOffered } ?? false
+        if isOffered || alwaysShown {
             InkHeaderAction(
                 "Günün grafiği", systemImage: "point.3.connected.trianglepath.dotted",
                 identifier: "button.dayGraph"
             ) {
                 showsDayGraph = true
             }
+            .disabled(!isOffered)
         }
     }
 
@@ -950,45 +1025,106 @@ struct DayView: View {
     private func pastDayHeaderBlock(_ presented: TodayPresentation, todayInstant: Date) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             #if os(macOS)
-                // Mac: the page's heading shares the pinned row with the icons; the month picker
-                // sits under it.
+                // Mac (drawing `j-mac2`): "17 Eylül Perşembe" and its counts, the icons beside them.
                 HStack(alignment: .top, spacing: 8) {
-                    VStack(alignment: .leading, spacing: 0) {
-                        pastDayTitle(presented)
-                        monthPickerButton
-                    }
+                    wideDayTitleBlock(presented)
                     Spacer(minLength: 8)
                     dayGraphAction
                     SearchButton()
                 }
-                weekStrip(todayInstant: todayInstant)
-                    .frame(maxWidth: .infinity)
-                pastDayCountsText(presented)
             #else
-                // iPhone and iPad (the drawing): one navigation row with the back chip, the
-                // month picker in the middle and the icons; then the week strip and the day's
-                // full date with its counts on the trailing side. In the tab shell the row hides
-                // the system bar (InkNavigationRow).
-                InkNavigationRow(backShowsTitle: false) {
-                    monthPickerButton
-                } actions: {
-                    dayGraphAction
-                    SearchButton()
-                }
-                weekStrip(todayInstant: todayInstant)
-                    .frame(maxWidth: .infinity)
-                ViewThatFits(in: .horizontal) {
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        pastDayTitle(presented)
-                        Spacer(minLength: 8)
-                        pastDayCountsText(presented)
+                if usesProgramLayout {
+                    // iPad: the navigation row keeps the back chip and the icons; the column
+                    // beside the page holds the calendar, so no month picker or week strip.
+                    InkNavigationRow(backShowsTitle: false) {
+                        EmptyView()
+                    } actions: {
+                        dayGraphAction
+                        SearchButton()
                     }
-                    VStack(alignment: .leading, spacing: 2) {
-                        pastDayTitle(presented)
-                        pastDayCountsText(presented)
-                    }
+                    wideDayTitleBlock(presented)
+                } else {
+                    compactPastDayHeader(presented, todayInstant: todayInstant)
                 }
             #endif
+        }
+    }
+
+    /// "17 Eylül" with the weekday in secondary ink, then "3 olay · 2 görev · 2 hedef kaydı" with
+    /// its numbers in the text colour (drawing `j-mac2`).
+    private func wideDayTitleBlock(_ presented: TodayPresentation) -> some View {
+        let resolved = PresentationLocalization.resolvedLocale(locale)
+        let instant = LocalDay.instant(for: date, timeZone: calendarValue.timeZone)
+        var style = Date.FormatStyle(locale: resolved, calendar: calendarValue, timeZone: calendarValue.timeZone)
+            .day().month(.wide)
+        if date.year != LocalDay.today(at: clockNow()).year { style = style.year() }
+        let weekday = Date.FormatStyle(locale: resolved, calendar: calendarValue, timeZone: calendarValue.timeZone)
+            .weekday(.wide)
+        let title = Text(
+            "\(Text(verbatim: instant.formatted(style)).foregroundStyle(Color.ink.text)) \(Text(verbatim: instant.formatted(weekday)).foregroundStyle(Color.ink.secondaryText))"
+        )
+        return VStack(alignment: .leading, spacing: 4) {
+            title
+                .font(.ink.subpageTitle)
+                .accessibilityAddTraits(.isHeader)
+            if let counts = wideDayCounts(presented) {
+                counts
+                    .font(.ink.pageByline)
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .lineLimit(2)
+            }
+        }
+    }
+
+    /// The goals with a record on this day (the drawing's "2 hedef kaydı").
+    private var goalRecordCount: Int {
+        let model = goalModels.model(store: store, day: date)
+        return model.goals.filter { model.value(for: $0) != nil }.count
+    }
+
+    private func wideDayCounts(_ presented: TodayPresentation) -> Text? {
+        guard day != nil else { return nil }
+        let tasks = tasksModel.rows?.count ?? 0
+        let goals = goalRecordCount
+        guard presented.eventCount > 0 || tasks > 0 || goals > 0 else { return nil }
+        let events = Self.countNumber(presented.eventCount, locale: locale)
+        let taskText = Self.countNumber(tasks, locale: locale)
+        if goals > 0 {
+            let goalText = Self.countNumber(goals, locale: locale)
+            return Text("\(events) olay · \(taskText) görev · \(goalText) hedef kaydı")
+        }
+        return Text("\(events) olay · \(taskText) görev")
+    }
+
+    /// A count in a künye: semibold in the text colour, the words stay secondary.
+    static func countNumber(_ value: Int, locale: Locale) -> Text {
+        Text(verbatim: value.formatted(.number.locale(locale))).fontWeight(.semibold).foregroundStyle(Color.ink.text)
+    }
+
+    /// iPhone (drawing): one navigation row with the back chip, the month picker in the middle
+    /// and the icons; then the week strip and the day's full date with its counts on the
+    /// trailing side. In the tab shell the row hides the system bar (InkNavigationRow).
+    private func compactPastDayHeader(_ presented: TodayPresentation, todayInstant: Date) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            InkNavigationRow(backShowsTitle: false) {
+                monthPickerButton
+            } actions: {
+                dayGraphAction
+                SearchButton()
+            }
+            weekStrip(todayInstant: todayInstant)
+                .frame(maxWidth: .infinity)
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    pastDayTitle(presented)
+                    Spacer(minLength: 8)
+                    pastDayCountsText(presented)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    pastDayTitle(presented)
+                    pastDayCountsText(presented)
+                }
+            }
         }
     }
 
@@ -1034,6 +1170,232 @@ struct DayView: View {
                 scheduleTaskCard(
                     entryID: entry.id, task: task, time: time, isSelected: isSelected,
                     entitiesByID: entitiesByID)
+            }
+        }
+    }
+
+    /// The wide past day's one "Program" card (drawing `j-mac2`): a small title with the counts,
+    /// then every entry in time order, untimed ones last with "—" in the time column.
+    private func programCard(
+        _ schedule: DaySchedulePresentation, presented: TodayPresentation,
+        entitiesByID: [String: EntitySummary]
+    ) -> some View {
+        let tasks = schedule.allOrdered.filter { if case .task = $0.kind { true } else { false } }.count
+        let events = schedule.allOrdered.count - tasks
+        return InkCard {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text("Program")
+                    .font(.ink.meta.weight(.semibold))
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .accessibilityAddTraits(.isHeader)
+                    // A section title, as ``SectionHeader``'s: not a page manşet.
+                    .accessibilityIdentifier(SectionHeader.titleIdentifier)
+                Spacer(minLength: 8)
+                Text(
+                    "\(Self.countNumber(events, locale: locale)) olay · \(Self.countNumber(tasks, locale: locale)) görev"
+                )
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.secondaryText)
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(schedule.allOrdered) { entry in
+                    programRow(entry: entry, entitiesByID: entitiesByID)
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("day.program")
+    }
+
+    @ViewBuilder
+    private func programRow(entry: DayScheduleEntry, entitiesByID: [String: EntitySummary]) -> some View {
+        let isSelected = selectedScheduleItemID == entry.id
+        let time = entry.time.map { EventTimeFormat.string(for: $0, locale: locale) }
+        HStack(alignment: .top, spacing: 10) {
+            Text(verbatim: time ?? "—")
+                .font(.ink.meta)
+                .monospacedDigit()
+                .foregroundStyle(Color.ink.secondaryText)
+                .frame(width: 44, alignment: .trailing)
+                .padding(.top, 12)
+                .accessibilityHidden(true)
+            switch entry.kind {
+            case .event(let event):
+                programEventCard(
+                    entryID: entry.id, event: event, time: time, isSelected: isSelected,
+                    entitiesByID: entitiesByID)
+            case .task(let task):
+                programTaskCard(
+                    entryID: entry.id, task: task, time: time, isSelected: isSelected,
+                    entitiesByID: entitiesByID)
+            }
+        }
+    }
+
+    /// "Olay" / "Görev": the program card's small outlined kind label.
+    private func programKind(_ key: LocalizedStringKey) -> some View {
+        Text(key)
+            .font(.caption)
+            .foregroundStyle(Color.ink.secondaryText)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 2)
+            .overlay(Capsule().stroke(Color.ink.line, lineWidth: 1))
+            .fixedSize()
+            .accessibilityHidden(true)
+    }
+
+    /// "1 kişi · 1 konum": the people and places an event links, as the drawing's meta line.
+    private func programEventMeta(_ segments: [InkLinkSegment], subLineCount: Int, isSelected: Bool) -> String? {
+        let bundle = PresentationLocalization.bundle(locale)
+        let people = Set(segments.filter { $0.kind == .person }.map { $0.target ?? $0.text }).count
+        let places = Set(segments.filter { $0.kind == .place }.map { $0.target ?? $0.text }).count
+        var parts: [String] = []
+        if people > 0 { parts.append(String(localized: "\(people) kişi", bundle: bundle, locale: locale)) }
+        if places > 0 { parts.append(String(localized: "\(places) konum", bundle: bundle, locale: locale)) }
+        if !isSelected, subLineCount > 0 {
+            parts.append(String(localized: "\(subLineCount) alt satır", bundle: bundle, locale: locale))
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    /// The bar's colour: a person's link wins, then a place's; an unlinked event stays neutral.
+    private static func programBar(_ segments: [InkLinkSegment]) -> Color {
+        if segments.contains(where: { $0.kind == .person }) { return Color.ink.person }
+        if segments.contains(where: { $0.kind == .place }) { return Color.ink.place }
+        return Color.ink.control
+    }
+
+    @ViewBuilder
+    private func programEventCard(
+        entryID: String, event: EventRow, time: String?, isSelected: Bool,
+        entitiesByID: [String: EntitySummary]
+    ) -> some View {
+        let segments = InkLinkMapping.segments(from: event.text, entitiesByID: entitiesByID)
+        let allLines = DaySchedulePresentation.splitSegmentsByLine(segments)
+        let firstSegments = allLines.first ?? []
+        let subLines = Array(allLines.dropFirst())
+        let meta = programEventMeta(segments, subLineCount: subLines.count, isSelected: isSelected)
+        let kind = PresentationLocalization.string(localized: "Olay", locale: locale)
+        let edit = { editingScheduleEvent = EventEditorModel(store: store, day: date, row: event) }
+
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 3) {
+                InkLinkedText(
+                    segments: firstSegments, font: .ink.content,
+                    openURL: { openScheduleLink($0) }
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
+                if let meta {
+                    Text(verbatim: meta)
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                }
+                if isSelected, !subLines.isEmpty {
+                    ForEach(Array(subLines.enumerated()), id: \.offset) { _, subSegments in
+                        InkLinkedText(
+                            segments: subSegments, font: .ink.contentSmall,
+                            isMuted: true, openURL: { openScheduleLink($0) })
+                    }
+                    .padding(.top, 2)
+                }
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(
+                Text(verbatim: Self.scheduleSpokenLabel(time: time, text: firstSegments.map(\.text).joined()))
+            )
+            .accessibilityValue(
+                Text(
+                    verbatim: ([kind] + [meta].compactMap { $0 }
+                        + (isSelected ? subLines.map { $0.map(\.text).joined() } : []))
+                        .joined(separator: ", "))
+            )
+            .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+            .accessibilityAction { tapScheduleCard(entryID, edit: edit) }
+            .accessibilityAction(named: Text("Metni düzenle"), edit)
+            .accessibilityAction(named: Text("Sil")) { deletingScheduleEvent = event }
+
+            programKind("Olay")
+        }
+        .modifier(
+            ProgramRowChrome(
+                bar: Self.programBar(segments), isSelected: isSelected, isFinished: false,
+                hairline: InkStroke.hairline(scale: displayScale))
+        )
+        .onTapGesture { tapScheduleCard(entryID, edit: edit) }
+        .contextMenu {
+            Button(action: edit) {
+                Label("Metni düzenle", systemImage: "pencil")
+            }
+            Button(role: .destructive) {
+                deletingScheduleEvent = event
+            } label: {
+                Label("Sil", systemImage: "trash")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func programTaskCard(
+        entryID: String, task: TaskRow, time: String?, isSelected: Bool,
+        entitiesByID: [String: EntitySummary]
+    ) -> some View {
+        let box = TaskBoxPresentation(row: task, isCompleted: tasksModel.completed.contains(task.id))
+        let isCompleted = box.state.isCompleted
+        let segments = scheduleTaskSegments(for: task, isTimed: time != nil, entitiesByID: entitiesByID)
+        let canToggle =
+            !isCompleted && !tasksModel.completing.contains(task.id) && !store.isWriting && store.canAddEvent
+        let meta = scheduleTaskMeta(for: task, isCompleted: isCompleted)
+        let dates = isSelected ? scheduleTaskDates(task) : nil
+        let edit = { editingScheduleTask = TaskEditorModel(store: store, row: task) }
+
+        HStack(alignment: .center, spacing: 12) {
+            TaskBox(
+                state: box.state,
+                action: canToggle ? { Task { await tasksModel.complete(task) } } : nil,
+                accessibilityLabel: isCompleted ? "Tamamlandı" : "Görevi tamamla"
+            )
+
+            VStack(alignment: .leading, spacing: 3) {
+                InkLinkedText(
+                    segments: segments, font: .ink.content, isMuted: isCompleted,
+                    openURL: { openScheduleLink($0) }
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
+                Text(verbatim: meta)
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+                if let dates {
+                    Text(verbatim: dates)
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                }
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(
+                Text(verbatim: Self.scheduleSpokenLabel(time: time, text: segments.map(\.text).joined()))
+            )
+            .accessibilityValue(Text(verbatim: [meta, dates].compactMap { $0 }.joined(separator: ", ")))
+            .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+            .accessibilityAction { tapScheduleCard(entryID, edit: edit) }
+            .accessibilityAction(named: Text("Metni düzenle"), edit)
+            .accessibilityAction(named: Text("Sil")) { deletingScheduleTask = task }
+
+            programKind("Görev")
+        }
+        .modifier(
+            ProgramRowChrome(
+                bar: isCompleted ? Color.ink.tertiaryText : Color.ink.accent, isSelected: isSelected,
+                isFinished: isCompleted, hairline: InkStroke.hairline(scale: displayScale))
+        )
+        .onTapGesture { tapScheduleCard(entryID, edit: edit) }
+        .contextMenu {
+            Button(action: edit) {
+                Label("Metni düzenle", systemImage: "pencil")
+            }
+            Button(role: .destructive) {
+                deletingScheduleTask = task
+            } label: {
+                Label("Sil", systemImage: "trash")
             }
         }
     }
@@ -1319,10 +1681,11 @@ struct DayView: View {
                     isToday: true, presentation: presented, hasJournal: CloseDayEntry.hasJournal(day))
             else { return nil }
             let count = presented.closeDayTaskCount
+            let title = PresentationLocalization.string(localized: "Günü kapat", locale: locale)
             if count > 0 {
-                return String(localized: "Günü kapat") + " · " + String(localized: "\(count) görev")
+                return title + " · " + PresentationLocalization.string(localized: "\(count) görev", locale: locale)
             }
-            return String(localized: "Günü kapat")
+            return title
         }
     #endif
 
@@ -1613,6 +1976,43 @@ private struct ScheduleCardChrome: ViewModifier {
             .overlay {
                 RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
                     .stroke(isSelected ? Color.ink.accent : Color.ink.rule, lineWidth: hairline)
+            }
+            .contentShape(Rectangle())
+    }
+}
+
+/// A "Program" row's frame (drawing `j-mac2`): a well with a hairline and a 4 pt coloured bar on
+/// the leading edge; a finished task is dashed on the paper; the selected row takes the accent.
+private struct ProgramRowChrome: ViewModifier {
+    let bar: Color
+    let isSelected: Bool
+    let isFinished: Bool
+    let hairline: CGFloat
+
+    func body(content: Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: InkCorner.xs, style: .continuous)
+        content
+            .padding(.vertical, 10)
+            .padding(.leading, 22)
+            .padding(.trailing, 14)
+            .frame(maxWidth: .infinity, minHeight: TapTarget.minimumLength, alignment: .leading)
+            .background {
+                shape.fill(isSelected ? Color.ink.accentSoft : (isFinished ? Color.clear : Color.ink.well))
+            }
+            .overlay {
+                if isFinished && !isSelected {
+                    shape.stroke(Color.ink.line, style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
+                } else {
+                    shape.stroke(isSelected ? Color.ink.accent : Color.ink.rule, lineWidth: hairline)
+                }
+            }
+            .overlay(alignment: .leading) {
+                Capsule()
+                    .fill(bar)
+                    .frame(width: 4)
+                    .padding(.vertical, 10)
+                    .padding(.leading, 8)
+                    .accessibilityHidden(true)
             }
             .contentShape(Rectangle())
     }

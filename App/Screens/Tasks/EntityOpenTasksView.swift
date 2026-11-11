@@ -14,23 +14,31 @@ struct EntityOpenTasksView: View {
         _model = State(initialValue: TasksModel(store: store))
     }
 
+    @Environment(\.locale) private var locale
+
     var body: some View {
         if !rows.isEmpty || model.errorText != nil {
             Section {
-                SectionHeader(title: String(localized: "Açık işler"), count: rows.count)
-                    .inkListRow()
-                if let error = model.errorText {
-                    Text(verbatim: error).foregroundStyle(.ink.danger)
-                        .inkListRow()
+                SectionHeader(
+                    title: PresentationLocalization.string(localized: "Açık işler", locale: locale),
+                    count: rows.count
+                )
+                .inkListRow()
+                // One card with dividers, like the page's other sections (Şafak drawing, fark3 Y6).
+                InkCard(padded: true) {
+                    if let error = model.errorText {
+                        InfoBand(kind: .error, verbatim: error)
+                    }
+                    ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
+                        if index > 0 { InkCardDivider() }
+                        DayTaskView(
+                            store: store, row: row, isToday: true,
+                            isOverdue: row.due.map { $0 < model.day } ?? false,
+                            completed: false, isBusy: model.busy.contains(row.id)
+                        ) { Task { await model.toggle(row) } }
+                    }
                 }
-                ForEach(rows) { row in
-                    DayTaskView(
-                        store: store, row: row, isToday: true,
-                        isOverdue: row.due.map { $0 < model.day } ?? false,
-                        completed: false, isBusy: model.busy.contains(row.id)
-                    ) { Task { await model.toggle(row) } }
-                    .inkListRow()
-                }
+                .inkListRow()
             }
         }
     }

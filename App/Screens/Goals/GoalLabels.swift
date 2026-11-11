@@ -9,12 +9,17 @@ extension GoalPeriod {
         case .year: String(localized: "Yıllık")
         }
     }
-    var progressTitle: String {
-        switch self {
-        case .day: String(localized: "Bu gün")
-        case .week: String(localized: "Bu hafta")
-        case .year: String(localized: "Bu yıl")
-        }
+    var progressTitle: String { progressTitle(locale: .current) }
+
+    /// "Bu hafta" / "This week" in the given locale's language (the view's environment locale).
+    func progressTitle(locale: Locale) -> String {
+        let key: String.LocalizationValue =
+            switch self {
+            case .day: "Bu gün"
+            case .week: "Bu hafta"
+            case .year: "Bu yıl"
+            }
+        return PresentationLocalization.string(localized: key, locale: locale)
     }
 }
 extension GoalKind {
@@ -40,14 +45,16 @@ extension GoalDayMark {
 
 enum GoalScoreCopy {
     /// "Son 30 gün %87" / "Last 30 days 87%". `bundle` selects the language.
-    static func sentence(_ score: Int, bundle: Bundle = .main, locale: Locale = .current) -> String {
-        String(localized: "Son 30 gün \(score)", bundle: bundle, locale: locale)
+    static func sentence(_ score: Int, bundle: Bundle? = nil, locale: Locale = .current) -> String {
+        String(
+            localized: "Son 30 gün \(score)", bundle: bundle ?? PresentationLocalization.bundle(locale), locale: locale)
     }
 }
 
 struct GoalProgressLabel: View {
     let goal: GoalDefinition
     let status: GoalStatus
+    @Environment(\.locale) private var locale
     var body: some View {
         HStack(spacing: 6) {
             if goal.kind == .milestone {
@@ -56,7 +63,7 @@ struct GoalProgressLabel: View {
                     Text(LocalDay.instant(for: day), format: .dateTime.day().month().year())
                 }
             } else {
-                Text(verbatim: goal.period.progressTitle)
+                Text(verbatim: goal.period.progressTitle(locale: locale))
                 Text(verbatim: status.progress.done.formatted() + "/" + goal.target.formatted())
                     .font(.ink.value)
                     .monospacedDigit()
@@ -87,21 +94,24 @@ enum GoalRowPresentation {
 
     /// Meta under the name: streak and score for daily goals, period label for week/year.
     static func meta(
-        goal: GoalDefinition, status: GoalStatus, bundle: Bundle = .main, locale: Locale = .current
+        goal: GoalDefinition, status: GoalStatus, bundle: Bundle? = nil, locale: Locale = .current
     ) -> String? {
         if goal.kind == .milestone {
             if let day = status.completionDate {
                 return LocalDay.instant(for: day).formatted(.dateTime.day().month().year())
             }
-            return String(localized: "Yapılmadı", bundle: bundle, locale: locale)
+            return String(
+                localized: "Yapılmadı", bundle: bundle ?? PresentationLocalization.bundle(locale), locale: locale)
         }
         if goal.period == .day {
-            let streak = String(localized: "Güncel zincir: \(status.streak)", bundle: bundle, locale: locale)
+            let streak = String(
+                localized: "Güncel zincir: \(status.streak)", bundle: bundle ?? PresentationLocalization.bundle(locale),
+                locale: locale)
             guard let score = status.score else { return streak }
             // Own line so the percent does not wrap off "Son 30 gün" in a narrow row.
             return streak + "\n" + GoalScoreCopy.sentence(score, bundle: bundle, locale: locale)
         }
-        return goal.period.progressTitle
+        return goal.period.progressTitle(locale: locale)
     }
 
     /// The chain-day badge after a daily goal's streak (decision 67); nil with no balance and on

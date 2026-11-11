@@ -61,6 +61,18 @@ import Testing
         #expect(InkLabeledMenuChrome.minimumCount == InkTabsChrome.maximumCount + 1)
     }
 
+    /// fark3 P25: the gap lives inside each word's target, half on each inner side, so a short
+    /// middle word ("Ay") whose 44 pt target is wider than the word spreads the extra evenly.
+    @Test func tabGapSplitsBetweenNeighbours() {
+        let half = InkTabsChrome.pageSpacing / 2
+        #expect(InkTabsChrome.gapPadding(index: 0, count: 3) == (leading: 0, trailing: half))
+        #expect(InkTabsChrome.gapPadding(index: 1, count: 3) == (leading: half, trailing: half))
+        #expect(InkTabsChrome.gapPadding(index: 2, count: 3) == (leading: half, trailing: 0))
+        #expect(InkTabsChrome.wordAlignment(index: 0, count: 3) == .bottomLeading)
+        #expect(InkTabsChrome.wordAlignment(index: 1, count: 3) == .bottom)
+        #expect(InkTabsChrome.wordAlignment(index: 2, count: 3) == .bottomLeading)
+    }
+
     @Test func tabWordColorsFollowSelection() {
         #expect(InkTabsChrome.token(isSelected: true) == .text)
         #expect(InkTabsChrome.token(isSelected: false) == .secondaryText)

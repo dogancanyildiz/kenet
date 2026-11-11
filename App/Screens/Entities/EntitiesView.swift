@@ -39,7 +39,10 @@ struct EntitiesView: View {
 
     var body: some View {
         List {
-            InkPageTitleRow(verbatim: String(localized: "Kişiler ve Konumlar"), fitsOneLine: true) {
+            InkPageTitleRow(
+                verbatim: PresentationLocalization.string(localized: "Kişiler ve Konumlar", locale: locale),
+                fitsOneLine: true
+            ) {
                 EntitySortMenu(order: $order)
                 SearchButton()
             }
@@ -61,11 +64,15 @@ struct EntitiesView: View {
                     let peopleCount = store.content.entities.filter { $0.kind == "person" }.count
                     let placeCount = store.content.entities.filter { $0.kind == "place" }.count
                     pageCard(
-                        "Graph", detail: String(localized: "\(peopleCount) kişi · \(placeCount) konum", locale: locale),
+                        "Graph",
+                        detail: PresentationLocalization.string(
+                            localized: "\(peopleCount) kişi · \(placeCount) konum", locale: locale),
                         systemImage: "point.3.connected.trianglepath.dotted", page: .graph
                     )
                     pageCard(
-                        "Harita", detail: String(localized: "\(store.mapPlaces.count) konum", locale: locale),
+                        "Harita",
+                        detail: PresentationLocalization.string(
+                            localized: "\(store.mapPlaces.count) konum", locale: locale),
                         systemImage: "map", page: .map
                     )
                 }
@@ -296,7 +303,15 @@ struct EntityRow: View {
 
     /// The split shell's Kişiler column (Mac and iPad drawing): "son 3 gün önce" under the name
     /// and the 12-month day count on the right instead of the mini bar.
-    private var isColumn: Bool { shellKind == .split }
+    /// The Mac has no tab shell: its list is always a column, also where a host (a reference
+    /// render, a sheet) has not set the shell's environment.
+    private var isColumn: Bool {
+        #if os(macOS)
+            true
+        #else
+            shellKind == .split
+        #endif
+    }
 
     /// "iş · Son görüşme 3 gün önce · 9 bağ": the qualifier joins the meta line. In the column:
     /// "iş · son 3 gün önce".

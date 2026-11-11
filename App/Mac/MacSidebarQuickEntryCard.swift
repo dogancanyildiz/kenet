@@ -5,6 +5,7 @@ import SwiftUI
     /// Tapping opens the quick-entry panel (`MacQuickEntryController`).
     struct MacSidebarQuickEntryCard: View {
         @Environment(\.macQuickEntry) private var quickEntry
+        @Environment(\.locale) private var locale
 
         var body: some View {
             Button {
@@ -46,7 +47,16 @@ import SwiftUI
 
         private var shortcutCaption: String {
             let display = quickEntry?.shortcutDisplay ?? HotKeyShortcut.defaultShortcut.display
-            return String(localized: "\(display) ile her uygulamadan")
+            return Self.caption(display: display, locale: locale)
+        }
+
+        /// "⌃⌥Space ile her uygulamadan" in the view's language: `String(localized:)` alone
+        /// reads the process language, not `\.locale` (fark3 Y8).
+        static func caption(display: String, locale: Locale) -> String {
+            String(
+                localized: "\(display) ile her uygulamadan",
+                bundle: PresentationLocalization.bundle(locale),
+                locale: PresentationLocalization.resolvedLocale(locale))
         }
     }
 

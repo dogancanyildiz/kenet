@@ -19,6 +19,7 @@ struct UnseenPeopleSection: View {
     @Environment(IntentNavigation.self) private var navigation
     @Environment(\.clockNow) private var clockNow
     @Environment(\.displayScale) private var displayScale
+    @Environment(\.locale) private var locale
     @State private var expanded: Bool
 
     init(
@@ -55,7 +56,7 @@ struct UnseenPeopleSection: View {
             expanded.toggle()
         } label: {
             SectionHeader(
-                title: String(localized: "Bir süredir görüşmediklerin"),
+                title: PresentationLocalization.string(localized: "Bir süredir görüşmediklerin", locale: locale),
                 isExpanded: expanded
             )
             .frame(minHeight: TapTarget.minimumLength, alignment: .top)

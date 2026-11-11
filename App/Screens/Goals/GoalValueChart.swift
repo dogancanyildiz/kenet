@@ -43,11 +43,13 @@ struct GoalValueChart: View {
         ([0, top].filter { domain > 0 && abs($0 - target) / domain >= gap } + [target]).sorted()
     }
 
-    static func title(for goal: GoalDefinition, isAccessibilitySize: Bool) -> String {
+    static func title(for goal: GoalDefinition, isAccessibilitySize: Bool, locale: Locale = .current) -> String {
         switch goal.period {
-        case .day: String(localized: "Son \(span(isAccessibilitySize: isAccessibilitySize)) gün")
-        case .week: String(localized: "Son 12 hafta")
-        case .year: String(localized: "Son 12 ay")
+        case .day:
+            PresentationLocalization.string(
+                localized: "Son \(span(isAccessibilitySize: isAccessibilitySize)) gün", locale: locale)
+        case .week: PresentationLocalization.string(localized: "Son 12 hafta", locale: locale)
+        case .year: PresentationLocalization.string(localized: "Son 12 ay", locale: locale)
         }
     }
 
@@ -84,14 +86,15 @@ struct GoalValueChart: View {
                     .frame(height: chartHeight)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(
-                        String(
+                        PresentationLocalization.string(
                             localized:
-                                "Son \(series.span) gün: ortalama \(amount(average)), \(series.metCount) gün hedefin üstünde, en yüksek \(amount(peak.value)) \(dayText(peak.day))"
-                        ))
+                                "Son \(series.span) gün: ortalama \(amount(average)), \(series.metCount) gün hedefin üstünde, en yüksek \(amount(peak.value)) \(dayText(peak.day))",
+                            locale: locale))
                 if title == nil {
                     Text(
-                        String(
-                            localized: "Ortalama \(amount(average)) · \(series.metCount) günde hedefin üstünde")
+                        PresentationLocalization.string(
+                            localized: "Ortalama \(amount(average)) · \(series.metCount) günde hedefin üstünde",
+                            locale: locale)
                     )
                     .font(.ink.meta.monospacedDigit())
                     .foregroundStyle(Color.ink.secondaryText)
@@ -220,7 +223,9 @@ struct GoalValueChart: View {
                     if let number = value.as(Double.self) {
                         Text(
                             number == series.target
-                                ? String(localized: "hedef \(number.formatted(Self.axisNumber.locale(locale)))")
+                                ? PresentationLocalization.string(
+                                    localized: "hedef \(number.formatted(Self.axisNumber.locale(locale)))",
+                                    locale: locale)
                                 : number.formatted(Self.axisNumber.locale(locale))
                         )
                         .font(.ink.meta.monospacedDigit())
@@ -242,10 +247,10 @@ struct GoalValueChart: View {
                 .frame(height: chartHeight)
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(
-                    String(
+                    PresentationLocalization.string(
                         localized:
-                            "\(Self.title(for: goal, isAccessibilitySize: typeSize.isAccessibilitySize)): toplam \(amount(totals.total)), en yüksek \(amount(peak?.total ?? 0)) \(peak.map { bucketText($0.start, unit: totals.unit) } ?? "")"
-                    ))
+                            "\(Self.title(for: goal, isAccessibilitySize: typeSize.isAccessibilitySize, locale: locale)): toplam \(amount(totals.total)), en yüksek \(amount(peak?.total ?? 0)) \(peak.map { bucketText($0.start, unit: totals.unit) } ?? "")",
+                        locale: locale))
             if title == nil {
                 Text(totalText(totals))
                     .font(.ink.meta.monospacedDigit())
@@ -257,8 +262,10 @@ struct GoalValueChart: View {
 
     private func totalText(_ totals: GoalPeriodTotals) -> String {
         switch totals.unit {
-        case .week: String(localized: "Son 12 haftada toplam \(amount(totals.total))")
-        case .month: String(localized: "Son 12 ayda toplam \(amount(totals.total))")
+        case .week:
+            PresentationLocalization.string(localized: "Son 12 haftada toplam \(amount(totals.total))", locale: locale)
+        case .month:
+            PresentationLocalization.string(localized: "Son 12 ayda toplam \(amount(totals.total))", locale: locale)
         }
     }
 
@@ -324,8 +331,8 @@ struct GoalValueChart: View {
     private func paceText(_ totals: GoalPeriodTotals) -> String {
         let value = totals.pace.formatted(Self.axisNumber.locale(locale))
         return switch totals.unit {
-        case .week: String(localized: "hedef \(value)")
-        case .month: String(localized: "ayda \(value)")
+        case .week: PresentationLocalization.string(localized: "hedef \(value)", locale: locale)
+        case .month: PresentationLocalization.string(localized: "ayda \(value)", locale: locale)
         }
     }
 

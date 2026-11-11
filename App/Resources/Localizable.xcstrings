@@ -451,6 +451,38 @@
         }
       }
     },
+    "%@ olay · %@ görev" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ events · %2$@ tasks"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ olay · %2$@ görev"
+          }
+        }
+      }
+    },
+    "%@ olay · %@ görev · %@ hedef kaydı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ events · %2$@ tasks · %3$@ goal records"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ olay · %2$@ görev · %3$@ hedef kaydı"
+          }
+        }
+      }
+    },
     "%@ silinsin mi? Gün kayıtları kalır." : {
       "localizations" : {
         "en" : {
@@ -2484,6 +2516,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld kaldı"
+          }
+        }
+      }
+    },
+    "%lld kişi" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld person"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld people"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld kişi"
           }
         }
       }
@@ -13289,6 +13349,22 @@
         }
       }
     },
+    "Program" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schedule"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Program"
+          }
+        }
+      }
+    },
     "Proje" : {
       "localizations" : {
         "en" : {
@@ -14657,6 +14733,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sıfır veya pozitif bir sayı gir."
+          }
+        }
+      }
+    },
+    "Sıklık" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frequency"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sıklık"
           }
         }
       }

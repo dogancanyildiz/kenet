@@ -144,7 +144,7 @@ struct SummariesView: View {
                     InkTabItem("Ay", value: SummaryPeriod.month, identifier: "tab.summaries.month"),
                     InkTabItem("Yıl", value: SummaryPeriod.year, identifier: "tab.summaries.year"),
                 ], identifier: "tabs.summaries.period",
-                accessibilityLabelPrefix: String(localized: "Dönem"))
+                accessibilityLabelPrefix: PresentationLocalization.string(localized: "Dönem", locale: locale))
             HStack(spacing: 4) {
                 Button {
                     model.previous()
@@ -305,7 +305,7 @@ struct SummariesView: View {
             let items = SummaryPresentation.rhythm(summary, locale: locale)
             InkCard {
                 VStack(alignment: .leading, spacing: 12) {
-                    SectionHeader(title: String(localized: "Ritim"))
+                    SectionHeader(title: PresentationLocalization.string(localized: "Ritim", locale: locale))
                     RhythmStrip(
                         items: items,
                         legend: SummaryPresentation.legend(summary.period, locale: locale)
@@ -458,12 +458,14 @@ struct SummariesView: View {
     private func names(_ summary: PeriodSummary) -> some View {
         if summary.counts.peopleMentions > 0 {
             SummaryEntitySection(
-                store: store, title: String(localized: "En çok görüşülen"), entities: summary.people,
+                store: store, title: PresentationLocalization.string(localized: "En çok görüşülen", locale: locale),
+                entities: summary.people,
                 mentions: summary.counts.peopleMentions, firsts: summary.firstPeople, kind: .person)
         }
         if summary.counts.placeMentions > 0 {
             SummaryEntitySection(
-                store: store, title: String(localized: "En çok gidilen"), entities: summary.places,
+                store: store, title: PresentationLocalization.string(localized: "En çok gidilen", locale: locale),
+                entities: summary.places,
                 mentions: summary.counts.placeMentions, firsts: summary.firstPlaces, kind: .place)
         }
     }

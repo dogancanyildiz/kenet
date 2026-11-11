@@ -178,6 +178,12 @@ extension AccessibilityAuditExemption {
             reason: "position-dependent: the swipe-scrolled page can stop with a section title on the"
                 + " viewport's lower edge (unlinkedMentions.light.png)",
             screens: ["unlinkedMentions"]),
+        // Its counter ("1 day") is `fixedSize` and drawn whole in the audit's own screenshot (PR #381
+        // run 42994956020); reported once on this swipe-scrolled page like the title above.
+        .init(
+            type: .textClipped, element: .identifier("sectionHeader.count"),
+            reason: "position-dependent like the section title; the counter is fixedSize and drawn whole",
+            screens: ["unlinkedMentions"]),
         // MARK: hitRegion
         .init(
             type: .hitRegion, element: .systemLabel(["Hide Sidebar", "Kenar Çubuğunu Gizle", "Kenar çubuğunu gizle"]),

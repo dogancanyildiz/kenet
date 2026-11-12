@@ -66,23 +66,26 @@ enum AppLaunchPolicy {
         return nil
     }
 
-    /// DEBUG-only folder name, under the app's caches, of the copy a UI test vault is opened
-    /// from. Each launch names its own copy, so a test reads the very files the app wrote.
-    static let uiTestVaultCopyKey = "JOURNAL_UITEST_VAULT_COPY"
-    static let uiTestVaultCopyDefaultName = "UITestVault"
+    #if DEBUG
+        /// Folder name, under the app's caches, of the copy a UI test vault is opened from. Only
+        /// DEBUG builds open a UI test vault (``uiTestVaultPath(environment:arguments:)``). Each
+        /// launch names its own copy, so a test reads the very files the app wrote.
+        static let uiTestVaultCopyKey = "JOURNAL_UITEST_VAULT_COPY"
+        static let uiTestVaultCopyDefaultName = "UITestVault"
 
-    /// The copy's folder name: the test's name when it is a plain `UITestVault-…` name (letters,
-    /// digits, `-`, `_`), else ``uiTestVaultCopyDefaultName``.
-    static func uiTestVaultCopyName(
-        environment: [String: String] = ProcessInfo.processInfo.environment
-    ) -> String {
-        guard let name = environment[uiTestVaultCopyKey], name.hasPrefix(uiTestVaultCopyDefaultName + "-"),
-            name.unicodeScalars.allSatisfy({
-                $0.isASCII && (CharacterSet.alphanumerics.contains($0) || "-_".unicodeScalars.contains($0))
-            })
-        else { return uiTestVaultCopyDefaultName }
-        return name
-    }
+        /// The copy's folder name: the test's name when it is a plain `UITestVault-…` name (letters,
+        /// digits, `-`, `_`), else ``uiTestVaultCopyDefaultName``.
+        static func uiTestVaultCopyName(
+            environment: [String: String] = ProcessInfo.processInfo.environment
+        ) -> String {
+            guard let name = environment[uiTestVaultCopyKey], name.hasPrefix(uiTestVaultCopyDefaultName + "-"),
+                name.unicodeScalars.allSatisfy({
+                    $0.isASCII && (CharacterSet.alphanumerics.contains($0) || "-_".unicodeScalars.contains($0))
+                })
+            else { return uiTestVaultCopyDefaultName }
+            return name
+        }
+    #endif
 
     static func allowsAutomaticStart(
         environment: [String: String] = ProcessInfo.processInfo.environment,

@@ -42,15 +42,8 @@ struct QuickEntryTaskControls: View {
             if model.mode == .task { dateButton }
         case .chips:
             if Self.hasChips(model) {
-                // A chip cut by the capsule's top row fades out instead of ending on a hard edge.
                 strip(includesDate: false)
-                    .mask {
-                        HStack(spacing: 0) {
-                            Color.black
-                            LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing)
-                                .frame(width: 16)
-                        }
-                    }
+                    .modifier(QuickEntryChipFade())
             }
         case .row:
             if model.mode == .task || Self.hasChips(model) {
@@ -278,5 +271,24 @@ private struct QuickEntryPill: ViewModifier {
             .background(Color.ink.well, in: Capsule())
             .padding(InkStroke.control)
             .background(stroke, in: Capsule())
+    }
+}
+
+/// The chip strip in the capsule's top row (``QuickEntryTaskControls/Part/chips``): a chip cut
+/// by the row's end fades out instead of ending on a hard edge. The strip's content ends one
+/// fade width early, so scrolled to its end the last chip is whole and unfaded.
+struct QuickEntryChipFade: ViewModifier {
+    static let width: CGFloat = 16
+
+    func body(content: Content) -> some View {
+        content
+            .contentMargins(.trailing, Self.width, for: .scrollContent)
+            .mask {
+                HStack(spacing: 0) {
+                    Color.black
+                    LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing)
+                        .frame(width: Self.width)
+                }
+            }
     }
 }

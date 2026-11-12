@@ -108,7 +108,8 @@ struct MentionAssistStrip: View {
                     let caret = composer.selectSuggestion(entity, at: insertionOffset)
                     onDidChangeText?(caret)
                 } label: {
-                    entityLabel(entity)
+                    // The suggestion list does not scroll sideways: a long name stays in the strip.
+                    MentionEntityLabel(entity: entity, fit: .wraps)
                         .tapTarget()
                 }
                 .buttonStyle(.plain)
@@ -181,7 +182,7 @@ struct MentionAssistStrip: View {
                             composer.choose(entity, for: mention)
                             onResolved?()
                         } label: {
-                            entityLabel(entity)
+                            MentionEntityLabel(entity: entity, fit: .oneLine)
                                 .modifier(CandidatePill())
                                 .tapTarget()
                         }
@@ -252,30 +253,6 @@ struct MentionAssistStrip: View {
         }
     }
 
-    /// One line: the name, then its qualifier in parentheses in the secondary color
-    /// ("Mert Aksu (iş)"), as the file is named.
-    private func entityLabel(_ entity: KnownEntity) -> some View {
-        HStack(spacing: 4) {
-            Text(verbatim: entity.name)
-                .foregroundStyle(entityColor(entity))
-            if let qualifier = entity.qualifier {
-                Text(verbatim: "(\(qualifier))")
-                    .foregroundStyle(Color.ink.secondaryText)
-            }
-        }
-        .font(.ink.meta)
-        .lineLimit(1)
-        .fixedSize()
-    }
-
-    private func entityColor(_ entity: KnownEntity) -> Color {
-        switch entity.kind {
-        case .person: Color.ink.person
-        case .place: Color.ink.place
-        default: Color.ink.text
-        }
-    }
-
     private func beginCreation(_ kind: VaultEntityKind) {
         let offset = insertionOffset
         Task { @MainActor in
@@ -325,5 +302,54 @@ private struct StripActionStyle: ButtonStyle {
             .fixedSize()
             .frame(minHeight: InkButtonChrome.minimumHeight)
             .contentShape(Rectangle())
+    }
+}
+
+/// The name, then its qualifier in parentheses in the secondary color ("Mert Aksu (iş)"), as the
+/// file is named.
+struct MentionEntityLabel: View {
+    enum Fit {
+        /// Its full width on one line: the candidate row scrolls sideways.
+        case oneLine
+        /// Held to the strip's width: cut with "…", wrapped at accessibility sizes.
+        case wraps
+    }
+
+    let entity: KnownEntity
+    let fit: Fit
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    var body: some View {
+        switch fit {
+        case .oneLine:
+            label.lineLimit(1).fixedSize()
+        case .wraps:
+            label
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+                .truncationMode(.tail)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var label: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 4) {
+            Text(verbatim: entity.name)
+                .foregroundStyle(color)
+                // The name keeps its room; the qualifier gives way first.
+                .layoutPriority(1)
+            if let qualifier = entity.qualifier {
+                Text(verbatim: "(\(qualifier))")
+                    .foregroundStyle(Color.ink.secondaryText)
+            }
+        }
+        .font(.ink.meta)
+    }
+
+    private var color: Color {
+        switch entity.kind {
+        case .person: Color.ink.person
+        case .place: Color.ink.place
+        default: Color.ink.text
+        }
     }
 }

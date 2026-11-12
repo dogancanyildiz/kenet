@@ -71,12 +71,15 @@ final class TasksRefreshUITests: XCTestCase {
         XCTAssertEqual(after, before + 1, "Görevler kept its count from before the quick entry task")
     }
 
-    /// The leading number of the künye ("14 açık · 11 devreden").
+    /// The leading number of the künye: the manşet element reads "Görevler, 14 açık · 11 devreden".
+    /// Found by its identifier, not by "açık": a task title can hold that word too.
     @MainActor
     private func openCount(in app: XCUIApplication) throws -> Int {
-        let byline = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", " açık")).firstMatch
-        UITestSupport.waitForExistence(byline, timeout: 15)
-        let digits = byline.label.drop { !$0.isNumber }.prefix { $0.isNumber }
-        return try XCTUnwrap(Int(digits), "no count in the künye: \(byline.label)")
+        let headline = UITestSupport.element(in: app, identifier: "tasks.headline")
+        UITestSupport.waitForExistence(headline, timeout: 15)
+        let label = headline.label
+        let afterTitle = label.firstIndex(of: ",").map { label[$0...] } ?? label[...]
+        let digits = afterTitle.drop { !$0.isNumber }.prefix { $0.isNumber }
+        return try XCTUnwrap(Int(digits), "no count in the künye: \(label)")
     }
 }

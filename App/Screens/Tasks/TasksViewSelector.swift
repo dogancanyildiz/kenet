@@ -76,6 +76,9 @@ enum TasksViewSelector {
 /// board. `actions` are view icons placed left of filter; search stays rightmost. `menu` is
 /// the second layer of the selector and whatever shares its row.
 struct TasksPageTop<Actions: View, MenuRow: View>: View {
+    /// The manşet and its künye, as one accessibility element.
+    static var headlineIdentifier: String { "tasks.headline" }
+
     let tasks: TasksModel
     let current: TasksViewState.Mode
     /// Künye of the view; `nil` gives the open and carried-over counts (Liste, Kanban).
@@ -124,6 +127,7 @@ struct TasksPageTop<Actions: View, MenuRow: View>: View {
             SearchButton()
         }
         .byline(byline ?? countsByline)
+        .headlineIdentifier(Self.headlineIdentifier)
         if let titleAccessory {
             header.titleAccessory(titleAccessory)
         } else {

@@ -46,7 +46,13 @@ struct MentionAssistStrip: View {
                 interactiveContent
                     .disabled(composer.isCreating || !isEnabled)
                 if let error = composer.errorText {
-                    InfoBand(kind: .error, verbatim: error)
+                    // Plain text, not a band: the strip is already a card (no box inside a box),
+                    // as the editors show their own errors.
+                    Text(verbatim: error)
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.danger)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.updatesFrequently)
                 }
                 if let notice = composer.creationNotice {
                     creationNoticeRow(notice)

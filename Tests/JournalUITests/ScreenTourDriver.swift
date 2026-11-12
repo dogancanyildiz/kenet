@@ -633,7 +633,10 @@ final class ScreenTourDriver {
         guard let enumerator = manager.enumerator(at: fixture, includingPropertiesForKeys: nil) else { return [] }
         // The app works on its own copy (`UITestSupport.appVault`); each relaunch copies afresh,
         // so the check covers the last launch.
-        let used = copy ?? UITestSupport.appVault(for: vaultURL) ?? vaultURL
+        // No copy found: say so instead of comparing the source with itself and passing.
+        guard let used = copy ?? UITestSupport.appVault(for: vaultURL) else {
+            return ["(uygulamanın kasa kopyası bulunamadı)"]
+        }
         var changed: [String] = []
         for case let file as URL in enumerator where file.pathExtension == "md" {
             let relative = String(file.path.dropFirst(fixture.path.count + 1))

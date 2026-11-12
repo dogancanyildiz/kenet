@@ -6001,7 +6001,7 @@
         }
       }
     },
-    "Bu haftadan %lld görev açık kaldı" : {
+    "İncelenen haftadan %lld görev açık kaldı" : {
       "localizations" : {
         "en" : {
           "variations" : {
@@ -6009,13 +6009,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%lld task left open from this week"
+                  "value" : "%lld task left open from the reviewed week"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%lld tasks left open from this week"
+                  "value" : "%lld tasks left open from the reviewed week"
                 }
               }
             }
@@ -6027,13 +6027,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Bu haftadan %lld görev açık kaldı"
+                  "value" : "İncelenen haftadan %lld görev açık kaldı"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Bu haftadan %lld görev açık kaldı"
+                  "value" : "İncelenen haftadan %lld görev açık kaldı"
                 }
               }
             }
@@ -6041,18 +6041,18 @@
         }
       }
     },
-    "Bu haftadan açık görev kalmadı." : {
+    "İncelenen haftadan açık görev kalmadı." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No open tasks left from this week."
+            "value" : "No open tasks left from the reviewed week."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bu haftadan açık görev kalmadı."
+            "value" : "İncelenen haftadan açık görev kalmadı."
           }
         }
       }

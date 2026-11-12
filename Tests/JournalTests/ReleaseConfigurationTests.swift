@@ -156,6 +156,40 @@ struct ReleaseConfigurationTests {
     /// A required reason API that appears in the sources without a declaration gets the upload
     /// rejected; one declared without use is noise. Both directions fail here.
     @Test func privacyManifestMatchesRequiredReasonAPIsInSources() throws {
+        let used = try Self.requiredReasonCategories(in: ["App", "Packages/Core/Sources"])
+        let declared = try Self.declaredReasons(Self.plist("App/Resources/PrivacyInfo.xcprivacy")).keys
+        #expect(used == Set(declared))
+    }
+
+    /// Each extension binary ships its own manifest (ITMS-91053 scans every bundle). The source
+    /// lists mirror the targets' `sources` and Core products in `project.yml`. Extensions only
+    /// touch the App Group and the iCloud container, never a user-picked folder: C617.1 only.
+    @Test func extensionPrivacyManifestsMatchTheirSources() throws {
+        let core = ["VaultFormat", "VaultIndex", "VaultStore", "GoalTracking"].map { "Packages/Core/Sources/\($0)" }
+        let common = ["App/Support/AppIdentifiers.swift", "App/Services/SystemFileCoordination.swift"]
+        let extensions: [(manifest: String, sources: [String])] = [
+            ("Widgets/Support/PrivacyInfo.xcprivacy", ["Widgets"] + common + core),
+            (
+                "ShareExtension/Support/PrivacyInfo.xcprivacy",
+                ["ShareExtension", "Shared", "App/Model/LocalDay.swift"]
+                    + ["InkColors", "InkFonts", "InkMetrics", "Components/InkButtonChrome"].map {
+                        "App/Design/\($0).swift"
+                    }
+                    + common
+                    + core.filter { !$0.hasSuffix("GoalTracking") }
+            ),
+        ]
+        for item in extensions {
+            let manifest = try Self.plist(item.manifest)
+            #expect(manifest["NSPrivacyTracking"] as? Bool == false, "\(item.manifest)")
+            #expect((manifest["NSPrivacyCollectedDataTypes"] as? [Any])?.isEmpty == true, "\(item.manifest)")
+            let declared = try Self.declaredReasons(manifest)
+            #expect(Set(declared.keys) == (try Self.requiredReasonCategories(in: item.sources)), "\(item.manifest)")
+            #expect(declared.values.allSatisfy { $0 == ["C617.1"] }, "\(item.manifest)")
+        }
+    }
+
+    private static func requiredReasonCategories(in roots: [String]) throws -> Set<String> {
         let patterns: [String: String] = [
             "NSPrivacyAccessedAPICategoryUserDefaults": #"\bUserDefaults\b|@AppStorage\b"#,
             "NSPrivacyAccessedAPICategoryFileTimestamp":
@@ -166,12 +200,10 @@ struct ReleaseConfigurationTests {
             "NSPrivacyAccessedAPICategoryActiveKeyboards": #"activeInputModes"#,
         ]
         var sources = ""
-        for path in try Self.swiftFiles(under: ["App", "Packages/Core/Sources"]) {
-            sources += try Self.read(path) + "\n"
+        for path in try swiftFiles(under: roots) {
+            sources += try read(path) + "\n"
         }
-        let used = patterns.filter { sources.range(of: $0.value, options: .regularExpression) != nil }.keys
-        let declared = try Self.declaredReasons(Self.plist("App/Resources/PrivacyInfo.xcprivacy")).keys
-        #expect(Set(used) == Set(declared))
+        return Set(patterns.filter { sources.range(of: $0.value, options: .regularExpression) != nil }.keys)
     }
 
     // MARK: - Entitlements
@@ -298,6 +330,8 @@ struct ReleaseConfigurationTests {
         // The vault bookmark is created and resolved with `.withSecurityScope` (VaultBookmarks).
         "com.apple.security.files.bookmarks.app-scope",
         "com.apple.security.files.user-selected.read-write",
+        // Outgoing connections only: MapKit fetches the Map screen's tiles (docs/decisions.md).
+        "com.apple.security.network.client",
         "com.apple.security.personal-information.calendars",
         "com.apple.security.personal-information.location",
     ]
@@ -355,7 +389,8 @@ struct ReleaseConfigurationTests {
         let project = try Self.read("project.yml")
         #expect(project.contains(".github/scripts/build-number.sh"))
         #expect(project.contains("Set :CFBundleVersion $build"))
-        #expect(try Self.read(".github/scripts/build-number.sh").contains("rev-list --count HEAD"))
+        // Commit time, not commit count: main is not an ancestor of dev (docs/decisions.md).
+        #expect(try Self.read(".github/scripts/build-number.sh").contains("format-local:%y%m%d %H%M%S"))
     }
 
     // MARK: - Reading

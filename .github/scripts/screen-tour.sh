@@ -8,6 +8,7 @@
 #   sh .github/scripts/screen-tour.sh <çıktı klasörü> [simülatör kimliği]
 #   sh .github/scripts/screen-tour.sh --pad <çıktı klasörü> [simülatör kimliği]
 #   sh .github/scripts/screen-tour.sh --mac <çıktı klasörü>
+#   sh .github/scripts/screen-tour.sh --store [--pad|--mac] <çıktı klasörü> [simülatör kimliği]
 #
 # --pad (ya da SCREEN_TOUR_PLATFORM=pad) aynı iPhone turunu iPad simülatöründe koşar: bölünmüş kabukta
 # sekme yerine kenar çubuğu satırlarıyla gezer, dosya adları iPhone turuyla aynıdır (ayrı klasöre
@@ -24,6 +25,13 @@
 # denetimi). SCREEN_TOUR_ONLY=ayarlar,koyu turun yalnız adı verilen bölümlerini koşar
 # (bölüm adları test dosyasında).
 #
+# --store (ya da SCREEN_TOUR_STORE=1) App Store boyutunda çeker. iPhone: 6,9 inç aygıt (iPhone 17
+# Pro Max, yoksa 16 ya da 15 Pro Max; hiçbiri yoksa en yeni runtime'da geçici bir iPhone 17 Pro Max
+# kurulur ve koşu bitince silinir). iPad: olağan 13 inç aygıt. Mac: pencere 1440x900 (Retina'da
+# 2880x1800 piksel); SCREEN_TOUR_WINDOW yine geçerlidir. Kasa her zaman Fixtures/ örnek kasasıdır.
+# Koşu sonunda mağazanın kabul etmediği piksel boyutundaki görüntüler listelenir (Mac'te Ayarlar
+# penceresi ve hızlı giriş paneli bunlardandır; mağazaya yüklenmez).
+#
 # Çıktı klasörü depo dışında olmalıdır: görüntüler depoya ve PR'a girmez (Kasa ayar sayfası
 # makine yolunu gösterir). Simülatör kimliği ikinci argümanla ya da SCREEN_TOUR_SIMULATOR ile
 # verilir; verilmezse görüntü kaydı betiğiyle aynı cihaz seçilir. SCREEN_TOUR_TREE=1 her
@@ -31,13 +39,17 @@
 set -eu
 
 PLATFORM="${SCREEN_TOUR_PLATFORM:-ios}"
-case "${1:-}" in
-  --mac | --pad)
-    PLATFORM=${1#--}
-    shift
-    ;;
-esac
-[ $# -ge 1 ] || { echo "Kullanım: sh .github/scripts/screen-tour.sh [--mac|--pad] <çıktı klasörü> [simülatör kimliği]" >&2; exit 2; }
+STORE="${SCREEN_TOUR_STORE:-0}"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --mac | --pad) PLATFORM=${1#--} ;;
+    --store) STORE=1 ;;
+    *) break ;;
+  esac
+  shift
+done
+[ "$STORE" = 1 ] || STORE=0
+[ $# -ge 1 ] || { echo "Kullanım: sh .github/scripts/screen-tour.sh [--store] [--mac|--pad] <çıktı klasörü> [simülatör kimliği]" >&2; exit 2; }
 mkdir -p "$1"
 OUT=$(cd "$1" && pwd -P)
 ID="${2:-${SCREEN_TOUR_SIMULATOR:-}}"
@@ -76,6 +88,9 @@ if [ "$PLATFORM" = "mac" ]; then
   # Ayrı derleme klasörü: olağan derlemenin ürünü tur kimliğiyle ezilmez.
   DERIVED="$HOME/Library/Developer/Xcode/DerivedData/Journal-mac-screen-tour"
   WATCH=""
+  WINDOW="${SCREEN_TOUR_WINDOW:-}"
+  # Mağaza Mac görüntüsü 16:10 ister: 1440x900 pencere Retina'da 2880x1800 piksel verir.
+  [ "$STORE" -eq 0 ] || [ -n "$WINDOW" ] || WINDOW=1440x900
   cleanup() {
     if [ -n "$WATCH" ]; then
       kill "$WATCH" >/dev/null 2>&1 || true
@@ -101,7 +116,7 @@ if [ "$PLATFORM" = "mac" ]; then
   TEST_RUNNER_JOURNAL_SCREEN_TOUR_DIR="$OUT" \
   TEST_RUNNER_JOURNAL_SCREEN_TOUR_TREE="${SCREEN_TOUR_TREE:-}" \
   TEST_RUNNER_JOURNAL_SCREEN_TOUR_ONLY="${SCREEN_TOUR_ONLY:-}" \
-  TEST_RUNNER_JOURNAL_SCREEN_TOUR_WINDOW="${SCREEN_TOUR_WINDOW:-}" \
+  TEST_RUNNER_JOURNAL_SCREEN_TOUR_WINDOW="$WINDOW" \
   xcodebuild test \
     -project Journal.xcodeproj \
     -scheme Journal_macOS_ScreenTour \
@@ -119,6 +134,34 @@ else
 # runtime'ındaki iPhone 17; --pad ile 13 inçlik iPad.
 FAMILY=iPhone
 [ "$PLATFORM" = "pad" ] && FAMILY=iPad
+# --store ile kurulan geçici aygıt; koşu bitince silinir.
+CREATED=""
+if [ -z "$ID" ] && [ "$STORE" -eq 1 ] && [ "$FAMILY" = iPhone ]; then
+  # Mağazanın 6,9 inç ekranı (1320x2868, 1290x2796): kurulu Pro Max aygıtlarından biri.
+  ID=$(xcrun simctl list devices available -j | python3 -c '
+import json, sys
+names = ["iPhone 17 Pro Max", "iPhone 16 Pro Max", "iPhone 15 Pro Max"]
+found = {}
+for runtime, devices in json.load(sys.stdin).get("devices", {}).items():
+    if "iOS" not in runtime:
+        continue
+    for d in devices:
+        if d.get("isAvailable") and d.get("name") in names:
+            found.setdefault(d["name"], d["udid"])
+print(next((found[n] for n in names if n in found), ""))
+')
+  if [ -z "$ID" ]; then
+    RUNTIME=$(xcrun simctl list runtimes available -j | python3 -c '
+import json, sys
+ios = [r for r in json.load(sys.stdin).get("runtimes", []) if r.get("platform") == "iOS"]
+ios.sort(key=lambda r: [int(p) for p in r["version"].split(".")])
+print(ios[-1]["identifier"] if ios else "")
+')
+    [ -n "$RUNTIME" ] || { echo "Kurulu iOS runtime'ı yok" >&2; exit 1; }
+    ID=$(xcrun simctl create "Kenet mağaza iPhone 17 Pro Max" com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro-Max "$RUNTIME")
+    CREATED=$ID
+  fi
+fi
 if [ -z "$ID" ]; then
   DEVICE=$(sh .github/scripts/pick-simulator.sh "$FAMILY")
   ID=${DEVICE%% *}
@@ -135,6 +178,10 @@ cleanup() {
   xcrun simctl ui "$ID" appearance light >/dev/null 2>&1 || true
   xcrun simctl status_bar "$ID" clear >/dev/null 2>&1 || true
   uninstall
+  if [ -n "$CREATED" ]; then
+    xcrun simctl shutdown "$CREATED" >/dev/null 2>&1 || true
+    xcrun simctl delete "$CREATED" >/dev/null 2>&1 || true
+  fi
   rm -rf "$WORK"
 }
 trap cleanup EXIT
@@ -248,4 +295,27 @@ else
   [ "$status" -ne 0 ] || status=1
 fi
 [ "$count" -gt 0 ] || { echo "Hiç görüntü alınamadı" >&2; [ "$status" -ne 0 ] || status=1; }
+# Mağaza kipi: App Store Connect'in kabul ettiği piksel boyutları (dik ve yatay). Yalnız uyarır.
+if [ "$STORE" -eq 1 ] && [ "$count" -gt 0 ]; then
+  python3 - "$OUT" "$PLATFORM" <<'PY'
+import glob, os, struct, sys
+out, platform = sys.argv[1], sys.argv[2]
+sizes = {
+    "ios": [(1320, 2868), (1290, 2796), (1260, 2736), (1284, 2778), (1242, 2688)],
+    "pad": [(2064, 2752), (2048, 2732)],
+    "mac": [(1280, 800), (1440, 900), (2560, 1600), (2880, 1800)],
+}[platform]
+accepted = set(sizes) | {(h, w) for w, h in sizes}
+bad = []
+for path in sorted(glob.glob(os.path.join(out, "[0-9][0-9]-*.png"))):
+    with open(path, "rb") as handle:
+        header = handle.read(24)
+    size = struct.unpack(">II", header[16:24])
+    if size not in accepted:
+        bad.append("%s %dx%d" % (os.path.basename(path), size[0], size[1]))
+print("Mağaza boyutunda olmayan: %d" % len(bad))
+for line in bad:
+    print("  " + line)
+PY
+fi
 exit "$status"

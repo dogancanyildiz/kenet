@@ -164,10 +164,12 @@ Küme kuralları, tavanlar, Mac kayıt ortamı ve ortam değişkenleri [Mimari](
 |---|---|
 | `SCREEN_TOUR_SIMULATOR` | Simülatör kimliği; ikinci bağımsız değişkenin yerine geçer |
 | `SCREEN_TOUR_PLATFORM=mac`, `=pad` | `--mac`, `--pad` ile aynı |
+| `--store`, `SCREEN_TOUR_STORE=1` | Mağaza boyutu: iPhone 6,9 inç Pro Max, iPad 13 inç, Mac 1440x900 pencere; uymayan görüntüleri listeler |
 | `SCREEN_TOUR_ORIENTATION=portrait` | iPad turunu dik koşturur; varsayılan yatay |
 | `SCREEN_TOUR_DERIVED_DATA` | iPhone ve iPad turunun derleme klasörü; varsayılan `.dd/screen-tour` |
 | `SCREEN_TOUR_WINDOW=1000x700` | Mac penceresinin boyutu; varsayılan 1280x800 |
 | `SCREEN_TOUR_ONLY=ayarlar,koyu` | Mac turunda yalnız adı verilen bölümleri koşar |
+| `JOURNAL_UITEST_CLOCK=09:41` | Tur kendisi verir; uygulama saati durum çubuğuyla aynıdır, selam sabahtır |
 | `SCREEN_TOUR_TREE=1` | Her görüntünün yanına erişilebilirlik ağacını `<çıktı>/agac/` altına yazar |
 
 Tur, tasarım işinde önce ve sonra karşılaştırması içindir. iPhone turu uygulamayı örnek kasayla simülatörde gezer. Mac turunda uygulama ayrı bir bundle kimliği ve geçici bir ev klasörü kullanır. Mac turu gerçek kasaya ve ayarlara dokunmaz.
@@ -283,7 +285,7 @@ flowchart LR
 |---|---|
 | Dal | Yalnız `dev`. Betik başka dalı ve `origin/dev` geçmişinde olmayan commit'i reddeder |
 | Kuyruk | Aynı anda tek yükleme. Yükleme yarıda kesilmez; bekleyen koşu yenisi gelince iptal olur |
-| Yapı numarası | Commit sayısı. Aynı commit'ten ikinci yükleme reddedilir |
+| Yapı numarası | Commit'in UTC işlenme zamanı. Aynı commit'ten ikinci yükleme reddedilir |
 | Sertifika süresi | Apple Distribution bir yıl geçerlidir. Yenileyince `DIST_CERT_P12` ve `DIST_CERT_PASSWORD` değerlerini güncelle <!-- sır değil --> |
 | API anahtarı | Süresi dolmaz. Sızarsa App Store Connect'te iptal et ve yenisini yaz. İki adımlı doğrulama istemez |
 | Düşen koşu | `testflight-logs` artifact'ı arşiv ve yükleme günlüğünü taşır. Takım, anahtar ve yayıncı kimliği günlükte yer tutucuyla değişir |
@@ -295,7 +297,7 @@ flowchart LR
 ```mermaid
 flowchart LR
   A[VERSION dosyası] --> C[Sürümü yaz adımı]
-  B["git rev-list --count HEAD"] --> D[build-number.sh] --> C
+  B["HEAD commit zamanı, UTC"] --> D[build-number.sh] --> C
   C --> E[Info.plist: CFBundleShortVersionString]
   C --> F[Info.plist: CFBundleVersion]
 ```
@@ -304,10 +306,11 @@ flowchart LR
 
 | Durum | Sonuç |
 |---|---|
-| Tam git geçmişi | Numara commit sayısıdır; iOS ve Mac aynı numarayı alır |
-| Git yok ya da sığ kopya: `fetch-depth: 1` | Numara `1` kalır ve derleme uyarı verir; o yapıyı yükleme |
+| Git var, sığ kopya dahil | Numara `YYAAGG.SSDDss` biçimindedir, örnek `261111.153012`; iOS ve Mac aynı numarayı alır |
+| Git yok | Numara `1` kalır ve derleme uyarı verir; o yapıyı yükleme |
 | Aynı sürümde aynı numara | App Store Connect ikinci yüklemeyi kabul etmez; yeni yükleme için en az bir yeni commit gerekir |
-| İş dalı | Sayı squash sonrası `dev`'dekinden büyük olabilir; arşivi `dev` ya da `main` üzerinden al |
+| `main` ve `dev` | Sürüm birleşmesi kendi zamanını alır; sonraki `dev` commit'leri daha büyük numara alır |
+| İş dalı | Squash commit'i yeni zaman alır; arşivi `dev` ya da `main` üzerinden al |
 
 `CFBundleVersion` yapı numarasını elle yazma. Sürüm numarası kökteki `VERSION` dosyasından gelir.
 

@@ -290,7 +290,8 @@ struct DayView: View {
         .preference(
             key: DayPageReadyKey.self,
             value: loadedRequest == DayRequest(date: date, updated: store.lastUpdated)
-                && tasksModel.isCurrent)
+                && tasksModel.isCurrent
+        )
         .task(id: date) {
             if AppLaunchPolicy.allowsCalendarLoad() { await calendar.load(date) }
         }

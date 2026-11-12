@@ -167,7 +167,7 @@ struct GraphView: View {
     /// Nil for day nodes and never-mentioned entities: the summary then has no "son" part.
     private func daysSinceLastMention(_ node: GraphNode) -> Int? {
         guard node.date == nil,
-            let last = store.entityUsage.first(where: { $0.file == node.id })?.lastDate
+            let last = store.entityUsageByFile[node.id]?.lastDate
         else { return nil }
         return max(0, LocalDay.today(at: clockNow()).ordinal - last.ordinal)
     }

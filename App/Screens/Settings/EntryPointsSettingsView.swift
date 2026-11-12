@@ -127,19 +127,16 @@ struct EntryPointSections: View {
     @Environment(\.locale) private var locale
     var idiom: DeviceIdiom = .current
 
+    // Explanations are footnotes under a card, as on every settings page; a section with only
+    // an explanation is its header and the footnote, with no empty card around the text.
     var body: some View {
         Section {
             SectionHeader("Siri cümleleri")
                 .inkListRow()
             InkCard(padded: false) {
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("Bu cümleler Siri'ye söylenir.")
-                        .font(.ink.meta)
-                        .foregroundStyle(Color.ink.secondaryText)
-                        .padding(.horizontal, InkSpacing.cardPadding)
-                        .padding(.vertical, 10)
-                    ForEach(phrases, id: \.self) { phrase in
-                        InkCardDivider()
+                    ForEach(Array(phrases.enumerated()), id: \.element) { index, phrase in
+                        if index > 0 { InkCardDivider() }
                         Text(verbatim: phrase)
                             .font(.ink.content)
                             .foregroundStyle(Color.ink.text)
@@ -150,29 +147,18 @@ struct EntryPointSections: View {
                 }
             }
             .inkListRow()
+            footnote("Bu cümleler Siri'ye söylenir.")
         }
         Section {
             SectionHeader("Kısayollar")
                 .inkListRow()
-            InkCard {
-                Text("Aynı cümleler Kısayollar uygulamasında da çalışır.")
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.secondaryText)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .inkListRow()
+            footnote("Aynı cümleler Kısayollar uygulamasında da çalışır.")
         }
         if idiom != .mac {
             Section {
                 SectionHeader("settings.entry.widget.title")
                     .inkListRow()
-                InkCard {
-                    Text("settings.entry.widget.description")
-                        .font(.ink.meta)
-                        .foregroundStyle(Color.ink.secondaryText)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .inkListRow()
+                footnote("settings.entry.widget.description")
             }
             Section {
                 SectionHeader(
@@ -180,18 +166,20 @@ struct EntryPointSections: View {
                         ? "settings.entry.action.title" : "settings.entry.control.title"
                 )
                 .inkListRow()
-                InkCard {
-                    Text(
-                        EntryPointPlatform.showsActionButton(idiom)
-                            ? "settings.entry.action.description" : "settings.entry.control.description"
-                    )
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.secondaryText)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .inkListRow()
+                footnote(
+                    EntryPointPlatform.showsActionButton(idiom)
+                        ? "settings.entry.action.description" : "settings.entry.control.description")
             }
         }
+    }
+
+    private func footnote(_ key: LocalizedStringKey) -> some View {
+        Text(key)
+            .font(.ink.meta)
+            .foregroundStyle(Color.ink.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .inkListRow()
     }
 
     private var phrases: [String] {

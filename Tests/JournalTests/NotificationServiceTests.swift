@@ -39,6 +39,32 @@ struct NotificationServiceTests {
         #expect(center.permissionRequests == 0)
     }
 
+    @Test func anUnchangedPlanIsNotAddedAgain() async throws {
+        let defaults = try TestDefaults()
+        defer { defaults.clean() }
+        let center = FakeNotificationCenter()
+        let service = service(center, defaults: defaults)
+        service.update(isOpen: true, vaultID: "sample")
+        await service.replanNow()
+        let planned = center.additions.count
+        #expect(planned == 7)
+        let pending = service.pending
+
+        await service.replanNow()
+        #expect(center.additions.count == planned)
+        #expect(service.pending == pending)
+
+        // A pending request whose text changed is planned again; only that one.
+        let first = try #require(pending.first)
+        center.values[first.id] = NotificationRequest(
+            id: first.id, date: first.date, title: first.title + " eski", body: first.body,
+            destination: first.destination)
+        await service.replanNow()
+        #expect(center.additions.count == planned + 1)
+        #expect(center.additions.last == first)
+        #expect(service.pending == pending)
+    }
+
     @Test func onlyAllowedAuthorizationSchedulesAndNeverPromptsOnReplan() async throws {
         let defaults = try TestDefaults()
         defer { defaults.clean() }

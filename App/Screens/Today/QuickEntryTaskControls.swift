@@ -42,7 +42,15 @@ struct QuickEntryTaskControls: View {
             if model.mode == .task { dateButton }
         case .chips:
             if Self.hasChips(model) {
+                // A chip cut by the capsule's top row fades out instead of ending on a hard edge.
                 strip(includesDate: false)
+                    .mask {
+                        HStack(spacing: 0) {
+                            Color.black
+                            LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing)
+                                .frame(width: 16)
+                        }
+                    }
             }
         case .row:
             if model.mode == .task || Self.hasChips(model) {

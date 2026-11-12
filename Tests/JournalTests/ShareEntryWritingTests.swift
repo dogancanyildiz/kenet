@@ -395,13 +395,15 @@ struct ShareEntryWritingTests {
         #expect(try Data(contentsOf: aside) == garbage)
     }
 
-    /// A list file this process cannot read is moved aside whole, not taken for an empty list and
-    /// written over.
-    @Test func aListThatCannotBeReadIsSetAsideNotWrittenOver() throws {
+    /// A list file this process cannot read now (a passing read error, here no permission) is
+    /// neither taken for an empty list nor moved aside: the change fails and the file stays where
+    /// the app reads it once it can. Only bytes that are not a list move aside.
+    @Test func aListThatCannotBeReadNowStaysInPlace() throws {
         let context = try ShareWritingContext(vault: false)
         defer { context.clean() }
         let url = ShareFiles.pending(in: context.group)
-        try context.pending.append(context.entry("Eski"))
+        let first = context.entry("Eski")
+        try context.pending.append(first)
         let old = try Data(contentsOf: url)
         try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: url.path)
         guard case .unreadable = context.pending.read() else {
@@ -409,16 +411,87 @@ struct ShareEntryWritingTests {
             return
         }
         let entry = context.entry("Yeni")
-        try context.pending.append(entry)
-        #expect(context.pending.read().elements.compactMap(\.entry) == [entry])
+        #expect(throws: (any Error).self) { try context.pending.append(entry) }
+        #expect((try? context.pending.setAsideIfUnreadable()) != true)
         let directory = ShareFiles.directory(in: context.group)
-        let kept = try FileManager.default.contentsOfDirectory(atPath: directory.path).filter {
-            $0.hasPrefix("damaged-")
+        let kept = try FileManager.default.contentsOfDirectory(atPath: directory.path)
+        #expect(kept.filter { $0.hasPrefix("damaged-") } == [])
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
+        #expect(try Data(contentsOf: url) == old)
+        try context.pending.append(entry)
+        #expect(context.pending.read().elements.compactMap(\.entry) == [first, entry])
+    }
+
+    /// The vault's entity types cannot be read now: the throwaway index cannot start, and an
+    /// empty one would read the whole vault inside the day's coordinated write. The text is queued;
+    /// the vault is not read and not written.
+    @Test func unreadableEntityTypesQueueTheText() async throws {
+        let context = try ShareWritingContext()
+        defer { context.clean() }
+        try context.publish(.icloud)
+        let types = context.root.appendingPathComponent(".app/types.json")
+        try Data("{}".utf8).write(to: types)
+        try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: types.path)
+        defer { try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: types.path) }
+        try FileManager.default.createDirectory(
+            at: context.root.appendingPathComponent("notes"), withIntermediateDirectories: true)
+        try Data("- Eski\n".utf8).write(to: context.root.appendingPathComponent("notes/Kitap.md"))
+        let reads = ReadLog()
+        var writer = context.writer()
+        writer.indexReadFile = { url in
+            reads.append(url.lastPathComponent)
+            return try Data(contentsOf: url)
         }
-        let aside = directory.appendingPathComponent(try #require(kept.first))
-        #expect(kept.count == 1)
-        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: aside.path)
-        #expect(try Data(contentsOf: aside) == old)
+
+        #expect(try await writer.add(context.entry("Yeni")) == .queued)
+        #expect(reads.names.filter { $0 != "stand-in.md" } == [])
+        #expect(!FileManager.default.fileExists(atPath: context.dayFile.path))
+        #expect(context.pending.read().elements.count == 1)
+    }
+
+    /// `written.json` cannot be changed now: the marker goes into a list of its own
+    /// (`ShareFiles.spareWritten`), not lost. The app takes those lists as it takes `written.json`.
+    @Test func aMarkerTheListCannotTakeGoesIntoASpareList() async throws {
+        let context = try ShareWritingContext()
+        defer { context.clean() }
+        try context.publish(.icloud)
+        try context.written.append(context.entry("Eski"))
+        let written = ShareFiles.written(in: context.group)
+        try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: written.path)
+        defer { try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: written.path) }
+
+        let entry = context.entry("Yeni")
+        #expect(try await context.writer().add(entry) == .written)
+        let lists = ShareFiles.writtenLists(in: context.group)
+        #expect(lists.count == 2)
+        let spare = ShareListFile(url: try #require(lists.last))
+        #expect(spare.read().elements.compactMap(\.entry?.id) == [entry.id])
+        #expect(spare.read().elements.first?.entry?.writtenLineID == "new123")
+    }
+
+    /// The extension's write reads the day file alone: Core's index update after the write starts
+    /// from a throwaway index (``ThrowawayIndex``), not an empty one that would read the whole
+    /// vault inside the day file's coordinated write.
+    @Test func cloudWriteReadsOnlyTheDayFile() async throws {
+        let context = try ShareWritingContext()
+        defer { context.clean() }
+        try context.publish(.icloud)
+        for path in ["journal/2026-10-01.md", "notes/Kitap.md", "people/Deniz Arıkan.md"] {
+            let url = context.root.appendingPathComponent(path)
+            try FileManager.default.createDirectory(
+                at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try Data("## Events\n- Eski\n".utf8).write(to: url)
+        }
+        let reads = ReadLog()
+        var writer = context.writer()
+        writer.indexReadFile = { url in
+            reads.append(url.lastPathComponent)
+            return try Data(contentsOf: url)
+        }
+
+        #expect(try await writer.add(context.entry("Yeni")) == .written)
+        // The stand-in note is the throwaway index's own; of the vault only the day is read.
+        #expect(reads.names.filter { $0 != "stand-in.md" } == ["\(ShareWritingContext.day).md"])
     }
 
     // MARK: - Writing
@@ -443,7 +516,10 @@ struct ShareEntryWritingTests {
         if let expected = fixture.expected {
             #expect(outcome == .written)
             #expect(after[day] == expected)
-            #expect(context.written.read().elements.compactMap(\.entry) == [entry])
+            // The marker names the written line (`writtenLineID`).
+            var marker = entry
+            marker.writtenLineID = fixture.identifier
+            #expect(context.written.read().elements.compactMap(\.entry) == [marker])
             #expect(context.pending.read().elements.isEmpty)
         } else if entry.isWritable {
             #expect(outcome == .queued)
@@ -582,7 +658,10 @@ struct ShareEntryWritingTests {
         if let expected = fixture.expected {
             #expect(outcome == .written)
             #expect(after[day] == expected)
-            #expect(context.written.read().elements.compactMap(\.entry) == [entry])
+            // The marker names the written line (`writtenLineID`).
+            var marker = entry
+            marker.writtenLineID = fixture.identifier
+            #expect(context.written.read().elements.compactMap(\.entry) == [marker])
             #expect(context.pending.read().elements.isEmpty)
         } else if entry.isWritable {
             #expect(outcome == .queued)

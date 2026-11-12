@@ -29,6 +29,7 @@
         func syncedFolder(_ snapshotCase: SyncedFolderSnapshotCase) async throws {
             let context = try SyncedVaultTestContext()
             defer { context.clean() }
+            context.store.clock = { snapshotNow }
             await context.start()
             #expect(context.store.syncedFolder == .iCloudDrive)
             var importModel: VaultImportModel?

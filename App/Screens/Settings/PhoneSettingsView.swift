@@ -3,6 +3,14 @@ import SwiftUI
 /// iPhone Settings hub: vault status card at top and six sections in a card below (Mac uses Settings tabs instead).
 struct PhoneSettingsView: View {
     let store: IndexStore
+    @Environment(AppLockService.self) private var lock: AppLockService?
+    @Environment(NotificationService.self) private var notifications: NotificationService?
+    @Environment(CalendarService.self) private var calendar: CalendarService?
+    @Environment(GeofenceService.self) private var geofences: GeofenceService?
+    @Environment(\.timeZone) private var timeZone
+    @Environment(\.clockNow) private var clockNow
+    /// Calendars the hub row counts ("2 takvim"); read again when the calendar store changes.
+    @State private var calendarCount = 0
 
     private var vaultLocationTitle: String {
         switch store.vaultKind {
@@ -112,6 +120,39 @@ struct PhoneSettingsView: View {
         .background(Color.ink.elevated)
         .inkPageScrollColumn()
         .accessibilityIdentifier("screen.settings")
+        .task(id: calendar?.changeCount) {
+            guard let calendar, calendar.authorization.canRead else { return }
+            calendarCount = await calendar.writableCalendars().count
+        }
+    }
+
+    /// The line under a hub row: the page's state where it has one (drawing: "Uygulama kilidi
+    /// açık · kişi hatırlatmaları", "Günlük hatırlatması 21:30", "2 takvim · konuma girince
+    /// kapalı"); otherwise what the page holds.
+    private func summary(_ section: SettingsSection) -> Text {
+        switch section {
+        case .privacy:
+            guard let lock else { return Text(section.summary) }
+            return lock.isEnabled
+                ? Text("Uygulama kilidi açık · kişi hatırlatmaları")
+                : Text("Uygulama kilidi kapalı · kişi hatırlatmaları")
+        case .notifications:
+            guard let notifications else { return Text(section.summary) }
+            let preferences = notifications.preferences
+            guard preferences.journalEnabled else { return Text("Günlük hatırlatması kapalı") }
+            let time = preferences.fieldDate(
+                \.journalTime, on: LocalDay.today(at: clockNow(), timeZone: timeZone), timeZone: timeZone)
+            return Text("Günlük hatırlatması \(Text(time, format: .dateTime.hour().minute()))")
+        case .calendarAndLocation:
+            guard let calendar else { return Text(section.summary) }
+            let calendars =
+                calendar.authorization.canRead ? Text("\(calendarCount) takvim") : Text("Takvim izni yok")
+            let geofenceOn = geofences.map { !$0.regions.isEmpty } ?? false
+            return geofenceOn
+                ? Text("\(calendars) · konuma girince açık") : Text("\(calendars) · konuma girince kapalı")
+        case .quickEntry, .vault, .diagnostics, .about:
+            return Text(section.summary)
+        }
     }
 
     /// A hub row inside the section card: icon tile, title over summary, "›". The list row's
@@ -137,14 +178,14 @@ struct PhoneSettingsView: View {
                     .accessibilityIdentifier("settings.section.\(section.rawValue)")
                 // VoiceOver reads the summary as the hint: in the label,
                 // "Eylem düğmesi" / "Action button" repeats the button trait.
-                Text(section.summary)
+                summary(section)
                     .font(.caption)
                     .foregroundStyle(Color.ink.secondaryText)
                     .accessibilityHidden(true)
             }
             .padding(.top, segment.roundsTop ? InkListRowInsets.vertical : 0)
             .padding(.bottom, segment.roundsBottom ? InkListRowInsets.vertical : 0)
-            .accessibilityHint(Text(section.summary))
+            .accessibilityHint(summary(section))
             Spacer(minLength: 8)
             Image(systemName: "chevron.right")
                 .font(.ink.weekday)
@@ -172,6 +213,8 @@ struct PhoneSettingsView: View {
             VaultSettingsView(store: store)
         case .diagnostics:
             DiagnosticsView(store: store)
+        case .about:
+            AboutSettingsView()
         }
     }
 }

@@ -31,6 +31,7 @@ struct LocationSettingsView: View {
                                 .padding(.horizontal, InkSpacing.cardPadding)
                             InkCardDivider()
                             Button("Konum önerileri için izin ver") { location.requestAccess() }
+                                .buttonStyle(InkTextButtonStyle())
                                 .disabled(location.isRequesting)
                                 .frame(
                                     maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading
@@ -74,6 +75,7 @@ struct LocationSettingsView: View {
                                 }
                             #endif
                         }
+                        .buttonStyle(InkTextButtonStyle())
                         .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
                         .padding(.horizontal, InkSpacing.cardPadding)
                     }

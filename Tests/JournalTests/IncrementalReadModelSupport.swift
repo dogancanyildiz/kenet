@@ -277,9 +277,34 @@ extension VaultReadModel {
     func matchesFullBuild(_ other: VaultReadModel) -> Bool {
         matchesScreenFields(other) && counts.key == other.counts.key && fragments == other.fragments
     }
+
+    /// Usage counted from this model is the index's own query result.
+    func usageMatches(_ index: VaultIndex) throws -> Bool {
+        entityUsage() == (try index.entityUsage())
+    }
+
+    /// Screen-visible equality used by incremental vs full-build tests.
+    func matchesScreenFields(_ other: VaultReadModel) -> Bool {
+        entities == other.entities
+    }
+
+    static func debugDiff(_ left: VaultReadModel, _ right: VaultReadModel) -> String {
+        "diff: " + (left.entities != right.entities ? "entities" : "none")
+    }
 }
 
 extension IndexCounts {
+    /// Counts read straight from a snapshot: the oracle the read model's own counts are compared with.
+    init(snapshot: IndexSnapshot) {
+        self.init()
+        for file in snapshot.files { filesByKind[file.kind, default: 0] += 1 }
+        events = snapshot.blocks.filter { $0.kind == "event" }.count
+        tasks = snapshot.blocks.filter { $0.kind == "task" }.count
+        entities = snapshot.entities.count
+        links = snapshot.links.count
+        unresolvedLinks = snapshot.links.filter { $0.resolvedFile == nil }.count
+    }
+
     /// Every count, for equality.
     var key: String {
         "\(filesByKind.sorted { $0.key < $1.key })|\(events)|\(tasks)|\(entities)|\(links)|\(unresolvedLinks)"

@@ -510,7 +510,7 @@ final class ScreenTourUITests: XCTestCase {
         }
         let pages = [
             ("Gizlilik", "gizlilik"), ("Bildirimler", "bildirimler"), ("Takvim ve Konum", "takvim-konum"),
-            ("Kasa", "kasa"), ("Tanılama", "tanilama"),
+            ("Kasa", "kasa"), ("Tanılama", "tanilama"), ("Hakkında", "hakkinda"),
         ]
         for (title, name) in pages {
             tour.step("14-ayarlar-\(name)") {

@@ -12,7 +12,7 @@ import VaultStore
 /// The day file is written by Core's writer (`VaultStore.settingGoalValue`) under
 /// `NSFileCoordinator` (``SystemFileCoordination``): a write the app makes to the same day at the
 /// same time waits for this one, or this one for it, and each changes only its own lines. The
-/// writer needs an index; it gets a throwaway one in memory (``throwawayIndex(for:)``). The app's
+/// writer needs an index; it gets a throwaway one in memory (``ThrowawayIndex``). The app's
 /// index is not touched: the app rescans the day files the next time it writes the snapshot
 /// (``WidgetSnapshot/markedAt``).
 ///
@@ -41,6 +41,8 @@ struct WidgetGoalMarker: Sendable {
     let ubiquityContainer: @Sendable () async -> URL?
     let now: @Sendable () -> Date
     var calendar: Calendar = WidgetDay.deviceCalendar
+    /// The throwaway index's file reader; tests count or fail its reads.
+    var indexReadFile: @Sendable (URL) throws -> Data = { try Data(contentsOf: $0) }
 
     /// One snapshot change at a time in this process: two taps in a row both stay.
     private static let snapshotLock = NSLock()
@@ -74,9 +76,11 @@ struct WidgetGoalMarker: Sendable {
         guard WidgetSnapshot.cloudVaultIdentity(at: root) == snapshot.cloudVaultIdentity else { return .unavailable }
         do {
             let store = VaultStore(
-                vaultRoot: root, index: try Self.throwawayIndex(for: root),
+                vaultRoot: root, index: try ThrowawayIndex.make(for: root, readFile: indexReadFile),
                 fileCoordination: SystemFileCoordination())
             try await store.settingGoalValue(on: day, key: key, value: .boolean(true))
+        } catch VaultStoreError.indexUpdateFailed {
+            // The day file has the mark; only the throwaway index missed it.
         } catch {
             return .unavailable
         }
@@ -90,35 +94,5 @@ struct WidgetGoalMarker: Sendable {
             try? WidgetSnapshotFile.write(marked, to: snapshotURL)
         }
         return .marked
-    }
-
-    /// The in-memory index Core's writer updates after the write. Core rebuilds an empty index
-    /// from the whole vault before it updates one file: seconds and megabytes on a five-year
-    /// vault, more than a widget has. So the index starts from a stand-in vault of one empty note
-    /// and the vault's own entity types (`.app/types.json`, which Core compares): the update after
-    /// the write then reads the day file alone. Should the stand-in fail, the empty index still
-    /// writes correctly, only slower. Nothing reads this index afterwards.
-    /// `readFile` is the index's file reader; tests count its reads.
-    static func throwawayIndex(
-        for root: URL, readFile: @escaping @Sendable (URL) throws -> Data = { try Data(contentsOf: $0) }
-    ) throws -> VaultIndex {
-        let index = try VaultIndex(readFile: readFile)
-        let manager = FileManager.default
-        let standIn = manager.temporaryDirectory.appendingPathComponent(
-            "widget-index-" + UUID().uuidString, isDirectory: true)
-        defer { try? manager.removeItem(at: standIn) }
-        do {
-            let app = standIn.appendingPathComponent(".app", isDirectory: true)
-            try manager.createDirectory(at: app, withIntermediateDirectories: true)
-            let types = root.appendingPathComponent(".app/types.json")
-            if manager.fileExists(atPath: types.path) {
-                try Data(contentsOf: types).write(to: app.appendingPathComponent("types.json"))
-            }
-            try Data().write(to: standIn.appendingPathComponent("stand-in.md"))
-            try index.rebuild(vaultRoot: standIn)
-        } catch {
-            return try VaultIndex(readFile: readFile)
-        }
-        return index
     }
 }

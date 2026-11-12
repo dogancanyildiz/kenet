@@ -179,6 +179,7 @@
                 table == [
                     "Hızlı giriş|square.and.pencil", "Gizlilik|lock", "Bildirimler|bell",
                     "Takvim ve Konum|calendar", "Kasa|folder", "Tanılama|wrench.and.screwdriver",
+                    "Hakkında|info.circle",
                 ])
         }
 

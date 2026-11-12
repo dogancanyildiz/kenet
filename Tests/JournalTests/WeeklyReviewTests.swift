@@ -194,10 +194,11 @@ struct WeeklyReviewTests {
             ])
         #expect(
             turkish.lines(for: .tasks) == [
-                "4 görev açık", "Açık: eski açık", "Açık: açık bir", "Açık: bugünkü", "ve 1 görev daha",
+                "İncelenen haftadan 4 görev açık kaldı", "Açık: eski açık", "Açık: açık bir", "Açık: bugünkü",
+                "ve 1 görev daha",
             ])
         #expect(turkish.lines(for: .people) == ["Görüşmeyeli bir süre oldu: Ada Kurgu"])
-        #expect(turkish.lines(for: .goals) == ["Kitap: 25 / 100 sayfa", "Spor: 2/6 gün"])
+        #expect(turkish.lines(for: .goals) == ["Kitap: 25/100 sayfa", "Spor: 2/6 gün"])
         #expect(turkish.previewLines.first == "### Haftalık inceleme")
 
         let english = await model(context, locale: Self.english)
@@ -207,10 +208,11 @@ struct WeeklyReviewTests {
             ])
         #expect(
             english.lines(for: .tasks) == [
-                "4 tasks open", "Open: eski açık", "Open: açık bir", "Open: bugünkü", "and 1 more task",
+                "4 tasks left open from the reviewed week", "Open: eski açık", "Open: açık bir", "Open: bugünkü",
+                "and 1 more task",
             ])
         #expect(english.lines(for: .people) == ["Not seen in a while: Ada Kurgu"])
-        #expect(english.lines(for: .goals) == ["Kitap: 25 / 100 sayfa", "Spor: 2/6 days"])
+        #expect(english.lines(for: .goals) == ["Kitap: 25/100 sayfa", "Spor: 2/6 days"])
         #expect(english.previewLines.first == "### Weekly review")
     }
 
@@ -234,9 +236,9 @@ struct WeeklyReviewTests {
         #expect(
             Array(many.numberLines(locale: Self.english).dropFirst())
                 == ["5 events", "3 tasks completed", "Entries on 4 days"])
-        #expect(one.taskLines(locale: Self.english) == ["1 task open", "Open: tek"])
+        #expect(one.taskLines(locale: Self.english) == ["1 task left open from the reviewed week", "Open: tek"])
         #expect(many.taskLines(locale: Self.english).last == "and 4 more tasks")
-        #expect(many.taskLines(locale: Self.turkish).first == "7 görev açık")
+        #expect(many.taskLines(locale: Self.turkish).first == "İncelenen haftadan 7 görev açık kaldı")
         #expect(many.taskLines(locale: Self.turkish).last == "ve 4 görev daha")
 
         // A count of zero has no sentence, and a week without any count has no line at all.
@@ -278,7 +280,7 @@ struct WeeklyReviewTests {
         #expect(
             preview == [
                 "### Haftalık inceleme", "· Hafta: 2026-09-28 – 2026-10-04", "· 3 olay", "· 1 görev tamamlandı",
-                "· 2 günde kayıt var", "· Görüşmeyeli bir süre oldu: Ada Kurgu", "· Kitap: 25 / 100 sayfa",
+                "· 2 günde kayıt var", "· Görüşmeyeli bir süre oldu: Ada Kurgu", "· Kitap: 25/100 sayfa",
                 "· Spor: 2/6 gün", "· İyi bir haftaydı.", "· İkinci satır",
             ])
         #expect(model.canWrite)

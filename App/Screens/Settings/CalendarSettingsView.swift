@@ -21,7 +21,10 @@ struct CalendarSettingsView: View {
                         Button("Takvim etkinliklerini göstermek için izin ver") {
                             Task { await calendar.requestAccess() }
                         }
+                        .buttonStyle(InkTextButtonStyle())
                         .disabled(calendar.isRequesting)
+                        // A two-line label keeps the card's inner spacing above and below.
+                        .padding(.vertical, 6)
                         .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
                         .padding(.horizontal, InkSpacing.cardPadding)
                     case .fullAccess:
@@ -60,6 +63,7 @@ struct CalendarSettingsView: View {
                     }
                     InkCardDivider()
                     Button("Sistem ayarlarını aç") { openSystemSettings() }
+                        .buttonStyle(InkTextButtonStyle())
                         .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
                         .padding(.horizontal, InkSpacing.cardPadding)
                 }

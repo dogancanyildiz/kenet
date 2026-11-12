@@ -234,6 +234,8 @@ final class NotificationService {
             // the next pass replaces them.
             var kept = Set<String>()
             var addedPeople = Set<String>()
+            // A request already pending with the same time and text is not added again.
+            let scheduled = Dictionary(own.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
             for (offset, request) in plan.enumerated() {
                 guard current == revision else {
                     needsReplan = true
@@ -241,7 +243,11 @@ final class NotificationService {
                     break
                 }
                 do {
-                    try await center.add(request)
+                    if let existing = scheduled[request.id], existing.isSameSchedule(as: request) {
+                        // Still scheduled as planned; nothing to send.
+                    } else {
+                        try await center.add(request)
+                    }
                     kept.insert(request.id)
                     if request.destination == .people { addedPeople.insert(request.id) }
                 } catch {

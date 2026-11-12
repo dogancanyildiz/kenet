@@ -30,15 +30,6 @@ struct TaskQueryTests {
             #expect(try index.overdueTasks(asOf: day).map(\.identifier) == ["late"])
             #expect(try index.tasks(dueOn: day).map(\.identifier) == ["today"])
             #expect(try index.tasks(dueOn: CalendarDate("2026-10-01")!).count == 3)
-            let groups = try index.upcomingTasks(from: day)
-            #expect(groups.map(\.date.description) == ["2026-10-03", "2026-10-05"])
-            #expect(groups.map { $0.tasks.map(\.identifier) } == [["today"], ["later", "other"]])
-            #expect(try index.undatedOpenTasks().map(\.identifier) == ["undated", "invalid", "note"])
-            #expect(
-                try index.tasksCreated(on: CalendarDate("2026-10-01")!).map(\.identifier) == [
-                    "undated", "invalid", "finished",
-                ])
-            #expect(try index.tasksCreated(on: day).isEmpty)
             #expect(try index.search("2026-13-40").contains { $0.file.hasPrefix("journal/") })
         }
     }

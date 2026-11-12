@@ -94,8 +94,7 @@ final class ScreenTourMacUITests: XCTestCase {
         let fixture = UITestSupport.repositoryRoot().appendingPathComponent("Fixtures/vaults/sample")
         // The app copies the vault into its caches folder when it can (`openUITestVault`) and
         // works on the folder it was given otherwise; check the one it really used.
-        let copy = home.appendingPathComponent("Library/Caches/UITestVault", isDirectory: true)
-        let used = FileManager.default.fileExists(atPath: copy.path) ? copy : vault
+        let used = UITestSupport.appVault(for: vault, home: home) ?? vault
         let changed = tour.changedVaultFiles(fixture: fixture, copy: used)
         if !changed.isEmpty { tour.skip("UYARI kasa değişti", reason: changed.joined(separator: ", ")) }
         tour.app.terminate()

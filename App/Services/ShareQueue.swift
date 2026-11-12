@@ -42,6 +42,8 @@ struct ShareImportReport: Equatable, Sendable {
     @ObservationIgnored private let appLockEnabled: () -> Bool
     @ObservationIgnored private var running: Task<Void, Never>?
     @ObservationIgnored private var again = false
+    /// Lists of this run that could not be read or changed (`IndexStore.shareListProblems`).
+    @ObservationIgnored private var listProblems: Set<String> = []
 
     init(
         store: IndexStore, group: any AppGroupStore, isLocked: @escaping () -> Bool,
@@ -89,8 +91,10 @@ struct ShareImportReport: Equatable, Sendable {
     private func run() async {
         guard let root = group.containerURL, isReady else { return }
         var result = ShareImportReport()
+        listProblems = []
         await takeWritten(in: root, into: &result)
         await takeQueued(in: root, into: &result)
+        store.shareListProblems = listProblems.sorted()
         if !result.isEmpty { report = result }
     }
 
@@ -98,20 +102,41 @@ struct ShareImportReport: Equatable, Sendable {
     private var isReady: Bool { !isLocked() && store.canAddEvent && store.lastUpdated != nil }
 
     private func takeWritten(in root: URL, into result: inout ShareImportReport) async {
-        let file = ShareListFile(url: ShareFiles.written(in: root))
-        let contents = file.read()
-        if case .unreadable = contents {
-            // Only markers: the lines are in the vault already.
-            _ = try? file.setAsideIfUnreadable()
-            await store.refresh(directories: ["journal"])
-            return
+        var refreshed = false
+        for url in ShareFiles.writtenLists(in: root) {
+            let file = ShareListFile(url: url)
+            let contents = file.read()
+            if case .unreadable = contents {
+                // Only markers: the lines are in the vault already. Bytes that are not a list move
+                // aside; a list that cannot be read now stays for the next run.
+                if !refreshed { await store.refresh(directories: ["journal"]) }
+                refreshed = true
+                if (try? file.setAsideIfUnreadable()) != true { listProblems.insert(url.lastPathComponent) }
+                continue
+            }
+            let elements = contents.elements
+            guard !elements.isEmpty else { continue }
+            if !refreshed { await store.refresh(directories: ["journal"]) }
+            refreshed = true
+            // The extension checked the new `^id` against its day file alone.
+            var failed = Set<String>()
+            for entry in elements.compactMap(\.entry) {
+                do { try await store.renewClashingIdentifier(of: entry) } catch {
+                    // This marker stays for the next run; the others in the list go on.
+                    listProblems.insert(url.lastPathComponent)
+                    failed.insert(entry.id)
+                }
+            }
+            let ids = Set(elements.compactMap(\.entry?.id)).subtracting(failed)
+            do {
+                try file.remove(ids: ids, raws: Set(elements.filter { $0.entry == nil }.map(\.raw)))
+                result.added += ids.count
+            } catch {
+                // The markers stay; the next run takes them again, and a renewed line no longer
+                // carries the marker's identifier, so nothing is renewed twice.
+                listProblems.insert(url.lastPathComponent)
+            }
         }
-        let elements = contents.elements
-        guard !elements.isEmpty else { return }
-        await store.refresh(directories: ["journal"])
-        let ids = Set(elements.compactMap(\.entry?.id))
-        result.added += ids.count
-        try? file.remove(ids: ids, raws: Set(elements.filter { $0.entry == nil }.map(\.raw)))
     }
 
     private func takeQueued(in root: URL, into result: inout ShareImportReport) async {
@@ -120,7 +145,12 @@ struct ShareImportReport: Equatable, Sendable {
         case .missing:
             return
         case .unreadable:
-            if (try? file.setAsideIfUnreadable()) == true { result.unreadable += 1 }
+            if (try? file.setAsideIfUnreadable()) == true {
+                result.unreadable += 1
+            } else {
+                // Cannot be read now: it stays in place and the next run reads it again.
+                listProblems.insert(file.url.lastPathComponent)
+            }
         case .list(let elements):
             let damaged = elements.filter { $0.entry == nil }.map(\.raw)
             if !damaged.isEmpty, setAside(damaged, in: root) {

@@ -89,7 +89,7 @@ struct DayCalendarView: View {
                 // calendar's color before it.
                 InkCalendarRow(
                     time: text.start(event), title: text.title(event),
-                    endLabel: ([text.range(event)] + [text.caption(event)])
+                    endLabel: ([text.rowRange(event)] + [text.caption(event)])
                         .compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · "),
                     calendarColor: CalendarColorDot(color: event.color))
             }

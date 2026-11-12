@@ -57,6 +57,16 @@ struct CalendarEventText {
         return start + "–" + event.end.formatted(.dateTime.hour().minute().locale(locale))
     }
 
+    /// Today's row, where the start already sits on the left: "19:00–20:00" as the drawing has it,
+    /// but an event ending on another day names only its end ("Bitiş 12 Kas 00:20"), not the
+    /// start twice. Nil all day long.
+    func rowRange(_ event: CalendarEvent) -> String? {
+        if event.isAllDay { return nil }
+        guard LocalDay.today(at: event.start) != LocalDay.today(at: event.end) else { return range(event) }
+        let end = event.end.formatted(.dateTime.day().month(.abbreviated).hour().minute().locale(locale))
+        return String(localized: "Bitiş \(end)", bundle: bundle, locale: locale)
+    }
+
     func title(_ event: CalendarEvent) -> String {
         event.title.isEmpty ? String(localized: "Başlıksız etkinlik", bundle: bundle, locale: locale) : event.title
     }
@@ -373,8 +383,10 @@ struct CalendarEventForm: View {
                 )
                 .frame(minHeight: TapTarget.minimumLength)
                 InkCardDivider()
+                // No `in:` range: a bounded compact picker drew its date numerically ("12.11.2026")
+                // beside the start's "11 Kas 2026". The binding keeps the end at or after the start.
                 DatePicker(
-                    "Bitiş", selection: draft.end, in: draft.wrappedValue.start...,
+                    "Bitiş", selection: endBinding(draft),
                     displayedComponents: draft.wrappedValue.isAllDay ? [.date] : [.date, .hourAndMinute]
                 )
                 .frame(minHeight: TapTarget.minimumLength)
@@ -410,6 +422,14 @@ struct CalendarEventForm: View {
         if let kept = original?.recurrence, !values.contains(kept) { values.append(kept) }
         // Under the label "Tekrar" the empty choice reads "Yok", not "Tekrar yok" (drawing: Görev).
         return values.map { InkMenuOption(LocalizedStringKey($0 == .none ? "Yok" : $0.catalogKey), value: $0) }
+    }
+
+    /// The end never goes before the start.
+    private func endBinding(_ draft: Binding<CalendarEventDraft>) -> Binding<Date> {
+        Binding(
+            get: { draft.wrappedValue.end },
+            set: { end in draft.wrappedValue.end = max(end, draft.wrappedValue.start) }
+        )
     }
 
     /// Moving the start keeps the event's length.

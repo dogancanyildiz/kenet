@@ -67,7 +67,14 @@ final class GeofenceService {
         goalsReload = Task { [weak self] in
             guard let store = self?.store else { return }
             let vault = store.vaultURL
-            let rows = try? await store.computeGoalDefinitions()
+            let rows: [GoalDefinitionRow]?
+            do {
+                rows = try await store.computeGoalDefinitions()
+                store.noteBackgroundRead(.geofence, failure: nil)
+            } catch {
+                rows = nil
+                store.noteBackgroundRead(.geofence, failure: error)
+            }
             guard let self, count == self.goalsReloadCount else { return }
             if let rows { self.goals = (vault, rows) }
             self.rebuild()

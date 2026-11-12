@@ -255,7 +255,7 @@ struct WeeklyReviewView: View {
             VStack(alignment: .leading, spacing: InkSpacing.row) {
                 section(
                     .tasks, title: String(localized: "Açık görevler", bundle: bundle, locale: locale),
-                    count: model.content?.openTaskCount, empty: "Bu haftadan açık görev kalmadı."
+                    count: model.content?.openTaskCount, empty: "İncelenen haftadan açık görev kalmadı."
                 ) { content in
                     ForEach(Array(content.openTasks.enumerated()), id: \.offset) { _, text in
                         vaultLine(text)

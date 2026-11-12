@@ -38,6 +38,15 @@ struct NotificationRequest: Identifiable, Sendable, Equatable {
     let destination: NotificationDestination
 }
 
+extension NotificationRequest {
+    /// Same identifier, text and destination, firing within the same second. The system keeps the
+    /// trigger's date only to the second, so a pending copy compares to the planned one this way.
+    func isSameSchedule(as other: NotificationRequest) -> Bool {
+        id == other.id && title == other.title && body == other.body && destination == other.destination
+            && Int(date.timeIntervalSince1970.rounded(.down)) == Int(other.date.timeIntervalSince1970.rounded(.down))
+    }
+}
+
 struct NotificationNavigationRequest: Identifiable, Sendable {
     let id = UUID()
     let destination: NotificationDestination

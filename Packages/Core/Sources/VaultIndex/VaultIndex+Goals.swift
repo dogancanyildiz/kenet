@@ -115,16 +115,6 @@ extension VaultIndex {
         return grouped
     }
 
-    /// Valid definitions only; invalid source fields remain intact in the index and Markdown.
-    public func goalDefinitions() throws -> [GoalDefinition] {
-        try database.read { db in
-            let entities = try IndexedEntity.fetchAll(db, sql: "SELECT * FROM entities WHERE kind='goal' ORDER BY file")
-            let links = try IndexedLink.fetchAll(db, sql: "SELECT * FROM links WHERE key='place' ORDER BY file,ordinal")
-            let places = Dictionary(grouping: links, by: \.file)
-            return entities.compactMap { GoalDefinition(entity: $0, place: places[$0.file]?.first?.target) }
-        }
-    }
-
     /// Source paths of indexed goal entities, including definitions the UI may not yet accept.
     public func goalFiles() throws -> [String] {
         try database.read { db in

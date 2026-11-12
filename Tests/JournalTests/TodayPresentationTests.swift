@@ -527,6 +527,27 @@ struct TodayPresentationTests {
         #expect(!wide.shouldFoldOpenTasks)
     }
 
+    /// Same data, same words: an iPhone fold hiding only carried-over tasks reads like the iPad line.
+    @Test func openTaskFoldOfCarriedOverTasksSaysCarriedOver() throws {
+        var carried = TaskGroups(rows: [], on: day, isToday: true)
+        carried.overdue = try (0..<11).map { try row($0, due: "2026-09-\(String(format: "%02d", $0 + 1))") }
+        let phone = try make(
+            goals: 3, locale: "tr_TR", groups: carried, foldsOpenTasks: true, foldViewportHeight: 694)
+        let pad = try make(goals: 3, locale: "tr_TR", groups: carried)
+        #expect(phone.shouldFoldOpenTasks)
+        #expect(phone.hiddenOpenTasksAreCarriedOver)
+        #expect(phone.openTasksDisclosure == "8 devreden daha")
+        #expect(pad.carriedOverDisclosure == phone.openTasksDisclosure)
+
+        var mixed = TaskGroups(rows: try (20..<24).map { try row($0) }, on: day, isToday: true)
+        mixed.overdue = try (0..<2).map { try row($0, due: "2026-09-0\($0 + 1)") }
+        let both = try make(
+            goals: 3, locale: "en_US", groups: mixed, foldsOpenTasks: true, foldViewportHeight: 694)
+        #expect(both.shouldFoldOpenTasks)
+        #expect(!both.hiddenOpenTasksAreCarriedOver)
+        #expect(both.openTasksDisclosure == "3 more tasks")
+    }
+
     @Test func dayTaskSecondaryExposesDateRecurrencePriorityAndCarried() throws {
         let locale = Locale(identifier: "tr_TR")
         var fields: [String: Any] = [

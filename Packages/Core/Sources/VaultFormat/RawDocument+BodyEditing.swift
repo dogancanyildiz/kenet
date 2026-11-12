@@ -67,6 +67,25 @@ extension RawDocument {
         return try rewritingTask(target, content: content, values: values, status: writtenStatus, newID: newID)
     }
 
+    /// Replaces the target's `^id` with `newID` and changes no other byte: not the spacing of an
+    /// event, not a field in the middle of a task. The target must carry an identifier.
+    public func changingIdentifier(of target: LineBlock, to newID: String) throws(EditError) -> RawDocument {
+        _ = try requireTarget(target)
+        try LineParts.validateID(newID)
+        var content = lines[target.line].content
+        guard let range = LineParts(content).id else { throw .invalidValue }
+        content.replaceSubrange(range, with: Array(newID.utf8))
+        let result = try applying([.replacing(line: target.line, with: String(decoding: content, as: UTF8.self))])
+        let body = result.bodyLines
+        guard
+            (body.tasks.map(\.block) + body.events.map(\.block)).contains(where: {
+                $0.line == target.line && $0.lineRange == target.lineRange && $0.id == newID
+                    && Array($0.text.utf8) == Array(target.text.utf8) && $0.kind == target.kind
+            })
+        else { throw .contentNotRepresentable }
+        return result
+    }
+
     /// Changes an event's time, moving the complete block only when the rule requires it.
     public func changingTime(
         of target: EventLine, to time: LineClock?, newID: String? = nil

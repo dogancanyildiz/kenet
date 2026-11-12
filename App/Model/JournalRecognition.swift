@@ -42,9 +42,6 @@ enum JournalRecognition {
     }
 
     static func body(of document: RawDocument) throws -> String {
-        guard !document.isReadOnly else { throw EditError.readOnlyDocument }
-        guard let section = document.daySections.section(.journal) else { return "" }
-        let bytes = document.lines[(section.headingLine + 1)..<section.lineRange.upperBound].flatMap(\.bytes)
-        return String(decoding: bytes, as: UTF8.self)
+        try document.journalText()
     }
 }

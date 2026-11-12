@@ -30,11 +30,6 @@ extension VaultIndex {
         try goalStatusRows(today: today, key: nil)
     }
 
-    /// The same computation for one goal key. Nil when that key has no valid definition.
-    public func goalStatus(key: String, today: CalendarDate) throws -> GoalStatusRow? {
-        try goalStatusRows(today: today, key: key).first
-    }
-
     private func goalStatusRows(today: CalendarDate, key: String?) throws -> [GoalStatusRow] {
         try database.read { db in
             let definitions = try Self.goalDefinitionRows(db, key: key).map(\.definition)

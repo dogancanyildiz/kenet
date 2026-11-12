@@ -8,6 +8,7 @@ enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
     case calendarAndLocation
     case vault
     case diagnostics
+    case about
 
     var id: Self { self }
 
@@ -19,6 +20,7 @@ enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
         case .calendarAndLocation: "Takvim ve Konum"
         case .vault: "Kasa"
         case .diagnostics: "Tanılama"
+        case .about: "Hakkında"
         }
     }
 
@@ -30,6 +32,7 @@ enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
         case .calendarAndLocation: "calendar"
         case .vault: "folder"
         case .diagnostics: "wrench.and.screwdriver"
+        case .about: "info.circle"
         }
     }
 
@@ -43,6 +46,7 @@ enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
         case .calendarAndLocation: "Takvim izni, konuma girince"
         case .vault: "Konum, varlık tipleri"
         case .diagnostics: "İndeks sayıları, kopya dosyalar"
+        case .about: "Sürüm, gizlilik politikası, destek"
         }
     }
 }

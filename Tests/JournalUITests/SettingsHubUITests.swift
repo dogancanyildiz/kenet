@@ -16,7 +16,9 @@ final class SettingsHubUITests: XCTestCase {
     }
 
     /// `SettingsSection` raw values, in the hub's order.
-    private let sections = ["quickEntry", "privacy", "notifications", "calendarAndLocation", "vault", "diagnostics"]
+    private let sections = [
+        "quickEntry", "privacy", "notifications", "calendarAndLocation", "vault", "diagnostics", "about",
+    ]
 
     @MainActor
     func testEverySectionRowOpensItsOwnPage() throws {

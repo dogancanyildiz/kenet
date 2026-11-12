@@ -290,7 +290,7 @@ PY
 # AGENTS.md "Cümle ve biçim kuralları": cümle en çok 20 sözcüktür. Tablo satırları, kod blokları ve
 # Mermaid blokları sayılmaz. Mevcut aşım sayısı tavandır; tavan yalnız düşer. Sayı tavanın altına
 # inerse LONG_SENTENCE_MAX değerini yeni sayıya indir. Aşımları görmek için LIST_LONG_SENTENCES=1.
-LONG_SENTENCE_MAX=115
+LONG_SENTENCE_MAX=13
 check_long_sentences() {
     LONG_SENTENCE_MAX="$LONG_SENTENCE_MAX" LIST_LONG_SENTENCES="${LIST_LONG_SENTENCES:-0}" \
         python3 - "$root" <<'PY'

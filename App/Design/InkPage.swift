@@ -610,6 +610,10 @@ extension EnvironmentValues {
     @Entry var inkHeaderBackTitle: Text? = nil
     /// Inside a sheet (``InkSheetModifier``): pages keep the system back button there.
     @Entry var inkInSheet = false
+    /// Set on a sheet's `NavigationStack` (Ayarlar). Pages pushed there take the stack's
+    /// environment, not the first page's (``inkInSheet`` is false on them); they get an opaque
+    /// paper bar (``SheetBarEdge``).
+    @Entry var inkSheetStack = false
 }
 
 /// A manşet that drew its own back item (``InkPageHeader``) asks for the system bar to hide.
@@ -629,6 +633,7 @@ private struct InkSubpageChrome: ViewModifier {
     let isRoot: Bool
     @Environment(\.inkBackTitle) private var parentTitle
     @Environment(\.inkInSheet) private var inSheet
+    @Environment(\.inkSheetStack) private var inSheetStack
     @Environment(\.inkSheetBarTitle) private var titleInSheetBar
     #if os(iOS)
         @Environment(\.shellKind) private var shellKind
@@ -647,6 +652,7 @@ private struct InkSubpageChrome: ViewModifier {
                 if shown { drawsOwnBack = true }
             }
             .modifier(SubpageBarVisibility(isRoot: isRoot, hidesBar: hidesBar))
+            .modifier(SheetBarEdge(pushedInSheet: inSheetStack && !inSheet && !isRoot))
     }
 
     private var hidesBar: Bool {
@@ -654,6 +660,29 @@ private struct InkSubpageChrome: ViewModifier {
             !isRoot && shellKind == .tabs && drawsOwnBack
         #else
             false
+        #endif
+    }
+}
+
+/// A page pushed inside a sheet (``EnvironmentValues/inkSheetStack``) keeps the system bar and
+/// its round back button. Content scrolled up goes under an opaque paper bar there, not visibly
+/// under the button: the bar was clear and the title and rows read through the glass ("Hızlı giriş" as "zlı giriş"). At rest the bar is
+/// the page's own paper, so nothing changes until the page scrolls. The sheet's first page (title
+/// in the bar, "Kapat") keeps the system bar as it is.
+private struct SheetBarEdge: ViewModifier {
+    let pushedInSheet: Bool
+
+    @ViewBuilder func body(content: Content) -> some View {
+        #if os(iOS)
+            if pushedInSheet {
+                content
+                    .toolbarBackground(Color.ink.paper, for: .navigationBar)
+                    .toolbarBackgroundVisibility(.visible, for: .navigationBar)
+            } else {
+                content
+            }
+        #else
+            content
         #endif
     }
 }

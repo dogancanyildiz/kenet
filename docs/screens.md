@@ -1148,8 +1148,6 @@ Telefonda serbest not okuma ve basit düzenleme vardır. Kullanıcı nota aramad
 | Kısayol ayarı | Settings → Hızlı giriş sekmesi. Sekme Siri cümlelerini ve Kısayollar'ı da listeler. Eylem düğmesi metni Mac'te yoktur. |
 | Menü çubuğu | Menü çubuğu simgesinin menüsünde "Hızlı giriş" (kısayoluyla), "Uygulamayı aç" ve "Çıkış" vardır. Kısayol kaydı hata verirse menü hata metnini gösterir. |
 | Klavye kısayolları | Mac’te arama alanı ⌘F; hızlı geçiş ⌘K aynı arama ekranını açar; bugüne git ⌘T. iPad’de donanım klavyesiyle ⇧⌘F ve ⌘K aramayı, ⌘T Bugün’ü açar; iPadOS ⌘F’yi sistem "Bul" komutuna ayırdığı için arama ⇧⌘F kullanır. Uygulama kilidi örtüsü açıkken bu üç komut kapalıdır. Hızlı giriş kutusunda kip değiştirme ⌘⇧T. Sheet’te Esc kapatır, Return birincil eylemi yapar. Donanım klavyesi bağlı iPhone’da da aynı kod çalışır; iPhone’da görünür kısayol yoktur. |
-| Eksik kısayollar | Yeni olay ve yeni görev kısayolları henüz yok. |
-| Notlar | Serbest notlar için düzenleme alanı henüz yok. Kenar çubuğunda girdisi de yoktur. Düzenleme gelince girdi döner. Kullanıcı notları aramadan açar. |
 | Ayarlar | Sistem Settings sahnesinde sekmeler, bu sırayla: Hızlı giriş, Gizlilik, Bildirimler, Takvim ve Konum, Kasa, Tanılama, Hakkında. |
 
 ## Bölünmüş kabuk: iPhone Duo iç ekranı ve iPad
@@ -1466,14 +1464,12 @@ Kullanıcı Safari'de bir sayfayı, başka bir uygulamada seçili metni paylaş�
 
 **Görünüm:** ana ekran widget'ları `surface` zemindedir; parıltı yoktur. Kilit ekranı widget'ları sistemin vibrant ön planındadır; saat ve sayı öne çıkar.
 
-**Durum:** ana ekran zincir widget'ı uygulandı: iOS, küçük ve orta boy. Kilit ekranında sıradaki etkinlik ve kalan görev sayısı, hızlı giriş widget’ı ve kontrolü de uygulanmıştır. Öteki satırlar hedeflenen kapsamdır. Veri yolu: `architecture.md`, Widget'lar.
+**Kapsam:** iOS ana ekran zincir widget'ı, kilit ekranı widget'ı, hızlı giriş widget'ı ve kontrolü. Veri yolu: `architecture.md`, Widget'lar. Mac widget'ları: `roadmap.md`, Aşama 11.
 
 | Widget | Yer | İçerik |
 |---|---|---|
 | Zincir | Ana ekran (iOS) | Günün günlük hedefleri ve zincirleri. Ayrıntı aşağıda. |
-| Hedefler, Mac | Mac | Sonraki dalga. |
-| Bugün | Ana ekran, Mac | Günün görevleri ve sıradaki etkinlik. Göreve dokunma görevi tamamlar. |
-| Kilit ekranı | Kilit ekranı | Sıradaki etkinlik ve kalan görev sayısı. Tek hedef seçimi sonraki dalga. |
+| Kilit ekranı | Kilit ekranı | Sıradaki etkinlik ve kalan görev sayısı. |
 | Hızlı giriş | Ana ekran, kilit ekranı, Denetim Merkezi | Dokunma uygulamayı Bugün’de, hızlı giriş kutusu odakta ve klavye açık olarak açar. |
 
 ### Hızlı giriş widget'ı ve kontrolü

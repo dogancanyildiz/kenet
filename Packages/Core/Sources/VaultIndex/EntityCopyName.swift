@@ -27,7 +27,7 @@ public enum EntityCopyName {
 
     /// The path the copy would duplicate (`people/Elif.md` for `people/Elif 2.md`), or `nil` when
     /// the name carries no copy number. Syntax only: the path is a copy when that file exists.
-    public static func originalPath(ofCopy path: String) -> String? {
+    static func originalPath(ofCopy path: String) -> String? {
         parse(path)?.original
     }
 

@@ -154,13 +154,25 @@ public actor VaultStore {
         }
     }
 
-    /// Changes or removes an event's clock time, applying the format's ordering rule.
+    /// Gives the target a new identifier when another file of the index holds its identifier. For
+    /// a line written without the whole vault's identifiers (the share extension checks the day
+    /// file alone): the older block keeps its identifier and its links. Only the identifier
+    /// changes; without a clash nothing is written. `staleTarget` when the line is no longer there.
     @discardableResult
-    public func changingTime(of target: EventLine, at path: String, to time: LineClock?) async throws -> RawDocument {
+    public func givingUniqueIdentifier(to target: LineBlock, at path: String) async throws -> RawDocument {
         try await perform {
             try self.edit(path) { document in
-                try document.changingTime(
-                    of: target, to: time, newID: self.replacementID(target.block, path: path, in: document))
+                let body = document.bodyLines
+                guard
+                    body.tasks.contains(where: { $0.block == target })
+                        || body.events.contains(where: { $0.block == target })
+                else { throw VaultStoreError.staleTarget }
+                guard let id = target.id else { return document }
+                let normalizedPath = path.precomposedStringWithCanonicalMapping
+                guard try self.index.files(holdingIdentifier: id).contains(where: { $0 != normalizedPath }) else {
+                    return document
+                }
+                return try document.changingIdentifier(of: target, to: self.freshID(in: document))
             }
         }
     }
@@ -174,11 +186,22 @@ public actor VaultStore {
     }
 
     /// Replaces Journal content, preserving trailing blanks and leaving a missing section untouched for empty text.
+    ///
+    /// With `expectedBody`, the section on disk (`RawDocument.journalText`, a missing day reads as
+    /// empty) must still be what the caller read. The comparison runs inside the coordinated write,
+    /// so a change another process or an earlier queued write made meanwhile is never replaced:
+    /// `staleTarget`, and nothing is written.
     @discardableResult
-    public func changingJournal(on date: CalendarDate, to text: String) async throws -> RawDocument {
+    public func changingJournal(
+        on date: CalendarDate, to text: String, expectedBody: String? = nil
+    ) async throws -> RawDocument {
         try await perform {
             try self.edit(self.dayFilePath(for: date), date: date, createDay: !text.allSatisfy(\.isWhitespace)) {
-                try $0.replacingJournal(with: text)
+                document in
+                if let expectedBody, !(try document.journalText()).utf8.elementsEqual(expectedBody.utf8) {
+                    throw VaultStoreError.staleTarget
+                }
+                return try document.replacingJournal(with: text)
             }
         }
     }

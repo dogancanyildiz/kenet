@@ -5,7 +5,7 @@
 public enum PlaceholderName {
     private static let suffix = Array(".icloud".utf8)
 
-    public static func isPlaceholder(fileName: String) -> Bool {
+    static func isPlaceholder(fileName: String) -> Bool {
         originalName(ofPlaceholder: fileName) != nil
     }
 

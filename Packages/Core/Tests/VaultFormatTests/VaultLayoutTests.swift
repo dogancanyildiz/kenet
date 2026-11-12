@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-import VaultFormat
+@testable import VaultFormat
 
 struct VaultLayoutTests {
     @Test func detectsJournalCaseVariant() {

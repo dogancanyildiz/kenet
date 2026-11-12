@@ -227,6 +227,8 @@ targets:
       - path: App/Resources/Localizable.xcstrings
       - path: App/Support/AppIdentifiers.swift
       - path: App/Services/SystemFileCoordination.swift
+      # Paylaşım uzantısıyla ortak: yazıdan sonra yalnız yazılan dosyayı okuyan geçici indeks.
+      - path: Shared/ThrowawayIndex.swift
     dependencies:
       - package: Core
         product: VaultFormat

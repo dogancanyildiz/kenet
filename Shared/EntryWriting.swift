@@ -1,11 +1,10 @@
 import Foundation
 import VaultFormat
-import VaultIndex
 import VaultStore
 
 // The share extension's way into the vault (docs/architecture.md, "Paylaşım uzantısı"). The app and
 // the extension both compile this file: the extension adds a shared text, the app reads what the
-// extension left in the App Group. Foundation and Core only; no index is opened here.
+// extension left in the App Group. Foundation and Core only; no index on disk is opened here.
 
 /// Whether the shared text becomes an event line (`- HH:MM …`) or an open task (`- [ ] …`).
 enum ShareEntryKind: String, Codable, CaseIterable, Sendable {
@@ -34,9 +33,13 @@ struct ShareEntry: Codable, Equatable, Sendable {
     /// new one. Every line the app adds carries an identifier.
     var existingLineIDs: [String]?
     let kind: ShareEntryKind
+    /// In a `written.json` marker: the `^id` of the line the extension wrote, when it could tell
+    /// that line from the others on the day. The app renews this identifier alone when another file
+    /// holds it too; a marker without it (an older extension, an unclear write) renews nothing.
+    var writtenLineID: String?
 
     private enum CodingKeys: String, CodingKey {
-        case id, text, day, time, sharedAt, writing, existingLineIDs, kind
+        case id, text, day, time, sharedAt, writing, existingLineIDs, kind, writtenLineID
     }
 
     init(
@@ -92,6 +95,7 @@ struct ShareEntry: Codable, Equatable, Sendable {
         writing = try container.decodeIfPresent(String.self, forKey: .writing)
         existingLineIDs = try container.decodeIfPresent([String].self, forKey: .existingLineIDs)
         kind = try container.decodeIfPresent(ShareEntryKind.self, forKey: .kind) ?? .event
+        writtenLineID = try container.decodeIfPresent(String.self, forKey: .writtenLineID)
     }
 
     func encode(to encoder: any Encoder) throws {
@@ -108,6 +112,7 @@ struct ShareEntry: Codable, Equatable, Sendable {
         if kind != .event {
             try container.encode(kind, forKey: .kind)
         }
+        try container.encodeIfPresent(writtenLineID, forKey: .writtenLineID)
     }
 
     var calendarDay: CalendarDate? { CalendarDate(day) }
@@ -116,6 +121,11 @@ struct ShareEntry: Codable, Equatable, Sendable {
     /// open-or-any task with that text, or an event with that text at the record's time (both
     /// untimed when the record has none). Lines without an identifier are not the app's and never count.
     func matchingLineIDs(in document: RawDocument, text: String) -> [String] {
+        matchingLines(in: document, text: text).compactMap(\.id)
+    }
+
+    /// The lines in `document` that read as this record written as `text`, with or without an identifier.
+    func matchingLines(in document: RawDocument, text: String) -> [LineBlock] {
         let lines = document.bodyLines
         switch kind {
         case .event:
@@ -123,9 +133,9 @@ struct ShareEntry: Codable, Equatable, Sendable {
             return lines.events.filter { event in
                 event.block.text == text && event.time?.hour == clock?.hour
                     && event.time?.minute == clock?.minute
-            }.compactMap(\.block.id)
+            }.map(\.block)
         case .task:
-            return lines.tasks.filter { $0.block.text == text }.compactMap(\.block.id)
+            return lines.tasks.filter { $0.block.text == text }.map(\.block)
         }
     }
 
@@ -244,6 +254,18 @@ enum ShareFiles {
     /// Shared texts the extension wrote into the iCloud vault itself; the app refreshes its index.
     static func written(in group: URL) -> URL { directory(in: group).appendingPathComponent("written.json") }
     static func target(in group: URL) -> URL { directory(in: group).appendingPathComponent("target.json") }
+    /// A marker list of its own, written when `written.json` cannot be changed now: the marker is
+    /// not lost. The app takes these as it takes `written.json`.
+    static func spareWritten(in group: URL) -> URL {
+        directory(in: group).appendingPathComponent("written-" + UUID().uuidString + ".json")
+    }
+
+    /// `written.json` and every spare marker list, the main list first.
+    static func writtenLists(in group: URL) -> [URL] {
+        let names = (try? FileManager.default.contentsOfDirectory(atPath: directory(in: group).path)) ?? []
+        let spares = names.filter { $0.hasPrefix("written-") && $0.hasSuffix(".json") }.sorted()
+        return [written(in: group)] + spares.map { directory(in: group).appendingPathComponent($0) }
+    }
     /// Bytes the app could not read, kept aside in the `share/` folder instead of deleted.
     static func damaged(inShareDirectory directory: URL) -> URL {
         directory.appendingPathComponent("damaged-" + UUID().uuidString + ".json")
@@ -270,8 +292,9 @@ enum ShareTargetFile {
 /// Every change is a coordinated read, change and atomic write of the whole file, so the extension
 /// appending and the app removing never lose each other's record. Elements are kept as raw JSON:
 /// a record this version cannot read stays in the list until the app moves it aside. A file that
-/// is not such a list, or that cannot be read at all, is moved aside (`ShareFiles.damaged`, beside
-/// the list) before the next change, never dropped or written over.
+/// is not such a list is moved aside (`ShareFiles.damaged`, beside the list) before the next
+/// change, never dropped or written over. A file that cannot be read now fails the change and
+/// stays in place.
 struct ShareListFile: Sendable {
     let url: URL
     static let format = 1
@@ -325,7 +348,8 @@ struct ShareListFile: Sendable {
         }
     }
 
-    /// Moves an unreadable file aside so the next change starts a new list; true if it did.
+    /// Moves a file that is not a list aside so the next change starts a new list; true if it did.
+    /// A file that cannot be read now throws and stays.
     @discardableResult func setAsideIfUnreadable() throws -> Bool {
         var moved = false
         try change(movedAside: &moved) { _ in }
@@ -342,12 +366,17 @@ struct ShareListFile: Sendable {
         var setAside = false
         try coordinatedWrite(url) {
             var elements: [Data] = []
-            if FileManager.default.fileExists(atPath: url.path) {
-                if let data = try? Data(contentsOf: url), let read = Self.elements(in: data) {
+            // A read that fails now (no permission, a passing I/O error) throws: the list stays where
+            // it is and a later change reads it. Taking it for an empty list or moving it aside would
+            // lose its records, since nothing reads the set-aside files back.
+            let data: Data?
+            do { data = try Data(contentsOf: url) } catch CocoaError.fileReadNoSuchFile { data = nil }
+            if let data {
+                if let read = Self.elements(in: data) {
                     elements = read
                 } else {
-                    // Not a list, or a file this process cannot read: its bytes move aside whole
-                    // before a new list takes the name. A failed move throws; nothing is replaced.
+                    // Bytes that are not a list move aside whole before a new list takes the name.
+                    // A failed move throws; nothing is replaced.
                     try FileManager.default.moveItem(
                         at: url, to: ShareFiles.damaged(inShareDirectory: url.deletingLastPathComponent()))
                     setAside = true
@@ -412,6 +441,13 @@ struct ShareEntryWriter: Sendable {
         case queued
     }
 
+    /// A saved line. `lineID` is its identifier (``ShareEntry/writtenLineID``): the one line with
+    /// the record's text and time that the day did not have before the write. Nil when no single
+    /// such line can be told apart (another process added the same line meanwhile).
+    struct VaultWrite: Equatable, Sendable {
+        let lineID: String?
+    }
+
     enum Failure: Error, Equatable {
         /// No App Group container: nothing can be queued either.
         case groupUnavailable
@@ -425,16 +461,24 @@ struct ShareEntryWriter: Sendable {
     /// The coordination Core's writer holds around the day file (`NSFileCoordinator` in the extension).
     let coordination: any FileCoordination
     var randomValue: @Sendable () -> UInt64 = { UInt64.random(in: .min ... .max) }
+    /// The throwaway index's file reader; tests count its reads.
+    var indexReadFile: @Sendable (URL) throws -> Data = { try Data(contentsOf: $0) }
 
     func add(_ entry: ShareEntry) async throws -> Outcome {
         guard let group else { throw Failure.groupUnavailable }
         guard entry.isWritable else { throw Failure.notAnEventLine }
         if let target = ShareTargetFile.read(from: ShareFiles.target(in: group)), target.writesDirectly,
             let container = await cloudContainer(),
-            await writeToVault(entry, root: ShareVault.cloudRoot(in: container))
+            let written = await writeToVault(entry, root: ShareVault.cloudRoot(in: container))
         {
-            // The line is saved; a lost marker only delays the app's refresh until its own scan.
-            try? ShareListFile(url: ShareFiles.written(in: group)).append(entry)
+            var marker = entry
+            marker.writtenLineID = written.lineID
+            // The line is saved. A marker `written.json` cannot take now goes into a list of its own.
+            do {
+                try ShareListFile(url: ShareFiles.written(in: group)).append(marker)
+            } catch {
+                try? ShareListFile(url: ShareFiles.spareWritten(in: group)).append(marker)
+            }
             return .written
         }
         try ShareListFile(url: ShareFiles.pending(in: group)).append(entry)
@@ -442,28 +486,43 @@ struct ShareEntryWriter: Sendable {
     }
 
     /// Adds the event through Core's writer: only the new line enters the day file, the rest of
-    /// its bytes stay. False when nothing was saved (no vault there yet, a day still in iCloud, a
-    /// read-only vault or day, coordination refused).
-    func writeToVault(_ entry: ShareEntry, root: URL) async -> Bool {
+    /// its bytes stay. Nil when nothing was saved (no vault there yet, a day still in iCloud, a
+    /// read-only vault or day, coordination refused, the vault's entity types unreadable now).
+    func writeToVault(_ entry: ShareEntry, root: URL) async -> VaultWrite? {
         let settings = root.appendingPathComponent(".app/vault.json")
         guard FileManager.default.fileExists(atPath: settings.path), let day = entry.calendarDay,
             entry.isWritable
-        else { return false }
+        else { return nil }
         do {
-            // An empty index in memory: the writer checks identifiers against the day file only.
+            // A throwaway index: the update after the write reads the day file alone, not the whole
+            // vault inside the day's coordinated write. The writer checks identifiers against the
+            // day file only; the app renews one another file holds when it takes the marker
+            // (`ShareQueueProcessor`).
             let store = VaultStore(
-                vaultRoot: root, index: try VaultIndex(), randomValue: randomValue, fileCoordination: coordination)
-            switch entry.kind {
-            case .event:
-                try await store.addingEvent(on: day, text: entry.text, time: entry.clock)
-            case .task:
-                try await store.addingTask(on: day, text: entry.text)
+                vaultRoot: root, index: try ThrowawayIndex.make(for: root, readFile: indexReadFile),
+                randomValue: randomValue, fileCoordination: coordination)
+            let before: Set<String>
+            do {
+                before = Set(entry.matchingLineIDs(in: try await store.dayDocument(for: day), text: entry.text))
+            } catch CocoaError.fileReadNoSuchFile {
+                before = []
             }
-            return true
-        } catch VaultStoreError.indexUpdateFailed {
-            return true
+            var after: RawDocument?
+            do {
+                switch entry.kind {
+                case .event:
+                    after = try await store.addingEvent(on: day, text: entry.text, time: entry.clock)
+                case .task:
+                    after = try await store.addingTask(on: day, text: entry.text)
+                }
+            } catch VaultStoreError.indexUpdateFailed {
+                // Saved; only the throwaway index missed it.
+                after = try? await store.dayDocument(for: day)
+            }
+            let added = after.map { entry.matchingLineIDs(in: $0, text: entry.text).filter { !before.contains($0) } }
+            return VaultWrite(lineID: added?.count == 1 ? added?.first : nil)
         } catch {
-            return false
+            return nil
         }
     }
 }

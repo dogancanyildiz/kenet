@@ -17,7 +17,7 @@ flowchart LR
   F["Fixtures/"]
   F --> RT["roundtrip/ : 8 dosya"]
   F --> PA["parse/ : 141 örnek"]
-  F --> WR["write/ : 396 örnek"]
+  F --> WR["write/ : 401 örnek"]
   F --> ME["merge/ : 71 örnek"]
   F --> RE["recognition/ : 39 örnek"]
   F --> IX["index/ : 4 örnek"]

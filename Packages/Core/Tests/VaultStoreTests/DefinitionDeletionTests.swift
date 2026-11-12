@@ -45,12 +45,12 @@ struct DefinitionDeletionTests {
         let logs = try vault.index.goalLogs()
         try await vault.store.deletingGoal(path: path)
         #expect(!FileManager.default.fileExists(atPath: vault.root.appendingPathComponent(path).path))
-        #expect(try vault.index.goalDefinitions().allSatisfy { $0.id != path })
+        #expect(try vault.index.goalDefinitionsByName().map(\.definition).allSatisfy { $0.id != path })
         #expect(try vault.index.goalLogs() == logs)
         for (path, bytes) in days { #expect(try vault.bytes(path) == bytes) }
         try vault.check()
         let recreated = try await vault.store.creatingGoal(name: "Spor", period: .week, kind: .boolean, target: 3)
-        #expect(try vault.index.goalDefinitions().first { $0.id == recreated }?.key == "spor")
+        #expect(try vault.index.goalDefinitionsByName().map(\.definition).first { $0.id == recreated }?.key == "spor")
         try vault.check()
     }
 

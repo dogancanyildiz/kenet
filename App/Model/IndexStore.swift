@@ -75,6 +75,9 @@ final class IndexStore {
     /// the next successful read; Diagnostics shows it.
     private(set) var backgroundReadFailures: [BackgroundReader: Date] = [:]
     private(set) var errorText: String?
+    /// Share lists in the App Group (`share/…json`) that could not be read or changed in the last
+    /// run of the share queue. They stay in place and wait; Diagnostics names them.
+    var shareListProblems: [String] = []
     private(set) var entryErrorText: String?
     private(set) var isWriting = false
     /// Vault is open and writable. Background refresh or an in-flight write does not clear this;
@@ -1690,7 +1693,7 @@ extension IndexStore {
 
     /// An index query on a background task, under `answer`'s checks. With no index open the
     /// answer is `whenClosed`: an empty value, or `staleTarget` where the query has no empty answer.
-    private func indexQuery<Value: Sendable>(
+    func indexQuery<Value: Sendable>(
         seam: QuerySeam, whenClosed: ClosedIndexAnswer<Value>,
         _ body: @escaping @Sendable (VaultIndex) throws -> Value
     ) async throws -> Value {
@@ -1705,7 +1708,7 @@ extension IndexStore {
 }
 
 /// What an index query answers while no index is open.
-private enum ClosedIndexAnswer<Value> {
+enum ClosedIndexAnswer<Value> {
     /// The query's empty answer: no rows, no days, no tasks.
     case empty(Value)
     /// `staleTarget`: the query has no empty answer.

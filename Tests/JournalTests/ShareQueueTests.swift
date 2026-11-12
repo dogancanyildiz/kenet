@@ -175,6 +175,26 @@ struct ShareQueueTests {
         #expect(harness.processor.report == ShareImportReport(unreadable: 1))
     }
 
+    /// A queue the app cannot read now stays in place, and Diagnostics names it
+    /// (`IndexStore.shareListProblems`); once readable, the next run takes it.
+    @Test func aQueueThatCannotBeReadNowIsNamedAndKept() async throws {
+        let harness = try Harness()
+        defer { harness.context.clean() }
+        await harness.context.start()
+        try harness.pending.append(harness.entry("Bekleyen"))
+        let url = ShareFiles.pending(in: harness.group)
+        try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: url.path)
+
+        await harness.run()
+
+        #expect(harness.context.store.shareListProblems == ["pending.json"])
+        #expect(try harness.damagedFiles().isEmpty)
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
+        await harness.run()
+        #expect(harness.context.store.shareListProblems == [])
+        #expect(try harness.events() == ["Bekleyen"])
+    }
+
     /// The day file cannot take the line (not UTF-8): its bytes stay, the record stays queued.
     @Test func aFailedWriteStaysQueued() async throws {
         let harness = try Harness()
@@ -326,6 +346,88 @@ struct ShareQueueTests {
         #expect(try await context.store.search("Paylaşılanmakale").count == 1)
         #expect(!FileManager.default.fileExists(atPath: ShareFiles.written(in: group).path))
         #expect(processor.report == ShareImportReport(added: 1))
+    }
+
+    /// The extension checks a new line's `^id` against the day file alone. A line whose
+    /// identifier another file already holds gets a new one when the app takes the marker, so the
+    /// older block keeps its links; the other file is not touched.
+    @Test func aLineTheExtensionWroteGetsAnIdentifierNoOtherFileHolds() async throws {
+        let context = try CloudVaultContext()
+        defer { context.clean() }
+        let group = context.directory.appendingPathComponent("Group", isDirectory: true)
+        let lock = Lock()
+        let processor = ShareQueueProcessor(
+            store: context.store, group: FolderAppGroupStore(containerURL: group), isLocked: { lock.isLocked },
+            appLockEnabled: { lock.isEnabled })
+        await context.store.createCloudVault()
+        processor.publishTarget()
+        let root = ShareVault.cloudRoot(in: context.container)
+        let older = root.appendingPathComponent("journal/2000-01-05.md")
+        let olderBytes = Data("## Events\n- Eski olay ^abc123\n".utf8)
+        try olderBytes.write(to: older)
+        await context.store.refresh()
+
+        let container = context.container
+        let writer = ShareEntryWriter(
+            group: group, cloudContainer: { container }, coordination: DirectFileCoordination(),
+            randomValue: SequenceRandom.drawing("abc123").source)
+        let entry = ShareEntry(text: "Paylaşılanmakale", at: Date())
+        #expect(try await writer.add(entry) == .written)
+        let day = root.appendingPathComponent("journal/\(entry.day).md")
+        #expect(RawDocument(bytes: try Data(contentsOf: day)).bodyLines.events.last?.block.id == "abc123")
+
+        processor.process()
+        await processor.settle()
+
+        let id = try #require(RawDocument(bytes: try Data(contentsOf: day)).bodyLines.events.last?.block.id)
+        #expect(id != "abc123")
+        #expect(try Data(contentsOf: older) == olderBytes)
+        #expect(try await context.store.search("Paylaşılanmakale").count == 1)
+        #expect(processor.report == ShareImportReport(added: 1))
+    }
+
+    /// Only the line the extension wrote is renewed. The user's older line with the same text and
+    /// time keeps its identifier, though another file holds it too: the app does not change lines
+    /// it did not target (docs/vault-format.md, "Yinelenen kimliğin onarımı"). A marker without
+    /// the written line's identifier (an older extension) renews nothing.
+    @Test func onlyTheLineTheExtensionWroteIsRenewed() async throws {
+        let context = try CloudVaultContext()
+        defer { context.clean() }
+        let group = context.directory.appendingPathComponent("Group", isDirectory: true)
+        let lock = Lock()
+        let processor = ShareQueueProcessor(
+            store: context.store, group: FolderAppGroupStore(containerURL: group), isLocked: { lock.isLocked },
+            appLockEnabled: { lock.isEnabled })
+        await context.store.createCloudVault()
+        processor.publishTarget()
+        let root = ShareVault.cloudRoot(in: context.container)
+        try Data("## Events\n- Eski olay ^abc123\n".utf8).write(
+            to: root.appendingPathComponent("journal/2000-01-05.md"))
+        let day = root.appendingPathComponent("journal/2026-11-10.md")
+        let userLine = "- 09:30 Kahve ^abc123\n"
+        try Data(("## Events\n" + userLine).utf8).write(to: day)
+        await context.store.refresh()
+
+        let container = context.container
+        let writer = ShareEntryWriter(
+            group: group, cloudContainer: { container }, coordination: DirectFileCoordination(),
+            randomValue: SequenceRandom.drawing("new123").source)
+        let entry = ShareEntry(
+            id: UUID().uuidString, text: "Kahve", day: "2026-11-10", time: "09:30",
+            sharedAt: Date(timeIntervalSince1970: 1_792_000_000))
+        #expect(try await writer.add(entry) == .written)
+        let marker = ShareListFile(url: ShareFiles.written(in: group))
+        #expect(marker.read().elements.compactMap(\.entry?.writtenLineID) == ["new123"])
+
+        // An older marker for the same day carries no line identifier.
+        try marker.append(entry)
+
+        processor.process()
+        await processor.settle()
+
+        let text = String(decoding: try Data(contentsOf: day), as: UTF8.self)
+        #expect(text == "## Events\n" + userLine + "- 09:30 Kahve ^new123\n")
+        #expect(!FileManager.default.fileExists(atPath: ShareFiles.written(in: group).path))
     }
 
     @Test func queuedTaskBecomesAnOpenTaskOnItsDayAndIsNotDuplicatedAfterInterruptedRun() async throws {

@@ -10,7 +10,7 @@ struct MilestoneStoreTests {
         defer { vault.remove() }
         // The new file's bytes come from `goals/creation/cases.json` (GoalCreationTests).
         _ = try await vault.store.creatingGoal(name: "Portfolio", period: .year, kind: .milestone, target: 1)
-        #expect(try vault.index.goalDefinitions().first?.kind == .milestone)
+        #expect(try vault.index.goalDefinitionsByName().map(\.definition).first?.kind == .milestone)
         let day = CalendarDate("2026-10-04")!
         let source = try String(
             contentsOf: Fixtures.root().appendingPathComponent("goals/writes/milestone-input.md"), encoding: .utf8)

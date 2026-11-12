@@ -80,11 +80,8 @@ struct DayTests {
         let changed = try await vault.store.changingText(
             of: events.last!.block, at: "journal/2026-09-14.md", to: "[[Selin Korkmaz]]")
         try vault.check()
-        let timed = try await vault.store.changingTime(
-            of: changed.bodyLines.events.last!, at: "journal/2026-09-14.md", to: LineClock(hour: 8, minute: 5))
-        try vault.check()
         let completed = try await vault.store.changingStatus(
-            of: timed.bodyLines.tasks.last!, at: "journal/2026-09-14.md", to: .done, completionDate: storeDate)
+            of: changed.bodyLines.tasks.last!, at: "journal/2026-09-14.md", to: .done, completionDate: storeDate)
         try vault.check()
         try await vault.store.deletingBlock(completed.bodyLines.tasks.last!.block, at: "journal/2026-09-14.md")
         try vault.check()

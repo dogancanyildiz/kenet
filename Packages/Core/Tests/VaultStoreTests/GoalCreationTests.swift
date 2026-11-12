@@ -42,7 +42,7 @@ struct GoalCreationTests {
         #expect(path == "goals/\(item.name).md")
         #expect(try vault.bytes(path) == expected)
         #expect(Data(RawDocument(bytes: expected).serialized()) == expected)
-        let definition = try #require(try vault.index.goalDefinitions().first)
+        let definition = try #require(try vault.index.goalDefinitionsByName().map(\.definition).first)
         #expect(definition.name == item.name && definition.period == period && definition.kind == kind)
         #expect(definition.unit == item.unit)
         if let target = item.target { #expect(definition.target == target) }
@@ -89,7 +89,7 @@ struct GoalCreationTests {
         async let first = vault.store.creatingGoal(name: "Su İçme", period: .day, kind: .boolean, target: 1)
         async let second = vault.store.creatingGoal(name: "Su-İçme", period: .day, kind: .boolean, target: 1)
         _ = try await (first, second)
-        #expect(Set(try vault.index.goalDefinitions().map(\.key)) == ["su-icme", "su-icme-2"])
+        #expect(Set(try vault.index.goalDefinitionsByName().map(\.definition).map(\.key)) == ["su-icme", "su-icme-2"])
         for amount in [0, -1, Double.infinity, Double.nan] {
             await #expect(throws: EditError.invalidValue) {
                 try await vault.store.creatingGoal(name: "Invalid", period: .day, kind: .number, target: amount)

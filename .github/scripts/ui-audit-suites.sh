@@ -10,8 +10,8 @@
 #              -only-testing ile koşar. Aynı ekranlar iPad'de bölünmüş kabukta denetlenir; iPhone'da
 #              yinelemek denetim işine ~6 dk ekliyordu (koşu 40427534859: 6 vaka 370 sn).
 # Ad kuralına uymayan yeni küme akış işine düşer, hiçbir küme kaybolmaz. Bölme bir süre dengesidir,
-# anlam ayrımı değil: denetim çağıran ama adı kurala uymayan kümeler (WeeklyReviewUITests,
-# CloseDayUITests) akış işinde koşar. Kuralı test-ui-audit-suites.sh sınar.
+# anlam ayrımı değil: denetim çağıran ama adı kurala uymayan küme (CloseDayUITests) akış
+# işinde koşar. Kuralı test-ui-audit-suites.sh sınar.
 # Yeni küme eklemek için başka dosyaya dokunmak gerekmez. Liste boşsa betik düşer: boş
 # -only-testing listesi xcodebuild'e bütün testleri koşturur, var olmayan ad hiçbir şey koşturmaz.
 #   sh ui-audit-suites.sh [--iphone|--shared] [depo kökü]

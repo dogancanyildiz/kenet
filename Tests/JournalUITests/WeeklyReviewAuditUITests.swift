@@ -2,7 +2,7 @@ import XCTest
 
 /// The weekly review opened from Günlük on a temporary copy of the sample vault: every step is
 /// reachable by identifier and passes the accessibility audit. Nothing is written.
-final class WeeklyReviewUITests: XCTestCase {
+final class WeeklyReviewAuditUITests: XCTestCase {
     private var vaultURL: URL!
 
     override func setUpWithError() throws {

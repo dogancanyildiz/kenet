@@ -309,7 +309,7 @@ jobs:
   # denetimi sıra bekler.
   #
   # Akış: duman turu, görev satırı, fixture kasası, denetim istisnaları, denetim çağıran öteki
-  # kümeler (WeeklyReviewUITests, CloseDayUITests). Süre ~19 dk (tahmin); iş sınırı ~1,5 katı.
+  # kümeler (CloseDayUITests). Süre ~19 dk (tahmin); iş sınırı ~1,5 katı.
   app-iphone-ui:
     name: Uygulama (iPhone arayüz)
     needs: changes

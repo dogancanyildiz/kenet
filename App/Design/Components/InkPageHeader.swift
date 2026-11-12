@@ -34,6 +34,8 @@ struct InkPageHeader<Actions: View>: View {
     private var bylineText: Text? = nil
     /// A small view on the title's trailing side (hedef ayrıntısı: the period pill).
     private var titleAccessory: AnyView? = nil
+    /// Accessibility identifier of the title and byline element (UI tests read the künye there).
+    private var headlineIdentifier: String? = nil
     private let fitsOneLine: Bool
     private let actions: Actions
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -129,6 +131,14 @@ struct InkPageHeader<Actions: View>: View {
     }
 
     @ViewBuilder private var headline: some View {
+        if let headlineIdentifier {
+            headlineText.accessibilityIdentifier(headlineIdentifier)
+        } else {
+            headlineText
+        }
+    }
+
+    @ViewBuilder private var headlineText: some View {
         switch title {
         case .key(let key):
             PageHeadline(key, byline: byline).withBylineText(bylineText)
@@ -146,6 +156,13 @@ extension InkPageHeader {
     func byline(_ text: Text?) -> Self {
         var copy = self
         copy.bylineText = text
+        return copy
+    }
+
+    /// Names the title and byline element, which reads as one ("Görevler, 14 açık").
+    func headlineIdentifier(_ identifier: String) -> Self {
+        var copy = self
+        copy.headlineIdentifier = identifier
         return copy
     }
 

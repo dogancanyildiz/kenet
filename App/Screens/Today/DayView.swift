@@ -66,6 +66,8 @@ struct DayView: View {
     @State private var isTasksExpanded = false
     /// Nil until the first query returns; a reload keeps the previous day until then.
     @State private var loadedDay: DaySummary?
+    /// The request the page's main load last finished for (``DayPageReadyKey``).
+    @State private var loadedRequest: DayRequest?
     /// Goal definitions and statuses as of the day they were queried for, loaded with the day.
     @State private var loadedGoals: (day: CalendarDate, goals: [GoalDefinition], statuses: [String: GoalStatus])?
     @State private var goalModels = GoalDayModelSlot()
@@ -285,11 +287,17 @@ struct DayView: View {
         .accessibilityIdentifier(isToday ? "screen.today" : "screen.day")
         // The strip draws nothing until its model has the goals; hosts wait for this, goals or none.
         .preference(key: GoalsStripReadyKey.self, value: goalModel.hasLoaded && !goalModel.isLoading)
+        .preference(
+            key: DayPageReadyKey.self,
+            value: loadedRequest == DayRequest(date: date, updated: store.lastUpdated)
+                && tasksModel.isCurrent
+        )
         .task(id: date) {
             if AppLaunchPolicy.allowsCalendarLoad() { await calendar.load(date) }
         }
         .task(id: DayRequest(date: date, updated: store.lastUpdated)) {
             // One load: the day and its goal statuses as of that day are taken together.
+            let request = DayRequest(date: date, updated: store.lastUpdated)
             let goalModel = goalModels.model(store: store, day: date)
             let revision = goalModel.currentRevision()
             async let day = store.computeDay(on: date)
@@ -308,6 +316,8 @@ struct DayView: View {
             await loadWeekAndChips(
                 goals: statuses?.map(\.definition) ?? [],
                 statuses: statuses.map(TodayPresentation.goalStatuses) ?? [:])
+            guard !Task.isCancelled else { return }
+            loadedRequest = request
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { greetingTick = clockNow() }

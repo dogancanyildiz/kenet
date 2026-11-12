@@ -2,6 +2,7 @@ import CryptoKit
 import EntityRecognition
 import Foundation
 import GoalTracking
+import OSLog
 import Observation
 import Summaries
 import VaultFormat
@@ -18,15 +19,20 @@ struct IndexCounts: Sendable {
     var files: Int { filesByKind.values.reduce(0, +) }
 
     init() {}
+}
 
-    init(snapshot: IndexSnapshot) {
-        for file in snapshot.files { filesByKind[file.kind, default: 0] += 1 }
-        events = snapshot.blocks.filter { $0.kind == "event" }.count
-        tasks = snapshot.blocks.filter { $0.kind == "task" }.count
-        entities = snapshot.entities.count
-        links = snapshot.links.count
-        unresolvedLinks = snapshot.links.filter { $0.resolvedFile == nil }.count
-    }
+/// Set by `IndexStore.waitUntil`'s timer once its time is up; read on the main actor only.
+@MainActor private final class WaitDeadline {
+    var passed = false
+}
+
+/// A service that reads the index after each publish with nobody watching the result on screen.
+enum BackgroundReader: String, Sendable {
+    case widget, geofence
+
+    static let log = Logger(subsystem: "com.dogancanyildiz.kenet", category: "background-read")
+    /// Debug check of entity usage counted from the read model (`IndexStore.reloadRecognition`).
+    static let usageLog = Logger(subsystem: "com.dogancanyildiz.kenet", category: "entity-usage")
 }
 
 @MainActor @Observable
@@ -44,7 +50,13 @@ final class IndexStore {
     private(set) var entityTypes = EntityTypeCatalog()
     private(set) var nearbyPlaces: [NearbyPlace] = []
     private(set) var mapPlaces: [MapPlace] = []
-    private(set) var entityUsage: [EntityUsage] = []
+    private(set) var entityUsage: [EntityUsage] = [] {
+        didSet {
+            entityUsageByFile = Dictionary(entityUsage.map { ($0.file, $0) }, uniquingKeysWith: { first, _ in first })
+        }
+    }
+    /// `entityUsage` keyed by entity path, for screens that look up one entity at a time.
+    private(set) var entityUsageByFile: [String: EntityUsage] = [:]
     private(set) var counts = IndexCounts()
     private(set) var skippedPaths: [SkippedPath] = []
     private(set) var lastUpdated: Date? {
@@ -58,7 +70,10 @@ final class IndexStore {
     /// Every publish and every reset, for the widget snapshot (`WidgetSnapshotWriter`).
     @ObservationIgnored var onWidgetSnapshotChange: (() -> Void)?
     @ObservationIgnored var onSnapshotChange: ((VaultReadModel?, URL?) -> Void)?
-    private(set) var isProcessing = false
+    private(set) var isProcessing = false { didSet { resumeSatisfiedWaiters() } }
+    /// When the widget snapshot or the geofence goals last failed to read the index, cleared by
+    /// the next successful read; Diagnostics shows it.
+    private(set) var backgroundReadFailures: [BackgroundReader: Date] = [:]
     private(set) var errorText: String?
     private(set) var entryErrorText: String?
     private(set) var isWriting = false
@@ -94,15 +109,26 @@ final class IndexStore {
     @ObservationIgnored private var pendingDirectories: Set<String>?
     /// A failed refresh may have left changes anywhere: the next refresh scans the whole vault.
     @ObservationIgnored private var needsFullRefresh = false
-    @ObservationIgnored private var refreshInFlight = false
+    @ObservationIgnored private var refreshInFlight = false { didSet { resumeSatisfiedWaiters() } }
     /// Bumped when a write publishes so an overlapping refresh can discard its stale snapshot.
     @ObservationIgnored private var contentEpoch = 0
     @ObservationIgnored private var generation = UUID()
     /// Serializes user writes so a busy vault queues instead of dropping Enter.
-    @ObservationIgnored private var writeBusy = false
+    @ObservationIgnored private var writeBusy = false { didSet { resumeSatisfiedWaiters() } }
     @ObservationIgnored private var writeWaiters: [(id: UUID, continuation: CheckedContinuation<Void, any Error>)] = []
+    {
+        didSet { resumeSatisfiedWaiters() }
+    }
     /// True from vault identity reset until the opening refresh finishes (or open aborts).
-    @ObservationIgnored private var isOpening = false
+    @ObservationIgnored private var isOpening = false { didSet { resumeSatisfiedWaiters() } }
+    /// Callers waiting for the store to settle (`waitUntil`); each resumes once its condition holds.
+    @ObservationIgnored private var settleWaiters:
+        [(id: UUID, condition: @MainActor () -> Bool, continuation: CheckedContinuation<Bool, Never>)] = []
+    /// The read model `entityUsage` was counted from; a publish whose links match it keeps the rows.
+    @ObservationIgnored private var usageInputs: VaultReadModel?
+    /// Debug builds compare one publish in this many with the index's usage query.
+    private static let usageVerificationInterval = 8
+    @ObservationIgnored private var usageVerifications = 0
     /// Callers of `start()` waiting for the one in flight; `nil` while none runs.
     @ObservationIgnored private var startWaiters: [CheckedContinuation<Void, Never>]?
 
@@ -238,10 +264,12 @@ final class IndexStore {
             await open(root)
         }
         // Drain in-flight and queued writes before the intent write; do not abandon them mid-file.
-        for _ in 0..<400 {
-            if !isProcessing && !refreshInFlight && !writeBusy && writeWaiters.isEmpty { break }
-            try await Task.sleep(for: .milliseconds(20))
+        // The 8 s limit runs only while no vault is opening: a large vault's first refresh may take longer.
+        await waitUntil(timeout: .seconds(8)) {
+            !self.isOpening && !self.isProcessing && !self.refreshInFlight && !self.writeBusy
+                && self.writeWaiters.isEmpty
         }
+        try Task.checkCancellation()
         guard canAddEvent, lastUpdated != nil, !writeBusy, writeWaiters.isEmpty else {
             throw VaultStoreError.staleTarget
         }
@@ -293,6 +321,20 @@ final class IndexStore {
     }
 
     func reportTaskEntryError(_ message: String?) { entryErrorText = message }
+
+    /// Records how a background reader's index read ended. A vault switch (`staleTarget`) or a
+    /// cancelled read is not a failure: the next publish reads again.
+    func noteBackgroundRead(_ reader: BackgroundReader, failure: (any Error)?) {
+        guard let failure else {
+            if backgroundReadFailures[reader] != nil { backgroundReadFailures[reader] = nil }
+            return
+        }
+        if failure is CancellationError { return }
+        if case VaultStoreError.staleTarget = failure { return }
+        BackgroundReader.log.error(
+            "\(reader.rawValue, privacy: .public) index read failed: \(failure.localizedDescription, privacy: .public)")
+        backgroundReadFailures[reader] = Date()
+    }
 
     /// Returns true once bytes are saved, including a failed index update; callers must not resend them.
     @discardableResult
@@ -501,9 +543,43 @@ final class IndexStore {
         let root = vaultURL
         let types: EntityTypeCatalog? = if let writer { await writer.entityTypes() } else { nil }
         let kinds = Set((types ?? entityTypes).allTypes.map(\.id))
+        // Usage is counted from the read model just published, not read from the index: a publish
+        // whose link targets match the last count keeps its rows (`hasSameUsageInputs`).
+        let current = content
+        let counted = usageInputs
+        let previousUsage = entityUsage
+        #if DEBUG
+            usageVerifications += 1
+            let verify = usageVerifications % Self.usageVerificationInterval == 1
+        #endif
         let values = try await Task.detached {
+            async let recount = current.usageRecount(since: counted)
             let entities = try index.knownEntities(kinds: kinds)
-            return (entities, try index.entityUsage(), PlaceDocumentCache.signatures(of: entities, in: root))
+            let signatures = PlaceDocumentCache.signatures(of: entities, in: root)
+            let recounted = await recount
+            let rows: [EntityUsage]? =
+                switch recounted {
+                case .unchanged: nil
+                case .counted(let rows): rows
+                case .needsIndex: try index.entityUsage()
+                }
+            #if DEBUG
+                // Debug builds sample publishes counted from the read model against the index. A drift
+                // is logged and the index's rows win; a write racing the query can differ for a moment,
+                // so it does not stop the app. Release builds never run the query here.
+                var usage = rows
+                if verify, !recounted.readsIndex {
+                    let fromIndex = try index.entityUsage()
+                    if (usage ?? previousUsage) != fromIndex {
+                        BackgroundReader.usageLog.fault("Entity usage drifted from the index; using its rows")
+                        usage = fromIndex
+                    }
+                }
+            #else
+                let usage = rows
+                _ = previousUsage
+            #endif
+            return (entities, usage, signatures)
         }.value
         var places: [NearbyPlace] = []
         var coordinates: [MapPlace] = []
@@ -521,7 +597,8 @@ final class IndexStore {
         guard writer === self.writer else { return }
         if let types { entityTypes = types }
         knownEntities = values.0
-        entityUsage = values.1
+        if let usage = values.1 { entityUsage = usage }
+        usageInputs = current.isBuilt && !current.needsFullReconcile ? current : nil
         if writer != nil { placeDocuments.keep(only: values.2.keys) }
         nearbyPlaces = places
         mapPlaces = coordinates
@@ -652,10 +729,59 @@ final class IndexStore {
         }
     }
 
+    /// Test seam: `waitUntil` with a caller's condition; busy-flag changes wake it.
+    func testingWaitUntil(_ condition: @escaping @MainActor () -> Bool) async -> Bool {
+        await waitUntil(condition)
+    }
+
     func waitWhileRefreshInFlight() async {
-        while (refreshInFlight || isOpening) && !Task.isCancelled {
-            try? await Task.sleep(for: .milliseconds(10))
+        await waitUntil { !self.refreshInFlight && !self.isOpening }
+    }
+
+    /// Suspends until `condition` holds, the caller is cancelled, or `timeout` passes while no vault
+    /// is opening. The store wakes waiters when its busy flags change; nothing polls. A flag can
+    /// change mid-step (opening clears `isProcessing` just before its refresh sets `refreshInFlight`),
+    /// so a woken waiter checks again once it runs and waits on if the condition no longer holds.
+    /// Returns whether the condition held.
+    @discardableResult
+    private func waitUntil(timeout: Duration? = nil, _ condition: @escaping @MainActor () -> Bool) async -> Bool {
+        let id = UUID()
+        let deadline = WaitDeadline()
+        let timer: Task<Void, Never>? = timeout.map { timeout in
+            Task { @MainActor [weak self] in
+                repeat {
+                    try? await Task.sleep(for: timeout)
+                    if Task.isCancelled { return }
+                } while self?.isOpening == true
+                deadline.passed = true
+                self?.resumeSettleWaiter(id, satisfied: false)
+            }
         }
+        defer { timer?.cancel() }
+        while true {
+            if condition() { return true }
+            if Task.isCancelled || deadline.passed { return false }
+            await withTaskCancellationHandler {
+                _ = await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
+                    settleWaiters.append((id: id, condition: condition, continuation: continuation))
+                }
+            } onCancel: {
+                Task { @MainActor [weak self] in self?.resumeSettleWaiter(id, satisfied: false) }
+            }
+        }
+    }
+
+    private func resumeSettleWaiter(_ id: UUID, satisfied: Bool) {
+        guard let position = settleWaiters.firstIndex(where: { $0.id == id }) else { return }
+        settleWaiters.remove(at: position).continuation.resume(returning: satisfied)
+    }
+
+    private func resumeSatisfiedWaiters() {
+        guard !settleWaiters.isEmpty else { return }
+        let ready = settleWaiters.filter { $0.condition() }
+        guard !ready.isEmpty else { return }
+        settleWaiters.removeAll { waiter in ready.contains { $0.id == waiter.id } }
+        for waiter in ready { waiter.continuation.resume(returning: true) }
     }
 
     /// FIFO write gate. A cancelled waiter is removed so it cannot hold the queue.
@@ -756,6 +882,7 @@ final class IndexStore {
         nearbyPlaces = []
         mapPlaces = []
         entityUsage = []
+        usageInputs = nil
         counts = IndexCounts()
         skippedPaths = []
         sync.reset(for: nil)
@@ -771,6 +898,9 @@ final class IndexStore {
         watcher = nil
         generation = UUID()
         let current = generation
+        // Raised before any busy flag drops, so a waiter never sees the store idle mid-open.
+        isOpening = true
+        defer { if generation == current { isOpening = false } }
         pendingRefresh = false
         pendingRebuild = false
         pendingDirectories = nil
@@ -781,8 +911,6 @@ final class IndexStore {
         // `writeBusy` is left alone: `open` can run inside a write body (pending selection),
         // and clearing it there would let two writes run at once.
         failQueuedWriters()
-        isOpening = true
-        defer { if generation == current { isOpening = false } }
         isVaultInaccessible = false
         unwatchedDirectoryCount = 0
         vaultURL = url
@@ -800,6 +928,7 @@ final class IndexStore {
         nearbyPlaces = []
         mapPlaces = []
         entityUsage = []
+        usageInputs = nil
         counts = IndexCounts()
         skippedPaths = []
         // The vault opened again starts over: lists, requests, merges, the band and its counts.
@@ -821,8 +950,12 @@ final class IndexStore {
         } catch {
             if generation == current { report(error) }
         }
-        if index != nil {
-            indexingFileCount = try? await Task.detached { try VaultImportScanner.markdownFiles(in: url).count }.value
+        if let opened = index {
+            // An index already built knows its files; only a first build walks the vault for the count.
+            indexingFileCount = try? await Task.detached {
+                let indexed = try opened.files().count
+                return indexed > 0 ? indexed : try VaultImportScanner.markdownFiles(in: url).count
+            }.value
             guard generation == current else { return }
         }
         guard index != nil else {
@@ -889,6 +1022,7 @@ final class IndexStore {
             pendingDirectories = nil
             if full || needsFullRefresh { scope = nil }
             let epochAtStart = contentEpoch
+            var contentReplaced = false
             do {
                 let result = try await update(
                     index, root, full, scope, entityTypes, allowSkip, skippedPaths, content,
@@ -908,6 +1042,7 @@ final class IndexStore {
                     content = result.content
                     counts = result.counts
                     skippedPaths = result.skippedPaths
+                    contentReplaced = true
                     try await reloadRecognition()
                     // A vault opened while recognition loaded owns `lastUpdated` and `errorText`.
                     guard generation == current else { return }
@@ -926,6 +1061,15 @@ final class IndexStore {
                 report(error)
                 allowSkip = false
                 needsFullRefresh = true
+                if contentReplaced {
+                    // Recognition failed after the content was replaced: the next publish rebuilds the
+                    // whole model (as after a write). Screens watch `lastUpdated`, so it moves too, but
+                    // only for a vault already published: a failed first load stays unpublished.
+                    var marked = content
+                    marked.markNeedsFullReconcile()
+                    content = marked
+                    if lastUpdated != nil { lastUpdated = Date() }
+                }
             }
             full = pendingRebuild
             scope = pendingDirectories

@@ -256,14 +256,13 @@ final class MentionComposer {
         let fragment = String(decoding: Array(text.utf8)[(range.lowerBound + 1)..<range.upperBound], as: UTF8.self)
         // The vault's name rule, either reading: `@DENİ` offers `Deniz`, `@ian` still offers `Ian`.
         let key = NameCollision(fragment)
-        let dates = Dictionary(
-            uniqueKeysWithValues: store.entityUsage.map { ($0.file, $0.lastDate?.description ?? "") })
+        let usage = store.entityUsageByFile
         return Array(
             store.knownEntities.filter {
                 fragment.isEmpty || ([$0.name] + $0.aliases).contains { key.occurs(in: $0) }
             }.sorted {
-                let left = dates[$0.file] ?? ""
-                let right = dates[$1.file] ?? ""
+                let left = usage[$0.file]?.lastDate?.description ?? ""
+                let right = usage[$1.file]?.lastDate?.description ?? ""
                 if left != right { return left > right }
                 if $0.name != $1.name { return $0.name < $1.name }
                 return $0.file < $1.file

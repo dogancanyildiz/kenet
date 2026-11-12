@@ -161,17 +161,6 @@ struct VaultReadModel: Sendable {
         }
     }
 
-    /// Screen-visible equality used by incremental vs full-build tests.
-    func matchesScreenFields(_ other: VaultReadModel) -> Bool {
-        entities == other.entities
-    }
-
-    static func debugDiff(_ left: VaultReadModel, _ right: VaultReadModel) -> String {
-        var lines: [String] = []
-        if left.entities != right.entities { lines.append("entities") }
-        return "diff: " + (lines.isEmpty ? "none" : lines.joined(separator: ", "))
-    }
-
     private static func fragments(from snapshot: IndexSnapshot) -> [String: VaultFileFragment] {
         let entities = Dictionary(uniqueKeysWithValues: snapshot.entities.map { ($0.file, $0) })
         let aliases = Dictionary(grouping: snapshot.aliases, by: \.file)

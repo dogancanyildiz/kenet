@@ -12310,6 +12310,22 @@
         }
       }
     },
+    "Konum hatırlatmaları okunamadı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrival reminders could not be read"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konum hatırlatmaları okunamadı"
+          }
+        }
+      }
+    },
     "Konum hedefi işlenemedi. Kasayı ve bildirim izinlerini kontrol et." : {
       "localizations" : {
         "en" : {
@@ -16995,6 +17011,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vitamin al"
+          }
+        }
+      }
+    },
+    "Widget verisi okunamadı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widget data could not be read"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widget verisi okunamadı"
           }
         }
       }

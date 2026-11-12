@@ -189,9 +189,11 @@ struct SystemWidgetTimelines: WidgetTimelineReloading {
                 lockedAfter: lockDeadline(), hideContent: hidden)
         } catch {
             // Another vault opened meanwhile (its publish updates again) or the read failed: the
-            // file keeps the last answer.
+            // file keeps the last answer. A failed read shows in Diagnostics.
+            store.noteBackgroundRead(.widget, failure: error)
             return
         }
+        store.noteBackgroundRead(.widget, failure: nil)
         // The app may have locked, or lost the vault, while the queries ran.
         if isLocked() { return }
         if store.isVaultInaccessible {

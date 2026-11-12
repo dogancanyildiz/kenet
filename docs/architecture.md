@@ -321,8 +321,10 @@ Okuma modeli dosya başına parça tutar: `[yol: VaultFileFragment]`. İlk kurul
 |---|---|
 | Dosya satırı | `counts.filesByKind` |
 | Varlık ve takma adlar | `entities`, `counts.entities` |
-| Bağlantılar | Gelen bağlantı sayısı, `counts.links`, silinen dosyaya çözülen kaynaklar |
+| Bağlantılar | Gelen bağlantı sayısı, `counts.links`, silinen dosyaya çözülen kaynaklar, varlık kullanımı (`entityUsage`) |
 | Olay ve görev blok sayısı | `counts.events`, `counts.tasks` |
+
+`IndexStore` varlık kullanımını indeksten değil parçalardan sayar (`EntityUsageCalculator`); satırlar `VaultIndex.entityUsage()` ile aynıdır. Bağlantı hedefleri değişmeyen yayım eski satırları korur. Parça indeksle uyumsuz olabilirse sayım indeksten okunur.
 
 Parça blok metnini taşımaz: paragraf, başlık, görev ve olay metni indekste kalır. Ekranlar blok metnini sorgudan okur. Blok kimliği sahipliği de parçaya ulaşmaz. Bu yüzden artımlı yol kimlik başına bütün parçaları taramaz. Hedef değerleri de parçaya ulaşmaz; hedef ekranları ve servisler onları sorgudan okur. Hiçbir alan güne bağlı değildir: yeni gün de öteki yayımlar gibi yamayla işler.
 
@@ -484,9 +486,9 @@ Kullanıcı hedefi işaretlediği anda ekran işareti o ekranın düzenleme mode
 | Hedef tanım formu, ad çakışması | `computeGoalDefinitions()` | Form açılışta ve her yayımda adları okur. Adlar gelmeden "Kaydet" kapalıdır. Kaydetme adları yeniden okur |
 | Yeni hedef formu, anahtar önizlemesi | `computeReservedGoalKeys()` | Önizleme yanıt gelene kadar ayrılmış anahtar görmez. Oluşturma diskteki anahtarları yine ayırır |
 | App Intents hedef listesi ve işaretleme | `computeGoalDefinitions()` | Okuma hatası kasayı açılamamış sayar |
-| Konum izleme hedefleri | `computeGoalDefinitions()`: tanım ve konum bağlantısının çözüldüğü dosya | Servis her yayımda tanımları yeniden okur. Sonraki okumanın yanıtı öncekini ezer. Arka plan girişi okumanın bitmesini bekler |
+| Konum izleme hedefleri | `computeGoalDefinitions()`: tanım ve konum bağlantısının çözüldüğü dosya | Servis her yayımda tanımları yeniden okur. Sonraki okumanın yanıtı öncekini ezer. Arka plan girişi okumanın bitmesini bekler. Okuma hatası günlüğe ve Tanılama ekranına düşer |
 | Konum izleme "işaretli mi" | `computeGoalLogs(from:through:keys:)`, yalnız o gün | Okuma askıya alınır; denetim ile işi üstlenme arasında askı yoktur: ikinci giriş bekleyen işi görür |
-| Widget anlık görüntüsü | `computeGoalStatuses(today:)`, bugün ve yarın | Her yayımda yeniden sorar. Başka kasa açıldıysa yanıtı atar; dosya son yanıtı tutar. Widget kendisi işaretlediyse önce `journal` klasörünü tarar. Ayrıntı: [Widget'lar](#widgetlar) |
+| Widget anlık görüntüsü | `computeGoalStatuses(today:)`, bugün ve yarın | Her yayımda yeniden sorar. Başka kasa açıldıysa yanıtı atar; dosya son yanıtı tutar. Okuma hatası günlüğe ve Tanılama ekranına düşer. Widget kendisi işaretlediyse önce `journal` klasörünü tarar. Ayrıntı: [Widget'lar](#widgetlar) |
 
 Widget ekranlarla aynı hedef sorgusunu kullanır. Widget sorguyu kendisi çalıştırmaz: uygulama sonucu App Group'a yazar. Widget'ın kendi işaretlemesi yalnız gün dosyasına ve anlık görüntüye yazar.
 
@@ -511,7 +513,7 @@ Widget ekranlarla aynı hedef sorgusunu kullanır. Widget sorguyu kendisi çalı
 | Yazma sonrası yayım sürerken başka kasa açıldı | Yayım içeriği atamaz ve hatayı göstermez |
 | Yenileme sürerken başka kasa açıldı | Yenileme yeni kasanın `lastUpdated`, `errorText` ve `isProcessing` değerlerine dokunmaz |
 | Eski kasaya varlık kaydedildi | Yeni kasanın varlık listesi o varlığı göstermez |
-| Yayımda tanıma yenilemesi hata verdi | `lastUpdated` yine ilerler; ekranlar yeni içeriği çizer |
+| Yayımda tanıma yenilemesi hata verdi | Yazmada ve yenilemede `lastUpdated` yine ilerler; ekranlar yeni içeriği çizer. Sonraki yayım okuma modelini baştan kurar. Kasanın ilk yüklemesi yayımlanmamış sayılır: `lastUpdated` boş kalır |
 | Ayarlar ekranının görevi plan sürerken iptal oldu | Bildirim planı son görüşme sorgusunu iptalden ayırır; plan yarıda kalmaz |
 
 `IndexStore` üzerinden yapılan her yazma çağrıldığı anda seçili olan kasaya aittir. Bu kural olay eklemeyi, `performEdit` düzenlemelerini, varlık oluşturmayı ve yeniden adlandırmayı kapsar. Olay eklemede taslak hızlı girişte kalır ve ekran var olan `staleTarget` iletisini gösterir. Öteki yollar hatayı çağırana atar. Bağlanmamış anma bağlama, satırı okuduğu kasayı bu denetime verir.
@@ -542,7 +544,7 @@ Widget ekranlarla aynı hedef sorgusunu kullanır. Widget sorguyu kendisi çalı
 
 `NotificationService` bildirim haftasını `computeNotificationDays(from:through:)` ile bugünden 6 gün sonrasına kadar okur. Görev ve günlük hatırlatması kapalıysa servis haftayı okumaz. Günlük hedefleri aynı günler için `computeNotificationGoals(from:through:)` ile okur; hedef hatırlatması kapalıysa okumaz. Günlük hedefin bir gündeki ilerlemesi yalnız o günün kaydıdır; sorgu daha eski kayıt okumaz. Servis okumaları iptale karşı korur: plan yarıda kalmaz. Servis haftayı okuyamazsa planlayıcı görev ve günlük hatırlatması planlamaz; hedefleri okuyamazsa hedef hatırlatması planlamaz. İki okuma birbirinden bağımsızdır.
 
-`NotificationService` indeks yayımlarını 2 saniye birleştirir. Kasa yüklenirken servis merkezdeki planı değiştirmez. Bu kural soğuk açılışı, arka plan açılışını ve aynı kasanın yeniden açılmasını kapsar. Eski plan kasanın ilk yayımından sonraki plana kadar kalır. Açılış yenilemesi hata verirse kasa yüklenmiş sayılmaz ve eski plan kalır. Servis eski planı yalnız iki durumda hemen kaldırır: başka bir kasa açıldı ya da kasaya erişim kayboldu. Servis önce yeni planı hesaplar ve ekler; aynı kimlikli istek eskisinin yerine geçer. Sonra servis yalnız yeni planda olmayan kendi isteklerini kaldırır. Böylece süreç plan sırasında askıya alınırsa hatırlatmalar kaybolmaz. Uygulama kapalıyken planlayıcı yedi günlük planın içeriğini yeniden hesaplamaz. Görüşme ritmi hatırlatması aynı plandadır. Uygulama son bildirim gününü kasaya yazmaz; günü cihazda kasa yoluna göre saklar.
+`NotificationService` indeks yayımlarını 2 saniye birleştirir. Kasa yüklenirken servis merkezdeki planı değiştirmez. Bu kural soğuk açılışı, arka plan açılışını ve aynı kasanın yeniden açılmasını kapsar. Eski plan kasanın ilk yayımından sonraki plana kadar kalır. Açılış yenilemesi hata verirse kasa yüklenmiş sayılmaz ve eski plan kalır. Servis eski planı yalnız iki durumda hemen kaldırır: başka bir kasa açıldı ya da kasaya erişim kayboldu. Servis önce yeni planı hesaplar ve ekler; aynı kimlikli istek eskisinin yerine geçer. Saati ve metni aynı kalan bekleyen isteği servis yeniden eklemez. Sonra servis yalnız yeni planda olmayan kendi isteklerini kaldırır. Böylece süreç plan sırasında askıya alınırsa hatırlatmalar kaybolmaz. Uygulama kapalıyken planlayıcı yedi günlük planın içeriğini yeniden hesaplamaz. Görüşme ritmi hatırlatması aynı plandadır. Uygulama son bildirim gününü kasaya yazmaz; günü cihazda kasa yoluna göre saklar.
 
 ## Core paketi
 

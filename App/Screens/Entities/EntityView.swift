@@ -64,7 +64,7 @@ struct EntityView: View {
     }
 
     private var lastSeen: CalendarDate? {
-        store.entityUsage.first { $0.file == model.path }?.lastDate
+        store.entityUsageByFile[model.path]?.lastDate
     }
 
     /// People and custom types. Places and goals have no anniversary line.

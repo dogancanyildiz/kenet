@@ -195,8 +195,12 @@
             let root = try await content(
                 PadSnapshotScene(store: store, defaults: defaults, notifications: notifications))
             let shellRoot = shellKind.map { AnyView(root.environment(\.shellKind, $0)) } ?? root
+            // A day page in the tree (Bugün in the shell, behind a sheet) loads its day, chips and
+            // tasks after the index goes idle; the capture waits for them (nil: no day page).
+            let dayPage = DayPageReadiness()
             let view =
                 shellRoot
+                .onPreferenceChange(DayPageReadyKey.self) { dayPage.isReady = $0 ?? true }
                 .environment(notifications)
                 .environment(CalendarService(source: SnapshotCalendarSource()))
                 .environment(location)
@@ -261,9 +265,10 @@
                     host.view.layoutIfNeeded()
                     host.presentedViewController?.view.layoutIfNeeded()
                     let sheetReady = !presentsSheet || host.presentedViewController?.view.window != nil
-                    idleFrames = !store.isProcessing && sheetReady && isReady() ? idleFrames + 1 : 0
+                    let ready = isReady() && dayPage.isReady
+                    idleFrames = !store.isProcessing && sheetReady && ready ? idleFrames + 1 : 0
                 }
-                if !isReady() {
+                if !isReady() || !dayPage.isReady {
                     Issue.record("Snapshot \(name): the page never reported ready before capture.")
                 }
                 if presentsSheet && host.presentedViewController == nil {
@@ -305,5 +310,9 @@
                 testName: testName,
                 line: line)
         }
+    }
+    /// What ``DayPageReadyKey`` last said; true until a day page reports.
+    @MainActor final class DayPageReadiness {
+        var isReady = true
     }
 #endif

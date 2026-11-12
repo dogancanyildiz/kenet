@@ -29,10 +29,14 @@
             candidate = initial
         }
 
-        func start() {
+        func start(locale: Locale = .current) {
             guard !isRegistered else { return }
             isRegistered = register(shortcut)
-            errorText = isRegistered ? nil : String(localized: "Kısayol kaydedilemedi. Başka bir tuş birleşimi dene.")
+            errorText =
+                isRegistered
+                ? nil
+                : PresentationLocalization.string(
+                    localized: "Kısayol kaydedilemedi. Başka bir tuş birleşimi dene.", locale: locale)
         }
 
         func beginRecording() {
@@ -42,20 +46,22 @@
             isRegistered = false
         }
 
-        func endRecording() {
+        func endRecording(locale: Locale = .current) {
             guard isRecording else { return }
             isRecording = false
-            start()
+            start(locale: locale)
         }
 
         @discardableResult
-        func save() -> Bool {
+        func save(locale: Locale = .current) -> Bool {
             guard candidate.isValid else {
-                errorText = String(localized: "Kısayolda Control, Option veya Command kullan.")
+                errorText = PresentationLocalization.string(
+                    localized: "Kısayolda Control, Option veya Command kullan.", locale: locale)
                 return false
             }
             guard register(candidate) else {
-                errorText = String(localized: "Kısayol kaydedilemedi. Başka bir tuş birleşimi dene.")
+                errorText = PresentationLocalization.string(
+                    localized: "Kısayol kaydedilemedi. Başka bir tuş birleşimi dene.", locale: locale)
                 return false
             }
             shortcut = candidate

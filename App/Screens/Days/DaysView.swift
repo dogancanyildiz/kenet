@@ -255,18 +255,9 @@ struct DayRow: View {
                     Spacer(minLength: 0)
                 }
                 // Today is named in words too, not by the accent alone.
-                HStack(spacing: 4) {
-                    if isToday {
-                        Text("Bugün").foregroundStyle(.ink.accent)
-                        Text(verbatim: "·")
-                    }
-                    Text("\(day.eventCount) olay · \(day.taskCount) görev")
-                }
-                .font(.ink.meta)
-                .monospacedDigit()
-                .foregroundStyle(.ink.secondaryText)
-                .lineLimit(1)
-                .fixedSize()
+                dayCountsMeta(todayAccent: true, showsMonth: false)
+                    .lineLimit(1)
+                    .fixedSize()
             }
             if let preview = day.displayPreview {
                 previewText(preview)
@@ -327,10 +318,16 @@ struct DayRow: View {
     }
 
     private var metaLine: some View {
+        dayCountsMeta(todayAccent: showsMonth, showsMonth: showsMonth)
+    }
+
+    /// Shared "Bugün · N olay · M görev" (and optional month) for list and column rows.
+    @ViewBuilder
+    private func dayCountsMeta(todayAccent: Bool, showsMonth: Bool) -> some View {
         HStack(spacing: 4) {
             if isToday {
                 Text("Bugün")
-                    .foregroundStyle(showsMonth ? .ink.accent : .ink.secondaryText)
+                    .foregroundStyle(todayAccent ? .ink.accent : .ink.secondaryText)
                 Text(verbatim: "·")
             }
             if showsMonth {

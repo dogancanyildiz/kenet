@@ -19,13 +19,18 @@
                 && (keyCode == UInt32(kVK_Space) || !keyLabel.isEmpty)
         }
 
-        var display: String {
+        var display: String { display(locale: .current) }
+
+        func display(locale: Locale) -> String {
             var text = ""
             if modifiers & UInt32(controlKey) != 0 { text += "⌃" }
             if modifiers & UInt32(optionKey) != 0 { text += "⌥" }
             if modifiers & UInt32(shiftKey) != 0 { text += "⇧" }
             if modifiers & UInt32(cmdKey) != 0 { text += "⌘" }
-            return text + (keyCode == UInt32(kVK_Space) ? String(localized: "Boşluk") : keyLabel)
+            let key =
+                keyCode == UInt32(kVK_Space)
+                ? PresentationLocalization.string(localized: "Boşluk", locale: locale) : keyLabel
+            return text + key
         }
     }
 #endif

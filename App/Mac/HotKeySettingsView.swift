@@ -3,6 +3,7 @@
 
     struct HotKeySettingsView: View {
         @Bindable var model: HotKeySettingsModel
+        @Environment(\.locale) private var locale
 
         var body: some View {
             List {
@@ -14,23 +15,29 @@
                         .foregroundStyle(Color.ink.secondaryText)
                         .inkListRow()
                     HotKeyRecorder(
-                        candidate: $model.candidate, onBegin: model.beginRecording, onEnd: model.endRecording
+                        candidate: $model.candidate, locale: locale,
+                        onBegin: model.beginRecording,
+                        onEnd: { model.endRecording(locale: locale) }
                     )
                     .frame(height: 40)
                     .inkListRow()
                     HStack(spacing: 16) {
                         Button("Varsayılan kısayol") { model.candidate = .defaultShortcut }
                             .buttonStyle(InkTextButtonStyle())
-                        Button("Kaydet") { model.save() }
+                        Button("Kaydet") { model.save(locale: locale) }
                             .buttonStyle(InkTextButtonStyle())
                             .fontWeight(.semibold)
                     }
                     .buttonStyle(.borderless)
                     .inkListRow()
-                    Text("Geçerli kısayol: \(model.shortcut.display)")
-                        .font(.ink.meta)
-                        .foregroundStyle(Color.ink.secondaryText)
-                        .inkListRow()
+                    Text(
+                        verbatim: PresentationLocalization.string(
+                            localized: "Geçerli kısayol: \(model.shortcut.display(locale: locale))",
+                            locale: locale)
+                    )
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .inkListRow()
                     if let error = model.errorText {
                         Text(verbatim: error)
                             .font(.ink.meta)
@@ -45,7 +52,7 @@
             .inkPageNavigationTitle("Hızlı giriş")
             .inkPageScrollColumn()
             .inkPage()
-            .onDisappear { model.endRecording() }
+            .onDisappear { model.endRecording(locale: locale) }
         }
     }
 #endif

@@ -11,6 +11,7 @@ struct TasksViewTabs: View {
     /// Width the three words take on one row with the full labels (measured, hidden).
     @State private var fullWidth: CGFloat = 0
     @State private var availableWidth: CGFloat = .infinity
+    @Environment(\.locale) private var locale
 
     /// A narrow column (the iPad's list column) would stack the words; "Zaman çizelgesi"
     /// becomes "Çizelge" there so the tabs stay on one row.
@@ -29,7 +30,7 @@ struct TasksViewTabs: View {
                         "Zaman çizelgesi", value: TasksViewState.Mode.timeline,
                         identifier: "tasks.tab.timeline"),
             ], identifier: "tasks.tabs",
-            accessibilityLabelPrefix: String(localized: "Görünüm")
+            accessibilityLabelPrefix: PresentationLocalization.string(localized: "Görünüm", locale: locale)
         )
         .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { availableWidth = $0 }
         .background(alignment: .leading) {

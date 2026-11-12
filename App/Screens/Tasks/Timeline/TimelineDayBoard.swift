@@ -50,7 +50,9 @@ struct TimelineDayBoard: View {
 
             if !tasks.isEmpty || !untimed.isEmpty {
                 VStack(alignment: .leading, spacing: InkSpacing.row) {
-                    SectionHeader(title: String(localized: "Saatsiz"), count: tasks.count + untimed.count)
+                    SectionHeader(
+                        title: PresentationLocalization.string(localized: "Saatsiz", locale: locale),
+                        count: tasks.count + untimed.count)
                     // Zone cards straight on paper: a card never sits inside a card (design.md).
                     ForEach(untimed) { event in eventCard(event) }
                     ForEach(tasks) { task in
@@ -117,7 +119,7 @@ struct TimelineDayBoard: View {
                 title: event.text.plainText,
                 meta: event.time.map { EventTimeFormat.string(for: $0, locale: locale) },
                 barColor: TimelineEventColor.color(for: event, store: store),
-                kindLabel: String(localized: "Olay"))
+                kindLabel: PresentationLocalization.string(localized: "Olay", locale: locale))
         }
         .buttonStyle(.plain)
     }
@@ -134,15 +136,18 @@ struct TimelineTaskCard: View {
     let task: TaskRow
     let today: CalendarDate
     let select: () -> Void
+    @Environment(\.locale) private var locale
 
     var body: some View {
         let isLate = !task.isClosed && task.due.map { $0 < today } == true
         Button(action: select) {
             InkTimelineCard(
                 title: task.text.plainText,
-                meta: task.project ?? String(localized: "Projesiz"),
+                meta: task.project
+                    ?? PresentationLocalization.string(localized: "Projesiz", locale: locale),
                 barColor: ProjectColor.color(for: task.project),
-                kindLabel: isLate ? String(localized: "Geç") : nil,
+                kindLabel: isLate
+                    ? PresentationLocalization.string(localized: "Geç", locale: locale) : nil,
                 isCompleted: task.isClosed
             )
             .overlay {

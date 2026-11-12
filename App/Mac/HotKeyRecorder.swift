@@ -5,12 +5,14 @@
 
     struct HotKeyRecorder: NSViewRepresentable {
         @Binding var candidate: HotKeyShortcut
+        var locale: Locale = .current
         let onBegin: () -> Void
         let onEnd: () -> Void
 
         func makeNSView(context: Context) -> RecorderView { RecorderView() }
         func updateNSView(_ view: RecorderView, context: Context) {
             view.shortcut = candidate
+            view.locale = locale
             view.onRecord = { candidate = $0 }
             view.onBegin = onBegin
             view.onEnd = onEnd
@@ -19,6 +21,7 @@
 
         final class RecorderView: NSView {
             var shortcut = HotKeyShortcut.defaultShortcut
+            var locale: Locale = .current
             var onRecord: (HotKeyShortcut) -> Void = { _ in }
             var onBegin: () -> Void = {}
             var onEnd: () -> Void = {}
@@ -78,7 +81,11 @@
                 border.lineWidth = recording ? 2 : InkStroke.control
                 border.stroke()
 
-                let title = recording ? String(localized: "Bir tuş birleşimine bas…") : shortcut.display
+                let title =
+                    recording
+                    ? PresentationLocalization.string(
+                        localized: "Bir tuş birleşimine bas…", locale: locale)
+                    : shortcut.display(locale: locale)
                 let textColor = recording ? NSColor(Color.ink.secondaryText) : NSColor(Color.ink.text)
                 (title as NSString).draw(
                     at: NSPoint(x: 12, y: 12),
@@ -86,7 +93,8 @@
                         .font: NSFont.systemFont(ofSize: 13),
                         .foregroundColor: textColor,
                     ])
-                setAccessibilityLabel(String(localized: "Hızlı giriş kısayolu"))
+                setAccessibilityLabel(
+                    PresentationLocalization.string(localized: "Hızlı giriş kısayolu", locale: locale))
                 setAccessibilityValue(title)
                 setAccessibilityRole(.button)
             }

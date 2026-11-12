@@ -17,6 +17,7 @@ struct TaskDetailView: View {
     @State private var errorText: String?
     @State private var isCompleting = false
     @Environment(\.calendar) private var calendar
+    @Environment(\.locale) private var locale
     @Environment(\.clockNow) private var clockNow
 
     /// The task as the index last answered for it; the listed row until then.
@@ -175,7 +176,8 @@ struct TaskDetailView: View {
                     InkTabItem("! Orta", value: TaskDetailPriority.medium),
                     InkTabItem("!! Yüksek", value: TaskDetailPriority.high),
                 ],
-                accessibilityLabelPrefix: String(localized: "Öncelik")
+                accessibilityLabelPrefix: PresentationLocalization.string(
+                    localized: "Öncelik", locale: locale)
             )
             .disabled(!store.canAddEvent)
         }

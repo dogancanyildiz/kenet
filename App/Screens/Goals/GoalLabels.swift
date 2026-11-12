@@ -2,13 +2,19 @@ import GoalTracking
 import SwiftUI
 
 extension GoalPeriod {
-    var title: String {
-        switch self {
-        case .day: String(localized: "Günlük hedef")
-        case .week: String(localized: "Haftalık")
-        case .year: String(localized: "Yıllık")
-        }
+    var title: String { title(locale: .current) }
+
+    /// "Günlük hedef" / "Daily goal" in the given locale's language (the view's environment locale).
+    func title(locale: Locale) -> String {
+        let key: String.LocalizationValue =
+            switch self {
+            case .day: "Günlük hedef"
+            case .week: "Haftalık"
+            case .year: "Yıllık"
+            }
+        return PresentationLocalization.string(localized: key, locale: locale)
     }
+
     var progressTitle: String { progressTitle(locale: .current) }
 
     /// "Bu hafta" / "This week" in the given locale's language (the view's environment locale).
@@ -23,12 +29,17 @@ extension GoalPeriod {
     }
 }
 extension GoalKind {
-    var title: String {
-        switch self {
-        case .boolean: String(localized: "Evet / hayır")
-        case .number: String(localized: "Sayı")
-        case .milestone: String(localized: "Kilometre taşı")
-        }
+    var title: String { title(locale: .current) }
+
+    /// "Evet / hayır" / "Yes / no" in the given locale's language.
+    func title(locale: Locale) -> String {
+        let key: String.LocalizationValue =
+            switch self {
+            case .boolean: "Evet / hayır"
+            case .number: "Sayı"
+            case .milestone: "Kilometre taşı"
+            }
+        return PresentationLocalization.string(localized: key, locale: locale)
     }
 }
 extension GoalDayMark {
@@ -64,9 +75,12 @@ struct GoalProgressLabel: View {
                 }
             } else {
                 Text(verbatim: goal.period.progressTitle(locale: locale))
-                Text(verbatim: status.progress.done.formatted() + "/" + goal.target.formatted())
-                    .font(.ink.value)
-                    .monospacedDigit()
+                Text(
+                    verbatim: status.progress.done.formatted(.number.locale(locale)) + "/"
+                        + goal.target.formatted(.number.locale(locale))
+                )
+                .font(.ink.value)
+                .monospacedDigit()
                 if let unit = goal.unit { Text(verbatim: unit) }
             }
         }
@@ -83,11 +97,13 @@ enum GoalRowPresentation {
         return status.progress.fraction
     }
 
-    static func valueText(goal: GoalDefinition, status: GoalStatus) -> String? {
+    static func valueText(goal: GoalDefinition, status: GoalStatus, locale: Locale = .current) -> String? {
         if goal.kind == .milestone {
             return nil
         }
-        var text = status.progress.done.formatted() + "/" + goal.target.formatted()
+        var text =
+            status.progress.done.formatted(.number.locale(locale)) + "/"
+            + goal.target.formatted(.number.locale(locale))
         if let unit = goal.unit, !unit.isEmpty { text += " " + unit }
         return text
     }

@@ -108,6 +108,16 @@ enum GoalListPresentation {
         )
     }
 
+    /// Compact column label under a weekly goal value: "bu hafta" / "this week".
+    static func columnWeekLabel(locale: Locale = .current) -> String {
+        PresentationLocalization.string(localized: "bu hafta", locale: locale)
+    }
+
+    /// Compact column streak: "zincir 12" / "streak 12".
+    static func columnStreakLabel(_ streak: Int, locale: Locale = .current) -> String {
+        PresentationLocalization.string(localized: "zincir \(streak)", locale: locale)
+    }
+
     /// Open goals first, then complete; each group by name (rule 6).
     static func ordered(
         _ goals: [GoalDefinition], status: (GoalDefinition) -> GoalStatus

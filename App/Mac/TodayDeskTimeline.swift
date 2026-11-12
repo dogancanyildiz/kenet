@@ -111,7 +111,7 @@ import VaultFormat
                     title: event.text.plainText,
                     meta: event.time.map { EventTimeFormat.string(for: $0, locale: locale) },
                     barColor: TimelineEventColor.color(for: event, store: store),
-                    kindLabel: String(localized: "Olay"))
+                    kindLabel: PresentationLocalization.string(localized: "Olay", locale: locale))
             }
             .buttonStyle(.plain)
         }
@@ -126,7 +126,7 @@ import VaultFormat
                         due, today: today, locale: locale, calendar: calendar)
                 }
                 if let projectLabel, !projectLabel.isEmpty { return projectLabel }
-                return String(localized: "Görev")
+                return PresentationLocalization.string(localized: "Görev", locale: locale)
             }()
             // The box sits over the card, not inside its button: a click on it completes the task
             // and never opens the editor; the rest of the card does.

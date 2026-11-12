@@ -119,7 +119,7 @@ import VaultFormat
             .accessibilityLabel(
                 Text(
                     verbatim: [
-                        String(localized: "Sıradaki olay"),
+                        PresentationLocalization.string(localized: "Sıradaki olay", locale: locale),
                         time.map { EventTimeFormat.string(for: $0, locale: locale) },
                         event.text.plainText,
                     ].compactMap { $0 }.joined(separator: ", ")))
@@ -162,7 +162,7 @@ import VaultFormat
             .accessibilityLabel(
                 Text(
                     verbatim: [
-                        String(localized: "Sonraki görev"),
+                        PresentationLocalization.string(localized: "Sonraki görev", locale: locale),
                         EventTimeFormat.string(for: time, locale: locale),
                         DaySchedulePresentation.strippingLeadingTime(from: task.text.plainText),
                     ].joined(separator: ", ")))
@@ -172,7 +172,8 @@ import VaultFormat
             let done = goals.filter { statuses[$0.id]?.progress.isComplete == true }.count
             return VStack(alignment: .leading, spacing: InkSpacing.row) {
                 SectionHeader(
-                    title: String(localized: "Hedefler"), counter: "\(done)/\(goals.count)")
+                    title: PresentationLocalization.string(localized: "Hedefler", locale: locale),
+                    counter: "\(done)/\(goals.count)")
                 InkCard(padded: false) {
                     ForEach(Array(goals.enumerated()), id: \.element.id) { index, goal in
                         if index > 0 { InkCardDivider() }
@@ -190,7 +191,7 @@ import VaultFormat
                                 Spacer(minLength: 0)
                                 if let status = statuses[goal.id],
                                     let value = GoalRowPresentation.valueText(
-                                        goal: goal, status: status)
+                                        goal: goal, status: status, locale: locale)
                                 {
                                     Text(verbatim: value)
                                         .font(.ink.meta)
@@ -210,7 +211,8 @@ import VaultFormat
         private var carriedSection: some View {
             VStack(alignment: .leading, spacing: InkSpacing.row) {
                 SectionHeader(
-                    title: String(localized: "Devreden görevler"),
+                    title: PresentationLocalization.string(
+                        localized: "Devreden görevler", locale: locale),
                     count: plan.carriedPreview.count + plan.hiddenCarriedCount)
                 InkCard(padded: false) {
                     ForEach(Array(plan.carriedPreview.enumerated()), id: \.element.id) {

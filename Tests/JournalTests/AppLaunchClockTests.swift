@@ -54,6 +54,10 @@ struct AppLaunchClockTests {
         let day = Calendar.current.startOfDay(for: Date())
         let events = try await memory.events(from: day, to: day.addingTimeInterval(86_400))
         #expect(events.count == 3)
+        // Days read it on their own, as they read the `memory` calendar.
+        #expect(
+            AppLaunchPolicy.allowsCalendarLoad(
+                environment: ["JOURNAL_UITEST_VAULT": "/tmp/vault", "JOURNAL_UITEST_CALENDAR": "sample"]))
         #expect(AppLaunchPolicy.calendarSource(environment: ["JOURNAL_UITEST_CALENDAR": "sample"]) is EventKitCalendarSource)
     }
 }

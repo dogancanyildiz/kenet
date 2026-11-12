@@ -89,7 +89,8 @@ enum AppLaunchPolicy {
     ) -> Bool {
         if allowsAutomaticStart(environment: environment) { return true }
         #if DEBUG
-            return uiTestVaultPath(environment: environment) != nil && environment[uiTestCalendarKey] == "memory"
+            return uiTestVaultPath(environment: environment) != nil
+                && ["memory", "sample"].contains(environment[uiTestCalendarKey] ?? "")
         #else
             return false
         #endif

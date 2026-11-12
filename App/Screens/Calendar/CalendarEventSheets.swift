@@ -483,6 +483,7 @@ struct CalendarBirthdayForm: View {
     @Environment(CalendarService.self) private var calendar
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
+    @Environment(\.calendar) private var dateCalendar
     @Environment(\.clockNow) private var clockNow
     @State private var date: Date?
     @State private var calendarID: String?
@@ -558,7 +559,7 @@ struct CalendarBirthdayForm: View {
             name: names.fullName, on: date ?? initialDate, calendarID: calendarID, locale: locale)
         Task {
             defer { isSaving = false }
-            let start = Calendar.current.startOfDay(for: clockNow())
+            let start = dateCalendar.startOfDay(for: clockNow())
             if await calendar.personEvents(names: names, from: start)?.birthday != nil {
                 alreadyExists = true
                 return

@@ -6,6 +6,7 @@ struct TimelineTaskRow: View {
     let row: TaskRow
     let select: () -> Void
     let edit: (TimelineDates.Edge) -> Void
+    @Environment(\.locale) private var locale
 
     private var presentation: TaskStatusPresentation {
         .make(due: row.due, asOf: model.today, isCompleted: row.isClosed)
@@ -17,7 +18,7 @@ struct TimelineTaskRow: View {
             parts.append(VoiceOverCopy.priorityValue(priority))
         }
         if presentation.showsOverdueCue {
-            parts.append(String(localized: "Devreden"))
+            parts.append(PresentationLocalization.string(localized: "Devreden", locale: locale))
         }
         if row.isClosed {
             parts.append(VoiceOverCopy.taskCompletionValue(isCompleted: true))

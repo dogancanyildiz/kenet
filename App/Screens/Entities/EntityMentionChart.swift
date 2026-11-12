@@ -1,20 +1,6 @@
 import SwiftUI
 import VaultFormat
 
-// MARK: - Charts View (12-month bar chart + 90-day strip)
-
-struct EntityMentionChartsView: View {
-    let data: EntityMentionsData
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            EntityMonthlyBarChart(data: data)
-            Entity90DayStrip(data: data)
-        }
-        .padding(.vertical, 4)
-    }
-}
-
 // MARK: - 12-Month Bar Chart
 
 struct EntityMonthlyBarChart: View {

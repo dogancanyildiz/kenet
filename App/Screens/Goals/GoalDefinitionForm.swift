@@ -79,8 +79,8 @@ struct GoalDefinitionForm: View {
     /// Period and kind: tabs (two or three choices), or plain rows on a milestone, which keeps both.
     @ViewBuilder private var scheduleRows: some View {
         if model.isScheduleLocked {
-            readOnlyRow(GoalEditableField.period.title, value: model.goal.period.title)
-            readOnlyRow(GoalEditableField.kind.title, value: model.goal.kind.title)
+            readOnlyRow(GoalEditableField.period.title, value: model.goal.period.title(locale: locale))
+            readOnlyRow(GoalEditableField.kind.title, value: model.goal.kind.title(locale: locale))
             Text("Kilometre taşının dönemi ve türü değişmez.")
                 .font(.ink.meta)
                 .foregroundStyle(Color.ink.secondaryText)

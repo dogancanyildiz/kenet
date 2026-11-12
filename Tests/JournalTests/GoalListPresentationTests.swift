@@ -109,6 +109,10 @@ struct GoalListPresentationTests {
             GoalListPresentation.streakText(12, bundle: turkish, locale: tr) == "Zincir 12 gün")
         #expect(
             GoalListPresentation.streakText(12, bundle: english, locale: en) == "Streak 12 days")
+        #expect(GoalListPresentation.columnWeekLabel(locale: tr) == "bu hafta")
+        #expect(GoalListPresentation.columnWeekLabel(locale: en) == "this week")
+        #expect(GoalListPresentation.columnStreakLabel(12, locale: tr) == "zincir 12")
+        #expect(GoalListPresentation.columnStreakLabel(12, locale: en) == "streak 12")
         #expect(GoalListPresentation.periodChip(.day, bundle: turkish, locale: tr) == "Günlük")
         #expect(GoalListPresentation.periodChip(.week, bundle: english, locale: en) == "Weekly")
         #expect(GoalListPresentation.kindTab(.boolean, bundle: turkish, locale: tr) == "İşaret")

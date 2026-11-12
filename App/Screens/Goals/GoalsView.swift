@@ -371,7 +371,7 @@ private struct GoalSummaryRingLabel: View {
                 + goal.target.formatted(.number.locale(locale))
             return PresentationLocalization.string(localized: "bu hafta \(amount)", locale: locale)
         }
-        let base = GoalRowPresentation.valueText(goal: goal, status: status) ?? ""
+        let base = GoalRowPresentation.valueText(goal: goal, status: status, locale: locale) ?? ""
         return complete ? "✓ \(base)" : base
     }
 }
@@ -453,7 +453,7 @@ private struct GoalListCard<Detail: View>: View {
     /// One element: "ad, değer" (or meta for milestones), matching list query tests.
     private var accessibilityLabelText: String {
         let detail =
-            GoalRowPresentation.valueText(goal: goal, status: status)
+            GoalRowPresentation.valueText(goal: goal, status: status, locale: locale)
             ?? GoalRowPresentation.meta(goal: goal, status: status, locale: locale)
         let badge = GoalRowPresentation.graceBadge(goal: goal, status: status, locale: locale)?.label
         return [goal.name, detail, badge].compactMap { $0 }.filter { !$0.isEmpty }
@@ -692,7 +692,8 @@ private struct GoalColumnRow: View {
                 Text(verbatim: "—")
             } else {
                 if goal.period == .week {
-                    Text("bu hafta").padding(.trailing, 4)
+                    Text(verbatim: GoalListPresentation.columnWeekLabel(locale: locale))
+                        .padding(.trailing, 4)
                 }
                 Text(verbatim: done).fontWeight(.semibold).foregroundStyle(Color.ink.text)
                 Text(verbatim: goal.period == .week ? "/" + target : " / " + target + unit)
@@ -716,7 +717,7 @@ private struct GoalColumnRow: View {
                 GoalTallyStrip(
                     days: GoalListPresentation.tallyDays(
                         goal: goal, logs: logs, today: day, graceSpent: Set(status.graceSpentDays)))
-                Text("zincir \(status.streak)")
+                Text(verbatim: GoalListPresentation.columnStreakLabel(status.streak, locale: locale))
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
                 if let badge = GoalRowPresentation.graceBadge(goal: goal, status: status, locale: locale) {
@@ -747,7 +748,7 @@ private struct GoalColumnRow: View {
 
     private var accessibilityLabelText: String {
         let detail =
-            GoalRowPresentation.valueText(goal: goal, status: status)
+            GoalRowPresentation.valueText(goal: goal, status: status, locale: locale)
             ?? GoalRowPresentation.meta(goal: goal, status: status, locale: locale)
         let badge = GoalRowPresentation.graceBadge(goal: goal, status: status, locale: locale)?.label
         return [goal.name, detail, badge].compactMap { $0 }.filter { !$0.isEmpty }

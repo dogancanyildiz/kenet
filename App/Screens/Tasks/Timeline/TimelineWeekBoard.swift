@@ -50,7 +50,7 @@ struct TimelineWeekBoard: View {
                         title: event.text.plainText,
                         meta: event.time.map { EventTimeFormat.string(for: $0, locale: locale) },
                         barColor: TimelineEventColor.color(for: event, store: store),
-                        kindLabel: String(localized: "Olay"))
+                        kindLabel: PresentationLocalization.string(localized: "Olay", locale: locale))
                 }
                 .buttonStyle(.plain)
             }

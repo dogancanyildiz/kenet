@@ -78,20 +78,26 @@ struct MentionAssistStrip: View {
     }
 
     private func noticeText(_ notice: MentionComposer.CreationNotice) -> String {
-        Self.noticeText(notice, types: store.entityTypes, language: locale.language.languageCode?.identifier ?? "en")
+        Self.noticeText(
+            notice, types: store.entityTypes,
+            language: locale.language.languageCode?.identifier ?? "en", locale: locale)
     }
 
     static func noticeText(
-        _ notice: MentionComposer.CreationNotice, types: EntityTypeCatalog, language: String
+        _ notice: MentionComposer.CreationNotice, types: EntityTypeCatalog, language: String,
+        locale: Locale = .current
     ) -> String {
         switch notice.kind {
         case .person:
-            return String(localized: "\(notice.name) kişi olarak eklendi")
+            return PresentationLocalization.string(
+                localized: "\(notice.name) kişi olarak eklendi", locale: locale)
         case .place:
-            return String(localized: "\(notice.name) konum olarak eklendi")
+            return PresentationLocalization.string(
+                localized: "\(notice.name) konum olarak eklendi", locale: locale)
         case .custom(let id):
             let type = EntityTypeChoices.choices(types, language: language).first { $0.id == id }?.name ?? id
-            return String(localized: "\(notice.name) \(type) olarak eklendi")
+            return PresentationLocalization.string(
+                localized: "\(notice.name) \(type) olarak eklendi", locale: locale)
         }
     }
 
@@ -159,10 +165,12 @@ struct MentionAssistStrip: View {
 
     private var announcementKey: String? {
         if let mention = composer.pendingAmbiguity {
-            return String(localized: "\(mention.spelling): hangisi?")
+            return PresentationLocalization.string(
+                localized: "\(mention.spelling): hangisi?", locale: locale)
         }
         if let mention = composer.pendingUnknown {
-            return String(localized: "Bilinmeyen anma: \(mention.spelling)")
+            return PresentationLocalization.string(
+                localized: "Bilinmeyen anma: \(mention.spelling)", locale: locale)
         }
         if let notice = composer.creationNotice {
             return noticeText(notice)

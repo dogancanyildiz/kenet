@@ -12,6 +12,7 @@ struct TasksView: View {
     @ScaledMetric(relativeTo: .body) private var projectCardWidth: CGFloat = 170
     @Environment(\.shellKind) private var shellKind
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.locale) private var locale
     init(
         store: IndexStore, selection: Binding<String?> = .constant(nil), notificationRequest: UUID? = nil,
         tasks: TasksModel? = nil
@@ -218,8 +219,12 @@ struct TasksView: View {
                         Text(verbatim: project).font(.ink.content.weight(.semibold)).foregroundStyle(.ink.text)
                             .lineLimit(width == nil ? nil : 1)
                     }
-                    Text(String(format: String(localized: "%1$d/%2$d görev"), completed, total))
-                        .font(.ink.meta).monospacedDigit().foregroundStyle(.ink.secondaryText)
+                    Text(
+                        verbatim: String(
+                            format: PresentationLocalization.string(
+                                localized: "%1$d/%2$d görev", locale: locale), completed, total)
+                    )
+                    .font(.ink.meta).monospacedDigit().foregroundStyle(.ink.secondaryText)
                     ProjectProgressBar(fraction: total == 0 ? 0 : Double(completed) / Double(total), color: color)
                 }
                 .frame(width: width, alignment: .leading)
@@ -235,8 +240,11 @@ struct TasksView: View {
         case .projects:
             // Şafak: the project rows sit in one section card, each with its color dot and open count.
             Section {
-                SectionHeader(title: String(localized: "Projeler"), count: model.projects.count)
-                    .inkListRow()
+                SectionHeader(
+                    title: PresentationLocalization.string(localized: "Projeler", locale: locale),
+                    count: model.projects.count
+                )
+                .inkListRow()
                 ForEach(Array(model.projects.enumerated()), id: \.element) { index, project in
                     NavigationLink {
                         ProjectView(store: store, name: project)
@@ -253,8 +261,11 @@ struct TasksView: View {
         case .upcoming:
             ForEach(model.agenda) { group in
                 Section {
-                    SectionHeader(title: headingTitle(group.date), counter: TasksCounter.tasks(group.rows.count))
-                        .inkListRow()
+                    SectionHeader(
+                        title: headingTitle(group.date),
+                        counter: TasksCounter.tasks(group.rows.count, locale: locale)
+                    )
+                    .inkListRow()
                     rows(group.rows)
                 }.id(group.id)
             }
@@ -264,8 +275,11 @@ struct TasksView: View {
             }
         case .undated:
             Section {
-                SectionHeader(title: String(localized: "Tarihsiz"), counter: TasksCounter.tasks(model.undated.count))
-                    .inkListRow()
+                SectionHeader(
+                    title: PresentationLocalization.string(localized: "Tarihsiz", locale: locale),
+                    counter: TasksCounter.tasks(model.undated.count, locale: locale)
+                )
+                .inkListRow()
                 rows(model.undated)
             }
             if model.undated.isEmpty {
@@ -275,7 +289,8 @@ struct TasksView: View {
         case .completed:
             Section {
                 SectionHeader(
-                    title: String(localized: "Tamamlanan"), counter: TasksCounter.tasks(model.completed.count)
+                    title: PresentationLocalization.string(localized: "Tamamlanan", locale: locale),
+                    counter: TasksCounter.tasks(model.completed.count, locale: locale)
                 )
                 .inkListRow()
                 rows(model.completed)
@@ -365,14 +380,15 @@ struct TasksView: View {
     private func headingTitle(_ date: CalendarDate?) -> String {
         if let date {
             if date == model.day {
-                return String(localized: "Bugün")
+                return PresentationLocalization.string(localized: "Bugün", locale: locale)
             }
             if date == tomorrow {
-                return String(localized: "Yarın")
+                return PresentationLocalization.string(localized: "Yarın", locale: locale)
             }
-            return LocalDay.instant(for: date).formatted(.dateTime.day().month().year())
+            return LocalDay.instant(for: date).formatted(
+                .dateTime.day().month().year().locale(PresentationLocalization.resolvedLocale(locale)))
         }
-        return String(localized: "Devreden")
+        return PresentationLocalization.string(localized: "Devreden", locale: locale)
     }
 
     private var tomorrow: CalendarDate {
@@ -449,7 +465,9 @@ struct ProjectProgressBar: View {
 
 /// A section's counter with its unit (Şafak drawing: "Bugün · 4 görev").
 enum TasksCounter {
-    static func tasks(_ count: Int) -> String { String(localized: "\(count) görev") }
+    static func tasks(_ count: Int, locale: Locale = .current) -> String {
+        PresentationLocalization.string(localized: "\(count) görev", locale: locale)
+    }
 }
 
 /// Detail-column selection. A section or filter change clears it outright; a list refresh

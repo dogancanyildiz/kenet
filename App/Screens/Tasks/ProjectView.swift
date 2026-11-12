@@ -8,6 +8,7 @@ struct ProjectView: View {
     /// Nil until the first query returns; a reload keeps the previous rows until then.
     @State private var tasks: [TaskRow]?
     @State private var detailRow: TaskRow?
+    @Environment(\.locale) private var locale
     init(store: IndexStore, name: String) {
         self.store = store
         self.name = name
@@ -22,7 +23,8 @@ struct ProjectView: View {
         guard let tasks else { return nil }
         let model = ProjectModel(store: store, name: name, tasks: tasks)
         return String(
-            format: String(localized: "%1$d açık · %2$d bitti"), model.openCount, model.completed.count)
+            format: PresentationLocalization.string(localized: "%1$d açık · %2$d bitti", locale: locale),
+            model.openCount, model.completed.count)
     }
 
     var body: some View {
@@ -57,8 +59,13 @@ struct ProjectView: View {
                     HStack {
                         Text("İlerleme").font(.ink.section).foregroundStyle(.ink.text)
                         Spacer()
-                        Text(String(format: String(localized: "%1$d/%2$d görev"), model.completed.count, total))
-                            .font(.ink.value).monospacedDigit().foregroundStyle(.ink.secondaryText)
+                        Text(
+                            verbatim: String(
+                                format: PresentationLocalization.string(
+                                    localized: "%1$d/%2$d görev", locale: locale),
+                                model.completed.count, total)
+                        )
+                        .font(.ink.value).monospacedDigit().foregroundStyle(.ink.secondaryText)
                     }
                     InkProgress(kind: .fraction(total == 0 ? 0 : Double(model.completed.count) / Double(total)))
                 }
@@ -82,14 +89,19 @@ struct ProjectView: View {
             }
         }
         Section {
-            SectionHeader(title: String(localized: "Tamamlanan"), count: model.completed.count)
-                .inkListRow()
+            SectionHeader(
+                title: PresentationLocalization.string(localized: "Tamamlanan", locale: locale),
+                count: model.completed.count
+            )
+            .inkListRow()
             rows(model.completed)
         }
         if !model.entities.isEmpty {
             Section {
-                SectionHeader(title: String(localized: "Kişiler ve Konumlar"))
-                    .inkListRow()
+                SectionHeader(
+                    title: PresentationLocalization.string(localized: "Kişiler ve Konumlar", locale: locale)
+                )
+                .inkListRow()
                 ForEach(model.entities) { entity in
                     NavigationLink {
                         EntityView(store: store, entity: entity)
@@ -106,8 +118,11 @@ struct ProjectView: View {
         // screens.md: related days come last, newest first; a row opens that day.
         if !model.relatedDays.isEmpty {
             Section {
-                SectionHeader(title: String(localized: "İlgili günler"), count: model.relatedDays.count)
-                    .inkListRow()
+                SectionHeader(
+                    title: PresentationLocalization.string(localized: "İlgili günler", locale: locale),
+                    count: model.relatedDays.count
+                )
+                .inkListRow()
                 InkCard(padded: false) {
                     VStack(spacing: 0) {
                         ForEach(Array(model.relatedDays.enumerated()), id: \.element) { index, day in
@@ -138,9 +153,10 @@ struct ProjectView: View {
 
     private func groupHeading(_ day: CalendarDate?) -> String {
         if let day {
-            return LocalDay.instant(for: day).formatted(.dateTime.day().month().year())
+            return LocalDay.instant(for: day).formatted(
+                .dateTime.day().month().year().locale(PresentationLocalization.resolvedLocale(locale)))
         }
-        return String(localized: "Tarihsiz")
+        return PresentationLocalization.string(localized: "Tarihsiz", locale: locale)
     }
 
     private func labeled<Value: View>(_ title: LocalizedStringKey, @ViewBuilder value: () -> Value)

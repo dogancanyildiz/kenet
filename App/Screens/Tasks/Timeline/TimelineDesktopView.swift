@@ -14,6 +14,7 @@ struct TimelineDesktopView: View {
     let edit: (TaskRow, TimelineDates.Edge) -> Void
     @ScaledMetric(relativeTo: .body) private var compactLabelWidth: CGFloat = 142
     @ScaledMetric(relativeTo: .body) private var compactRowHeight: CGFloat = 52
+    @Environment(\.locale) private var locale
 
     private var labelColumnWidth: CGFloat { compact ? compactLabelWidth : TimelineDesktopMetrics.labelColumnWidth }
     private var rowHeight: CGFloat { compact ? compactRowHeight : TimelineDesktopMetrics.rowHeight }
@@ -103,7 +104,9 @@ struct TimelineDesktopView: View {
     /// phone, iPad and Mac alike).
     private var undatedCard: some View {
         VStack(alignment: .leading, spacing: InkSpacing.row) {
-            SectionHeader(title: String(localized: "Tarihsiz"), counter: TasksCounter.tasks(model.openUndated.count))
+            SectionHeader(
+                title: PresentationLocalization.string(localized: "Tarihsiz", locale: locale),
+                counter: TasksCounter.tasks(model.openUndated.count, locale: locale))
             InkCard(padded: false) {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(model.openUndated.enumerated()), id: \.element.id) { index, row in

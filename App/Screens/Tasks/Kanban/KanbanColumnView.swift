@@ -8,6 +8,7 @@ struct KanbanColumnView: View {
     let select: (TaskRow) -> Void
     @State private var targeted = false
     @Environment(\.shellKind) private var shellKind
+    @Environment(\.locale) private var locale
 
     var body: some View {
         #if os(macOS)
@@ -103,15 +104,7 @@ struct KanbanColumnView: View {
     }
 
     private var columnTitle: String {
-        if let name = column.name { return name }
-        switch column.destination {
-        case .status(.todo), .status(.unknown): return String(localized: "Yapılacak")
-        case .status(.inProgress): return String(localized: "Devam")
-        case .status(.done): return String(localized: "Bitti")
-        case .status(.cancelled): return String(localized: "İptal")
-        case .project: return String(localized: "Projesiz")
-        case .person: return String(localized: "Kişisiz")
-        }
+        column.target.localizedTitle(locale: locale)
     }
 
     /// Status columns carry their state's mark; project and person columns have none.

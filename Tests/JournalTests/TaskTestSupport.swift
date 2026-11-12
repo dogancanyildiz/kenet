@@ -29,18 +29,15 @@ struct TaskTestContext {
     func start() async { await store.start() }
     var file: URL { root.appendingPathComponent("journal/\(today).md") }
     func document() throws -> RawDocument { RawDocument(bytes: try Data(contentsOf: file)) }
-    /// The task written as `text`, as the task queries read it now.
+    /// The task written as `text` once the index has it. A test's outside write ends in a
+    /// refresh that can meet one the watcher already started; the row arrives with that one, so
+    /// the query is asked again for up to 5 s before the test fails.
     func row(_ text: String) async throws -> TaskRow {
-        try #require(try await store.allTasks().first { $0.sourceText == text })
-    }
-    /// The task written as `text` once the index has it: an outside write's refresh can meet a
-    /// refresh the watcher already started, and the row arrives with that one (up to 5 s).
-    func eventualRow(_ text: String) async throws -> TaskRow {
         for _ in 0..<50 {
             if let row = try await store.allTasks().first(where: { $0.sourceText == text }) { return row }
             try await Task.sleep(for: .milliseconds(100))
         }
-        return try await row(text)
+        return try #require(try await store.allTasks().first { $0.sourceText == text })
     }
     func model() -> QuickEntryModel {
         let date = today

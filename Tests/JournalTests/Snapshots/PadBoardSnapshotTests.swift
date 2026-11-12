@@ -27,8 +27,10 @@
         @Test(arguments: PadBoardCase.allCases)
         func board(_ snapshotCase: PadBoardCase) async throws {
             var board: KanbanModel?
+            var timeline: TimelineModel?
             let isReady: @MainActor () -> Bool = {
-                snapshotCase.section == .timeline || (board.map(Self.isLoaded) ?? false)
+                if snapshotCase.section == .timeline { return timeline?.isLoaded ?? false }
+                return board.map(Self.isLoaded) ?? false
             }
             try await PadSnapshotHost.assertWindow(
                 named: snapshotCase.rawValue, testName: "board", canvas: .pad13Landscape,
@@ -40,10 +42,12 @@
                 if snapshotCase == .timelineDayLight { tasks.viewState.timelineScale = .day }
                 let model = KanbanModel.board(for: tasks)
                 board = model
+                let timelineModel = TimelineModel.board(for: tasks)
+                timeline = timelineModel
                 return AnyView(
                     Group {
                         if snapshotCase.section == .timeline {
-                            TaskTimelineView(tasks: tasks, showsFilters: true)
+                            TaskTimelineView(model: timelineModel, showsFilters: true)
                         } else {
                             KanbanView(tasks: tasks, showsFilters: true, board: model)
                         }

@@ -12,7 +12,6 @@ struct TaskTimelineView: View {
     @State private var selectionAnswer = TaskSelectionAnswer()
     @State private var availableWidth: CGFloat = 0
     @State private var selectedDay: CalendarDate
-    @State private var daySummary: DaySummary?
     @State private var weekSummaries: [DaySummary] = []
     @State private var eventEditor: EventEditorModel?
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -23,7 +22,13 @@ struct TaskTimelineView: View {
     let openDay: (String) -> Void
 
     init(tasks: TasksModel, showsFilters: Bool = false, openDay: @escaping (String) -> Void = { _ in }) {
-        _model = State(initialValue: TimelineModel.board(for: tasks))
+        self.init(model: TimelineModel.board(for: tasks), showsFilters: showsFilters, openDay: openDay)
+    }
+
+    /// A timeline on a given model: snapshot tests wait for its ``TimelineModel/isLoaded``.
+    init(model: TimelineModel, showsFilters: Bool = false, openDay: @escaping (String) -> Void = { _ in }) {
+        let tasks = model.tasks
+        _model = State(initialValue: model)
         _selectedDay = State(initialValue: tasks.day)
         self.showsFilters = showsFilters
         self.openDay = openDay
@@ -63,12 +68,7 @@ struct TaskTimelineView: View {
         .onChange(of: selected?.id) { _, _ in sourceDay = nil }
         .task(id: model.request) { await model.load() }
         .task(id: TimelineDayRequest(date: selectedDay, updated: model.store.lastUpdated, scale: model.scale)) {
-            guard model.scale == .day else {
-                daySummary = nil
-                return
-            }
-            daySummary = nil
-            daySummary = try? await model.store.computeDay(on: selectedDay)
+            await model.loadDay(selectedDay)
         }
         .task(id: TimelineWeekRequest(date: selectedDay, updated: model.store.lastUpdated, scale: model.scale)) {
             guard model.scale == .week else {
@@ -143,7 +143,7 @@ struct TaskTimelineView: View {
     private var dayBoard: some View {
         TimelineDayBoard(
             store: model.store, day: selectedDay, today: model.today,
-            events: daySummary?.events ?? [], tasks: dayRows,
+            events: model.daySummary?.events ?? [], tasks: dayRows,
             selectTask: { selected = $0 },
             selectEvent: { eventEditor = EventEditorModel(store: model.store, day: selectedDay, row: $0) },
             selectDay: { selectedDay = $0 })

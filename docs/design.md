@@ -48,20 +48,9 @@ Ad "Şafak"tır, çünkü parıltı günün başlangıcını gösterir. Kod adla
 
 Parıltının yeri ve gücü bu yüzden sayıyla tanımlıdır.
 
-## Önceki yön: Mürekkep (2026-10-05 – 2026-11-09)
+## Önceki yön: Mürekkep
 
-| Konu | Kayıt |
-|---|---|
-| Seçim | İki tur, 16 aday, 5 bakış açısıyla adları gizli oylama. Heyet önerisi ve sahibin seçimi Mürekkep'ti. |
-| Tanım | Kartsız kâğıt sayfa; kullanıcının sözü New York, uygulamanın sözü SF Pro; işaretler kenar sütununda; bağlantı alt çizgiyle. |
-| Sahibin 1. değişikliği | Görev işareti köşeli kutudur; öncelik kutunun içindedir. Şafak bunu korur. |
-| Sahibin 2. değişikliği | Hızlı girişte kip iki sözcüktür: "Olay" ve "Görev". Şafak bunu korur. |
-| İmza kararı | Derkenar'ın imzası (kenar çizgisi, fosfor izi) eklenmedi. Sahip kararı 2026-10-16'da kesinleştirdi. |
-| Yedek sırası | 1 Derkenar, 2 Defter ya da Seyir Defteri (çivit), 3 Seyir Defteri (zaman rayı), 4 Günün Sayfası, 5 Açık Defter ya da Koordinat. |
-| Uygulama | Aşama 9; 10 kutu bitti. |
-| Bitiş | Sahip 2026-11-09'da yönü Şafak'a çevirdi. |
-
-Seçim sürecinin, oylamanın ve jürinin ayrıntılı gerekçesi git geçmişindedir: bu belgenin 2026-11-09 öncesi sürümü.
+Önceki yön Mürekkep'ti (2026-10-05 – 2026-11-09). Gerekçe karar günlüğündedir ve git geçmişindedir.
 
 ## Her yönde geçerli kurallar
 
@@ -582,56 +571,14 @@ mindmap
       MacSidebarRow
 ```
 
-**`App/Design/Components/` dosyalarının Şafak'taki durumu.** Kod adları `Ink` önekini korur; toplu yeniden adlandırma onay ister.
+Şafak kuralları bileşenlere şu belirteçlerle girer. Kod adları `Ink` önekini korur; toplu yeniden adlandırma onay ister.
 
-| Dosya | Durum | Not |
-|---|---|---|
-| `ComponentGalleryControls.swift`, `ComponentGalleryPatterns.swift`, `ComponentGalleryRows.swift` | Korunur, içerik güncellenir | Yeni bileşenleri de gösterir |
-| `EmptyState.swift` | Yeniden çizilir | Kartın içinde: simge rozeti, 1 cümle, eylem. Kartsız seçenek içeriği var olan bir kartın içine koyar: telefon zaman çizelgesinin boş dönemi. |
-| `GoalRing.swift` | Korunur | Renkler belirteçten |
-| `GraceDayBadge.swift` | Korunur | Kapsül çerçeve |
-| `HeatmapCell.swift`, `HeatmapCellKind.swift` | Korunur | Boş hücre `well` |
-| `InfoBand.swift`, `InfoBandKind.swift` | Yeniden çizilir | Kart biçimli bant, solda simge |
-| `InkButtonChrome.swift`, `InkButtonStyles.swift` | Yeniden çizilir | Birincil düğme vurgu dolgulu kapsül, 44 pt |
-| `InkFilterField.swift` | Yeniden çizilir | `well`, 12 pt köşe |
-| `InkFlowLayout.swift` | Korunur | Yalnız yerleşim |
-| `InkHeaderAction.swift`, `InkHeaderButtonStyle.swift` | Yeniden çizilir | iOS manşette yuvarlak çip; Mac'te çerçevesiz simge |
-| `InkLabeledMenu.swift` | Korunur | |
-| `InkLinkedText.swift`, `InkLinkStyle.swift` | Korunur | Mürekkep kuralı 4 göndermesi Şafak kuralı 4 olur |
-| `InkListSelection.swift` | Yeniden çizilir | Seçili satır `surface` kart olur; içeride 3 pt vurgu çubuğu |
-| `InkPageHeader.swift` | Yeniden çizilir | Sans manşet; Bugün'de gün başlığı |
-| `InkPinnedMasthead.swift` | Korunur | Zemin `paper` |
-| `InkProgress.swift`, `InkProgressMath.swift` | Yeniden çizilir | Kapsül çubuk; hesap değişmez |
-| `InkRows.swift` | Yeniden çizilir | Kart içi satır, ayraç |
-| `InkSegmentBar.swift` | Korunur | |
-| `InkSheet.swift` | Korunur | Zemin `elevated` |
-| `InkSurface.swift` | Yeniden çizilir | `InkCard` olur; `InkKanbanCard` sol çubuk alır |
-| `InkTabs.swift` | Korunur | |
-| `LargeNumberText.swift` | Korunur | Hedef ayrıntısı ve özet sayıları |
-| `MarginRow.swift` | Korunur | İşaret sütunu kartın içine girer |
-| `PageHeadline.swift` | Yeniden çizilir | Gün rakamı ve gün adı |
-| `QuickEntryCapsule.swift`, `QuickEntryMode.swift` | Yeniden çizilir | `surface` zemin, `line` sınır, gönderde hale |
-| `RhythmStrip.swift` | Korunur | |
-| `SectionHeader.swift` | Yeniden çizilir | Süs çizgisi kalkar; başlık `sectionTitle`, sayaç sağda `meta` |
-| `SyncStatusIndicator.swift` | Korunur | |
-| `TagChip.swift` | Yeniden çizilir | Kapsül, `well` |
-| `TaskBox.swift` | Korunur | Köşeli kutu, öncelik içinde; köşe 6 pt |
-| `InkGlow` | Yeni | Parıltı değiştiricisi: `.inkGlow()`; KA ve Saydamlığı Azalt'ta boş |
-| `InkWeekStrip` | Yeni | 7 günlük şerit |
-| `InkDayHeader` | Yeni | Gün halkası, gün rakamı, gün adı |
-| `InkSummaryLine` | Yeni | Künye cümlesi: sayılar öne çıkar |
-| `InkCard` | Yeni (`InkSurface`'ten) | Bölüm kartı ve satır ayracı `InkCardDivider`. Segment kalıbı: `InkCardSegment` (`single`, `first`, `middle`, `last`) ve `InkCardSegmentBackground`, kartı birden çok `List` satırına böler. |
-| `inkListRow(cardSegment:)` | Yeni değiştirici | Liste satırını kartın bir parçası yapar: ilk satır üstte, son satır altta yuvarlanır; aradaki satırlarda ayraç durur. Görevler bölümleri, proje ekranı ve Kişiler listesi bunu kullanır. Taslaktaki `InkCardRows` yoktur; yerini bu değiştirici alır. |
-| `InkTimelineCard` | Yeni | Sol çubuklu zaman kartı: Mac, iPad ve iPhone zaman çizelgesi |
-
-| Dosya dışı | Durum |
+| Bileşen | Kural |
 |---|---|
-| `App/Design/InkPalette.swift` | Değerler değişir; `elevated`, `line`, `tertiaryText`, `accentSoft` eklenir; biten iş için renk eklenmez |
-| `App/Design/InkMetrics.swift` | `row`, `section`, `kanbanCorner`, `chipCorner`, `taskBoxCorner` değişir; `cardPadding`, `dayRing`, `timelineBar` eklenir |
-| `App/Design/InkFonts.swift` | `display` ve `content` sans olur; `dayName` ve `weekday` eklenir; `dayNumber` yoktur |
-| `App/Navigation/MacSidebar.swift` | Kural 12 sürer; zemin `elevated`; tepede arama alanı |
-
-Sayım: 39 dosyadan 22'si korunur, 17'si yeniden çizilir, hiçbiri kalkmaz; 6 yeni bileşen gelir.
+| `InkGlow` | Parıltı değiştiricisi `.inkGlow()`; Kontrastı Artır ve Saydamlığı Azalt'ta boştur. |
+| `InkCard` | Bölüm kartıdır; `InkCardDivider` satır ayracıdır; `InkCardSegment` kartı birden çok `List` satırına böler. |
+| `inkListRow(cardSegment:)` | Liste satırını kartın parçası yapar: ilk satır üstte, son satır altta yuvarlanır. |
+| `InkTimelineCard` | Sol çubuklu zaman kartıdır: Mac, iPad ve iPhone zaman çizelgesi. |
 
 ### Görev kutusu durumları
 
@@ -771,7 +718,7 @@ Erişilebilirlik boyutunda 12 aylık çubuğun sütunları satıra döner. 90 g�
 
 **Proje rengi.** Proje adından kararlı türetilir: adın FNV-1a özeti 4 belirteçlik diziye bölünür: `accent`, `person`, `place`, `control`. Amber (`warning`) dizide yoktur; amber "devreden" demektir. Projesiz görev `control` alır. Renk her zaman proje adı metniyle birlikte görünür; renk tek başına anlam taşımaz. Türetme tek yardımcıdadır: `ProjectColor` (`App/Model/ProjectColor.swift`). Kanban kartı, zaman kartı, zaman çizelgesi çubuğu, proje grubu başlığı ve proje kartı noktası aynı yardımcıyı kullanır.
 
-Renk tek başına anlam taşımaz; proje adı ve durum metni yanında durur. Proje renk dizisi henüz belirteç tablosunda yoktur; D3 dalgasından önce bu tabloya 4 varyantıyla girer.
+Renk tek başına anlam taşımaz; proje adı ve durum metni yanında durur.
 
 ### Liste seçimi
 
@@ -808,11 +755,11 @@ Kod karşılığı: `InkListSelectionBackground` ve `inkListRow(columnSelected:)
 | Kaydırma göstergesi | Uygulama dikey kaydırma göstergesini çizmez. Fare bağlıyken yer kaplayan çubuk satırı sağdan daraltmaz. |
 | Odak | Yerleşimi değiştiren her seçimden sonra uygulama odağı yeni kenar çubuğuna bir kez geri verir, yalnız odak serbestse. Odak o pencerede başka bir denetimdeyse uygulama isteği bırakır. |
 
-## Ekran başına uygulama
+## Ekran başına görünüm
 
-**`screens.md` ekran listesindeki her ekranda ne değişir.** Ayrıntı `screens.md` belgesindedir.
+**`screens.md` ekran listesindeki her ekranın görünümü.** Ayrıntı `screens.md` belgesindedir.
 
-| Ekran | Değişen |
+| Ekran | Görünüm |
 |---|---|
 | Bugün | Parıltı; gün başlığı: gün halkası, gün rakamı, gün adı; hafta şeridi; künye cümlesi ve 3 çip; her bölüm kart. İlk olay kaydırmadan görünür kalır. |
 | Gün ekranı | Üstte geri, ay seçici, Günün grafiği ve arama; hafta şeridi; saatli program: saat sütunu ve simge kutulu kartlar. Alt sayfa olduğu için parıltı yok. |
@@ -884,8 +831,8 @@ Ajanlar ekranı göremez; bu yüzden ekran görüntüsü testleri bu projede zor
 
 | Risk | Açıklama |
 |---|---|
-| Kart ailesi | Mürekkep jürisi kartlı aileleri "planlayıcı" kategorisine itti diye sona koydu. Şafak bunu sınırlar: kart yalnız bölüm kabıdır, bento yoktur. |
-| İlk ekran yüksekliği | Gün halkası, hafta şeridi ve künye cümlesi ilk ekranı uzatır. İlk olay kaydırmadan görünmelidir; D2 bunu görüntü testiyle ölçer. |
+| Kart ailesi | Kartlar ekranı planlayıcı uygulamasına benzetebilir. Şafak bunu sınırlar: kart yalnız bölüm kabıdır, bento yoktur. |
+| İlk ekran yüksekliği | Gün halkası, hafta şeridi ve künye cümlesi ilk ekranı uzatır. İlk olay kaydırmadan görünmelidir; `TodayScreenSnapshotTests` bunu korur. |
 | Parıltı ve fotoğraf | Parıltı kart zemini değildir; kart opak kalır. Kartın altında renk kayması olmaz. |
 | Maketler | Maketler HTML'dir; cam ve parıltı yaklaşıktır. Son söz gerçek cihazdadır. |
 

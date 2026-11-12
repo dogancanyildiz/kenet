@@ -259,6 +259,7 @@ iPhone Duo'nun dış ekranı sıkışık, iç ekranı düzenli × düzenli boyut
 | Yıl özeti, paylaşım kartı ve PDF | - |
 | Kişi ve konumları Spotlight'a açma; Siri için okuma eylemleri | - |
 | Ziyaret önerileri, örneğin "dün şurada mıydın?" | Uygulama sürekli konum izini kasaya yazmaz. |
+| Mac: yeni olay ve yeni görev kısayolu; serbest not düzenleme | Mac'te şu an yok. |
 | Kilit ekranında tek hedef widget'ı | Aşama 11 kilit ekranı widget'ından kaldı. |
 | Şirket şema paketi | Aşama 7'den devretti. |
 | Talep olursa Android ve Windows | Aşama 7'den devretti. |

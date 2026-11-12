@@ -6,7 +6,7 @@
 
 - Karar günlüğü: her karar için tarih, karar ve gerekçe satırı.
 - Açık sorular: kararı henüz verilmemiş konular.
-- Karar haritası ve karar takvimi: kararların konuya ve tarihe göre dağılımı.
+- Karar haritası: kararların konuya göre dağılımı.
 
 ## Karar ekleme
 
@@ -32,89 +32,42 @@ mindmap
     Ürün ve kapsam
       Önce kişisel günlük
       iPhone ve Mac, SwiftUI
-      Ad Kenet, lisans, kimlikler ve alan adı
-      Yapay zeka ve gelir sonraya
+      Ad, lisans ve kimlikler
     Kasa biçimi
       Markdown gerçek kaynak
-      Bayt koruması ve frontmatter
-      Yazma doğrulaması
+      Bayt koruması
       Birleştirme ve kayıp yok
-      Yer tutucu ve gün kopyası
     Dosya yazma
       VaultStore tek kapı
-      FileCoordination sınırı
-      Dosya izleme ve Mac'te FSEvents
+      Dosya izleme
       iCloud kapsayıcısında kasa
     İndeks ve sorgu
       GRDB ve FTS5
-      Artımlı refresh
-      Şema sürümleri 3, 4, 5, 7, 8, 9
+      Artımlı yenileme
       Okuma modelinden sorguya
     Varlık tanıma
       Sözcük sınırı ve NFC
       Belirsiz adı kullanıcı seçer
-      Ad çipi ve rakam ad
       Bağlanmamış anma
     Görev ve hedef
       Obsidian Tasks biçimi
-      Tekrar, öncelik, taşıma
-      Hedef dönemi, zincir affı ve zincir günü
+      Hedef dönemi ve zincir affı
       İyimser hedef işareti
     Platform özellikleri
       Uygulama kilidi ve bildirim
-      Konum, GPS, App Intents
-      Takvim, rehber, Mac hızlı giriş
-      Widget, paylaşım uzantısı, günlük önerileri
+      Konum, takvim, rehber
+      Widget ve paylaşım uzantısı
     Arayüz ve tasarım dili
-      Şafak, önceki yön Mürekkep
+      Şafak yönü
       Manşet, sheet, seçili satır
-      Mac sütunları ve kenar çubuğu
-      Uyarlanır düzen: Duo ve iPad
+      Uyarlanır düzen
     Süreç ve CI
       Dallar ve sürüm
       CI ve ruleset
-      TestFlight, yapı numarası ve CD
-      Görüntü referansları ve tavan
+      TestFlight ve görüntü referansları
 ```
 
 Harita konuları gösterir; satırların tam metni karar günlüğündedir. Bir karar birden çok konuya değebilir. Harita her kararı en yakın tek konuya koyar.
-
-## Karar takvimi
-
-**Kararların tarih sırası ve her günün ana konuları.**
-
-```mermaid
-timeline
-    title Karar takvimi, 356 karar
-    2026-10-02 : 58 karar : Ürün kapsamı ve platform : Kasa biçimi ve ayrıştırıcı : Git, sürüm ve CI
-    2026-10-03 : 19 karar : Yazma doğrulaması : İndeks ve arama : Varlık sayfası ve hızlı giriş
-    2026-10-04 : 31 karar : Birleştirme ve kayıp yok : VaultStore ve dosya izleme : Görev, hedef ve otomasyon : Özet, graph ve harita
-    2026-10-05 : 3 karar : Yol haritası işareti : Tasarım dili Mürekkep : Tanınmayan tekrar kuralı
-    2026-10-06 : 5 karar : Harf farkı olan klasör : İndeks dizini koruması : Erişilemeyen kasa : Kilit ve bildirim gizliliği
-    2026-10-07 : 24 karar : Ekran kalıpları ve renk : Ad Kenet, simge ve lisans : Bundle kimliği ve TestFlight : Yapı numarası
-    2026-10-08 : 12 karar : Mac sütunları ve kenar çubuğu : Mac sheet ve Ayarlar : Test kimliği : Günlük kaydı temizliği
-    2026-10-11 : 27 karar : Aşama 10 geçişi : Önemli tarihler ve bu gün geçmişte : Görüşme ritmi : Günü kapat : İndeks şeması 7
-    2026-10-12 : 14 karar : Okuma modelinden sorguya : Ad çipi ve rakam ad : Yer tutucu ve gün kopyası : TestFlight denetimi
-    2026-10-13 : 38 karar : Hedef ve görev sorguları : Özetler yeniden tasarımı : Aşama 10'un açık soruları : iPad ve iPhone Duo : Aşama 13 : Zincir affı B : Eşitlenen klasör ve kopya dosyalar : Birleşmiş gün zamanı : Duo kabuğu ve tuvalleri : Duo güvenli alan, krom ve köprü
-    2026-10-15 : 5 karar : Görüntü referansı kayıt kipi : Aşama 14 grafikleri : Yıl haritası ve hedef grafiği : Kişi geçiş grafiği
-    2026-10-16 : 15 karar : Grafikler 2 : Aşama 15 açılışı : Varlık ve hedef silme : Hedef düzenleme formu : iPad cihaz ailesi ve bölünmüş kabuk
-    2026-10-17 : 9 karar : Hedef şablonları ve varlık tipi galerisi : Uzun basma menüsü : iPad klavye kısayolları ve işaretçi : iPad Kanban paneli ve sheet boyu
-    2026-10-18 : 2 karar : Görüntü testi temsilci kümeleri : CI cihaz ailesi işleri ve yeniden deneme
-    2026-10-20 : 8 karar : iCloud çakışma tespiti : Atomik yazmada fsync : Bildirim planı korunur : Okuma modelinden hedef verisi çıktı : Artımlı indeks ctime ve inode : Erişilebilirlik denetimi : Olay bekleyen testler
-    2026-10-21 : 18 karar : İzleyici değişen dizini bildirir : Tek iptal ve kuşak sözleşmesi : Davranış ölçen arayüz testleri : Büyük yazıda sarma ve 44 pt hedef : Mac görüntüleri CI'da ve haftalık : Görüntü referansı tavanı : Bildirim içeriği varsayılan gizli : Türkçe büyük harf eşlemesi : Zincir günü : TestFlight CD : iCloud ve App Group kimlikleri : Mac'te FSEvents : Alan adı, gelir zamanı ve dalga 23 kapsamı
-    2026-10-22 : 16 karar : Widget anlık görüntüsü : Kasa konumu iCloud : Günlük önerileri seçicisi : Paylaşım uzantısı : Widget içinden işaretleme, kilit ve kasa kimliği : Mac TestFlight ve kalite : Aşama 16 açılışı : Graph blokları ve segmentleri
-    2026-10-23 : 4 karar : Görüntü referansı tavanı 320 : Günün grafiği : Açık bağ biçimi : CI kısaltması
-    2026-10-26 : 4 karar : Açık bağ Core altyapısı : Açık bağ ekranları ve Graph : Açık bağın düğüm boyutu : Arayüz testleri iki işte
-    2026-10-27 : 3 karar : Sheet dışı kontrast, gösterge rengi, ortak denetim iPad’de
-    2026-10-30 : 7 karar : Kilit ekranı widget’ı, hızlı giriş, eşitleme bağlantısı, Graph gün merkezli, ileri tarihli görev, Core birlikte geçme silindi
-    2026-11-01 : 1 karar : Mac menü komutları kimlikli eylem, App sahnesi döngüsü
-    2026-11-09 : 15 karar : Gün kopyası birleştirmesi varsayılan açık : Tasarım yönü Şafak ve Aşama 17 : Ekran davranışları
-    2026-11-10 : 8 karar : CI kapısı simülatörü kayıt betiğiyle aynı : Görüntü referansı boyut tavanı 80 MiB : Hafta ölçeği kart sütunları : Graph dönemleri gün sayısı : Paylaşım kuyruğunda satır kimliği : D2 dalı D4 içinde : Katalog birleşiminde dev esas : Yazım kuralları ve terim sözlüğü repoda
-    2026-11-11 : 8 karar : Tamamlanan hedef halkası vurgu rengi : Kenar çubuğu seçimi yumuşak ton : Liste seçimi kart ve çubuk : Hedef miktarı ayrıntıda : Takvim etkinliği yazma : Doğum günü alanı : Proje paletinde amber yok : Kaynak günü olmayan görev bugün açık
-    2026-11-12 : 2 karar : Kasa yazma güvenliği : Uzantı kimliği yenileme
-```
-
-Sayılar karar günlüğündeki satır sayısıdır. Toplam 356 satırdır.
 
 ## Karar günlüğü
 

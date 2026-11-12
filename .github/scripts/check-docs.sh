@@ -264,18 +264,6 @@ else:
 
 dec = (root / "docs/decisions.md").read_text(encoding="utf-8")
 rows = len(re.findall(r"^\| \d{4}-\d{2}-\d{2} \|", dec, re.M))
-cal_title = re.search(r"title Karar takvimi, (\d+) karar", dec)
-total = re.search(r"Toplam (\d+) satırdır", dec)
-days = [int(n) for n in re.findall(r"^\s+\d{4}-\d{2}-\d{2} : (\d+) karar", dec, re.M)]
-if not (cal_title and total and days):
-    errors.append("docs/decisions.md: karar takvimi başlığı, günleri ya da 'Toplam N satırdır' bulunamadı")
-else:
-    if int(cal_title.group(1)) != rows:
-        errors.append(f"docs/decisions.md: takvim başlığı {cal_title.group(1)} karar, satır sayısı {rows}")
-    if int(total.group(1)) != rows:
-        errors.append(f"docs/decisions.md: 'Toplam {total.group(1)} satırdır', satır sayısı {rows}")
-    if sum(days) != rows:
-        errors.append(f"docs/decisions.md: takvim günleri toplamı {sum(days)}, satır sayısı {rows}")
 
 if errors:
     print("Sayı eşitliği hatalı:", file=sys.stderr)

@@ -16,7 +16,6 @@ struct SourcePatternRuleTests {
         "App/Screens/Entities/EntityAliasesEditor.swift",
         "App/Screens/Entities/EntityFieldEditor.swift",
         "App/Screens/Entities/EntityScalarEditor.swift",
-        "App/Screens/Settings/DiagnosticsView.swift",
         "App/Mac/HotKeySettingsView.swift",
         "App/Screens/Entities/UnseenPeopleSection.swift",
     ])

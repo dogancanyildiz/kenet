@@ -97,6 +97,8 @@ extension View {
             }
             .inkToggle()
             .inkAdaptiveFormPresentation()
+            // Pushed pages scroll under an opaque bar, not under the round back button.
+            .environment(\.inkSheetStack, true)
         }
     }
 }

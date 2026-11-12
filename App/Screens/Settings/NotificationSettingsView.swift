@@ -22,25 +22,24 @@ struct NotificationSettingsView: View {
                     .inkListRow()
                 InkCard(padded: false) {
                     VStack(alignment: .leading, spacing: 0) {
-                        Text(service.authorization.title)
-                            .font(.ink.meta)
-                            .foregroundStyle(Color.ink.text)
-                            .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
-                            .padding(.horizontal, InkSpacing.cardPadding)
                         if service.authorization.canRequest {
-                            InkCardDivider()
                             Button("Bildirimlere izin ver") { Task { await service.requestAccess() } }
                                 .buttonStyle(InkTextButtonStyle())
                                 .disabled(service.isRequesting)
                                 .padding(.horizontal, InkSpacing.cardPadding)
+                            InkCardDivider()
                         }
-                        InkCardDivider()
                         Button("Sistem ayarlarını aç") { openSettings() }
                             .buttonStyle(InkTextButtonStyle())
                             .padding(.horizontal, InkSpacing.cardPadding)
                     }
                 }
                 .inkListRow()
+                // The permission's state is the card's footnote, as on every settings page.
+                Text(service.authorization.title)
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .inkListRow()
             }
             Section {
                 SectionHeader("Hatırlatmalar")
@@ -182,6 +181,45 @@ struct NotificationSettingsView: View {
         #elseif os(macOS)
             NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/System Settings.app"))
         #endif
+    }
+}
+
+/// Gizlilik › Bildirim içeriği (iPhone, iPad): only the switch the row names and its footnote.
+/// The same switch stays on the Bildirimler page, where Mac shows it.
+struct NotificationContentSettingsView: View {
+    @Environment(NotificationService.self) private var service
+
+    var body: some View {
+        List {
+            #if os(iOS)
+                InkPageTitleRow("Bildirim içeriği")
+            #endif
+            Section {
+                InkCard(padded: false) {
+                    Toggle(
+                        "Bildirimde içeriği göster",
+                        isOn: Binding(
+                            get: { !service.preferences.hideContent },
+                            set: { service.preferences.hideContent = !$0 })
+                    )
+                    .frame(minHeight: InkButtonChrome.minimumHeight)
+                    .padding(.horizontal, InkSpacing.cardPadding)
+                }
+                .inkListRow()
+                Text(
+                    "Kapalıyken afiş, bildirim merkezi ve kilit ekranı yalnız sayı ve genel başlık gösterir: görev metni, hedef adları ve kişi adları görünmez."
+                )
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.secondaryText)
+                .inkListRow()
+            }
+        }
+        .listStyle(.plain)
+        .inkToggle()
+        .inkPageNavigationTitle("Bildirim içeriği")
+        .inkPageScrollColumn()
+        .inkPage()
+        .accessibilityIdentifier("screen.settings.notificationContent")
     }
 }
 

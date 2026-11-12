@@ -19,6 +19,7 @@
                                 .padding(.horizontal, InkSpacing.cardPadding)
                         } else {
                             Button("Her zaman konum izni ver") { geofences.requestAlwaysAccess() }
+                                .buttonStyle(InkTextButtonStyle())
                                 .frame(
                                     maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading
                                 )

@@ -1150,7 +1150,7 @@ Telefonda serbest not okuma ve basit düzenleme vardır. Kullanıcı nota aramad
 | Klavye kısayolları | Mac’te arama alanı ⌘F; hızlı geçiş ⌘K aynı arama ekranını açar; bugüne git ⌘T. iPad’de donanım klavyesiyle ⇧⌘F ve ⌘K aramayı, ⌘T Bugün’ü açar; iPadOS ⌘F’yi sistem "Bul" komutuna ayırdığı için arama ⇧⌘F kullanır. Uygulama kilidi örtüsü açıkken bu üç komut kapalıdır. Hızlı giriş kutusunda kip değiştirme ⌘⇧T. Sheet’te Esc kapatır, Return birincil eylemi yapar. Donanım klavyesi bağlı iPhone’da da aynı kod çalışır; iPhone’da görünür kısayol yoktur. |
 | Eksik kısayollar | Yeni olay ve yeni görev kısayolları henüz yok. |
 | Notlar | Serbest notlar için düzenleme alanı henüz yok. Kenar çubuğunda girdisi de yoktur. Düzenleme gelince girdi döner. Kullanıcı notları aramadan açar. |
-| Ayarlar | Sistem Settings sahnesinde sekmeler, bu sırayla: Hızlı giriş, Gizlilik, Bildirimler, Takvim ve Konum, Kasa, Tanılama. |
+| Ayarlar | Sistem Settings sahnesinde sekmeler, bu sırayla: Hızlı giriş, Gizlilik, Bildirimler, Takvim ve Konum, Kasa, Tanılama, Hakkında. |
 
 ## Bölünmüş kabuk: iPhone Duo iç ekranı ve iPad
 
@@ -1208,7 +1208,7 @@ Kabuk cihaz türüne bakmaz; yalnız boyut sınıflarına ve genişliğe bakar. 
 
 ## Ayarlar
 
-**Ayarlar'da 6 bölüm var; sıra iki platformda aynıdır.**
+**Ayarlar'da 7 bölüm var; sıra iki platformda aynıdır.**
 
 ```mermaid
 flowchart LR
@@ -1218,15 +1218,35 @@ flowchart LR
     Ayarlar --> TK[Takvim ve Konum]
     Ayarlar --> Kasa[Kasa]
     Ayarlar --> Tan[Tanılama]
+    Ayarlar --> Hak[Hakkında]
     Giz --> Kilit[Uygulama kilidi]
     Giz --> KH[Kişi hatırlatmaları]
     TK --> Konuma[Konuma girince: yalnız iOS]
     Kasa --> Tipler[Varlık tipleri]
     Kasa --> Hazirlik[Kasa hazırlığı]
     Tan --> Lisans[Üçüncü taraf lisansları]
+    Hak --> Lisans
 ```
 
-iPhone'da Ayarlar, Bugün gün başlığındaki düğmenin açtığı sheet'tir. Ekran adı ve alt ekran adları manşet olarak listenin içindedir. En üstte parıltı tonlu kasa kartı durur: kasa konumu (iCloud, Bu cihazda ya da Seçilen klasör) ve dosya sayısı; karta dokunma Kasa bölümünü açar. Altında 6 bölüm kart içinde satırdır; her satırın altında bölümün içeriğini söyleyen kısa bir açıklama durur. Mac'te aynı 6 bölüm Settings sekmeleridir ve Hızlı giriş ilk sekmedir. Hiçbir ayar kaybolmaz.
+iPhone'da Ayarlar, Bugün gün başlığındaki düğmenin açtığı sheet'tir. Ekran adı ve alt ekran adları manşet olarak listenin içindedir. En üstte parıltı tonlu kasa kartı durur: kasa konumu (iCloud, Bu cihazda ya da Seçilen klasör) ve dosya sayısı; karta dokunma Kasa bölümünü açar. Altında 7 bölüm kart içinde satırdır. Her satırın altındaki kısa satır bölümün durumunu söyler; durumu olmayan bölümde içeriğini söyler. Mac'te aynı 7 bölüm Settings sekmeleridir ve Hızlı giriş ilk sekmedir. Hiçbir ayar kaybolmaz.
+
+**Hub satırının alt satırı.**
+
+| Bölüm | Alt satır |
+|---|---|
+| Gizlilik | "Uygulama kilidi açık · kişi hatırlatmaları" ya da "kapalı" |
+| Bildirimler | "Günlük hatırlatması 21:30" ya da "Günlük hatırlatması kapalı" |
+| Takvim ve Konum | "2 takvim · konuma girince kapalı"; izin yoksa "Takvim izni yok" |
+| Öteki bölümler | Bölümün içeriği: "Konum, varlık tipleri", "Sürüm, gizlilik politikası, destek" |
+
+**Alt ekran satır dili.**
+
+| Satır | Görünüm |
+|---|---|
+| Alt ekran açan satır | Ad, sağda değer (varsa) ve "›". Örnek: "Varlık tipleri · 3 özel tip". |
+| Web bağlantısı | Ad ve sağda "↗". Safari'de açılır. |
+| Eylem | Mürdüm metin düğmesi. |
+| Açıklama | Kartın altında dipnot. Yalnız açıklaması olan bölümde kart yoktur. |
 
 ### Ayarlar — Hızlı giriş
 
@@ -1248,7 +1268,7 @@ iPhone'da Ayarlar, Bugün gün başlığındaki düğmenin açtığı sheet'tir.
 |---|---|
 | Uygulama kilidi | Anahtar. Açmak bir kez Face ID, Touch ID ya da cihaz parolası ister. Kullanıcı iptal ederse anahtar kapalı kalır. |
 | Şu kadar sonra kilitle | Hemen, 1 dk, 5 dk ya da 15 dk. Tercihler cihazdadır. |
-| Bildirim içeriği | Yalnız iPhone'da, Bildirimler ayarına bağlantı. Anahtar ("Bildirimde içeriği göster", varsayılan kapalı) ve açıklama Bildirimler'dedir. Mac'te Bildirimler sekmesini kullan. |
+| Bildirim içeriği | Yalnız iPhone ve iPad'de. Satır değeri "Gizli" ya da "Gösterilir". Satır yalnız anahtarı ve açıklamasını taşıyan küçük ekranı açar. Aynı anahtar Bildirimler'de de durur. Mac'te Bildirimler sekmesini kullan. |
 | Kişi hatırlatmaları | Görüşülmeyenler eşiği: 1–365 gün, varsayılan 30. Cihaz tercihi. |
 
 **Uygulama kilidinin durumları.**
@@ -1330,23 +1350,37 @@ stateDiagram-v2
 | Eşitlenen klasör | Kasa eşitlenen bir klasördeyse yolun altında kalıcı bilgi bandı durur. Ayrıntı: [Eşitlenen klasör bandı](#eşitlenen-klasör-bandı). |
 | Mac'e özgü | Finder'da göster. |
 | Klasör | Klasör seç ya da değiştir. |
-| Kasa hazırlığı | İçe aktarma alt ekranı. |
+| Sayılar | Kartta yan yana dört sayı: dosya, gün, kişi, konum. Büyük yazıda iki satıra iner. |
+| İndeks | "Son güncelleme 11 Kas 14:32 · dosyalara dokunmaz" ve ikincil "İndeksi yeniden kur" düğmesi. |
+| Kasa hazırlığı | İçe aktarma alt ekranı; hazırlık sürerken İndeks kartında satırdır. |
 | Uyarılar ve ilerleme | İzlenmeyen dizin uyarısı ve indeksleme ilerlemesi. |
-| Varlık tipleri | Alt ekrana bağlantı. Yerleşik tipler salt okunurdur. Kullanıcı özel tip oluşturur, değiştirir ve siler. "Yeni varlık tipi" hazır tip galerisini açar; Kişiler ve Konumlar'daki "Yeni tip…" aynı galeridir. |
+| Varlık tipleri | İndeks kartında alt ekrana bağlantı; değeri özel tip sayısıdır. Yerleşik tipler salt okunurdur. Kullanıcı özel tip oluşturur, değiştirir ve siler. "Yeni varlık tipi" hazır tip galerisini açar; Kişiler ve Konumlar'daki "Yeni tip…" aynı galeridir. |
 | Alt ekranlar | iPhone Varlık tipleri ve Kasa hazırlığı ekranlarını gezinme yığınına iter. Mac'te alt ekran Kasa sekmesinin içeriğinin yerine geçer. En üstteki "Kasa" düğmesi geri döndürür. Sekme şeridi değişmez. |
 
 ### Ayarlar — Tanılama
 
 | Öğe | Davranış |
 |---|---|
-| İndeks eylemleri | İndeksi yeniden üret. Arama geçmişini temizle. Her eylem kartta ayrı satırdır; aralarında ince çizgi durur. |
-| İndeks sayıları | Dosya, gün, kişi, konum, hedef, not, olay, görev, varlık, bağlantı, çözülmemiş, sistemin reddettiği iCloud indirme istekleri. Son güncelleme. Sayılar tabulardır. |
+| İndeks eylemleri | Sayılardan ayrı kartta. İlk satır Kasa'daki İndeks satırıdır: son güncelleme ve ikincil "İndeksi yeniden kur". Altında mürdüm "Arama geçmişini temizle". |
+| İndeks sayıları | "Sayılar" kartı: dosya, gün, kişi, konum, hedef, not, olay, görev, varlık, bağlantı, çözülmemiş, reddedilen iCloud indirme istekleri. Sayılar tabulardır. |
 | Atlanan yollar | Sembolik bağlantı ya da yinelenen yol. Ekran uzun yolu kırpar. Kullanıcı yolu kopyalar. |
 | Kopya dosyalar | Gün kopyaları ve varlık kopyaları. Her satır kopyanın yolunu ve altında özgün dosyanın yolunu gösterir. Kopya yoksa bölüm görünmez. Tanılama kopyayı birleştirmez; gün kopyası birleştirmesi varsayılan kapalıdır ve birleşemeyen kopya burada kalır. Kural: [Varlık kopyası](vault-format.md#varlık-kopyası). |
 | Çakışan sürümler | Yalnız iCloud Drive kasasında. iCloud'un çözülmemiş sürüm sakladığı dosyalar. Her satır dosyanın yolunu, "N sürüm" ve en yeni sürümün zamanını, altında sürümü kaydeden cihazların adlarını gösterir. Bölümün altında tek cümle: "Kenet sürümleri birleştirmez ve silmez." Cümle bir çözüm yolu vaat etmez. Dosya yoksa bölüm görünmez. Liste ön plana dönüşte yenilenir. Kural: [Çakışan sürümün listesi](vault-format.md#çakışan-sürümün-listesi). |
 | Çakışma kopyaları | Gün kopyası birleştirmesinin `conflicts/` altına sakladığı sürümler. Her satır kopyanın yolunu ve altında gün dosyasının yolunu gösterir. Kopya yoksa bölüm görünmez. Uygulama kopyayı açmaz ve silmez. Kural: [Çakışma kopyası](vault-format.md#çakışma-kopyası). |
 | Üçüncü taraf lisansları | Salt okunur alt ekran. Uygulamaya giren her paketin adı, lisans türü ve paketlenmiş lisans metni. Uygulama metni çevirmez. |
 | Lisans alt ekranı | iPhone alt ekranı gezinme yığınına iter. Mac'te alt ekran Tanılama sekmesinin içeriğinin yerine geçer. En üstteki "Tanılama" düğmesi geri döndürür. Sekme şeridi değişmez. |
+
+### Ayarlar — Hakkında
+
+| Öğe | Davranış |
+|---|---|
+| Sürüm | Paketin sürümü ve yapı numarası: `0.17.0 (383)`. Kullanıcı metni seçip kopyalar. |
+| Gizlilik politikası | Web bağlantısı, Safari'de açılır. Adres uygulama dilini izler: `kenet.app/gizlilik` ya da `kenet.app/en/privacy`. |
+| Destek | Web bağlantısı: `kenet.app/destek` ya da `kenet.app/en/support`. |
+| Üçüncü taraf lisansları | Tanılama'daki lisans alt ekranının aynısı. Mac'te sekmenin içeriğinin yerine geçer; "Hakkında" düğmesi geri döndürür. |
+| Dipnot | Kenet veri toplamaz; veri yalnız kullanıcının dosyalarındadır. |
+
+Adresler tek sabittedir: `AppLinks`. Karar: `docs/decisions.md` 2026-10-21 alan adı satırı. App Store 5.1.1(i) uygulama içinde gizlilik bağlantısı ister.
 
 ### Ayarlar — Konuma girince (4, iOS)
 

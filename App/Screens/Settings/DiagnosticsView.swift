@@ -22,9 +22,8 @@ struct DiagnosticsView: View {
             #if os(iOS)
                 InkPageTitleRow("Tanılama")
             #endif
+            // No "İndeks" header: the card's first row carries the same word.
             Section {
-                SectionHeader("İndeks")
-                    .inkListRow()
                 if store.isProcessing {
                     VaultIndexingProgress(store: store)
                         .inkListRow()
@@ -37,13 +36,23 @@ struct DiagnosticsView: View {
                     InfoBand(kind: .error, verbatim: error)
                         .inkListRow()
                 }
+                // Actions first, apart from the counts (drawing: Mac Kasa, "İndeksi yeniden kur" as a
+                // secondary button beside the index's last update).
+                // One list row per button, the card drawn across the rows (InkCardSegment): two
+                // buttons in one List row would both run on one tap.
+                VaultIndexRow(store: store)
+                    .inkListRow(cardSegment: .first)
+                clearHistoryButton
+                    .buttonStyle(InkTextButtonStyle())
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, InkSpacing.cardPadding)
+                    .inkListRow(cardSegment: .last)
+            }
+            Section {
+                SectionHeader("Sayılar")
+                    .inkListRow()
                 InkCard(padded: false) {
                     VStack(alignment: .leading, spacing: 0) {
-                        // One action per row with a hairline between, as every other card row.
-                        actionRow(rebuildButton)
-                        InkCardDivider()
-                        actionRow(clearHistoryButton)
-                        InkCardDivider()
                         countRow("Dosyalar", store.counts.files)
                         InkCardDivider()
                         countRow("Günler", store.counts.filesByKind["day", default: 0])
@@ -67,15 +76,6 @@ struct DiagnosticsView: View {
                         countRow("Çözülmemiş bağlantılar", store.counts.unresolvedLinks)
                         InkCardDivider()
                         countRow("Reddedilen iCloud indirme istekleri", store.sync.downloadFailures)
-                        if let date = store.lastUpdated {
-                            InkCardDivider()
-                            LabeledContent("Son güncelleme") {
-                                Text(date, format: .dateTime)
-                                    .font(.ink.value)
-                            }
-                            .frame(minHeight: InkButtonChrome.minimumHeight)
-                            .padding(.horizontal, InkSpacing.cardPadding)
-                        }
                     }
                 }
                 .inkListRow()
@@ -165,32 +165,21 @@ struct DiagnosticsView: View {
         }
     }
 
-    private func actionRow(_ button: some View) -> some View {
-        button
-            .buttonStyle(.borderless)
-            .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
-            .padding(.horizontal, InkSpacing.cardPadding)
-    }
-
-    private var rebuildButton: some View {
-        Button("Yeniden üret") { Task { await store.refresh(rebuild: true) } }
-            .disabled(store.isProcessing)
-    }
-
     @ViewBuilder private var licensesLink: some View {
         InkCard(padded: false) {
             #if os(macOS)
-                Button("Üçüncü taraf lisansları", action: openLicenses)
-                    .buttonStyle(.borderless)
-                    .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
-                    .padding(.horizontal, InkSpacing.cardPadding)
-                    .accessibilityIdentifier("button.settings.diagnostics.licenses")
-            #else
-                NavigationLink("Üçüncü taraf lisansları") {
-                    ThirdPartyLicensesView()
+                Button(action: openLicenses) {
+                    InkDisclosureRowLabel("Üçüncü taraf lisansları")
                 }
-                .frame(minHeight: InkButtonChrome.minimumHeight)
-                .padding(.horizontal, InkSpacing.cardPadding)
+                .inkDisclosureRow("Üçüncü taraf lisansları")
+                .accessibilityIdentifier("button.settings.diagnostics.licenses")
+            #else
+                NavigationLink {
+                    ThirdPartyLicensesView()
+                } label: {
+                    InkDisclosureRowLabel("Üçüncü taraf lisansları")
+                }
+                .inkDisclosureRow("Üçüncü taraf lisansları")
                 .accessibilityIdentifier("button.settings.diagnostics.licenses")
             #endif
         }

@@ -11,6 +11,7 @@ enum VaultCloudSnapshotCase: String, CaseIterable, Sendable {
 private enum VaultCloudSnapshotHost {
     static func prepare(_ name: VaultCloudSnapshotCase) async throws -> CloudVaultContext {
         let context = try CloudVaultContext(available: name != .onboardingLocal && name != .cloudUnavailable)
+        context.store.clock = { Date(timeIntervalSince1970: 1_789_890_060) }
         try await context.store.refreshCloudAvailability()
         switch name {
         case .settingsCloud: await context.store.createCloudVault()

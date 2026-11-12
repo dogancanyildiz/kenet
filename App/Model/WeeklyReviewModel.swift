@@ -173,8 +173,10 @@ struct WeeklyReviewContent: Equatable, Sendable {
     func taskLines(locale: Locale) -> [String] {
         guard openTaskCount > 0 else { return [] }
         let bundle = PresentationLocalization.bundle(locale)
-        // "From this week": the count is the week's leftovers, not every open task in Görevler.
-        var lines = [String(localized: "İncelenen haftadan \(openTaskCount) görev açık kaldı", bundle: bundle, locale: locale)]
+        // The reviewed week's leftovers, not every open task in Görevler (this week or the last).
+        var lines = [
+            String(localized: "İncelenen haftadan \(openTaskCount) görev açık kaldı", bundle: bundle, locale: locale)
+        ]
         lines += openTasks.map { String(localized: "Açık: \($0)", bundle: bundle, locale: locale) }
         let rest = openTaskCount - openTasks.count
         if rest > 0 { lines.append(String(localized: "ve \(rest) görev daha", bundle: bundle, locale: locale)) }

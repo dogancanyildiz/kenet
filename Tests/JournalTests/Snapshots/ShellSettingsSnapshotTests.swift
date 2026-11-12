@@ -214,6 +214,7 @@ import Testing
 
             let context = try TaskTestContext(sample: snapshotCase.needsOpenVault)
             defer { context.clean() }
+            context.store.clock = { snapshotNow }
             if snapshotCase.needsOpenVault { await context.start() }
             await ShellSettingsSnapshotHost.assert(
                 snapshotCase, store: context.store, defaults: context.defaults.defaults, lock: lock)

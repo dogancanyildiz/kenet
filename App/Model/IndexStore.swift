@@ -134,6 +134,8 @@ final class IndexStore {
     @ObservationIgnored private var usageVerifications = 0
     /// Callers of `start()` waiting for the one in flight; `nil` while none runs.
     @ObservationIgnored private var startWaiters: [CheckedContinuation<Void, Never>]?
+    /// The moment a publish stamps on `lastUpdated`; snapshot tests freeze it so the Kasa row is stable.
+    @ObservationIgnored var clock: @Sendable () -> Date = { Date() }
 
     init(
         location: VaultLocation = VaultLocation(), supportURL: URL? = nil,
@@ -716,7 +718,7 @@ final class IndexStore {
             counts = published.counts
             try await reloadRecognition()
             guard writer === self.writer else { return }
-            lastUpdated = Date()
+            lastUpdated = clock()
             contentEpoch += 1
         } catch {
             guard writer === self.writer else { return }
@@ -726,7 +728,7 @@ final class IndexStore {
             var marked = content
             marked.markNeedsFullReconcile()
             content = marked
-            lastUpdated = Date()
+            lastUpdated = clock()
             contentEpoch += 1
             throw error
         }
@@ -1049,7 +1051,7 @@ final class IndexStore {
                     try await reloadRecognition()
                     // A vault opened while recognition loaded owns `lastUpdated` and `errorText`.
                     guard generation == current else { return }
-                    lastUpdated = Date()
+                    lastUpdated = clock()
                     errorText = nil
                     allowSkip = true
                 }
@@ -1071,7 +1073,7 @@ final class IndexStore {
                     var marked = content
                     marked.markNeedsFullReconcile()
                     content = marked
-                    if lastUpdated != nil { lastUpdated = Date() }
+                    if lastUpdated != nil { lastUpdated = clock() }
                 }
             }
             full = pendingRebuild

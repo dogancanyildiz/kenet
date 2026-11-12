@@ -31,7 +31,11 @@ final class ScreenTourUITests: XCTestCase {
     private var tour: ScreenTourDriver!
 
     // Fixture rows the tour opens. Tasks carry no link, so a touch cannot follow one.
-    private let cardTask = "Hafta sonu dinlenme planı yap"
+    /// The split shell's Kanban columns scroll on their own and the tour drags the page's centre (the
+    /// second column), so there the task is the first card of "Yapılacak", already in view.
+    @MainActor private var cardTask: String {
+        tour.isSplitShell ? "Haftalık sprint hedeflerini belirle" : "Hafta sonu dinlenme planı yap"
+    }
     private let pastDay = "27 Eyl"
     private let person = "Deniz Arıkan"
     private let place = "Liman Ofis"

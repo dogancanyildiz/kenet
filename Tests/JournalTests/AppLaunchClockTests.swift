@@ -34,4 +34,13 @@ struct AppLaunchClockTests {
             #expect(abs(clock().timeIntervalSinceNow) < 5, "\(environment)")
         }
     }
+
+    /// Production writes nothing into the environment: only the screen tour gets a frozen clock.
+    @Test func onlyTheTourHasAFrozenClock() {
+        #expect(AppLaunchPolicy.frozenClock(environment: [:]) == nil)
+        #expect(AppLaunchPolicy.frozenClock(environment: ["JOURNAL_UITEST_CLOCK": "09:41"]) == nil)
+        #expect(
+            AppLaunchPolicy.frozenClock(
+                environment: ["JOURNAL_UITEST_VAULT": "/tmp/vault", "JOURNAL_UITEST_CLOCK": "09:41"]) != nil)
+    }
 }

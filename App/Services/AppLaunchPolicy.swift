@@ -47,6 +47,16 @@ enum AppLaunchPolicy {
         environment: [String: String] = ProcessInfo.processInfo.environment,
         calendar: Calendar = .current, now: Date = Date()
     ) -> @MainActor @Sendable () -> Date {
+        frozenClock(environment: environment, calendar: calendar, now: now) ?? { Date() }
+    }
+
+    /// The frozen clock of a UI test, or nil. The app writes `clockNow` into the environment only
+    /// when this is non-nil: a closure cannot be compared, so writing one on every body pass would
+    /// invalidate every view that reads `clockNow`.
+    static func frozenClock(
+        environment: [String: String] = ProcessInfo.processInfo.environment,
+        calendar: Calendar = .current, now: Date = Date()
+    ) -> (@MainActor @Sendable () -> Date)? {
         #if DEBUG
             if uiTestVaultPath(environment: environment) != nil,
                 let value = environment[uiTestClockKey],
@@ -55,7 +65,7 @@ enum AppLaunchPolicy {
                 return { fixed }
             }
         #endif
-        return { Date() }
+        return nil
     }
 
     /// `HH:mm` on the day of `now`; nil for anything else.

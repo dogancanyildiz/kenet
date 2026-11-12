@@ -128,7 +128,7 @@
                     }
                 )
                 .environment(location)
-                .environment(\.clockNow, AppLaunchPolicy.clockNow()))
+                .frozenClock(AppLaunchPolicy.frozenClock()))
             self.panel = panel
         }
 

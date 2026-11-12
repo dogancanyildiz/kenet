@@ -208,7 +208,7 @@ struct CloseDayTests {
         model.choose(.done, for: try await context.row("first"))
         let outside = "- [ ] newcomer 📅 2026-10-03\n- [ ] first 📅 2026-10-03\n- [ ] second 📅 2026-10-03\n"
         try await write(["journal/2026-10-03.md": outside], in: context)
-        #expect(model.choice(for: try await context.row("newcomer")) == .keep)
+        #expect(model.choice(for: try await context.eventualRow("newcomer")) == .keep)
         await model.apply()
         #expect(try Data(contentsOf: context.file) == Data(outside.utf8))
     }

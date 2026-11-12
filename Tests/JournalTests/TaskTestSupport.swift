@@ -33,6 +33,15 @@ struct TaskTestContext {
     func row(_ text: String) async throws -> TaskRow {
         try #require(try await store.allTasks().first { $0.sourceText == text })
     }
+    /// The task written as `text` once the index has it: an outside write's refresh can meet a
+    /// refresh the watcher already started, and the row arrives with that one (up to 5 s).
+    func eventualRow(_ text: String) async throws -> TaskRow {
+        for _ in 0..<50 {
+            if let row = try await store.allTasks().first(where: { $0.sourceText == text }) { return row }
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        return try await row(text)
+    }
     func model() -> QuickEntryModel {
         let date = today
         let model = QuickEntryModel(store: store, today: { date })

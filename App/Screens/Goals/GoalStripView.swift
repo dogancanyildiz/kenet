@@ -4,6 +4,15 @@ import VaultFormat
 
 /// Preference for snapshot hosts waiting until the strip's model finished loading: the day page
 /// and the close-day flow set it, also when the vault has no goal.
+/// The day page's own loads (the day, its goals, the week strip and insight chips, its tasks)
+/// answered the current publish. Nil when no day page is in the tree; snapshot hosts wait for it.
+struct DayPageReadyKey: PreferenceKey {
+    static let defaultValue: Bool? = nil
+    static func reduce(value: inout Bool?, nextValue: () -> Bool?) {
+        if let next = nextValue() { value = (value ?? true) && next }
+    }
+}
+
 struct GoalsStripReadyKey: PreferenceKey {
     static let defaultValue = false
     static func reduce(value: inout Bool, nextValue: () -> Bool) {

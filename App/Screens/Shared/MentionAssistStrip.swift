@@ -161,9 +161,7 @@ struct MentionAssistStrip: View {
                     }
                 }
                 .font(.ink.meta.weight(.semibold))
-                .lineLimit(1)
-                .fixedSize()
-                .frame(minHeight: InkButtonChrome.minimumHeight)
+                .modifier(StripActionFit())
                 .disabled(store.entityTypes.types.isEmpty)
             }
         }
@@ -252,9 +250,7 @@ struct MentionAssistStrip: View {
                         }
                     }
                     .font(.ink.meta.weight(.semibold))
-                    .lineLimit(1)
-                    .fixedSize()
-                    .frame(minHeight: InkButtonChrome.minimumHeight)
+                    .modifier(StripActionFit())
                     .disabled(store.entityTypes.types.isEmpty)
                 }
             }
@@ -303,8 +299,9 @@ private struct CandidatePill: ViewModifier {
 }
 
 /// The strip's text actions: the text button's colors at the strip's meta size, on one line,
-/// so "Kişi olarak ekle" never breaks inside the card.
-private struct StripActionStyle: ButtonStyle {
+/// so "Kişi olarak ekle" never breaks inside the card. At accessibility sizes one line can be
+/// wider than the card: there the action wraps inside the width it is given (``StripActionFit``).
+struct StripActionStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
@@ -312,10 +309,22 @@ private struct StripActionStyle: ButtonStyle {
         return configuration.label
             .font(.ink.meta.weight(.semibold))
             .foregroundStyle(InkButtonChrome.color(for: role.foreground))
-            .lineLimit(1)
-            .fixedSize()
-            .frame(minHeight: InkButtonChrome.minimumHeight)
+            .modifier(StripActionFit())
             .contentShape(Rectangle())
+    }
+}
+
+/// One line at its own width up to the largest standard size; from the accessibility sizes on,
+/// the text wraps in the width the strip offers instead of running past the card.
+private struct StripActionFit: ViewModifier {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    func body(content: Content) -> some View {
+        let wraps = dynamicTypeSize.isAccessibilitySize
+        content
+            .lineLimit(wraps ? nil : 1)
+            .fixedSize(horizontal: !wraps, vertical: true)
+            .frame(minHeight: InkButtonChrome.minimumHeight)
     }
 }
 

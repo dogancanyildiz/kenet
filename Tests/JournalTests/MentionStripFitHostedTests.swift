@@ -77,6 +77,51 @@
             #expect(label.height > oneLine.height * 1.5, "the long name did not wrap: \(label)")
         }
 
+        private struct ActionProbe: View {
+            let size: DynamicTypeSize
+            let frames: Frames
+
+            var body: some View {
+                VStack(alignment: .leading) {
+                    Button("Özel tip olarak ekle") {}
+                        .buttonStyle(StripActionStyle())
+                        .onGeometryChange(for: CGRect.self) {
+                            $0.frame(in: .global)
+                        } action: {
+                            frames.values["action"] = $0
+                        }
+                }
+                // Narrower than the action's one line at any size: the Mac draws accessibility
+                // sizes at the standard font, so only a narrow strip tells wrapping from overflow.
+                .frame(width: 60, alignment: .leading)
+                .onGeometryChange(for: CGRect.self) {
+                    $0.frame(in: .global)
+                } action: {
+                    frames.values["strip"] = $0
+                }
+                .environment(\.dynamicTypeSize, size)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            }
+        }
+
+        private func measureAction(size: DynamicTypeSize) async throws -> (action: CGRect, strip: CGRect) {
+            let frames = Frames()
+            let mount = HostedLayout.Mount(
+                ActionProbe(size: size, frames: frames), size: CGSize(width: 600, height: 400))
+            defer { mount.close() }
+            await mount.settle()
+            let action = try #require(frames.values["action"], "the action reported no frame")
+            let strip = try #require(frames.values["strip"], "the strip reported no frame")
+            return (action, strip)
+        }
+
+        /// At an accessibility size a strip action wraps inside the strip instead of running past
+        /// the card (`fixedSize()` kept it on one line, wider than the strip).
+        @Test func stripActionWrapsInsideTheStripAtAccessibilitySizes() async throws {
+            let (action, strip) = try await measureAction(size: .accessibility3)
+            #expect(action.maxX <= strip.maxX + 0.5, "action \(action) runs past the strip \(strip)")
+        }
+
         /// The candidate row scrolls sideways: there the label keeps its full width on one line.
         @Test func candidateLabelKeepsItsFullWidth() async throws {
             let (label, strip) = try await measureLabel(fit: .oneLine, size: .large)

@@ -1,7 +1,7 @@
 ---
 type: event
 name: Örnek Etkinlik
-baslangic:
-bitis:
+başlangıç:
+bitiş:
 konum:
 ---

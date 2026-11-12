@@ -1,7 +1,7 @@
 ---
 type: event
 name:
-baslangic:
-bitis:
+başlangıç:
+bitiş:
 konum:
 ---

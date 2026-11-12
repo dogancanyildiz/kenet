@@ -1,8 +1,8 @@
 ---
 type: film
 name:
-yonetmen:
-yil:
+yönetmen:
+yıl:
 puan:
 izlendi:
 ---

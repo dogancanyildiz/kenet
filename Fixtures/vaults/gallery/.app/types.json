@@ -47,11 +47,11 @@
       "icon": "film.fill",
       "fields": [
         {
-          "key": "yonetmen",
+          "key": "yönetmen",
           "kind": "text"
         },
         {
-          "key": "yil",
+          "key": "yıl",
           "kind": "number"
         },
         {
@@ -79,11 +79,11 @@
       "icon": "building.2.fill",
       "fields": [
         {
-          "key": "tur",
+          "key": "tür",
           "kind": "text"
         },
         {
-          "key": "kisiler",
+          "key": "kişiler",
           "kind": "link"
         },
         {
@@ -111,7 +111,7 @@
           "kind": "text"
         },
         {
-          "key": "baslangic",
+          "key": "başlangıç",
           "kind": "date"
         },
         {
@@ -135,11 +135,11 @@
       "icon": "calendar",
       "fields": [
         {
-          "key": "baslangic",
+          "key": "başlangıç",
           "kind": "date"
         },
         {
-          "key": "bitis",
+          "key": "bitiş",
           "kind": "date"
         },
         {
@@ -163,11 +163,11 @@
       "icon": "airplane",
       "fields": [
         {
-          "key": "baslangic",
+          "key": "başlangıç",
           "kind": "date"
         },
         {
-          "key": "bitis",
+          "key": "bitiş",
           "kind": "date"
         },
         {
@@ -195,7 +195,7 @@
           "kind": "text"
         },
         {
-          "key": "sure",
+          "key": "süre",
           "kind": "number"
         },
         {
@@ -227,7 +227,7 @@
           "kind": "number"
         },
         {
-          "key": "alindi",
+          "key": "alındı",
           "kind": "date"
         }
       ],
@@ -247,15 +247,15 @@
       "icon": "pawprint.fill",
       "fields": [
         {
-          "key": "tur",
+          "key": "tür",
           "kind": "text"
         },
         {
-          "key": "dogum",
+          "key": "doğum",
           "kind": "date"
         },
         {
-          "key": "asi",
+          "key": "aşı",
           "kind": "date"
         }
       ],

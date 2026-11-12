@@ -2,6 +2,6 @@
 type: project
 name:
 durum:
-baslangic:
+başlangıç:
 kurum:
 ---

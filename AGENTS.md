@@ -19,7 +19,7 @@
 | İndeks | SQLite |
 | Kimlikler | Bundle `com.dogancanyildiz.kenet`, iCloud kapsayıcısı `iCloud.com.dogancanyildiz.kenet`, App Group `group.com.dogancanyildiz.kenet`. Üçü de kalıcıdır. |
 
-iOS ana ekran zincir widget'ı var. Kilit ekranı, Denetim Merkezi ve Mac widget'ları Aşama 11'in sonraki dalgasıdır. App Group kararı alındı: widget veriyi App Group'tan okur. iCloud kapsayıcısı yetki dosyalarında hazırdır; kod onu henüz kullanmaz.
+Widget'lar ve paylaşım uzantısı veriyi App Group'tan okur. Kasa iCloud kapsayıcısında durabilir. Özelliklerin durumunu `docs/roadmap.md` tutar.
 
 ## Başlangıç akışı
 
@@ -46,15 +46,6 @@ flowchart TD
   L --> N
   M --> N
 ```
-
-1. `docs/roadmap.md` içindeki **aktif aşamayı** oku.
-2. Yalnız aktif aşamanın maddeleri üzerinde çalış.
-3. Dosya okuyan ya da yazan her işte `docs/vault-format.md` belgesine uy.
-4. Arayüz işine `docs/screens.md` belgesiyle başla.
-5. Arayüzün görünümü için `docs/design.md` belgesine uy.
-6. Test verisi eklerken `docs/fixtures.md` belgesine uy.
-7. Mimari sorular için `docs/architecture.md` belgesine bak.
-8. Gerekçeler için `docs/decisions.md` belgesine bak.
 
 `docs/screens.md` neyin nerede olacağını tarif eder, nasıl görüneceğini tarif etmez. Görünümü `docs/design.md` tarif eder.
 
@@ -136,7 +127,7 @@ Değişmez kurallar zevk değil, ürünün temel vaatleridir. Veri kullanıcın�
 | Değişiklik kaydı | Üç şey söyle: ne değişti, önceki değer, nasıl geri alınır. Karar tablosu ve şema sürümü notları bu kurala uyar. |
 | Terim | `docs/design.md` "Terim sözlüğü" tablosundaki adı kullan. Yeni terimi önce tabloya ekle. |
 
-CI belge yerini `.github/scripts/check-doc-locations.sh` ile denetler. Betik `docs/` ve `Fixtures/` dışında yalnız kökteki `README.md`, `AGENTS.md` ve `CLAUDE.md` dosyalarını kabul eder. `.github/scripts/check-docs.sh` README belge tablosunun `docs/` klasörüyle aynı olduğunu denetler. Aynı betik 20 sözcüğü aşan cümle sayısını tavanla denetler ve sır kalıplarını arar.
+Bu kuralları denetleyen betikleri "Dizin yapısı" bölümündeki denetim betiği tablosu listeler.
 
 ## Kod kuralları
 
@@ -150,7 +141,7 @@ CI belge yerini `.github/scripts/check-doc-locations.sh` ile denetler. Betik `do
 | İndeks şeması | Şema değişirse şema sürümünü artır. Göç yazma. Uygulama eski indeksi siler ve dosyalardan yeniden kurar. |
 | Belge biçim denetimi | `sh .github/scripts/check-docs.sh` komutunu çalıştır. |
 
-`Fixtures/` dosyaları dilden bağımsızdır; ileride başka platformlar bu dosyaları yeniden kullanır. `project.yml` Swift 6 dil kipini ve tam eşzamanlılık denetimini açar; derleyici uyarıyı hata sayar. `check-docs.sh` karar tablosunu, README belge tablosunu ve String Catalog'u denetler. CI aynı betiği "Biçim ve kurallar" işinde çalıştırır.
+`Fixtures/` dosyaları dilden bağımsızdır; ileride başka platformlar bu dosyaları yeniden kullanır. `project.yml` Swift 6 dil kipini ve tam eşzamanlılık denetimini açar; derleyici uyarıyı hata sayar.
 
 ## Git kuralları
 
@@ -272,7 +263,7 @@ Takım kimliği `Config/Local.xcconfig` dosyasında durur; git bu dosyayı izlem
 | Kasa formatını geriye uyumsuz değiştirmek | Yok |
 | Sonradan değiştirmesi zor değerleri belirlemek | Bundle kimliği, iCloud kapsayıcı kimliği, App Group kimliği |
 
-Tablodaki bir işi yapmadan önce dur. Kullanıcıya sor. Kullanıcı bundle kimliğini 2026-10-07'de `com.dogancanyildiz.kenet` olarak seçti. Kullanıcı iCloud kapsayıcısını ve App Group kimliğini 2026-10-21'de seçti: `iCloud.com.dogancanyildiz.kenet` ve `group.com.dogancanyildiz.kenet`.
+Tablodaki bir işi yapmadan önce dur. Kullanıcıya sor. Kimlikler karara bağlandı; değerler "Proje özeti" tablosundadır.
 
 ## Dizin yapısı
 
@@ -289,7 +280,8 @@ App/                      iOS ve macOS SwiftUI uygulaması
   Screens/                Ekranlar
   Services/               Sistem hizmetleri (takvim, konum, bildirim, kilit)
   Support/                Entitlements, plist ekleri, küçük yardımcılar, simge kaynağı (AppIcon/)
-Widgets/                  WidgetKit hedefi (iOS ana ekran zincir widget'ı); Shared/: uygulamayla ortak;
+Widgets/                  WidgetKit hedefi (iOS: zincir, kilit ekranı, hızlı giriş, Denetim Merkezi kontrolü);
+                          Shared/: uygulamayla ortak;
                           String Catalog'u App/Resources'tan derler
 ShareExtension/           Paylaşım uzantısı (iOS): paylaşılanı olay olarak ekler; Form/: uygulamayla ortak
 Shared/                   Uygulama ve paylaşım uzantısıyla ortak olay yazıcısı ve kuyruk (Foundation, Core)
@@ -310,8 +302,8 @@ project.yml, VERSION      XcodeGen tanımı ve sürüm numarası; Journal.xcodep
 
 | Denetim betiği | Ne denetler |
 |---|---|
-| `.github/scripts/check-docs.sh` | Karar tablosu, README belge tablosu, String Catalog tamlığı ve biçimi; koddaki sabit metinlerin katalogda olması (`check-catalog-keys.py`); uzun cümle tavanı; sır kalıpları |
-| `.github/scripts/check-doc-locations.sh` | `docs/` dışındaki `.md` dosyaları |
+| `.github/scripts/check-docs.sh` | Karar tablosu, README belge tablosu, roadmap ve karar sayıları, String Catalog tamlığı ve biçimi; koddaki sabit metinlerin katalogda olması (`check-catalog-keys.py`); uzun cümle tavanı; sır kalıpları |
+| `.github/scripts/check-doc-locations.sh` | `.md` yeri: yalnız `docs/`, `Fixtures/` ve kökteki `README.md`, `AGENTS.md`, `CLAUDE.md` |
 | `.github/scripts/check-core-imports.sh` | `Core` içindeki yasak import'lar |
 | `.github/scripts/check-team-id.sh` | Belgelerdeki gerçek takım kimliği |
 

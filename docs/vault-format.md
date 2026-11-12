@@ -1,6 +1,6 @@
 # Kasa formatı
 
-**Sürüm:** 0.3 (taslak)
+**Belge sürümü:** 0.3 (taslak). **Kasa biçim sürümü:** `.app/vault.json` içindeki `formatVersion`; bugünkü değer `1`.
 
 **Amaç:** Kasa dosyalarının biçimini, uygulamanın her sürümünün ve gelecekteki her istemcinin uyduğu platformlar arası sözleşme olarak tanımlamak.
 
@@ -261,7 +261,7 @@ Eşleme Türkçe yazımı doğru okur, ama Türkçe olmayan adlarda bir bedeli v
 - Karşılaştırma cihazın dilinden bağımsızdır. Türkçe büyük harf eşlemesi her cihazda ve her dilde aynı uygulanır.
 - Bağlantı çözümü, ad ve takma ad araması, tanıma ve takvim katılımcısı eşlemesi bu anahtarı kullanır.
 
-**Ad çakışması denetimi daha sıkıdır.** İki adın anahtarı aynıysa ya da yalnız Unicode'un varsayılan küçük harf eşlemesi iki adı aynı sayıyorsa ad doludur. Gerekçe: Mac dosya sistemi ve Obsidian Türkçe eşlemeyi yapmaz. `SELIN.md` ile `Selin.md` aynı klasörde aynı dosyadır. Kural yalnız oluşturma ve yeniden adlandırmayı reddeder; hiçbir bağlantıyı çözmez.
+**Ad çakışması denetimi daha sıkıdır.** İki adın anahtarı aynıysa ad doludur. Yalnız Unicode'un varsayılan küçük harf eşlemesi iki adı aynı sayıyorsa da ad doludur. Gerekçe: Mac dosya sistemi ve Obsidian Türkçe eşlemeyi yapmaz. `SELIN.md` ile `Selin.md` aynı klasörde aynı dosyadır. Kural yalnız oluşturma ve yeniden adlandırmayı reddeder; hiçbir bağlantıyı çözmez.
 
 | Denetim | Örnek | Sonuç |
 |---|---|---|
@@ -423,7 +423,11 @@ goals:                        # tek düzey iç içe eşlem
 | Çift tırnak | `\0 \a \b \t \n \v \f \r \e \" \/ \\ \N \_ \L \P`, ters bölüden sonra boşluk ya da sekme, `\xHH`, `\uHHHH`, `\UHHHHHHHH` |
 | Tek tırnak | Yalnız `''`: tek tırnak karakteri. Başka kaçış yok. |
 
-Tırnaklı değer her zaman metindir. Uygulama tırnaksız değerin türünü yazımından okur. YAML okuyucularının birbirinden farklı okuduğu yazımları uygulama metin olarak okur: `yes`, `no`, `on`, `off`, `012`, `0x1F`, `.5`, `5.`, `1_000`, `14:30`, üstel sayılar (`1e-5`), `2026-1-2`, zaman damgaları (`2026-10-02T10:00:00`), var olmayan tarihler.
+Tırnaklı değer her zaman metindir. Uygulama tırnaksız değerin türünü yazımından okur. Bazı yazımları YAML okuyucuları birbirinden farklı okur. Uygulama bu yazımları metin olarak okur:
+
+- Mantık sözcükleri: `yes`, `no`, `on`, `off`.
+- Sayıya benzeyenler: `012`, `0x1F`, `.5`, `5.`, `1_000`, `14:30`, üstel sayılar (`1e-5`).
+- Tarihe benzeyenler: `2026-1-2`, zaman damgaları (`2026-10-02T10:00:00`), var olmayan tarihler.
 
 ### Ham alanlar
 
@@ -492,8 +496,11 @@ Uygulama metni, şu koşulların hepsini sağlıyorsa tırnaksız yazar. Sağlam
 2. İlk karakter şunlardan biri değildir: `- ? : , [ ] { } # & * ! | > ' " % @` ve ters tırnak.
 3. Metin `:` ardından boşluk ya da sekme içermez ve `:` ile bitmez. Metin boşluk ya da sekme ardından `#` içermez.
 4. Metin kaçış gerektiren karakter içermez. Kaçışlar aşağıdaki tablodadır.
-5. Metin, büyük ve küçük harf ayrımı olmadan, şunlardan biri değildir: `true`, `false`, `yes`, `no`, `on`, `off`, `y`, `n`, `null`, `~`, `<<`, `=`.
-6. Metin sayıya benzemez. İsteğe bağlı bir `+` ya da `-` işaretinden sonra şu 3 durum sayıya benzer: rakamla başlayan ve hiç boşluk ya da sekme içermeyen metin; `.` ile başlayıp ardından rakam gelen metin; kalanı harf ayrımı olmadan `inf` ya da `nan` olan metin.
+5. Metin aşağıdaki sözcüklerden biri değildir. Büyük ve küçük harf ayrımı yapılmaz: `true`, `false`, `yes`, `no`, `on`, `off`, `y`, `n`, `null`, `~`, `<<`, `=`.
+6. Metin sayıya benzemez. İsteğe bağlı bir `+` ya da `-` işaretinden sonra şu 3 durum sayıya benzer:
+   - Rakamla başlayan ve hiç boşluk ya da sekme içermeyen metin.
+   - `.` ile başlayıp ardından rakam gelen metin.
+   - Kalanı harf ayrımı olmadan `inf` ya da `nan` olan metin.
 7. Metin tarihe benzemez. Metin şu dizi ile başlamaz: 4 rakam, `-`, 1 ya da 2 rakam, `-`, 1 ya da 2 rakam. Devamı ne olursa olsun kural geçerlidir.
 8. Metin `...` değildir. Metin `...` ardından boşluk ya da sekme ile başlamaz.
 9. Metin tek satırlı liste içindeyse ayrıca `, [ ] { } : ?` karakterlerinden hiçbirini içermez.

@@ -8,9 +8,15 @@
 - Gerçek kullanım ölçütleri ve kullanıcı kararı bekleyen konular
 - Sonraki fikirler
 
-**Aktif aşama:** 11. Aşama 17 (Tasarım yenileme) Aşama 11 ile birlikte yürüdü; 9 kutusu bitti. Çıkış ölçütünün TestFlight doğrulaması kullanıcıdadır.
+| Konu | Değer |
+|---|---|
+| Son güncelleme | `2026-11-11` |
+| Aktif aşama | 11 Kimlik, eşitleme ve widget'lar |
+| Aşama 11'in açık kutuları | Eşitlenen kasada güvenli yazma; Mac widget'ları |
+| Birlikte yürüyen | Aşama 13'ün Duo dilimi; Xcode 27.1'i bekler |
+| Kullanıcıda bekleyen | Aşama 8: kilidin cihaz doğrulaması |
 
-Aşama 11'in kimlikleri 2026-10-21'de karara bağlandı. Kasa konumu, ana ekran widget'ı, paylaşım uzantısı ve günlük önerileri seçicisi 2026-10-22'de `dev`'e girdi. Kalan maddeler: güvenli yazmanın kalanı (cihaz denemesini bekler), kilit ekranı, hızlı giriş ve Mac widget'ları. Aşama 13'ün iPhone Duo dilimi bugünkü SDK ile Aşama 11'in bekleyen maddeleriyle birlikte yürür. Karar günlüğü bu sırayı 2026-10-13'te kaydetti. Aşama 8 ve 9'un açık maddeleri kullanıcının elindedir: kilidin ve Bugün ekranının gerçek cihazda doğrulanması.
+Bitmiş aşamalar "Tamamlanan teknik kapsam" bölümündedir. Açık kutusu olan aşamalar önce gelir.
 
 ## Genel durum
 
@@ -18,7 +24,7 @@ Aşama 11'in kimlikleri 2026-10-21'de karara bağlandı. Kasa konumu, ana ekran 
 
 ```mermaid
 timeline
-    title Aşama durumları, 2026-11-10
+    title Aşama durumları
     section Teknik kapsam tamam
         Aşama 0 Temel : Çıkış ölçütü sağlandı
         Aşama 1 Günlük : Gerçek kullanım başlamadı
@@ -36,7 +42,7 @@ timeline
         Aşama 17 Tasarım yenileme : 9 kutu bitti : 0 kutu açık
     section Açık kutusu var
         Aşama 8 Sağlamlaştırma : 28 kutu bitti : 1 kutu açık
-        Aşama 11 Kimlik, eşitleme ve widget'lar : Aktif aşama : 8 kutu bitti : 3 kutu açık
+        Aşama 11 Kimlik, eşitleme ve widget'lar : Aktif aşama : 9 kutu bitti : 2 kutu açık
         Aşama 13 Uyarlanır düzen : Duo kabuğu ve iPad bitti : 4 kutu bitti : 2 kutu açık
     section Hazırlık sürüyor
         Aşama 12 Yayın : 4 kutu açık
@@ -46,8 +52,8 @@ timeline
 
 ```mermaid
 pie title Kutular
-    "Bitti" : 126
-    "Açık" : 10
+    "Bitti" : 127
+    "Açık" : 9
 ```
 
 | İşaret | Anlamı |
@@ -55,9 +61,7 @@ pie title Kutular
 | `[x]` | Kod `dev` dalında, testlerden ve CI'dan geçti. CI, sürekli bütünleştirme demektir. |
 | `[ ]` | Madde açık. Durum tablosu kalan işi söyler. |
 
-**Durum (2026-11-10).** Aşama 0–10, 14, 15, 16 ve 17'nin teknik maddeleri `dev` dalındadır. Aşama 11'in 11 maddesinden 8'i bitti. İlk sürüm `v0.9.0` `main` dalındadır. TestFlight'ta iPhone/iPad ve Mac için dahili test sürüyor. Aşama 16 tamamlandı; olay düzeyinde bağ (W1, #333), paragraf segmentleri (W1a, #334), günün grafiği (W2, #337) ve açık ilişkiler (W3, #341, #343, #347) `dev` dalındadır. Aşama 17 2026-11-09'da açıldı; 9 dalganın 9'u bitti (#371–#377 ve belge kapanışı). Aşamaların gerçek kullanım ölçütleri henüz ölçülmedi; "Gerçek kullanım ölçütleri" tablosu ölçütleri ayrıca izler.
-
-Ekim 2026'da çok modelli bir heyet projeyi inceledi. Heyet 4 iş yaptı: kod ve mimari denetimi, ekran görüntülü kullanım gezisi, sektör taraması, tasarım dili araştırması. İnceleme gerçek hatalar, ölçek sorunları ve vaatle uyuşmayan yerler buldu. Bu nedenle heyetten sonraki ilk iş yeni özellik değil, sağlamlaştırmaydı. Aşama 8 ve sonraki aşamalar heyetin önerdiği sırayı izler; kullanıcı onayı kapsamı ve sırayı kesinleştirir.
+İlk sürüm `v0.9.0` `main` dalındadır. TestFlight'ta iPhone, iPad ve Mac için dahili test sürer. Aşamaların gerçek kullanım ölçütleri henüz ölçülmedi.
 
 Kural: Her modülü gerçek kullanımda sına. Aşama 0–7'nin kodu çıkış ölçütlerini beklemeden art arda geldi. Ölçütler geçerlidir ve gerçek kullanımla kapanır. Bir ölçüt kullanımda tutmazsa sonraki işlerin sırasını yeniden kur.
 
@@ -68,11 +72,17 @@ Kural: Her modülü gerçek kullanımda sına. Aşama 0–7'nin kodu çıkış �
 | 0 Temel | Tamam. iCloud kasa konumu Aşama 11'de geldi: #319 | Uygulama örnek kasayı okuyor ve indeksliyor; değişiklikler ekrana yansıyor; testler geçiyor | Sağlandı |
 | 1 Günlük | Tamam | Kullanıcı iki hafta boyunca her gün günlüğünü uygulamada tutuyor | Başlamadı |
 | 2 Görevler | Tamam | Kullanıcı günlük görevlerini yalnız uygulamada izliyor | Başlamadı |
-| 3 Hedefler ve widget'lar | Hedefler ve ana ekran zincir widget'ı tamam; kilit ekranı widget'ı yok | Kullanıcı alışkanlık uygulamasını ve Lockday'i telefondan sildi | Başlamadı. Lockday'in yerini alacak kilit ekranı widget'ı Aşama 11'de açık |
+| 3 Hedefler ve widget'lar | Tamam. Ana ekran ve kilit ekranı widget'ı Aşama 11'de geldi: #318, #359 | Kullanıcı alışkanlık uygulamasını ve Lockday'i telefondan sildi | Başlamadı |
 | 4 Otomasyon | Tamam | İki hafta boyunca hiçbir hatırlatma kaçmıyor; uygulama konuma bağlı hedefleri kullanıcı işaretlemeden yazıyor | Başlamadı |
 | 5 Proje görünümleri | Tamam | Kullanıcı Kanban ve zaman çizelgesi için Notion'u açmıyor | Başlamadı |
 | 6 Geri bildirim | Sayılara dayanan kısım tamam | Kullanıcı haftalık özeti 4 hafta üst üste okuyor | Başlamadı |
 | 7 Genişleme | İlk kullanım, kasa hazırlama, kilit ve özel tipler tamam | Yok | - |
+| 9 Tasarım dili | Tamam | Bütün ekranlar aynı bileşen kitaplığını kullanıyor; erişilebilirlik ve görüntü testleri CI'da geçiyor | Sağlandı |
+| 10 Bağlam ve geri dönüş | Tamam | Kullanıcı haftalık incelemeyi 4 hafta üst üste tamamlıyor; "Bir süredir görüşmediklerin" listesinden ayda en az 1 görüşme çıkıyor | Başlamadı |
+| 14 Görselleştirme | Tamam | Altı grafik iPhone'da açık, koyu ve AX3'te referans görüntüyle korunur; Core hesapları fixture ile sınanır | Sağlandı |
+| 15 Kullanım kolaylığı | Tamam | Dört davranış görüntü ve birim testiyle korunur; silme yolları Core testleriyle sınanır; kullanıcı TestFlight'ta doğrular | Testler sağlandı; TestFlight doğrulaması kullanıcıda |
+| 16 İlişkiler ve Graph | Tamam | Aynı gün iki ayrı olaydaki varlıklar bağlanmaz; her gün kendi grafiğini açar; elle kurulan bağ Obsidian'da da görünür | Testler sağlandı; gerçek kullanım ölçülmedi |
+| 17 Tasarım yenileme | Tamam | Bütün ekranlar Şafak bileşenlerini kullanır; palet testi 4 varyantı denetler; kullanıcı koyu, açık ve KA'yı TestFlight'ta doğrular | Testler sağlandı; TestFlight doğrulaması kullanıcıda |
 
 Gerçek kullanım gerçek cihazda kalıcı kurulum ister. TestFlight yapısı kalıcı kurulumu sağlar.
 
@@ -90,8 +100,6 @@ flowchart LR
 | Gelir modeli | Aşama 12 | Lisans karara bağlandı: tüm hakları saklıdır. Sektör taraması bu kategoride reklamı önermiyor. Karar ilk mağaza yayınından önce verilir: 2026-10-21. |
 | Yapay zeka | Sonraki fikirler | Cihaz üstü model maliyetsiz bir seçenektir. Öneri: varsayılan kapalı. |
 
-Kimlikler karara bağlandı: bundle kimliği 2026-10-07'de, iCloud kapsayıcısı ve App Group 2026-10-21'de (#314), alan adı `kenet.app` 2026-10-21'de. Alan adını kullanıcı alır.
-
 **DİKKAT:** Mağazada yayımlanan iPad desteğini geri alamazsın; iPad desteğini sonradan eklemek serbesttir.
 
 ## Aşama 8: Sağlamlaştırma
@@ -108,7 +116,7 @@ Kimlikler karara bağlandı: bundle kimliği 2026-10-07'de, iCloud kapsayıcıs�
 |---|---|
 | Uygulama kilidi, "Hemen" ayarı | Kod ve test `dev` dalında. Kalan iş: gerçek cihazda doğrulama. |
 
-Aşama 8 heyet incelemesinin bulgularını düzeltir. Her hata düzeltmesi hatayı yakalayan bir test ya da fixture getirir. Ölçümlerin hepsi Mac'te, 5 yıllık sentetik kasalarda koştu. Sentetik kasalar 2.300 ile 2.400 arası dosya taşır. iPhone'da ölçüm yok.
+Aşama 8 Ekim 2026 heyet incelemesinin bulgularını düzeltir. Heyet kod, kullanım, sektör ve tasarım incelemesi yaptı. Her hata düzeltmesi hatayı yakalayan bir test ya da fixture getirir. Ölçümlerin hepsi Mac'te, 5 yıllık sentetik kasalarda koştu. Sentetik kasalar 2.300 ile 2.400 arası dosya taşır. iPhone'da ölçüm yok.
 
 Doğruluk ve veri güvenliği:
 
@@ -156,124 +164,35 @@ Kapılar:
 
 **Çıkış ölçütü:** Aşama 8'deki her hatayı bir test ya da fixture koruyor. 5 yıllık sentetik kasada olay eklemek arayüzü dondurmuyor. İki haftalık gerçek kullanımda veri kaybı ya da yanlış gösterim çıkmıyor.
 
-## Aşama 9: Tasarım dili
-
-| Madde | Durum | Kanıt |
-|---|---|---|
-| Bugün prototipi | Bitti. Ayrı prototip yapılmadı; kullanıcı 2026-10-16'da imzayı istemedi ve maddeyi kapattı. | #254 |
-| Belirteçler ve simge | Bitti. Simge "Geçme": mürdüm ve mürekkep; iPhone'da 3 görünüm, Mac'te 10 boy. Kalan iş: küçük boyları gerçek cihazda gözle doğrulama. | #122 |
-| Bileşen kitaplığı | Bitti | - |
-| Bugün ve hızlı giriş | Bitti | - |
-| Günlük, gün ve varlık sayfaları | Bitti | - |
-| Görevler, Kanban, zaman çizelgesi | Bitti | - |
-| Hedefler, özetler, Graph, harita | Bitti | - |
-| Mac, Ayarlar, ilk kullanım, kilit | Bitti | - |
-| Ekran görüntüsü testleri | Bitti | - |
-| Denetim kalıpları | Bitti. Kalıbı koruyan kaynak denetiminin izin listesi boş. Mac'te arama yalnız pencere araç çubuğundadır: `MacShell.swift`. Arama yeri ve kenar çubuğu vurgusu 2026-10-08'de karara bağlandı. | #121, #124–#127, #151 |
-
-Kullanıcı tasarım yönünü seçti: Mürekkep, kullanıcının 2 değişikliğiyle. Yön, belirteçler ve kurallar [Tasarım dili](design.md) belgesindedir.
-
-- [x] Bugün prototipi: Mürekkep yönünün Bugün ekranı için SwiftUI prototipi. Ayrı prototip yapılmadı: Bugün ekranı Mürekkep kurallarıyla üretimde ve TestFlight'ta cihazda bakılabiliyor. Kullanıcı 2026-10-16'da Derkenar'ın imzasını istemediğini kesinleştirdi ve maddeyi kapattı.
-- [x] Tasarım belirteçleri ve uygulama simgesi: renk, tipografi, biçim ve boşluk belirteçleri, asset catalog, uygulama simgesi.
-- [x] Bileşen kitaplığı: tarih başlığı, hedef çipi, görev satırı, olay satırı, bölüm başlığı, hızlı giriş çubuğu, yüzey, çip, boş durum, ilerleme göstergesi, ısı haritası hücresi, bilgi bandı.
-- [x] Bugün ve hızlı giriş: tarih başlığı, olayların ilk ekranda görünmesi, geciken görevleri sınırlama. Taslak değişikliği önce `screens.md` belgesine girdi.
-- [x] Günlük ve gün sayfası; varlık sayfalarında okumayı ve düzenlemeyi ayırma; ham bağlantı sözdizimini ve teknik anahtarları gizleme.
-- [x] Görevler, Kanban ve zaman çizelgesi; görünüm değiştirmeyi tek kalıba bağlama.
-- [x] Hedefler, ısı haritası ve özetler; Graph ve harita renkleri. Graph ve harita renge ek olarak biçimle de ayırır.
-- [x] Mac geçişi; Ayarlar'ı 5 alt sayfaya bölme: Gizlilik, Bildirimler, Takvim ve Konum, Kasa, Tanılama; ilk kullanım ve kilit ekranı.
-- [x] Ekran görüntüsü testleri: açık ve koyu mod, büyük yazı, Kontrastı Artır.
-- [x] Denetim kalıpları: `design.md` belgesindeki ortak bileşenler ve bütün ekranları ile sheet'leri bu bileşenlere bağlama. Bileşenler: manşet satırı eylemleri, sekme, etiketli menü, süzgeç alanı, sheet iskeleti. Kalıbı koruyan kaynak denetimi; Kişiler, Konumlar ve sheet'ler için ekran görüntüsü testleri.
-
-**Çıkış ölçütü:** Bütün ekranlar aynı bileşen kitaplığını kullanıyor. Erişilebilirlik denetimi ve ekran görüntüsü testleri CI'da geçiyor.
-
-## Aşama 10: Bağlam ve geri dönüş
-
-| Madde | Durum | Kanıt |
-|---|---|---|
-| Bu gün geçmişte | Bitti | #163 |
-| Takvimden olay taslağı | Bitti | #175 |
-| Bağlanmamış anmalar | Bitti | #171, #176, #180 |
-| Önemli tarihler | Bitti | #166, #170 |
-| Görüşme ritmi | Bitti | #179, #186 |
-| Giriş yollarını gösterme | Bitti | #165 |
-| Hızlı giriş vurgusu | Bitti. Tarih, öncelik, tekrar ve adlar için kutunun üstünde çip ve geri alma var. Kutu içi vurgu yapılmaz; karar 2026-10-13. | #162, #169, #193 |
-| Zincir affı | Bitti | #190 |
-| Suçlamasız taşıma ve günü kapat | Bitti | #167, #177, #195, #199 |
-| Haftalık inceleme | Bitti | #182, #191 |
-| Rehberden kişi aktarma | Bitti | #178 |
-| Bu güne bağlananlar, yoğunluk noktaları | Bitti | #164, #168 |
-
-Aşama 10 sektör taramasından çıkan ilk dalgadır. Maddeler kimlik kararı gerektirmez ve ürünün farkını büyütür. Biçime dokunan maddeyi önce [Kasa biçimi](vault-format.md) belgesinde tanımla.
-
-- [x] Bu gün geçmişte: Bugün ekranında kişi ve konum taşıyan tek satır. Satır yalnız veri varsa görünür.
-- [x] Takvim etkinliğinden olay taslağı; katılımcı adları kişi adayı olur. Uygulama emin değilse kullanıcıya sorar.
-- [x] Varlık sayfasında bağlanmamış anmalar; satır satır, kullanıcı onayıyla bağlama.
-- [x] Önemli tarihler: kişi ve özel tip dosyalarındaki tarih alanlarından doğum günü ve yıl dönümü satırı.
-- [x] Kişi başına görüşme ritmi, erteleme ve duraklatma; isteğe bağlı, günlük tavanı olan hatırlatma.
-- [x] Var olan giriş yollarını ilk kullanımda ve Ayarlar'da gösterme. Giriş yolları: Eylem düğmesi ve Siri cümleleri.
-- [x] Hızlı giriş vurgusu: uygulama tanıdığı tarih, öncelik, tekrar ve adları kutunun üstünde çiple gösterir. Kullanıcı çipe dokununca uygulama ayrıştırmayı geri alır. Kutu içi vurgu yoktur.
-- [x] Zincir affı: önceki iki günü ve sonraki günü yapılmış kaçırma zinciri kırmaz; yumuşak ilerleme skoru. Dinlenme günü yok. Kural karar günlüğünde, 2026-10-11 tarihli.
-- [x] Suçlamasız taşıma ve iki dakikalık "günü kapat". Taşıma seçenekleri: bugüne, yarına, haftaya.
-- [x] İsteğe bağlı haftalık inceleme; kullanıcı incelemeyi atlayabilir. İncelemenin çıktısı günlük yazısına düşer.
-- [x] Rehberden kişi aktarma: kullanıcının seçtiği kişileri tek yönlü ve bir kez içe aktarma.
-- [x] Gün sayfasında "bu güne bağlananlar"; günlük takviminde yoğunluk noktaları.
-
-**Çıkış ölçütü:** Kullanıcı haftalık incelemeyi 4 hafta üst üste tamamlıyor. "Bir süredir görüşmediklerin" listesinden ayda en az 1 görüşme çıkıyor.
-
 ## Aşama 11: Kimlik, eşitleme ve widget'lar
 
 | Madde | Durum | Kanıt |
 |---|---|---|
 | Kasa konumu | Bitti. Kasa iCloud kapsayıcısında `Documents/Kenet` klasöründe durur; iCloud varsa ilk açılışta ilk seçenektir. Yerel kasa ve klasör seçimi kalır. Yerelden iCloud'a taşıma doğrulanmış kopyadır; kaynak silinmez. Gerçek cihazda Dosyalar ve ikinci cihaz denemesi kullanıcıdadır. | #314, #319 |
-| Eşitlenen kasada güvenli yazma | Açık. Hazır: Core koordinasyon sınırı ve `.merge` niyeti; App'te `NSFileCoordinator` ve okuma kuyruğu; eşitlenen klasör tespiti ve bandı; yer tutucu tespiti; Core'da gün kopyası birleştirme ve belirlenimci zaman kuralı; kopya dosyalar Tanılama'da; iCloud kasasında indirilmemiş dosya için indirme isteği, eşitleme göstergesi ve gün kopyası birleştirmesinin App bağlantısı (#361); birleştirme bayrağı varsayılan açık (karar 2026-11-09). `NSFileVersion` çakışmaları için tespit ve Tanılama listesi var (#287); sürüm çözümleme açık. Açık: sürüm çözümleme (karar 2026-10-20); indirme isteği, yer tutucu davranışı ve kendiliğinden birleştirme gerçek cihazda doğrulanır. | #187, #189, #200, #203, #206, #207, #234, #238, #287, #319, #361 |
+| Eşitlenen kasada güvenli yazma | Açık. Hazır: Core koordinasyon sınırı ve `.merge` niyeti; App'te `NSFileCoordinator` ve okuma kuyruğu; eşitlenen klasör tespiti ve bandı; yer tutucu tespiti; Core'da gün kopyası birleştirme ve belirlenimci zaman kuralı; kopya dosyalar Tanılama'da; iCloud kasasında indirilmemiş dosya için indirme isteği, eşitleme göstergesi ve gün kopyası birleştirmesinin App bağlantısı (#361, #369); birleştirme bayrağı varsayılan açık (karar 2026-11-09). `NSFileVersion` çakışmaları için tespit ve Tanılama listesi var (#287). Açık: sürüm çözümleme (karar 2026-10-20); indirme isteği, yer tutucu davranışı ve kendiliğinden birleştirme gerçek cihazda doğrulanır. | #187, #189, #200, #203, #206, #207, #234, #238, #287, #319, #361, #369 |
 | Ana ekran widget'ı | Bitti. iOS'ta küçük ve orta zincir widget'ı. Widget veriyi App Group'taki anlık görüntüden okur. iCloud kasasında bekleyen evet/hayır hedefi widget içinde işaretlenir; yerel ve seçili kasada dokunma uygulamayı açar ve işaretler. Gerçek cihazda dokunma denemesi kullanıcıdadır. | #318, #325 |
-| Ekranlar kendi sorgusunu çalıştırır | Bitti. Bütün ekranlar, bildirim planlayıcı ve proje listeleri kendi sorgusunu çalıştırıyor. Okuma modelinden `days`, `tasks`, `projects` ve `goalStatuses` çıktı; parçalar blok metni taşımıyor. 5 yıllık kasada okuma modeli 10,8 MB'tan 2,35 MB'a, yeniden türetme 1.640 ms'den 50 ms'ye indi. `goals`, `goalLogs`, `goalPlaceFiles`, `reservedGoalKeys` ve `goalLogStart` da çıktı; okuma modeli 2,35 MB'tan 1,92 MB'a, yeniden türetme 50 ms'den 34 ms'ye indi (#294). Widget `goalStatuses` sonucunu uygulamanın yazdığı anlık görüntüden alır (#318). `entities` okuma modelinde kalır (karar 2026-10-20). | #192, #201, #205, #208, #210, #211, #212, #214, #225, #294, #318 |
+| Ekranlar kendi sorgusunu çalıştırır | Bitti. Bütün ekranlar, bildirim planlayıcı ve proje listeleri kendi sorgusunu çalıştırıyor. 5 yıllık kasada okuma modeli 10,8 MB'tan 1,92 MB'a, yeniden türetme 1.640 ms'den 34 ms'ye indi. Widget hedef durumunu uygulamanın yazdığı anlık görüntüden alır. `entities` okuma modelinde kalır (karar 2026-10-20). | #192, #201, #205, #208, #210, #211, #212, #214, #225, #294, #318 |
 | Widget yenilemesinin testi | Bitti. `WidgetRefreshReliabilityTests`: 100 yayım, gece yarısı geçişi, uygulama ile widget yazmasının uzlaşması ve yenileme sayacı. | #325 |
-| Kilit ekranı widget'ı | Bitti, iOS. Sıradaki etkinlik ve o güne vadesi gelen görev sayısı üç accessory ailesinde; içerik bildirimin gizlilik tercihine bağlı; veri uygulamanın yazdığı anlık görüntüden. Tek hedef seçimi sonraki dalga. Kilit ekranında gerçek görünüm cihazda denenir. | #359 |
+| Kilit ekranı widget'ı | Bitti, iOS. Sıradaki etkinlik ve o güne vadesi gelen görev sayısı üç accessory ailesinde; içerik bildirimin gizlilik tercihine bağlı; veri uygulamanın yazdığı anlık görüntüden. Kilit ekranında gerçek görünüm cihazda denenir. | #359 |
 | Hızlı giriş widget'ı ve girişler | Bitti, iOS. Ana ekran ve kilit ekranı "Yaz" widget'ı, Denetim Merkezi kontrolü, Eylem düğmesi ve "Kenet'e yaz" kısayolu Bugün'ü hızlı giriş kutusu odaklı açar. Eylem düğmesi ve kilit ekranı kontrolü cihazda denenir. | #360 |
-| Mac widget'ları | Açık. Sonraki dalga. | - |
+| Mac widget'ları | Açık. Kapsam: Mac'te hedefler ve Bugün widget'ı. | - |
 | Paylaşım uzantısı | Bitti, iOS. Metin ve Safari bağlantısı tek olay olur. iCloud kasasında uzantı gün dosyasına kendisi yazar; öteki durumlarda metin App Group kuyruğunda bekler ve uygulama açılınca işlenir. Mac uzantısı ve görsel paylaşımı kapsam dışı. | #324 |
 | Sistemin günlük önerileri | Bitti, iPhone. Hızlı girişte seçici; öneri metne dönüşür, kullanıcı gönderir. Cihaz denemesi bekliyor: yetki ve App ID yeteneği yalnız imzalı yapıda görülür. | #320 |
-| Takvim etkinliği ekleme ve düzenleme | Açık. Kullanıcı kararı 2026-11-11. Bugün, gün ekranı ve kişi sayfasından etkinlik ekleme, ayrıntı, düzenleme ve silme; kişi sayfasında yaklaşan etkinlikler ve doğum günü. Gerçek takvimle cihaz denemesi kullanıcıdadır. | - |
+| Takvim etkinliği ekleme ve düzenleme | Bitti. Bugün, gün ve kişi sayfasından ekleme, düzenleme, silme; kişi sayfasında yaklaşan etkinlikler ve doğum günü. Kullanıcı kararı 2026-11-11. Gerçek takvimle cihaz denemesi kullanıcıdadır. | #382 |
 
-Kimlik gerektirmeyen dilimler Aşama 10 ile birlikte yürüdü ve bitti. Karar günlüğü bu sırayı 2026-10-12'de kaydetti. Kimlikler 2026-10-21'de geldi; kimliğe bağlı ilk dalga 2026-10-22'de bitti. Kilit ekranı, hızlı giriş ve Mac widget'ları sonraki dalgadır. Güvenli yazmanın kalanı kullanıcının cihaz denemesini bekler. İşaretli maddelerin gerçek cihaz denemesi kullanıcıdadır. Mac TestFlight denemesi 2026-10-22'de başladı (#328).
-
-**Dalga 22, 23 ve 24'te birleşen PR'lar, 2026-10-21'den 2026-10-23'e:**
-
-| Dalga | İş | PR |
-|---|---|---|
-| 22 | Mac görüntü kümeleri haftalık iş akışında; Mac referansları CI'da kaydedilir | #304, #310, #315, #316, #321, #322, #323 |
-| 22 | Görüntü referansı sayısı ve boyutu için tavan denetimi; tavan 320 (2026-10-23) | #305 |
-| 22 | Bildirim içeriği varsayılan gizli | #306, #311 |
-| 22 | Erişilebilirlik boyutunda kenar çubuğu satırı yalnız ad | #307 |
-| 22 | Zincir günü: her 7 yapılmış gün 1 gün; şerit, liste, ayrıntı ve ısı haritası | #308, #312 |
-| 22 | Ad karşılaştırmasında Türkçe büyük harf eşlemesi; indeks şeması 9 | #309 |
-| 22 | TestFlight gönderimi CI iş akışı | #313 |
-| 22 | iCloud kapsayıcısı ve App Group kimlikleri | #314 |
-| 22 | Mac'te FSEvents ile dosya düzeyinde izleme; Aşama 11'de maddesi yok | #317 |
-| 23 | Widget altyapısı ve zincir widget'ı | #318 |
-| 23 | Kasa konumu iCloud kapsayıcısı | #319 |
-| 23 | Hızlı girişte günlük önerileri seçicisi | #320 |
-| 23 | Paylaşım uzantısı | #324 |
-| 23 | Widget içinden işaretleme ve yenileme güvenilirliği | #325 |
-| 24 | Mac TestFlight yolu | #328 |
-| 24 | Mac uygulaması paketinin Kenet.app adı | #329 |
-| 24 | Kanban sütun önbelleği; karesel yeniden hesap kalktı | #330 |
-| 24 | Mac tarama sigortası | #331 |
-| 24 | Mac sabit manşet satırı ve Günlük sütunu bağlantıları | #332 |
-| 24 | CI kısaltması (#342): iPhone arayüz dumanı ayrı işte, PR ~20 dk | #342 |
+Kimlikler 2026-10-21'de karara bağlandı. Güvenli yazmanın kalanı kullanıcının cihaz denemesini bekler. İşaretli maddelerin gerçek cihaz denemesi kullanıcıdadır.
 
 - [x] Kasa konumu: iCloud kapsayıcısı; yerel kasa yedek seçenek olarak kalır. Madde Aşama 0'dan devretti.
-- [ ] Eşitlenen kasada güvenli yazma: dosya koordinasyonu, cihaza inmemiş dosyalar, çakışan sürümleri tespit, birleştirme işlevini bağlama, kopya dosya kuralı, eşitleme durumu göstergesi.
+- [ ] Eşitlenen kasada güvenli yazma: dosya koordinasyonu, inmemiş dosyalar, sürüm çakışması, birleştirme, kopya dosya kuralı, eşitleme göstergesi.
 - [x] Ana ekran widget'ı: zincir ve tek dokunuşla işaretleme; widget yapılmamış hedefleri vurgular. Madde Aşama 3'ten devretti.
 - [x] Ekranlar ve widget kendi sorgusunu çalıştırır: küresel okuma modeli yerine Core sorguları. Gerekçe widget bellek sınırıdır. Madde Aşama 8'den devretti.
 - [x] Widget yenilemesinin güvenilirlik testi. Madde Aşama 3'ten devretti.
 - [x] Kilit ekranı widget'ı: takvim etkinlikleri ve günün görevleri. Madde Aşama 3'ten devretti.
 - [x] Hızlı giriş widget'ı ile kilit ekranı, Denetim Merkezi ve Eylem düğmesi girişi. Madde Aşama 3'ten devretti.
-- [ ] Mac widget'ları. Madde Aşama 3'ten devretti.
+- [ ] Mac widget'ları: hedefler ve Bugün. Madde Aşama 3'ten devretti.
 - [x] Paylaşım uzantısı: "olay olarak ekle".
 - [x] Sistemin günlük önerileri seçicisi. Apple'daki adı Journaling Suggestions.
-- [ ] Takvim etkinliği ekleme ve düzenleme: ders, toplantı, doğum günü; tekrar ve hedef takvim; kişi sayfasında yaklaşan etkinlikler. Görev ve olay takvime yazılmaz.
+- [x] Takvim etkinliği ekleme ve düzenleme: ders, toplantı, doğum günü; tekrar ve hedef takvim; kişi sayfasında yaklaşan etkinlikler. Görev ve olay takvime yazılmaz.
 
 **Çıkış ölçütü:** İki cihazda iki haftalık kullanımda kayıp ya da kopya dosya çıkmıyor. Kullanıcı alışkanlık uygulamasını ve Lockday'i telefondan sildi.
 
@@ -299,7 +218,7 @@ Kimlik gerektirmeyen dilimler Aşama 10 ile birlikte yürüdü ve bitti. Karar g
 
 ```mermaid
 flowchart LR
-    K["Kararlar 2026-10-13"] --> D0["Duo: bugünkü SDK ile kabuk"]
+    K["Kararlar 2026-10-13"] --> D0["Duo: Xcode 26 SDK ile kabuk"]
     X["Xcode 27.1, iOS 27.1 SDK"] --> D1["Duo: iOS 27.1 API uyarlaması"]
     R["Runner imajında Xcode 27.1"] --> D2["CI geçişi ve Duo kümeleri"]
     D0 --> D1
@@ -310,124 +229,23 @@ flowchart LR
 
 | Madde | Durum | Kanıt |
 |---|---|---|
-| Duo kabuğu, bugünkü SDK | Bitti. Uyarlanır kabuk, boyut sınıfıyla görüntü altyapısı, durum köprüsü ve taslak koruma, krom ve dokunma, güvenli alan, sheet ve panel, belgeler. Kalan Duo işi iOS 27.1 SDK'yı bekler. | #233, #236, #240, #241, #242 |
+| Duo kabuğu, Xcode 26 SDK | Bitti. Uyarlanır kabuk, boyut sınıfıyla görüntü altyapısı, durum köprüsü ve taslak koruma, krom ve dokunma, güvenli alan, sheet ve panel, belgeler. Kalan Duo işi iOS 27.1 SDK'yı bekler. | #233, #236, #240, #241, #242 |
 | Duo iOS 27.1 API uyarlaması | Açık. Xcode 27.1'in iOS 27.1 SDK ile çıkmasını bekliyor. | - |
 | CI geçişi ve Duo kümeleri | Açık. Runner imajında Xcode 27.1'i bekliyor. | - |
-| iPad karma kabuk | Bitti. Üç sütun kademesi, kenar çubuğu ve seçim biçimi, arama ve Rehberden aktar, Kanban ve zaman çizelgesi iPad biçimi, cihaz türü metinleri, iPad görüntü kümeleri ve CI'da iPad adımı. Kalan: klavye kısayolları (⌘K, ⇧⌘F, ⌘T), iPad ekran turu ve erişilebilirlik denetimi. | #265, #266, #267, #268 |
+| iPad karma kabuk | Bitti. Üç sütun kademesi, kenar çubuğu ve seçim biçimi, arama ve Rehberden aktar, Kanban ve zaman çizelgesi iPad biçimi, cihaz türü metinleri, iPad görüntü kümeleri ve CI'da iPad adımı. | #265, #266, #267, #268 |
+| iPad kalanlar | Bitti. Klavye kısayolları (⌘K hızlı geçiş, ⇧⌘F arama, ⌘T bugün), iPad ekran turu (`screen-tour.sh --pad`), CI'da iPad erişilebilirlik denetimi, işaretçi vurgusu, soğuk açılışta açık kenar çubuğu. | #270, #271, #274, #277 |
 | iPad mağaza kaydı | Bitti. Cihaz ailesi `1,2`, iPad dört yön, tek pencere; TestFlight yapısı iPad'e çıkar. Mağaza listesi (iPad ekran görüntüleri) Aşama 12'nin mağaza sayfası maddesinde. | #264 |
 
-iPhone Duo'nun dış ekranı sıkışık, iç ekranı düzenli × düzenli boyut sınıfındadır. Kabuk boyut sınıfına bakar; cihaz türüne bakmaz. Aynı kabuk iPad'de de çalışır; iPad yalnız 1000 pt üstü kademeyi ve cihaz ailesini ekler. Plan ve ölçüler kullanıcı raporlarındadır; repo yalnız kararları taşır.
+iPhone Duo'nun dış ekranı sıkışık, iç ekranı düzenli × düzenli boyut sınıfındadır. Kabuk boyut sınıfına bakar; cihaz türüne bakmaz. Aynı kabuk iPad'de de çalışır; iPad yalnız 1000 pt üstü kademeyi ve cihaz ailesini ekler.
 
-- [x] Duo kabuğu, bugünkü SDK: düzenli × düzenli ekranda Mac biçimli kenar çubuğuyla bölünmüş kabuk; kabuk değişince seçim ve taslak korunur; satır dokunuşu ve manşet kabuğa göre; boyut sınıfıyla görüntü testleri; asimetrik güvenli alan; sheet ve panel düzenli genişlikte; belgeler.
-- [ ] Duo iOS 27.1 API uyarlaması: poz turu, hızlı giriş çubuğu için ayrılmış bölge, Bugün için düzenleme görünümü, bölmeye hizalı sütun, eş merkezli köşe, Kanban yarıları, yeniden boyutlanma denetimi. Kod CI geçişinden önce `dev`'e girmez.
-- [ ] CI geçişi ve Duo kümeleri: xcode-27 runner, simülatör seçicileri, Duo görüntü kümeleri, `testflight.sh` SDK denetimi, tur ve kayıt betikleri.
-- [x] iPad karma kabuk: 1000 pt ve üstü pencerede 3 sütun, dar pencerede telefon düzeni, kenar çubuğu stili, Kanban ve zaman çizelgesi iPad biçimi, iPad görüntü ve arayüz testleri.
-- [x] iPad kalanlar: donanım klavyesi kısayolları (⌘K hızlı geçiş, ⇧⌘F arama, ⌘T bugün; görünmez düğmelerle, #271), iPad ekran turu (`screen-tour.sh --pad`, kenar çubuğu kimlikleri) ve CI'da iPad erişilebilirlik denetimi (#274), kenar çubuğu ve kart işaretçi vurgusu (#270), soğuk açılışta kenar çubuğunun açık gelmesi (bölünmüş görünüm ilk ölçümden sonra kurulur, #277).
+- [x] Duo kabuğu, Xcode 26 SDK: düzenli × düzenli ekranda kenar çubuklu bölünmüş kabuk; seçim ve taslak korunur.
+- [ ] Duo iOS 27.1 API uyarlaması: poz turu, hızlı giriş bölgesi, düzenleme görünümü, bölmeye hizalı sütun, Kanban yarıları. Kod CI geçişinden önce `dev`'e girmez.
+- [ ] CI geçişi ve Duo kümeleri: xcode-27 runner, simülatör seçicileri, Duo görüntü kümeleri, `testflight.sh` SDK denetimi.
+- [x] iPad karma kabuk: 1000 pt ve üstü pencerede 3 sütun, dar pencerede telefon düzeni.
+- [x] iPad kalanlar: klavye kısayolları, iPad ekran turu, CI'da iPad erişilebilirlik denetimi, işaretçi vurgusu.
 - [x] iPad mağaza kaydı: cihaz ailesine 2'nin eklenmesi ve mağaza listesi. Geri alınamaz; kullanıcı kararı (2026-10-16). Mağaza listesi sürümde.
 
 **Çıkış ölçütü:** Duo simülatöründe 4 pozda bütün ana ekranlar taslak kaybı olmadan çalışır. Var olan iPhone ve Mac görüntü referansları değişmeden geçer.
-
-## Aşama 14: Görselleştirme
-
-| Madde | Durum | Kanıt |
-|---|---|---|
-| Grafikler | Bitti. Dört grafik `dev`'de; referanslar açık, koyu ve AX3'te kayıtlı; Core hesapları fixture ile sınanıyor. | #249, #250, #251 |
-| Grafikler 2 | Bitti. İki grafik `dev`'de; referanslar açık, koyu ve AX3'te kayıtlı; Core hesapları fixture ile sınanıyor. | #256, #257 |
-
-Kullanıcı bu aşamayı 2026-10-15'te onayladı. Madde kimlik ya da cihaz kararı gerektirmez; bu yüzden Aşama 11 ile birlikte yürür. Prototip kodu `dev`'e girmedi; gerçek dalga Core hesaplarını ve ekranları yeniden yazar.
-
-- [x] Grafikler: Özetler yılında 12 ay × 31 gün yazılan gün haritası; sayısal hedef ayrıntısında son 90 günün 7 günlük ortalama çizgisi, günlük noktalar ve kesik hedef çizgisi, yıllık hedefte 12 ay toplam çubuğu; kişi ve konum ekranında "Son görüşme" kartının içinde 12 aylık geçiş çubuğu ve 90 günlük şerit; haftalık incelemenin ilk adımında yedi günlük mini ritim ve geçen haftayla fark. Hesaplar Core'da, çizim App'te; her grafik renge ek olarak biçim taşır ve VoiceOver özeti okur.
-- [x] Grafikler 2: Özetler'in Ay ve Yıl sekmesinde ritmin altında "Haftanın günleri" bölümü: Pazartesi'den Pazar'a yedi yazma oranı satırı (yazılan gün / dönemdeki gün, oran çubuğu, en düzenli gün işaretli); Özetler'in Görevler bölümünde birim sonu açık görev eğrisi (önceki dönem kesikli çizgi, dönem başı ve sonu sayıları). Hesaplar Core'da, çizim App'te; AX3'te liste biçimi; VoiceOver özeti.
-
-**Çıkış ölçütü:** Altı grafik iPhone'da açık, koyu ve AX3'te referans görüntüyle korunur; Core hesapları fixture ile sınanır.
-
-## Aşama 15: Kullanım kolaylığı
-
-| Madde | Durum | Kanıt |
-|---|---|---|
-| Silme ve ekleme | Bitti | #258 |
-| Bugün hedef şeridi | Bitti | #261 |
-| Oluşturma gönderimi tamamlamaz | Bitti | #259 |
-| Hedef düzenleme formu | Bitti | #262 |
-| Şablonlar ve bağlam menüsü | Bitti. Hedef şablonları, varlık tipi galerisi ve uzun basma menüsü `dev`'de; referanslar iPhone, iPad ve Mac'te kayıtlı. | #273, #275, #276 |
-
-Kullanıcı 2026-10-16'da TestFlight 249 denemesinden sonra dört sorun bildirdi ve aşamayı açtı. Dört madde aynı gün `dev`'e girdi; kullanıcı TestFlight'ta doğrular. Maddeler kimlik ya da cihaz kararı gerektirmez; bu yüzden Aşama 11 ile birlikte yürür. Kararlar karar günlüğünde 2026-10-16 satırlarındadır.
-
-- [x] Silme ve ekleme: kişi, konum ve özel tip varlığının ekranında onaylı "Sil"; yalnız varlık dosyası silinir, gün dosyalarındaki bağlantılar çözülmemiş bağlantı olarak kalır. Hedef ayrıntısında onaylı "Hedefi sil"; yalnız hedef dosyası silinir, gün kayıtları kalır. Kişiler ve Konumlar listesinde "Yeni kişi" ve "Yeni konum". Silme Core'da dosya koordinasyonuyla yapılır ve kasa biçimi belgesine girer.
-- [x] Bugün hedef şeridi: işaretleme ya da artırma satırın yerini değiştirmez (sıra güne girişte belirlenir); artı düğmesinin yuvası yazma ve yükleme sırasında sabit kalır; bölüm başlığına yükleme göstergesi gelmez; satıra dokunma hedef ayrıntısını açar.
-- [x] Oluşturma gönderimi tamamlamaz: hızlı girişte, olay düzenleyicide ve serbest yazıda yazarken "Yeni kişi / konum oluştur" yalnız varlık dosyasını yazar, metni ve odağı korur. Gönder ya da Kaydet sonrası "Kişi olarak ekle" bugünkü gibi işlemi tamamlar.
-- [x] Hedef düzenleme formu: ad, dönem, tür, miktar ve birim tek sheet'te, Vazgeç ve Kaydet ile; sheet'in altında "Hedefi sil". Alan başına sheet kalkar.
-- [x] Şablonlar ve bağlam menüsü: yeni hedef sheet'inde ad alanının altında 15 hazır hedef (yazdıkça süzülür; yalnız formu doldurur, dosya biçimi değişmez, simge yalnız listede). Ayarlar'da ve Kişiler ve Konumlar listesinde 10 hazır varlık tipi galerisi (`types.json` biçiminde, Türkçe alan anahtarları) ve özel tip için "Yeni <tip>" satırı. Kişi, konum, özel varlık ve hedef satırlarında uzun basma menüsü: Düzenle, Bağlantıyı kopyala, Sil; hedefte Bugünü işaretle ya da Miktar gir. Kullanıcı 2026-10-17'de onayladı; araştırma raporu depo dışında.
-
-**Çıkış ölçütü:** Dört davranış iPhone'da görüntü ve birim testiyle korunur; silme yolları Core testleriyle sınanır; kullanıcı TestFlight'ta doğrular.
-
-## Aşama 16: İlişkiler ve Graph
-
-| Madde | Durum | Kanıt |
-|---|---|---|
-| Olay düzeyinde bağ | Bitti. Kasa biçimi ve indeks şeması değişmez. | #333, #334, `Fixtures/vaults/graph/` |
-| Günün grafiği | Bitti. Gün kipi `GraphScope.day`, `VaultIndex.dayGraphMentions`; ana Graph'ta özel tip süzgeci ve gün katmanı dönem geçişi; 5 yıllık ölçüm PR açıklamasında. | #337 |
-| Açık ilişkiler | Bitti. Frontmatter bağ sorgusu ve yazıcısı, varlık ekranında Bağlar bölümü ve "Bağ kur" sheet'i, Graph'ta kalın kenar. | #341, #343, #347, `Fixtures/write/relations/` |
-
-Kullanıcı 2026-10-22'de Graph'ın aynı günün farklı olaylarındaki kişi ve konumları birbirine bağladığını bildirdi. Kullanıcı her günün kendi grafiğini ve varlık sayfasından elle bağ kurmayı istedi. Maddeler kimlik ya da cihaz kararı gerektirmez; bu yüzden Aşama 11 ile birlikte yürür. Başlamak kullanıcı onayına bağlıdır. Araştırma raporu depo dışındadır.
-
-- [x] Olay düzeyinde bağ (karar 83 ile 2026-10-30'da Graph'tan kalktı, #362: birlikte geçme kenarı yok, varlıklar yalnız güne ve açık bağla birbirine bağlanır): Graph iki varlığı yalnız gün dosyasının aynı bloğunda birlikte geçtiklerinde bağlar. Blok olay satırı ve alt satırları, görev satırı ya da paragraftır. Aynı günün farklı olayları kenar üretmez; gün ilişkisini gün düğümü gösterir. Kenar ağırlığı ortak bloğu olan farklı gün sayısıdır. Hesap Core'dadır ve yeni fixture kasasıyla sınanır. Ad tanımadaki bağlam puanı ve içgörü kartının "o gün" listesi gün düzeyinde kalır.
-- [x] Günün grafiği (aynı bloktaki olay bağı karar 83 ile kalktı, #362): gün ekranının manşet satırındaki Graph simgesi o günün grafiğini açar. Ortada gün düğümü durur; o gün geçen her kişi, konum ve özel tip varlığı gün düğümüne bağlanır. Aynı bloktaki varlıklar arasında olay bağı çizilir. Ana Graph'ta gün katmanı süzgeçte kalır ve özel tipler süzgece girer. Gün katmanının maliyeti 5 yıllık sentetik kasada ölçülür.
-- [x] Açık ilişkiler: kişi, konum ve özel tip ekranında "Bağlar" bölümü ve "Bağ kur" sheet'i. Uygulama etiketsiz bağı frontmatter'daki `related` listesine, etiketli bağı etiket adlı alana tırnaklı wikilink olarak yazar: `related: ["[[Selin Korkmaz]]"]`, `eşi: "[[Selin Korkmaz]]"`. Uygulama yalnız kaynak dosyaya yazar; karşı sayfa bağı gelen bağ olarak gösterir. Graph açık bağı ayrı çizgi biçimiyle çizer; dönem ve eşik açık bağı gizlemez. Obsidian'ın grafiği aynı bağı görür.
-
-W1a (#334): paragraftaki her madde satırı girintili devam satırlarıyla, her ardışık alıntı öbeği ve öteki ardışık satırlar ayrı birlikte geçme birimidir; girintisiz devam yeni segmenttir. iPhone Graph referansları (`graphLight`, `graphSelected`) yeniden kaydedildi; `graphSelected` odağı Deniz Arıkan'dır. Mac karşılıkları CI kaydındadır.
-
-**Çıkış ölçütü:** Aynı gün iki ayrı olayda geçen kişi ve konumlar Graph'ta birbirine bağlanmaz. Her gün kendi grafiğini açar. Kullanıcının varlık sayfasından kurduğu bağ Kenet'in Graph'ında ve Obsidian'ın grafiğinde görünür. Davranışlar Core fixture testleri ve iPhone görüntü testleriyle korunur. Durum: Core fixture ve iPhone görüntü testleri sağlandı; gerçek kullanım ölçülmedi.
-
-## Aşama 17: Tasarım yenileme
-
-| Madde | Durum | Kanıt |
-|---|---|---|
-| D1 Belirteçler ve bileşen kitaplığı | Bitti | #371 |
-| D2 Bugün ve hızlı giriş | Bitti | #376 (D4 ile tek PR) |
-| D3 Görevler, Kanban, zaman çizelgesi | Bitti | #373 |
-| D4 Günlük, Gün, Özetler | Bitti | #376 |
-| D5 Kişiler, Varlık, Graph, Harita | Bitti | #372 |
-| D6 Hedefler | Bitti | #374 |
-| D7 Mac ve iPad kabuğu | Bitti | #377 |
-| D8 Ayarlar, İlk açılış, kilit, paylaşım, widget | Bitti | #375 |
-| D9 Son referans kaydı ve belge kapanışı | Bitti | Bu PR (`docs/safak-kapanis`) |
-
-**Dalgalar bu sırayla ilerler; D1 hepsinin ön koşuludur.**
-
-```mermaid
-flowchart TD
-    B[Belge PR'ı: design.md ve screens.md] --> D1[D1 Belirteçler ve bileşen kitaplığı]
-    D1 --> D2[D2 Bugün ve hızlı giriş]
-    D2 --> D3[D3 Görevler, Kanban, zaman çizelgesi]
-    D2 --> D4[D4 Günlük, Gün, Özetler]
-    D2 --> D5[D5 Kişiler, Varlık, Graph, Harita]
-    D2 --> D6[D6 Hedefler]
-    D3 --> D7[D7 Mac ve iPad kabuğu]
-    D4 --> D7
-    D5 --> D7
-    D6 --> D7
-    D7 --> D8[D8 Ayarlar, İlk açılış, kilit, paylaşım, widget]
-    D8 --> D9[D9 Son referans kaydı ve belge kapanışı]
-```
-
-Kullanıcı 2026-11-09'da tasarım yönünü Mürekkep'ten Şafak'a çevirdi ve orkestratörün önerilerini kabul etti. Kararlar karar günlüğünde 2026-11-09 satırlarındadır. Aşama kimlik ya da cihaz kararı gerektirmez; bu yüzden Aşama 11 ile birlikte yürür. Aşama 9 Mürekkep'in uygulama kaydı olarak kapalı kalır. Yön, belirteçler ve kurallar [Tasarım dili](design.md) belgesindedir. Belge PR'ı D1'den önce gelir.
-
-**Ara durum (2026-11-09 planı):** Palet D1'de tek seferde değişti. Her dalga yalnız kendi kümelerini kaydetti. `dev` her dalgada derlendi ve yeşil kaldı.
-
-**Kapanış (2026-11-10):** 9 dalga bitti. D2 ayrı birleşmedi; D4 ile tek PR (#376) olarak geldi. Belgeler koda göre eşitlendi: `screens.md`, `design.md`, `architecture.md`.
-
-- [x] D1 Belirteçler ve bileşen kitaplığı: palet, asset catalog, yazı ve biçim belirteçleri; `InkGlow`, `InkCard`, `InkWeekStrip`, `InkDayHeader`, `InkSummaryLine`, `InkTimelineCard`; 17 bileşen dosyasının yeniden çizimi; `PaletteContrastTests`. 3 PR. Yenilenen png: 317 (renk her referansı etkiler; `ComponentSnapshotTests` 13 png). Kanıt: #371.
-- [x] D2 Bugün ve hızlı giriş: gün başlığı, hafta şeridi, künye cümlesi, bölüm kartları, parıltı, hızlı giriş, Günü kapat. 3 PR. Yenilenen png: 52, Mac 14. Kanıt: #376.
-- [x] D3 Görevler, Kanban, zaman çizelgesi: haftalık özet kartı, görev kartları, sol çubuklu kanban ve zaman kartları, saat ekseni, "şimdi" çizgisi. 3 PR. Yenilenen png: 37, Mac 15. Kanıt: #373.
-- [x] D4 Günlük, Gün, Özetler: ay takvimi kartı, Gün ekranının saatli programı, gün kartları, Özetler ve 3 adımlı Haftalık inceleme. 2 PR. Yenilenen png: 38, Mac 5. Kanıt: #376.
-- [x] D5 Kişiler, Varlık, Graph, Harita: liste kartları, varlık bölümleri, Graph tuvali, dönem sekmesi ve seçim kartı, Harita paneli, Rehberden aktar. 3 PR. Yenilenen png: 50, Mac 6. Kanıt: #372.
-- [x] D6 Hedefler: hedef kartları, günlük halkalar, zincir, ısı haritası, tek sayfa hedef ayrıntısı, hedef formu ve şablonlar. 2 PR. Yenilenen png: 31, Mac 2. Kanıt: #374.
-- [x] D7 Mac ve iPad kabuğu: kenar çubuğu `elevated` ve arama alanı, kural 12 kontrastları, liste seçimi `accentSoft`, ayrıntı sütununda parıltı, Mac Bugün zaman çizelgesi ve sağ panel, Duo ve iPad sheet'leri. 2 PR. Yenilenen png: 39; Mac referansı CI'da. Kanıt: #377.
-- [x] D8 Ayarlar, İlk açılış, kilit, paylaşım, widget: Ayarlar sheet'i ve 6 alt sayfa, kasa ve eşitleme ekranları, ilk açılış, kilit örtüsü, paylaşım formu, ana ekran widget'ı. 3 PR. Yenilenen png: 57, Mac 8. Kanıt: #375.
-- [x] D9 Son referans kaydı ve belge kapanışı: bütün kümelerin son kaydı, `architecture.md` güncellemesi. 1 PR. Yenilenen png: 317; Mac 50 png CI'da. Kanıt: bu PR.
-
-**Çıkış ölçütü:** Bütün ekranlar Şafak bileşenlerini kullanır. Palet testi 4 varyantı ve parıltı noktalarını denetler. 317 referans yeniden kaydedilir ve CI'da geçer. Kullanıcı TestFlight'ta koyu, açık ve KA'yı doğrular.
 
 ## Sonraki fikirler
 
@@ -441,6 +259,7 @@ Kullanıcı 2026-11-09'da tasarım yönünü Mürekkep'ten Şafak'a çevirdi ve 
 | Yıl özeti, paylaşım kartı ve PDF | - |
 | Kişi ve konumları Spotlight'a açma; Siri için okuma eylemleri | - |
 | Ziyaret önerileri, örneğin "dün şurada mıydın?" | Uygulama sürekli konum izini kasaya yazmaz. |
+| Kilit ekranında tek hedef widget'ı | Aşama 11 kilit ekranı widget'ından kaldı. |
 | Şirket şema paketi | Aşama 7'den devretti. |
 | Talep olursa Android ve Windows | Aşama 7'den devretti. |
 
@@ -448,25 +267,26 @@ Fikirlerin sırası ve kapsamı kesin değil. Her fikir ayrı karar ister.
 
 ## Tamamlanan teknik kapsam
 
-| Aşama | Kutu | Devreden madde |
-|---|---|---|
-| 0 Temel | 9 bitti | iCloud kasa konumu Aşama 11'e |
-| 1 Günlük | 13 bitti | - |
-| 2 Görevler | 7 bitti | - |
-| 3 Hedefler ve widget'lar | 3 bitti | Widget maddeleri Aşama 11'e |
-| 4 Otomasyon | 4 bitti | - |
-| 5 Proje görünümleri | 4 bitti | - |
-| 6 Geri bildirim | 3 bitti | Yapay zeka maddeleri "Sonraki fikirler"e |
-| 7 Genişleme | 5 bitti | Mağaza hazırlığı ve CD Aşama 12'ye; şirket şema paketi, Android ve Windows "Sonraki fikirler"e |
+| Aşama | Kutu | Kapsam ve kanıt | Devreden madde |
+|---|---|---|---|
+| 0 Temel | 9 bitti | Proje, CI, sürüm, ayrıştırıcı, indeks, izleyici | iCloud kasa konumu Aşama 11'e |
+| 1 Günlük | 13 bitti | Bugün, olay, tanıma, varlık sayfaları, arama | - |
+| 2 Görevler | 7 bitti | Görevler, doğal dille tarih, takvim okuma | - |
+| 3 Hedefler ve widget'lar | 3 bitti | Hedef, zincir, ısı haritası | Widget maddeleri Aşama 11'e |
+| 4 Otomasyon | 4 bitti | Bildirim, konum, Siri ve Kısayollar | - |
+| 5 Proje görünümleri | 4 bitti | Kanban, zaman çizelgesi, proje, tekrar | - |
+| 6 Geri bildirim | 3 bitti | Özetler, son görüşme, Graph ve harita; Özetler yeniden tasarımı #228 | Yapay zeka maddeleri "Sonraki fikirler"e |
+| 7 Genişleme | 5 bitti | İlk kullanım, kasa hazırlama, kilit, özel tipler | Mağaza hazırlığı ve CD Aşama 12'ye; şirket şema paketi, Android ve Windows "Sonraki fikirler"e |
+| 9 Tasarım dili | 10 bitti | Mürekkep dili; #121–#127, #151, #254. Aşama 17 yönü Şafak'a çevirdi | - |
+| 10 Bağlam ve geri dönüş | 12 bitti | Sektör taramasının ilk dalgası; #162–#199 | - |
+| 14 Görselleştirme | 2 bitti | Altı grafik; #249–#251, #256, #257 | - |
+| 15 Kullanım kolaylığı | 5 bitti | TestFlight 249 geri bildirimi; #258–#262, #273, #275, #276 | - |
+| 16 İlişkiler ve Graph | 3 bitti | Gün düğümü, günün grafiği, açık bağ; #333, #334, #337, #341, #343, #347, #362 | - |
+| 17 Tasarım yenileme | 9 bitti | Şafak dili; D1–D9 #371–#378; çizimle fark turları #380, #381, #383, #384 | - |
+
+Tasarım yönü, belirteçler ve kurallar [Tasarım dili](design.md) belgesindedir. Kararlar karar günlüğünde ilgili tarihli satırlardadır.
 
 ### Aşama 0: Temel
-
-| Madde | Durum |
-|---|---|
-| 9 temel madde | Bitti |
-| Kasa konumunun iCloud kısmı | Aşama 11'e devretti |
-
-Aşama 0 kullanıcıya görünen bir şey getirmez. Öteki aşamalar Aşama 0'ın üstünde durur.
 
 - [x] Xcode projesi: iOS ve macOS hedefleri, `Core` Swift paketi.
 - [x] CI: GitHub Actions her PR'da derleme, `Core` testleri, biçim ve lint denetimi koşar.
@@ -478,13 +298,7 @@ Aşama 0 kullanıcıya görünen bir şey getirmez. Öteki aşamalar Aşama 0'ı
 - [x] Dosya değişikliklerini izleme ve artımlı yeniden indeksleme.
 - [x] Eşitleme çakışmalarını birleştirme işlevi. İşlevi uygulamaya bağlama işi Aşama 11'dedir.
 
-Kasa konumunun iCloud kısmı Aşama 11'e devretti.
-
 ### Aşama 1: Günlük
-
-| Madde | Durum |
-|---|---|
-| 13 madde | Bitti |
 
 - [x] Bugün sayfası ve hızlı giriş kutusu.
 - [x] Olay ekleme ve serbest günlük yazısı. Olay saat damgalı bir satırdır.
@@ -502,36 +316,21 @@ Kasa konumunun iCloud kısmı Aşama 11'e devretti.
 
 ### Aşama 2: Görevler
 
-| Madde | Durum |
-|---|---|
-| 7 madde | Bitti |
-
 - [x] Görev ekleme, tarih verme, tamamlama; hızlı girişte olay ve görev arasında geçiş.
 - [x] Görevler sekmesi: yaklaşan, tarihsiz, tamamlanan.
 - [x] Doğal dille tarih. Örnek: "yarın", "cuma", "5 ekim".
 - [x] Bugün ekranında günün ve geciken görevler.
 - [x] Görevleri kişi ve konumlara bağlama; varlık sayfasında açık görevler.
-- [x] Cihaz takvimindeki etkinliklerin Bugün ekranında görünmesi. Uygulama EventKit ile salt okur.
+- [x] Cihaz takvimindeki etkinliklerin Bugün ekranında görünmesi. Takvime yazma Aşama 11'de geldi.
 - [x] İleri tarihli ajanda listesi.
 
 ### Aşama 3: Hedefler ve widget'lar
-
-| Madde | Durum |
-|---|---|
-| 3 hedef maddesi | Bitti |
-| Widget maddeleri | Aşama 11'e devretti |
 
 - [x] Hedef tanımlama: dönem, tür ve miktar. Dönem gün, hafta ya da yıldır. Tür evet/hayır ya da sayıdır.
 - [x] Zincir, en uzun seri, ısı haritası; yıllık hedefte ilerleme çubuğu.
 - [x] Geçmiş günlerin hedef kaydını düzeltme.
 
-Widget maddeleri Aşama 11'e devretti.
-
 ### Aşama 4: Otomasyon
-
-| Madde | Durum |
-|---|---|
-| 4 madde | Bitti |
 
 - [x] Görev ve hedef bildirimleri, akşam günlük hatırlatması; bildirimlerin güvenilirlik testi.
 - [x] Olay yazarken GPS ile konum önerisi.
@@ -540,10 +339,6 @@ Widget maddeleri Aşama 11'e devretti.
 
 ### Aşama 5: Proje görünümleri
 
-| Madde | Durum |
-|---|---|
-| 4 madde | Bitti |
-
 - [x] Kanban: duruma, projeye ya da kişiye göre.
 - [x] Zaman çizelgesi: başlangıç ve bitiş tarihli görevler. Ana hedef Mac'tir.
 - [x] Proje etiketi ve proje sayfaları; sayı taşımayan yıllık hedefler.
@@ -551,25 +346,11 @@ Widget maddeleri Aşama 11'e devretti.
 
 ### Aşama 6: Geri bildirim
 
-| Madde | Durum |
-|---|---|
-| 3 madde | Bitti |
-| Yapay zeka maddeleri | "Sonraki fikirler"e devretti |
-| Özetler yeniden tasarımı | Bitti: Yıl sekmesi, ritim şeridi, aynı tarihe kadar karşılaştırma, ad çipleri, yığılı görev çubuğu, Mac iki sütun (#228) |
-
 - [x] Haftalık ve aylık özetler: kimlerle, nerelerde, hedef ve görev durumu. Özetler sayılara dayanır ve yapay zeka kullanmaz.
 - [x] Kişi sayfasında son görüşme özeti; uzun süredir görüşmediğin kişiler.
 - [x] Graph ve harita ekranları.
 
-İsteğe bağlı yapay zeka maddeleri "Sonraki fikirler"e devretti.
-
 ### Aşama 7: Genişleme
-
-| Madde | Durum |
-|---|---|
-| 5 kutu | Bitti |
-| Mağaza teknik hazırlığı ve CD | Aşama 12'ye devretti |
-| Şirket şema paketi, Android ve Windows | "Sonraki fikirler"e devretti |
 
 - [x] Yayın öncesi kullanıcı akışları
   - [x] İlk kullanım akışı
@@ -577,7 +358,64 @@ Widget maddeleri Aşama 11'e devretti.
   - [x] Uygulama kilidi
 - [x] Özel varlık tipleri, örneğin kitap ve proje.
 
-Mağaza teknik hazırlığı ve CD Aşama 12'ye devretti. Şirket şema paketi ile Android ve Windows "Sonraki fikirler"e devretti.
+### Aşama 9: Tasarım dili
+
+- [x] Bugün prototipi: ayrı prototip yapılmadı; kullanıcı maddeyi 2026-10-16'da kapattı.
+- [x] Tasarım belirteçleri ve "Geçme" uygulama simgesi.
+- [x] Bileşen kitaplığı.
+- [x] Bugün ve hızlı giriş.
+- [x] Günlük, gün ve varlık sayfaları.
+- [x] Görevler, Kanban ve zaman çizelgesi.
+- [x] Hedefler, ısı haritası, özetler; Graph ve harita renkleri.
+- [x] Mac geçişi, Ayarlar alt sayfaları, ilk kullanım ve kilit ekranı.
+- [x] Ekran görüntüsü testleri: açık, koyu, büyük yazı, Kontrastı Artır.
+- [x] Denetim kalıpları: ortak bileşenler ve kalıbı koruyan kaynak denetimi.
+
+### Aşama 10: Bağlam ve geri dönüş
+
+- [x] Bu gün geçmişte: Bugün ekranında kişi ve konum satırı.
+- [x] Takvim etkinliğinden olay taslağı; katılımcılar kişi adayı olur.
+- [x] Varlık sayfasında bağlanmamış anmalar; onayla bağlama.
+- [x] Önemli tarihler: doğum günü ve yıl dönümü satırı.
+- [x] Kişi başına görüşme ritmi, erteleme ve duraklatma.
+- [x] Giriş yollarını ilk kullanımda ve Ayarlar'da gösterme.
+- [x] Hızlı giriş vurgusu: tanınan alanlar kutunun üstünde çip; dokununca geri alma.
+- [x] Zincir affı: önceki iki günü ve sonraki günü yapılmış kaçırma zinciri kırmaz.
+- [x] Suçlamasız taşıma ve iki dakikalık "günü kapat".
+- [x] İsteğe bağlı haftalık inceleme; çıktısı günlük yazısına düşer.
+- [x] Rehberden kişi aktarma: tek yönlü ve bir kez.
+- [x] Gün sayfasında "bu güne bağlananlar"; günlük takviminde yoğunluk noktaları.
+
+### Aşama 14: Görselleştirme
+
+- [x] Grafikler: yazılan gün haritası, sayısal hedef eğrisi, yıllık çubuk, geçiş çubuğu, haftalık mini ritim.
+- [x] Grafikler 2: haftanın günleri oranı ve açık görev eğrisi.
+
+### Aşama 15: Kullanım kolaylığı
+
+- [x] Silme ve ekleme: varlık ve hedef için onaylı silme; Kişiler ve Konumlar'da yeni kayıt.
+- [x] Bugün hedef şeridi: işaretleme satırın yerini değiştirmez; satır ayrıntıyı açar.
+- [x] Oluşturma gönderimi tamamlamaz: yeni varlık yalnız dosyasını yazar, metni korur.
+- [x] Hedef düzenleme formu: bütün alanlar tek sheet'te.
+- [x] Şablonlar ve bağlam menüsü: hedef şablonları, varlık tipi galerisi, uzun basma menüsü.
+
+### Aşama 16: İlişkiler ve Graph
+
+- [x] Olay düzeyinde bağ; karar 83 ile varlıklar yalnız güne ve açık bağla bağlanır.
+- [x] Günün grafiği: gün ekranındaki Graph simgesi o günün grafiğini açar.
+- [x] Açık ilişkiler: "Bağlar" bölümü, "Bağ kur" sheet'i, frontmatter'a wikilink.
+
+### Aşama 17: Tasarım yenileme
+
+- [x] D1 Belirteçler ve bileşen kitaplığı. Kanıt: #371.
+- [x] D2 Bugün ve hızlı giriş. Kanıt: #376.
+- [x] D3 Görevler, Kanban, zaman çizelgesi. Kanıt: #373.
+- [x] D4 Günlük, Gün, Özetler. Kanıt: #376.
+- [x] D5 Kişiler, Varlık, Graph, Harita. Kanıt: #372.
+- [x] D6 Hedefler. Kanıt: #374.
+- [x] D7 Mac ve iPad kabuğu. Kanıt: #377.
+- [x] D8 Ayarlar, İlk açılış, kilit, paylaşım, widget. Kanıt: #375.
+- [x] D9 Son referans kaydı ve belge kapanışı. Kanıt: #378.
 
 ## İlgili belgeler
 

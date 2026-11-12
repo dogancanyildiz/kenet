@@ -1,47 +1,29 @@
 # Kenet
 
-**Amaç:** README depoya giriş noktasıdır: uygulamayı, proje durumunu, kurulumu ve belge haritasını tek sayfada verir.
+**Amaç:** README depoya giriş noktasıdır: uygulamayı, kurulumu ve belgeleri tek sayfada verir.
 
 **Kapsam:**
 
-- Belge haritası, ürün özeti, proje durumu ve platformlar
+- Ürün özeti, proje durumu ve platformlar
 - Geliştirme ortamı, kurulum, test ve cihaza kurulum adımları
-- Belge tablosu, belge kuralı ve lisans
+- Belge tablosu ve lisans
 
-## Belge haritası
+## Belgeler
 
-**Harita, her belgenin konusunu ve okuma sırasını gösterir.**
+**Tablo, `docs/` altındaki her belgeyi ve cevapladığı soruyu verir.**
 
-```mermaid
-mindmap
-  root((Kenet belgeleri))
-    Giriş
-      1 README: durum ve kurulum
-      10 AGENTS: ajan kuralları
-    Ürün
-      2 product: ne ve neden
-      3 roadmap: aşamalar ve aktif aşama
-      9 decisions: karar günlüğü
-    Veri
-      4 vault-format: kasa ve dosya biçimi
-      5 fixtures: test verisi
-    Arayüz
-      6 screens: ekranlar ve geçişler
-      7 design: tasarım dili
-    Teknik
-      8 architecture: mimari ve teknoloji
-```
+| Belge | İçerik |
+|---|---|
+| [docs/roadmap.md](docs/roadmap.md) | Ne, ne zaman yapılır? Aktif aşama burada yazar. |
+| [docs/product.md](docs/product.md) | Ürün nedir ve neden vardır? |
+| [docs/screens.md](docs/screens.md) | Hangi öğe nerede durur ve ne yapar? |
+| [docs/vault-format.md](docs/vault-format.md) | Dosyada ne nerede yazılır? Platformlar arası sözleşme. |
+| [docs/design.md](docs/design.md) | Arayüz nasıl görünür ve neden? |
+| [docs/decisions.md](docs/decisions.md) | Neden böyle karar verildi? |
+| [docs/architecture.md](docs/architecture.md) | Sistem nasıl çalışır? |
+| [docs/fixtures.md](docs/fixtures.md) | Test verisi nedir ve nerededir? |
 
-**Tablo, iş türüne göre önce okunacak belgeleri verir.**
-
-| İş türü | Önce oku | Sonra oku |
-|---|---|---|
-| Her iş | `docs/roadmap.md`: aktif aşama | `AGENTS.md`: değişmez kurallar |
-| Dosya okuyan ya da yazan iş | `docs/vault-format.md` | `docs/fixtures.md` |
-| Arayüz işi | `docs/screens.md`: ekranda ne olur | `docs/design.md`: ekran nasıl görünür |
-| Mimari soru | `docs/architecture.md` | `docs/decisions.md`: kararların gerekçesi |
-
-Yeni okur numara sırasını izler. Ajan önce aktif aşamayı okur, sonra işinin türüne göre tablodaki belgeleri okur.
+Ajan kuralları, okuma sırası ve belge kuralları [AGENTS.md](AGENTS.md) içindedir. `.github/scripts/check-docs.sh` tabloda olmayan belgeyi reddeder.
 
 ## Ürün özeti
 
@@ -60,20 +42,11 @@ Kenet, kişiler, konumlar ve olaylar üzerine kurulu bir kişisel günlük uygul
 
 ## Proje durumu
 
-**Tablo, 2026-10-22 tarihindeki durumu verir.**
-
 | Konu | Durum |
 |---|---|
 | Son sürüm | `v0.9.0`, `main` dalında |
-| Test dağıtımı | `dev` dalındaki yapılar TestFlight'ta dahili testte; iPhone ve iPad |
-| Aşama 0–10 | Kullanıcı kararı gerektirmeyen teknik maddeler tamam. Mürekkep tasarım dili ve denetim kalıpları bütün iPhone, iPad ve Mac ekranlarında |
-| Aktif aşama | Aşama 11. iCloud kasası, iOS ana ekran zincir widget'ı, paylaşım uzantısı ve günlük önerileri seçicisi geldi; güvenli yazmanın kalanı ve öteki widget'lar açık |
-| Aşama 12–15 | Aşama 12 (yayın) hazırlık aşamasındadır. Aşama 13 (uyarlanır düzen), 14 (görselleştirme) ve 15 (kullanım kolaylığı) Aşama 11 ile birlikte yürür; Aşama 14 ve 15 bitti |
-| Açık işler | Gerçek cihazda gözle doğrulama; iPhone Duo iOS 27.1 uyarlaması; mağaza sayfası |
-| Kimlikler | Bundle `com.dogancanyildiz.kenet`, iCloud kapsayıcısı `iCloud.com.dogancanyildiz.kenet`, App Group `group.com.dogancanyildiz.kenet`; üçü de kalıcıdır. Alan adı `kenet.app` karara bağlandı; alan adını kullanıcı alır |
-| Dal rolleri | `main`: ürünün aldığı sürüm. `dev`: test |
-
-Ayrıntılı durum `docs/roadmap.md` belgesindedir.
+| Test dağıtımı | TestFlight dahili test; iPhone, iPad ve Mac |
+| Aktif aşama | [Yol haritasına](docs/roadmap.md) bak |
 
 ## Platformlar
 
@@ -94,7 +67,7 @@ Ayrıntılı durum `docs/roadmap.md` belgesindedir.
 | Araç | Sürüm | Kullanım |
 |---|---|---|
 | Xcode | 26 ya da üstü | Uygulama derlemesi ve testleri |
-| CI (sürekli bütünleştirme), macOS | macOS 26, Xcode 26.6 (`.github/actions/xcode` seçer) | Core ve uygulama testleri; iPhone ve iPad ayrı işlerde |
+| CI (sürekli bütünleştirme), macOS | `.github/actions/xcode` seçer; ayrıntı [Mimari: CI](docs/architecture.md#ci) | Core ve uygulama testleri; iPhone ve iPad ayrı işlerde |
 | CI, Linux | Swift 6.4 | Core derlemesi, biçim ve belge denetimi |
 | XcodeGen | Homebrew | `project.yml` dosyasından Xcode projesi üretimi |
 | python3 | Sistem sürümü | `.github/scripts/check-docs.sh`, `check-catalog-keys.py` (koddaki sabit metin katalogda var mı) ve `test-check-catalog-keys.py` |
@@ -161,32 +134,15 @@ xcodebuild test -project Journal.xcodeproj -scheme Journal_iOS \
 
 ## Ekran görüntüsü testleri
 
-Açık görüntü her iOS kümesinde kalır; koyu, AX3 ve kontrast temsilci kümelerde tutulur. Küme listesi ve varyanta özgü istisnalar [Mimari](docs/architecture.md#ekran-görüntüsü-ve-duman-testleri) belgesindedir.
+| İş | Komut |
+|---|---|
+| iOS referanslarını doğrula | `SNAPSHOT_TESTING_RECORD=never sh .github/scripts/record-screen-snapshots.sh` |
+| iOS referanslarını yenile | `sh .github/scripts/record-screen-snapshots.sh`; yalnız eşleşmeyen ya da eksik referansları yazar |
+| Mac referanslarını yenile | CI `record-snapshots` iş akışı, `target=mac` |
 
-**Tablo, iki görüntü kümesi türünü ve komutlarını verir.**
+**DİKKAT:** iOS referanslarını CI ile aynı cihazda üret: en eski iOS çalışma zamanındaki iPhone 17. Çalışma zamanı sürümünü Mimari belgesindeki "Simülatör seçimi" satırı verir.
 
-| Küme | Ad kuralı | CI | Komut |
-|---|---|---|---|
-| iOS | `…SnapshotTests` | Koşar ve PR'ı durdurur | Doğrula: `SNAPSHOT_TESTING_RECORD=never sh .github/scripts/record-screen-snapshots.sh`. Yenile: `sh .github/scripts/record-screen-snapshots.sh` (yalnız eşleşmeyen ya da eksik referansları yazar; hepsini yeniden yazmak için `SNAPSHOT_TESTING_RECORD=all`). Değişen küme yalnız gerekli görüntüyü kaydeder (`SNAPSHOT_SUITES="Ad…"`); yeni vaka eklerken açık/koyu/AX3 üçlüsü yalnız 10 temsilci kümede (#285). Sayı ve boyut tavanı: `check-snapshot-budget.sh` |
-| Mac | `…MacSnapshotTests` | `ci` içinde koşmaz; haftalık `mac-snapshots` kapı olmadan ölçer. Yetkili ortam macOS 26 / Xcode 26.6 CI | Kayıt: `record-snapshots` iş akışı, `target=mac`; çıktı `mac-snapshot-references`. Yerelde varsayılan atlanır; incelemek için `SNAPSHOT_MAC_LOCAL=1 SNAPSHOT_TESTING_RECORD=all xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' -only-testing:JournalTests_macOS/<Küme> CODE_SIGNING_ALLOWED=NO`. Yerel PNG’leri commit etme |
-
-CI kayıt iş akışında `target`: `ios` (varsayılan), `mac` ya da `both` seçilir. `open_pr=false` varsayılandır; `true` seçilirse doğrulanan Mac referansları için `chore/mac-referanslar-<run>` dalından `dev`’e PR açılır. Mac kaydı bütün referansları `all` ile yeniler ve `never` ile doğrular. Yerel Mac kümeleri yalnız `SNAPSHOT_MAC_LOCAL=1` ile açılır; `CI=true` ortamında kendiliğinden koşar.
-
-**Şema, iOS kayıt betiğinin adımlarını gösterir.**
-
-```mermaid
-flowchart TD
-  A[Uygulamayı simülatörden kaldır] --> B[En eski iOS çalışma zamanındaki iPhone 17'yi seç]
-  B --> C[build-for-testing]
-  C --> D[test-without-building, dil tr, bölge TR]
-  D --> E{Kayıt kipinde ilk koşu düştü mü}
-  E -->|Evet| F[Doğrulama koşusu]
-  E -->|Hayır| G[Bitti]
-```
-
-**DİKKAT:** Referansları CI ile aynı cihazda ve çalışma zamanında üret: iPhone 17, iOS 26.5.
-
-Referansı başka cihazda kaydedersen CI'da test düşer. Betik kümeleri ad kuralından bulur: `.github/scripts/snapshot-suites.sh`. Betik önce uygulamayı simülatörden kaldırır. Kurulu kalan uygulamanın kayıtlı durumu görüntüleri kaydırır. GitHub'daki "Ekran görüntüsü referansları" iş akışı da referansları üretir ve iş akışı çıktısı olarak yükler.
+Küme kuralları, tavanlar, Mac kayıt ortamı ve ortam değişkenleri [Mimari](docs/architecture.md#ekran-görüntüsü-ve-duman-testleri) belgesindedir. Yerel Mac PNG'lerini commit etme.
 
 ## Ekran turu
 
@@ -233,17 +189,8 @@ flowchart TD
   F --> H["Applications klasöründe Kenet.app"]
 ```
 
-**Tablo, kalıcı kimlik değerlerini verir.**
-
-| Değer | Bilgi |
-|---|---|
-| Bundle kimliği | `com.dogancanyildiz.kenet`; `project.yml` içinde `APP_BUNDLE_IDENTIFIER` |
-| Görünen ad | Kenet |
-| Kod adı | `Journal` |
-| Cihaz ailesi | iPhone ve iPad (`1,2`); karar 2026-10-16 |
-
 1. Yerel imza dosyasını oluştur: `cp Config/Local.xcconfig.example Config/Local.xcconfig`. Dosyada `XXXXXXXXXX` yerine kendi takım kimliğini yaz. Takım kimliği repoya girmez; dosya `.gitignore`'dadır.
-2. Projeyi üret: `xcodegen generate`. Xcode takımı yerel dosyadan okur. XcodeGen projeyi yeniden üretince takım seçimi kaybolmaz.
+2. Projeyi üret: `xcodegen generate`. Bundle kimliği `project.yml` içindeki `APP_BUNDLE_IDENTIFIER` değeridir. Xcode takımı yerel dosyadan okur. XcodeGen projeyi yeniden üretince takım seçimi kaybolmaz.
 
    **DİKKAT:** Xcode'da takımı elle seçme; Xcode seçimi `Journal.xcodeproj` içine yazar ve XcodeGen seçimi siler.
 
@@ -264,7 +211,19 @@ flowchart TD
 
    **DİKKAT:** Elle yolda Xcode'un değiştirdiği dosyalar arşive girer; önce `git status` çıktısının temiz olduğunu denetle.
 
-5. Mac'i TestFlight'a yükle: `dev` dalında `sh .github/scripts/testflight.sh --mac`. Betik `Journal_macOS` şemasını Mac App Store paketi olarak arşivler ve aynı hesapla yükler; imzalı pakette App Sandbox ve iCloud kapsayıcı yetkisini denetler. İlk yüklemeden önce iki hazırlık: App Store Connect'te uygulama kaydına macOS platformunu ekle (uygulama sayfası → platform ekle) ve takımda en az bir Mac kayıtlı olsun (Certificates, Identifiers & Profiles → Devices → macOS; UDID: Sistem Bilgisi → Donanım → Provisioning UDID). Xcode arşivi geliştirme profiliyle imzalar ve kayıtlı Mac yoksa "Your team has no devices" hatasıyla durur; CI'daki Mac yüklemesi de aynı kayda dayanır. Xcode "Mac Installer Distribution" sertifikasını otomatik imzada kendisi oluşturur. `dev` itmesinde `testflight-check.yml` Mac arşivini de imzasız denetler.
+5. Mac'i TestFlight'a yükle: `dev` dalında `sh .github/scripts/testflight.sh --mac`.
+
+   | Konu | Bilgi |
+   |---|---|
+   | Betiğin işi | `Journal_macOS` şemasını Mac App Store paketi olarak arşivler ve aynı hesapla yükler |
+   | Paket denetimi | İmzalı pakette App Sandbox ve iCloud kapsayıcı yetkisi |
+   | Hazırlık 1 | App Store Connect'te uygulama kaydına macOS platformunu ekle: uygulama sayfası → platform ekle |
+   | Hazırlık 2 | Takımda en az bir Mac kayıtlı olsun: Certificates, Identifiers & Profiles → Devices → macOS |
+   | Mac UDID | Sistem Bilgisi → Donanım → Provisioning UDID |
+   | Kayıtlı Mac yoksa | Arşiv "Your team has no devices" hatasıyla durur; CI'daki Mac yüklemesi de aynı kayda dayanır |
+   | Sertifika | Xcode "Mac Installer Distribution" sertifikasını otomatik imzada kendisi oluşturur |
+   | `dev` itmesi | `testflight-check.yml` Mac arşivini de imzasız denetler |
+
 6. Mac'e doğrudan kur (geliştirme makinesi): `sh .github/scripts/install-mac.sh`. Betik HEAD'i geçici bir kopyaya çıkarır ve Release derler. Betik kimliği, sürümü ve imzayı denetler. Sonra uygulamayı `/Applications/Kenet.app` olarak kopyalar. Kenet açıksa betik durur. `/Applications/Kenet.app` başka bir uygulamaysa da betik durur. Bu kurulum geliştirici imzalıdır ve yalnız derlendiği Mac'te çalışır; başka Mac'e TestFlight yolu kullanılır.
 
 ## CI'dan TestFlight (CD)
@@ -351,37 +310,6 @@ flowchart LR
 | İş dalı | Sayı squash sonrası `dev`'dekinden büyük olabilir; arşivi `dev` ya da `main` üzerinden al |
 
 `CFBundleVersion` yapı numarasını elle yazma. Sürüm numarası kökteki `VERSION` dosyasından gelir.
-
-## Belgeler
-
-**Tablo, `docs/` altındaki her belgeyi ve konusunu verir.**
-
-| Belge | İçerik |
-|---|---|
-| [docs/product.md](docs/product.md) | Ürünün amacı, gerekçesi, ilkeleri ve kapsam dışı işler |
-| [docs/roadmap.md](docs/roadmap.md) | Aşamalar, aşama içerikleri ve çıkış ölçütleri |
-| [docs/vault-format.md](docs/vault-format.md) | Kasa ve dosya biçimi; platformlar arası sözleşme |
-| [docs/screens.md](docs/screens.md) | Ekranlar, ekran içerikleri ve geçişler |
-| [docs/design.md](docs/design.md) | Tasarım dili: yön, belirteçler, kurallar ve sıradaki seçenekler |
-| [docs/architecture.md](docs/architecture.md) | Teknik mimari ve teknoloji seçimi |
-| [docs/decisions.md](docs/decisions.md) | Karar günlüğü ve açık sorular |
-| [docs/fixtures.md](docs/fixtures.md) | Test verisi klasörü: kurallar, kategoriler, kurgusal adlar |
-
-Claude Code ve öteki ajanlar için kurallar: [AGENTS.md](AGENTS.md)
-
-## Belge kuralı
-
-**Şema, yeni bilginin hangi belgeye gideceğini gösterir.**
-
-```mermaid
-flowchart TD
-  A[Yeni bilgi] --> B{Mevcut bir belgeye uyuyor mu}
-  B -->|Evet| C[Bilgiyi o belgeye ekle]
-  B -->|Hayır, ayrı konu| D[docs altında yeni belge aç]
-  D --> E[Belgeyi README belge tablosuna ekle]
-```
-
-Yeni bilgiyi önce mevcut belgelerden uygun olana ekle. Bilgi gerçekten ayrı bir konuysa `docs/` altında yeni belge aç. Yeni belgeyi yukarıdaki tabloya ekle. `.github/scripts/check-docs.sh` tabloda olmayan belgeyi reddeder.
 
 ## Lisans
 

@@ -1,7 +1,7 @@
 ---
 type: pet
 name:
-tur:
-dogum:
-asi:
+tür:
+doğum:
+aşı:
 ---

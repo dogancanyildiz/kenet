@@ -2,6 +2,6 @@
 type: recipe
 name: Örnek Tarif
 mutfak:
-sure:
+süre:
 puan:
 ---

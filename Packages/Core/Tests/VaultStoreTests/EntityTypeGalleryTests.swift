@@ -38,7 +38,8 @@ struct EntityTypeGalleryTests {
         for item in EntityTypeGallery.items {
             #expect(!item.isTaken(by: EntityTypeDefinition.builtIns), "\(item.definition.id)")
             #expect((3...5).contains(item.definition.fields.count), "\(item.definition.id)")
-            #expect(item.definition.fields.allSatisfy { $0.key.utf8.allSatisfy { $0 < 128 } })
+            // One lowercase word, Turkish letters kept: the entity page shows the key as the name.
+            #expect(item.definition.fields.allSatisfy { $0.key.allSatisfy { $0.isLetter && $0.isLowercase } })
             #expect(item.definition.template == "templates/\(item.definition.id).md")
         }
     }

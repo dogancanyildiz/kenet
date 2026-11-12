@@ -1,8 +1,8 @@
 ---
 type: film
 name: Örnek Film
-yonetmen:
-yil:
+yönetmen:
+yıl:
 puan:
 izlendi:
 ---

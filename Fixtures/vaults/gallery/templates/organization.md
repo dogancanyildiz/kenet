@@ -1,7 +1,7 @@
 ---
 type: organization
 name:
-tur:
-kisiler:
+tür:
+kişiler:
 web:
 ---

@@ -1,7 +1,7 @@
 ---
 type: trip
 name:
-baslangic:
-bitis:
+başlangıç:
+bitiş:
 konum:
 ---

@@ -1,7 +1,7 @@
 ---
 type: trip
 name: Örnek Seyahat
-baslangic:
-bitis:
+başlangıç:
+bitiş:
 konum:
 ---

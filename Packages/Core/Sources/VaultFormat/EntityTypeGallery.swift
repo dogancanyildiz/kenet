@@ -1,6 +1,7 @@
 /// Ready-made custom entity types offered when the user adds a type. Each item is an ordinary
 /// `.app/types.json` definition plus the contents of its `templates/<id>.md` file: the gallery
-/// adds no format. Field keys are ASCII Turkish because they are frontmatter keys in the files.
+/// adds no format. Field keys are Turkish words with Turkish letters: the entity page shows them
+/// as the field names (vault-format.md: template field names are in the user's language).
 public struct EntityTypeGalleryItem: Hashable, Sendable {
     public let definition: EntityTypeDefinition
 
@@ -27,28 +28,28 @@ public enum EntityTypeGallery {
             [("yazar", .link), ("sayfa", .number), ("puan", .number), ("bitirme", .date)]),
         item(
             "film", "films", ("Film", "Film"), ("Filmler", "Films"), "film.fill",
-            [("yonetmen", .text), ("yil", .number), ("puan", .number), ("izlendi", .date)]),
+            [("yönetmen", .text), ("yıl", .number), ("puan", .number), ("izlendi", .date)]),
         item(
             "organization", "organizations", ("Kurum", "Organization"), ("Kurumlar", "Organizations"),
-            "building.2.fill", [("tur", .text), ("kisiler", .link), ("web", .text)]),
+            "building.2.fill", [("tür", .text), ("kişiler", .link), ("web", .text)]),
         item(
             "project", "projects", ("Proje", "Project"), ("Projeler", "Projects"), "folder.fill",
-            [("durum", .text), ("baslangic", .date), ("kurum", .link)]),
+            [("durum", .text), ("başlangıç", .date), ("kurum", .link)]),
         item(
             "event", "events", ("Etkinlik", "Event"), ("Etkinlikler", "Events"), "calendar",
-            [("baslangic", .date), ("bitis", .date), ("konum", .link)]),
+            [("başlangıç", .date), ("bitiş", .date), ("konum", .link)]),
         item(
             "trip", "trips", ("Seyahat", "Trip"), ("Seyahatler", "Trips"), "airplane",
-            [("baslangic", .date), ("bitis", .date), ("konum", .link)]),
+            [("başlangıç", .date), ("bitiş", .date), ("konum", .link)]),
         item(
             "recipe", "recipes", ("Tarif", "Recipe"), ("Tarifler", "Recipes"), "fork.knife",
-            [("mutfak", .text), ("sure", .number), ("puan", .number)]),
+            [("mutfak", .text), ("süre", .number), ("puan", .number)]),
         item(
             "product", "products", ("Ürün", "Product"), ("Ürünler", "Products"), "shippingbox.fill",
-            [("marka", .text), ("fiyat", .number), ("alindi", .date)]),
+            [("marka", .text), ("fiyat", .number), ("alındı", .date)]),
         item(
             "pet", "pets", ("Evcil hayvan", "Pet"), ("Evcil hayvanlar", "Pets"), "pawprint.fill",
-            [("tur", .text), ("dogum", .date), ("asi", .date)]),
+            [("tür", .text), ("doğum", .date), ("aşı", .date)]),
         item(
             "vehicle", "vehicles", ("Araç", "Vehicle"), ("Araçlar", "Vehicles"), "car.fill",
             [("plaka", .text), ("muayene", .date), ("sigorta", .date)]),

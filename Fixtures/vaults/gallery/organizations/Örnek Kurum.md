@@ -1,7 +1,7 @@
 ---
 type: organization
 name: Örnek Kurum
-tur:
-kisiler:
+tür:
+kişiler:
 web:
 ---

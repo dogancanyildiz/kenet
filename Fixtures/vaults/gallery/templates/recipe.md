@@ -2,6 +2,6 @@
 type: recipe
 name:
 mutfak:
-sure:
+süre:
 puan:
 ---

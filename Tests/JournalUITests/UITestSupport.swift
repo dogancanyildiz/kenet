@@ -48,6 +48,52 @@ enum UITestSupport {
         return url
     }
 
+    /// The folder, under the app's caches, that the app copies `vaultURL` into and works on
+    /// (`ContentView.openUITestVault`, `JOURNAL_UITEST_VAULT_COPY`): one name per prepared vault.
+    static func appVaultName(for vaultURL: URL) -> String {
+        "UITestVault-" + vaultURL.lastPathComponent
+    }
+
+    /// The app's copy of `vaultURL`, the files it really reads and writes; nil until the app made it.
+    /// `home` is the app's home folder (the Mac tour sets one). On the iOS simulator each app's
+    /// data container sits beside the test runner's, so the runner looks there.
+    static func appVault(for vaultURL: URL, home: URL? = nil) -> URL? {
+        let manager = FileManager.default
+        let relative = "Library/Caches/" + appVaultName(for: vaultURL)
+        if let home {
+            let copy = home.appendingPathComponent(relative, isDirectory: true)
+            return manager.fileExists(atPath: copy.path) ? copy : nil
+        }
+        let containers = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true).deletingLastPathComponent()
+        let candidates = (try? manager.contentsOfDirectory(at: containers, includingPropertiesForKeys: nil)) ?? []
+        return candidates.lazy.map { $0.appendingPathComponent(relative, isDirectory: true) }
+            .first { manager.fileExists(atPath: $0.path) }
+    }
+
+    /// Waits until the app has copied `vaultURL`; fails the test when it never does, so a check
+    /// on the copy cannot pass by reading nothing.
+    static func waitForAppVault(
+        for vaultURL: URL, home: URL? = nil, timeout: TimeInterval = 20
+    ) throws -> URL {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if let copy = appVault(for: vaultURL, home: home) { return copy }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+        }
+        return try XCTUnwrap(appVault(for: vaultURL, home: home), "the app made no copy of \(vaultURL.path)")
+    }
+
+    /// Every file under `root` (hidden ones too) with its bytes, keyed by its path under `root`.
+    static func fileContents(of root: URL) throws -> [String: Data] {
+        var result: [String: Data] = [:]
+        let files = FileManager.default.enumerator(at: root, includingPropertiesForKeys: [.isRegularFileKey])
+        while let url = files?.nextObject() as? URL {
+            guard (try url.resourceValues(forKeys: [.isRegularFileKey])).isRegularFile == true else { continue }
+            result[String(url.path.dropFirst(root.path.count))] = try Data(contentsOf: url)
+        }
+        return result
+    }
+
     @MainActor
     static func launchApp(
         vaultURL: URL, quickEntryText: String? = smokeEventText, extraArguments: [String] = [],
@@ -55,6 +101,7 @@ enum UITestSupport {
     ) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchEnvironment["JOURNAL_UITEST_VAULT"] = vaultURL.path
+        app.launchEnvironment["JOURNAL_UITEST_VAULT_COPY"] = appVaultName(for: vaultURL)
         if let quickEntryText {
             app.launchEnvironment["JOURNAL_UITEST_QUICK_ENTRY_TEXT"] = quickEntryText
         }

@@ -22,8 +22,12 @@ final class CalendarEventUITests: XCTestCase {
             vaultURL: vaultURL, quickEntryText: nil, extraArguments: ScreenTourDriver.turkish,
             extraEnvironment: ["JOURNAL_UITEST_CALENDAR": "memory"])
         UITestSupport.waitForExistence(UITestSupport.element(in: app, identifier: "screen.today"), timeout: 30)
-        // Adding and deleting an event writes to the calendar only: the vault stays byte for byte.
-        let vaultBefore = try Self.contents(of: vaultURL)
+        // Adding and deleting an event writes to the calendar only: the vault the app works on
+        // (its own copy) stays byte for byte.
+        let appVault = try UITestSupport.waitForAppVault(for: vaultURL)
+        let vaultBefore = try UITestSupport.fileContents(of: appVault)
+        XCTAssertEqual(
+            vaultBefore, try UITestSupport.fileContents(of: vaultURL), "the app's copy is not the prepared vault")
 
         // An empty day offers one way to add: the card's row (the header "+" comes with events).
         XCTAssertFalse(app.buttons["button.calendar.add"].exists, "an empty day shows two add buttons")
@@ -58,18 +62,7 @@ final class CalendarEventUITests: XCTestCase {
             .allElementsBoundByIndex.last { $0.isHittable && $0.identifier != "button.calendarEvent.delete" }
         try XCTUnwrap(confirm, "no delete confirmation").tap()
         XCTAssertTrue(row.waitForNonExistence(timeout: 10), "the deleted event is still on Today")
-        XCTAssertEqual(try Self.contents(of: vaultURL), vaultBefore, "a calendar write changed the vault")
-    }
-
-    /// Every file under the vault (hidden ones too) with its bytes.
-    private static func contents(of root: URL) throws -> [String: Data] {
-        var result: [String: Data] = [:]
-        let files = FileManager.default.enumerator(at: root, includingPropertiesForKeys: [.isRegularFileKey])
-        while let url = files?.nextObject() as? URL {
-            guard (try url.resourceValues(forKeys: [.isRegularFileKey])).isRegularFile == true else { continue }
-            result[String(url.path.dropFirst(root.path.count))] = try Data(contentsOf: url)
-        }
-        return result
+        XCTAssertEqual(try UITestSupport.fileContents(of: appVault), vaultBefore, "a calendar write changed the vault")
     }
 
     @MainActor

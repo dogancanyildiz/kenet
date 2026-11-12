@@ -44,11 +44,13 @@ final class WeeklyReviewUITests: XCTestCase {
         // No note was typed, so "Vazgeç" leaves at once and nothing has been written.
         UITestSupport.element(in: app, identifier: "button.weeklyReview.cancel").tap()
         XCTAssertTrue(write.waitForNonExistence(timeout: 15))
-        let journal = try FileManager.default.contentsOfDirectory(
-            atPath: vaultURL.appendingPathComponent("journal").path)
-        let fixture = try FileManager.default.contentsOfDirectory(
-            atPath: UITestSupport.repositoryRoot().appendingPathComponent("Fixtures/vaults/sample/journal").path)
-        XCTAssertEqual(journal.sorted(), fixture.sorted())
+        // The app works on its own copy of the vault: that copy's journal must be the fixture's,
+        // byte for byte.
+        let journal = try UITestSupport.fileContents(
+            of: try UITestSupport.waitForAppVault(for: vaultURL).appendingPathComponent("journal"))
+        let fixture = try UITestSupport.fileContents(
+            of: UITestSupport.repositoryRoot().appendingPathComponent("Fixtures/vaults/sample/journal"))
+        XCTAssertEqual(journal, fixture, "the cancelled review wrote to the journal")
     }
 
     /// Taps "İleri" (or "Atla") at the foot of the step until `shown` appears. The buttons sit

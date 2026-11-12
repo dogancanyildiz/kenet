@@ -173,7 +173,8 @@ struct WeeklyReviewContent: Equatable, Sendable {
     func taskLines(locale: Locale) -> [String] {
         guard openTaskCount > 0 else { return [] }
         let bundle = PresentationLocalization.bundle(locale)
-        var lines = [String(localized: "\(openTaskCount) görev açık", bundle: bundle, locale: locale)]
+        // "From this week": the count is the week's leftovers, not every open task in Görevler.
+        var lines = [String(localized: "Bu haftadan \(openTaskCount) görev açık kaldı", bundle: bundle, locale: locale)]
         lines += openTasks.map { String(localized: "Açık: \($0)", bundle: bundle, locale: locale) }
         let rest = openTaskCount - openTasks.count
         if rest > 0 { lines.append(String(localized: "ve \(rest) görev daha", bundle: bundle, locale: locale)) }
@@ -205,7 +206,8 @@ struct WeeklyReviewContent: Equatable, Sendable {
                 localized: "\(met)/\(count) gün", bundle: PresentationLocalization.bundle(locale), locale: locale)
         case .amount(let done, let target, let unit):
             let number = FloatingPointFormatStyle<Double>.number.locale(locale)
-            return "\(done.formatted(number)) / \(target.formatted(number))" + (unit.map { " " + $0 } ?? "")
+            // Written like the daily goal's "2/6 gün" and the goal cards' "0/3".
+            return "\(done.formatted(number))/\(target.formatted(number))" + (unit.map { " " + $0 } ?? "")
         }
     }
 }

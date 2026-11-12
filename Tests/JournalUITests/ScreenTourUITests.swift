@@ -31,7 +31,11 @@ final class ScreenTourUITests: XCTestCase {
     private var tour: ScreenTourDriver!
 
     // Fixture rows the tour opens. Tasks carry no link, so a touch cannot follow one.
-    private let cardTask = "Hafta sonu dinlenme planı yap"
+    /// The split shell's Kanban columns scroll on their own and the tour drags the page's centre (the
+    /// second column), so there the task is the first card of "Yapılacak", already in view.
+    @MainActor private var cardTask: String {
+        tour.isSplitShell ? "Haftalık sprint hedeflerini belirle" : "Hafta sonu dinlenme planı yap"
+    }
     private let pastDay = "27 Eyl"
     private let person = "Deniz Arıkan"
     private let place = "Liman Ofis"
@@ -261,7 +265,8 @@ final class ScreenTourUITests: XCTestCase {
                 try openTasks("Projeler")
                 try tour.row(project).tap()
             }
-            try tour.waitFor(labels: ["Açık görevler"])
+            // The project page opens on its progress card.
+            try tour.waitFor(labels: ["İlerleme"])
             tour.shot("07-proje-sayfasi")
         }
         tour.step("06-gorevler-kanban") {
@@ -436,7 +441,8 @@ final class ScreenTourUITests: XCTestCase {
         }
         tour.step("12-hedef-tanim-formu") {
             try openGoal()
-            try tour.tap(ids: ["button.goal.edit"])
+            // "Hedefi düzenle" sits at the foot of the detail, below the fold.
+            try tour.reach(ids: ["button.goal.edit"]).tourTap()
             try tour.waitFor(labels: ["Kaydet"])
             tour.shot("12-hedef-tanim-formu")
             try tour.tap(ids: ["button.goal.form.cancel"], labels: ["Vazgeç"])
@@ -534,6 +540,10 @@ final class ScreenTourUITests: XCTestCase {
             try tour.waitFor(labels: ["Yeni varlık tipi"])
             tour.shot("14-ayarlar-varlik-tipleri")
             try tour.tap(labels: ["Yeni varlık tipi"])
+            // "Yeni varlık tipi" opens the template gallery first; a template opens the editor.
+            try tour.waitFor(ids: ["button.entityTypeGallery.book"])
+            tour.shot("14-ayarlar-varlik-tipi-galerisi")
+            try tour.tap(ids: ["button.entityTypeGallery.book"])
             // The editor's last control is below the sheet's fold (iPhone, and the iPad form sheet).
             _ = try tour.reach(labels: ["Alan ekle"])
             tour.shot("14-ayarlar-varlik-tipi-duzenleyici")

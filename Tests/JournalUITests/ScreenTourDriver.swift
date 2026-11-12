@@ -89,10 +89,12 @@ final class ScreenTourDriver {
     private static func launch(
         vaultURL: URL, arguments: [String], environment: [String: String]
     ) -> XCUIApplication {
-        // The app's clock matches the simulator's 9:41 status bar (quick-entry time, greeting).
+        // The app's clock matches the simulator's 9:41 status bar (quick-entry time, greeting); the
+        // calendar is an in-memory one with today's fictional events (no permission band).
         UITestSupport.launchApp(
             vaultURL: vaultURL, quickEntryText: nil, extraArguments: arguments,
-            extraEnvironment: ["JOURNAL_UITEST_CLOCK": "09:41"].merging(environment) { _, new in new })
+            extraEnvironment: ["JOURNAL_UITEST_CLOCK": "09:41", "JOURNAL_UITEST_CALENDAR": "sample"]
+                .merging(environment) { _, new in new })
     }
 
     /// The tour never edits the vault, so a fresh launch is always a safe way back to a known state.
@@ -328,13 +330,13 @@ final class ScreenTourDriver {
     }
 
     /// Scrolls until a control with one of these labels can be touched.
-    func reach(labels: [String], swipes: Int = 5) throws -> XCUIElement {
+    func reach(ids: [String] = [], labels: [String] = [], swipes: Int = 5) throws -> XCUIElement {
         for attempt in 0...swipes {
-            if let match = find(labels: labels, timeout: attempt == 0 ? 3 : 0.5) { return match }
+            if let match = find(ids: ids, labels: labels, timeout: attempt == 0 ? 3 : 0.5) { return match }
             scrollPage()
             pause(0.6)
         }
-        throw ScreenTourError("bulunamadı (kaydırarak): \(labels)")
+        throw ScreenTourError("bulunamadı (kaydırarak): \(ids) \(labels)")
     }
 
     func reach(containing text: String, swipes: Int = 5) throws -> XCUIElement {

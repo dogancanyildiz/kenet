@@ -43,4 +43,22 @@ struct AppLaunchClockTests {
             AppLaunchPolicy.frozenClock(
                 environment: ["JOURNAL_UITEST_VAULT": "/tmp/vault", "JOURNAL_UITEST_CLOCK": "09:41"]) != nil)
     }
+
+    /// The screen tour's calendar has full access and today's three fictional events; without a
+    /// vault the app keeps EventKit.
+    @Test func tourCalendarHasTodaysSampleEvents() async throws {
+        let source = AppLaunchPolicy.calendarSource(
+            environment: ["JOURNAL_UITEST_VAULT": "/tmp/vault", "JOURNAL_UITEST_CALENDAR": "sample"])
+        let memory = try #require(source as? InMemoryCalendarSource)
+        #expect(memory.authorization == .fullAccess)
+        let day = Calendar.current.startOfDay(for: Date())
+        let events = try await memory.events(from: day, to: day.addingTimeInterval(86_400))
+        #expect(events.count == 3)
+        // Days read it on their own, as they read the `memory` calendar.
+        #expect(
+            AppLaunchPolicy.allowsCalendarLoad(
+                environment: ["JOURNAL_UITEST_VAULT": "/tmp/vault", "JOURNAL_UITEST_CALENDAR": "sample"]))
+        let withoutVault = AppLaunchPolicy.calendarSource(environment: ["JOURNAL_UITEST_CALENDAR": "sample"])
+        #expect(withoutVault is EventKitCalendarSource)
+    }
 }

@@ -239,18 +239,19 @@ struct EntryPointSettingsTests {
         "Takvim ve Konum|calendar",
         "Kasa|folder",
         "Tanılama|wrench.and.screwdriver",
+        "Hakkında|info.circle",
     ]
 
-    @Test func phoneSettingsHasSixSectionsInTheDocumentedOrder() {
+    @Test func phoneSettingsHasSevenSectionsInTheDocumentedOrder() {
         let table = SettingsSection.allCases.map { "\($0.title.key)|\($0.symbol)" }
-        #expect(SettingsSection.allCases.count == 6)
+        #expect(SettingsSection.allCases.count == 7)
         #expect(table == Self.sectionOrder)
     }
 
     #if os(macOS)
-        @Test func macSettingsHasSixTabsInTheDocumentedOrder() {
+        @Test func macSettingsHasSevenTabsInTheDocumentedOrder() {
             let table = MacSettingsTab.allCases.map { "\($0.title.key)|\($0.systemImage)" }
-            #expect(MacSettingsTab.allCases.count == 6)
+            #expect(MacSettingsTab.allCases.count == 7)
             #expect(table == Self.sectionOrder)
         }
     #endif

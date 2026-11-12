@@ -10,6 +10,7 @@
         case calendarAndLocation
         case vault
         case diagnostics
+        case about
 
         var title: LocalizedStringResource {
             switch self {
@@ -19,6 +20,7 @@
             case .calendarAndLocation: "Takvim ve Konum"
             case .vault: "Kasa"
             case .diagnostics: "Tanılama"
+            case .about: "Hakkında"
             }
         }
 
@@ -30,6 +32,7 @@
             case .calendarAndLocation: "calendar"
             case .vault: "folder"
             case .diagnostics: "wrench.and.screwdriver"
+            case .about: "info.circle"
             }
         }
     }
@@ -48,6 +51,7 @@
             case .calendarAndLocation: CalendarAndLocationSettingsView()
             case .vault: MacVaultSettingsPage(store: store)
             case .diagnostics: MacDiagnosticsSettingsPage(store: store)
+            case .about: MacAboutSettingsPage()
             }
         }
     }
@@ -144,7 +148,36 @@
         }
     }
 
-    /// Mac Settings scene: six tabs. Hızlı giriş is first: the keyboard shortcut, then the same
+    /// The Hakkında tab. The licenses page replaces the tab's content, as on Tanılama.
+    struct MacAboutSettingsPage: View {
+        @State private var showingLicenses = false
+
+        var body: some View {
+            if showingLicenses {
+                VStack(alignment: .leading, spacing: 0) {
+                    Button {
+                        showingLicenses = false
+                    } label: {
+                        Label("Hakkında", systemImage: "chevron.left")
+                    }
+                    .buttonStyle(InkTextButtonStyle())
+                    // Esc, not ⌘[: on a Turkish keyboard "[" is typed with ⌥8 and the chord never fires.
+                    .keyboardShortcut(.cancelAction)
+                    .accessibilityLabel("Hakkında'ya dön")
+                    .accessibilityIdentifier("button.settings.about.back")
+                    .padding(.horizontal, InkSpacing.margin + 8)
+                    .padding(.top, 8)
+                    .inkPageColumn()
+                    ThirdPartyLicensesView()
+                }
+                .inkPage()
+            } else {
+                AboutSettingsView(openLicenses: { showingLicenses = true })
+            }
+        }
+    }
+
+    /// Mac Settings scene: seven tabs (Hakkında last). Hızlı giriş is first: the keyboard shortcut, then the same
     /// Siri and Shortcuts rows as the iPhone page. The Action Button is not on this tab.
     struct MacSettingsView: View {
         let store: IndexStore

@@ -7,6 +7,8 @@ struct AppLockSettingsView: View {
     var body: some View {
         @Bindable var lock = lock
         Section {
+            SectionHeader("Kilit")
+                .inkListRow()
             InkCard(padded: false) {
                 VStack(alignment: .leading, spacing: 0) {
                     Toggle(

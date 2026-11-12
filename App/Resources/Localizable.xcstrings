@@ -933,6 +933,38 @@
         }
       }
     },
+    "%@ · konuma girince açık" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · on arrival on"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · konuma girince açık"
+          }
+        }
+      }
+    },
+    "%@ · konuma girince kapalı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · on arrival off"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · konuma girince kapalı"
+          }
+        }
+      }
+    },
     "%@ önceki iki gün ve ertesi gün yapıldı." : {
       "localizations" : {
         "en" : {
@@ -3071,6 +3103,34 @@
         }
       }
     },
+    "%lld takvim" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld calendar"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld calendars"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld takvim"
+          }
+        }
+      }
+    },
     "%lld yıl önce bugün" : {
       "localizations" : {
         "en" : {
@@ -3191,6 +3251,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$lld ziyaret · son %2$@"
+          }
+        }
+      }
+    },
+    "%lld özel tip" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld custom type"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld custom types"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld özel tip"
           }
         }
       }
@@ -6755,6 +6843,22 @@
         }
       }
     },
+    "Destek" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Support"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Destek"
+          }
+        }
+      }
+    },
     "Devam" : {
       "localizations" : {
         "en" : {
@@ -7136,6 +7240,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dosyalar"
+          }
+        }
+      }
+    },
+    "Dosyalara dokunmaz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leaves your files untouched"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dosyalara dokunmaz"
           }
         }
       }
@@ -8208,6 +8328,22 @@
         }
       }
     },
+    "Gizli" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hidden"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gizli"
+          }
+        }
+      }
+    },
     "Gizlilik" : {
       "localizations" : {
         "en" : {
@@ -8220,6 +8356,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gizlilik"
+          }
+        }
+      }
+    },
+    "Gizlilik politikası" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy policy"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gizlilik politikası"
           }
         }
       }
@@ -8746,6 +8898,22 @@
         }
       }
     },
+    "Gösterilir" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shown"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gösterilir"
+          }
+        }
+      }
+    },
     "Gün" : {
       "localizations" : {
         "en" : {
@@ -8935,6 +9103,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Günlük"
+          }
+        }
+      }
+    },
+    "Günlük hatırlatması %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Journal reminder %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günlük hatırlatması %@"
+          }
+        }
+      }
+    },
+    "Günlük hatırlatması kapalı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Journal reminder off"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günlük hatırlatması kapalı"
           }
         }
       }
@@ -9559,6 +9759,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Haftaya taşı"
+          }
+        }
+      }
+    },
+    "Hakkında" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hakkında"
+          }
+        }
+      }
+    },
+    "Hakkında'ya dön" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to About"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hakkında'ya dön"
           }
         }
       }
@@ -11422,6 +11654,22 @@
         }
       }
     },
+    "Kenet verini yalnız kendi dosyalarında tutar; hiçbir veri toplamaz ya da göndermez." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kenet keeps your data only in your own files; it collects and sends nothing."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kenet verini yalnız kendi dosyalarında tutar; hiçbir veri toplamaz ya da göndermez."
+          }
+        }
+      }
+    },
     "Kenet'e ekle" : {
       "localizations" : {
         "en" : {
@@ -11434,6 +11682,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kenet'e ekle"
+          }
+        }
+      }
+    },
+    "Kilit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lock"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kilit"
           }
         }
       }
@@ -13821,6 +14085,22 @@
         }
       }
     },
+    "Sayılar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Counts"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sayılar"
+          }
+        }
+      }
+    },
     "Sayısal hedef için sıfır veya daha büyük, sonlu bir miktar gir." : {
       "localizations" : {
         "en" : {
@@ -14541,6 +14821,22 @@
         }
       }
     },
+    "Son güncelleme %@ · dosyalara dokunmaz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last updated %@ · leaves your files untouched"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son güncelleme %@ · dosyalara dokunmaz"
+          }
+        }
+      }
+    },
     "Son kayıtlar" : {
       "localizations" : {
         "en" : {
@@ -14713,6 +15009,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sürdür"
+          }
+        }
+      }
+    },
+    "Sürüm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sürüm"
+          }
+        }
+      }
+    },
+    "Sürüm, gizlilik politikası, destek" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version, privacy policy, support"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sürüm, gizlilik politikası, destek"
           }
         }
       }
@@ -15057,6 +15385,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Takvim izni alınamadı. Yeniden deneyebilirsin."
+          }
+        }
+      }
+    },
+    "Takvim izni yok" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No calendar access"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takvim izni yok"
           }
         }
       }
@@ -16155,6 +16499,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Uygulama kilidi"
+          }
+        }
+      }
+    },
+    "Uygulama kilidi açık · kişi hatırlatmaları" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App lock on · people reminders"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uygulama kilidi açık · kişi hatırlatmaları"
+          }
+        }
+      }
+    },
+    "Uygulama kilidi kapalı · kişi hatırlatmaları" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App lock off · people reminders"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uygulama kilidi kapalı · kişi hatırlatmaları"
           }
         }
       }
@@ -17810,6 +18186,22 @@
         }
       }
     },
+    "dosya" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "files"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dosya"
+          }
+        }
+      }
+    },
     "from %@" : {
       "localizations" : {
         "en" : {
@@ -17918,6 +18310,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "geçen yılın aynı tarihiyle aynı"
+          }
+        }
+      }
+    },
+    "gün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "days"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "gün"
           }
         }
       }
@@ -18158,6 +18566,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "kasa hatası"
+          }
+        }
+      }
+    },
+    "kişi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "people"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kişi"
+          }
+        }
+      }
+    },
+    "konum" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "places"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "konum"
           }
         }
       }
@@ -19513,6 +19953,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "İndeks sayıları, kopya dosyalar"
+          }
+        }
+      }
+    },
+    "İndeksi yeniden kur" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rebuild index"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İndeksi yeniden kur"
           }
         }
       }

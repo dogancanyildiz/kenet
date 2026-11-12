@@ -62,6 +62,22 @@ final class TimelineModel {
     /// reload keeps the previous rows until then. The visible window moves within them.
     private(set) var rows: [TaskRow]?
 
+    /// The Gün board's day (its events), nil off the day scale and until the first answer.
+    private(set) var daySummary: DaySummary?
+
+    /// Rows are in and, on the day scale, the day's summary too.
+    var isLoaded: Bool { rows != nil && (scale != .day || daySummary != nil) }
+
+    /// Loads `date`'s summary for the Gün board; any other scale clears it.
+    func loadDay(_ date: CalendarDate) async {
+        guard scale == .day else {
+            daySummary = nil
+            return
+        }
+        daySummary = nil
+        daySummary = try? await store.computeDay(on: date)
+    }
+
     /// What the timeline asks the index for; a write, a filter or a new day asks again.
     var request: TaskListRequest { TaskListRequest(scope: tasks.scope, day: today, updated: store.lastUpdated) }
 

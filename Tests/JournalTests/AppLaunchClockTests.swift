@@ -58,6 +58,7 @@ struct AppLaunchClockTests {
         #expect(
             AppLaunchPolicy.allowsCalendarLoad(
                 environment: ["JOURNAL_UITEST_VAULT": "/tmp/vault", "JOURNAL_UITEST_CALENDAR": "sample"]))
-        #expect(AppLaunchPolicy.calendarSource(environment: ["JOURNAL_UITEST_CALENDAR": "sample"]) is EventKitCalendarSource)
+        let withoutVault = AppLaunchPolicy.calendarSource(environment: ["JOURNAL_UITEST_CALENDAR": "sample"])
+        #expect(withoutVault is EventKitCalendarSource)
     }
 }

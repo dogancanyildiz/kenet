@@ -24,15 +24,20 @@ enum AppLaunchPolicy {
         return nil
     }
 
-    /// DEBUG-only: `memory` puts an in-memory calendar with full access in place of EventKit.
+    /// DEBUG-only: `memory` puts an in-memory calendar with full access in place of EventKit;
+    /// `sample` fills it with today's fictional events (the screen tour).
     static let uiTestCalendarKey = "JOURNAL_UITEST_CALENDAR"
 
     @MainActor static func calendarSource(
         environment: [String: String] = ProcessInfo.processInfo.environment
     ) -> any CalendarEventSource {
         #if DEBUG
-            if uiTestVaultPath(environment: environment) != nil, environment[uiTestCalendarKey] == "memory" {
-                return InMemoryCalendarSource()
+            if uiTestVaultPath(environment: environment) != nil {
+                switch environment[uiTestCalendarKey] {
+                case "memory": return InMemoryCalendarSource()
+                case "sample": return InMemoryCalendarSource(events: InMemoryCalendarSource.sampleEvents(on: Date()))
+                default: break
+                }
             }
         #endif
         return EventKitCalendarSource()

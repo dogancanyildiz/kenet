@@ -32,6 +32,25 @@
             series = events.map { Series(event: $0) }
         }
 
+        /// Today's fictional events for the screen tour: a morning meeting, a lunch, an evening run.
+        static func sampleEvents(on day: Date, calendar: Calendar = .current) -> [CalendarEvent] {
+            let items: [(String, Int, Int, Int, Int, CalendarTarget)] = [
+                ("Ürün toplantısı", 10, 0, 11, 0, sampleCalendars[1]),
+                ("Öğle yemeği", 12, 30, 13, 30, sampleCalendars[0]),
+                ("Akşam koşusu", 19, 0, 20, 0, sampleCalendars[0]),
+            ]
+            return items.enumerated().compactMap { index, item in
+                guard
+                    let start = calendar.date(bySettingHour: item.1, minute: item.2, second: 0, of: day),
+                    let end = calendar.date(bySettingHour: item.3, minute: item.4, second: 0, of: day)
+                else { return nil }
+                return CalendarEvent(
+                    id: "sample-\(index)", title: item.0, start: start, end: end, isAllDay: false,
+                    color: item.5.color, eventIdentifier: "sample-\(index)", calendarID: item.5.id,
+                    calendarTitle: item.5.title, isEditable: true)
+            }
+        }
+
         static let sampleCalendars = [
             CalendarTarget(
                 id: "home", title: "Ev", color: CalendarEventColor(red: 0.2, green: 0.5, blue: 0.9, alpha: 1)),

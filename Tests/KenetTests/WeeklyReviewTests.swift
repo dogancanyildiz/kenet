@@ -56,7 +56,7 @@ struct WeeklyReviewTests {
                 at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
             try Data(text.utf8).write(to: url)
         }
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
     }
 
     /// Every file under the vault root: bytes and modification date.
@@ -296,7 +296,7 @@ struct WeeklyReviewTests {
         #expect(after == before)
 
         // Read back, the block is Diary text: no task and no event came out of it.
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         #expect(try await context.store.allTasks().count == taskCount)
         #expect(try await context.store.days().reduce(0) { $0 + $1.events.count } == eventCount)
         // "Reviewed this week" lives on the device; the comparison above shows the vault has no mark.
@@ -427,7 +427,7 @@ struct WeeklyReviewTests {
         #expect(reread.bodyLines.tasks.count == tasks && reread.bodyLines.events.count == events)
         // Every line stays in Diary: no heading in the note opened a section of its own.
         #expect(diaryHolds(preview, in: reread))
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         #expect(try await context.store.allTasks().count == indexedTasks)
         #expect(try await !context.store.allTasks().contains { $0.sourceText.contains("süt") })
         #expect(try await context.store.computeDay(on: context.today).events.count == events)
@@ -504,7 +504,7 @@ struct WeeklyReviewTests {
         let context = try await context()
         defer { context.clean() }
         try Data([0x23, 0x23, 0x20, 0xFF, 0xFE, 0x0A]).write(to: context.file)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let before = try vaultFiles(context)
 
         let model = await model(context)
@@ -838,7 +838,7 @@ struct WeeklyReviewTests {
         #expect(model.result == .written && model.errorText == nil)
         #expect(try Data(contentsOf: context.file) == expected)
         // Read back, the answers are Diary text: the task-looking answer made no task.
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         #expect(try await context.store.allTasks().allSatisfy { !$0.text.plainText.contains("erken uyu") })
     }
 }

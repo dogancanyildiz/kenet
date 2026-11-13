@@ -80,7 +80,7 @@
             await context.start()
             let day = CalendarDate("2026-09-20")!
             try Self.writeCompletedDatedTask(in: context.root)
-            await context.store.refresh()
+            await context.store.refreshAndSettle()
             let tasks = TasksModel(store: context.store, today: { day })
             let timeline = TimelineModel(tasks: tasks)
             timeline.scale = .week

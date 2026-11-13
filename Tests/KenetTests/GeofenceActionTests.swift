@@ -15,7 +15,7 @@ struct GeofenceActionTests {
         let original =
             "---\ntype: diary\ndate: 2026-10-04\ncustom: untouched\ngoals:\n  water: 2 # retain\n---\n\n## Diary\nKeep this text.\n"
         try Data(original.utf8).write(to: file)
-        await context.vault.store.refresh()
+        await context.vault.store.refreshAndSettle()
         await context.settle()
         await context.service.enter(try context.target.id)
         #expect(context.center.notices.count == 1)

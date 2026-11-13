@@ -26,7 +26,7 @@ struct CloseDayTests {
                 at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
             try Data(text.utf8).write(to: url)
         }
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
     }
 
     /// Every file under the vault root: bytes and modification date.

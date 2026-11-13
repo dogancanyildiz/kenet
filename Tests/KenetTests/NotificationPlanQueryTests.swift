@@ -16,7 +16,7 @@ import VaultIndex
         defer { context.clean() }
         await context.start()
         try TasksStoreQueryTests.writeEdgeCases(context)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let counts = try await expectDevPlans(context, from: "2026-09-12", mornings: 30)
         #expect(counts.task > 20 && counts.diary > 20)
 
@@ -56,7 +56,7 @@ import VaultIndex
         defer { context.clean() }
         await context.start()
         try TasksStoreQueryTests.writeEdgeCases(context)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let store = context.store
         let today = context.today
         func check(_ label: String) async throws {

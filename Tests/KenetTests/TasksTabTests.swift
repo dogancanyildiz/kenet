@@ -110,7 +110,7 @@ import VaultIndex
         let lines = (0..<55).map { "- [x] Finished \($0) ✅ 2026-10-03 ^done\($0)" }.joined(separator: "\n")
         try ("## Tasks\n" + lines + "\n- [ ] Distant 📅 2099-12-31 ^distant\n").write(
             to: context.file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let model = TasksModel(store: context.store)
         await model.loadList()
         #expect(model.completed.count == 50)
@@ -124,7 +124,7 @@ import VaultIndex
         #expect(await context.store.addTask(on: context.today, text: "Plan #project/mobile", due: nil))
         let file = context.root.appendingPathComponent("notes/Linked Task.md")
         try "- [ ] Body link\n  [[Deniz Arıkan]]\n".write(to: file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let model = TasksModel(store: context.store)
         await model.loadList()
         #expect(model.projects.contains("mobile"))

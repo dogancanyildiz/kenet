@@ -40,7 +40,7 @@ struct WeeklyReviewRhythmModelTests {
                 at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
             try Data(text.utf8).write(to: url)
         }
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         return context
     }
 

@@ -81,7 +81,7 @@ import VaultFormat
             #expect(text.contains("#project/altyapi"))
             try text.replacingOccurrences(of: " #project/altyapi", with: "")
                 .write(to: file, atomically: true, encoding: .utf8)
-            await shell.context.store.refresh()
+            await shell.context.store.refreshAndSettle()
             for _ in 0..<40 where gate.heldCount == 0 { await shell.mount.settle(rounds: 1) }
             #expect(gate.heldCount > 0, "the publish asks for the names again")
             await shell.mount.settle(rounds: 8)

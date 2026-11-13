@@ -61,7 +61,7 @@ struct GoalDefinitionTests {
         let source =
             "---\ntype: goal\nname: Su\nkey: su\nperiod: day\nkind: number\ntarget: 8 # keep\nunit: bardak\ncustom: 20.0290\n---\n\nKeep notes\n"
         try Data(source.utf8).write(to: file)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let goal = try #require((try await context.store.goalDefinitions()).first { $0.key == "su" })
         let model = GoalDefinitionModel(store: context.store, goal: goal)
         #expect(await model.set("target", text: "10"))

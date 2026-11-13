@@ -47,7 +47,7 @@ struct GeofenceRegionTests {
                 "---\ntype: goal\nname: Goal \(index)\nkey: g-\(index)\nperiod: day\nkind: boolean\ntarget: 1\nplace: \"[[Tepe Spor Salonu]]\"\n---\n"
             try Data(text.utf8).write(to: context.vault.root.appendingPathComponent("goals/Extra \(index).md"))
         }
-        await context.vault.store.refresh()
+        await context.vault.store.refreshAndSettle()
         await context.settle()
         #expect(context.service.targets.count == 23)
         #expect(context.service.regions.count == 20)
@@ -77,7 +77,7 @@ struct GeofenceRegionTests {
             original.replacingOccurrences(of: "place: \"[[Tepe Spor Salonu]]\"", with: ""),
         ] {
             try Data(text.utf8).write(to: file)
-            await context.vault.store.refresh()
+            await context.vault.store.refreshAndSettle()
             await context.settle()
             #expect(context.service.targets.isEmpty)
             #expect(context.source.installed.isEmpty)
@@ -123,7 +123,7 @@ struct GeofenceRegionTests {
             original.replacingOccurrences(of: "coordinates: [10.5210, 20.0415]\n", with: ""),
         ] {
             try Data(text.utf8).write(to: file)
-            await context.vault.store.refresh()
+            await context.vault.store.refreshAndSettle()
             await context.settle()
             #expect(context.service.targets.isEmpty)
             #expect(context.source.installed.isEmpty)
@@ -151,7 +151,7 @@ struct GeofenceRegionTests {
             .replacingOccurrences(of: "10.5210", with: "10.5310").replacingOccurrences(
                 of: "radius: 80", with: "radius: 2000")
         try Data(text.utf8).write(to: file)
-        await context.vault.store.refresh()
+        await context.vault.store.refreshAndSettle()
         await context.settle()
         #expect(try context.target.id != previous)
         #expect(try context.target.region.radius == 1000)

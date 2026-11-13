@@ -30,7 +30,7 @@ struct EditVaultTurnTests {
                 at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
             try Data(text.utf8).write(to: url)
         }
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         // The other vault holds the very same files, so only the vault check can refuse the write.
         let other = context.directory.appendingPathComponent("Other")
         try FileManager.default.copyItem(at: context.root, to: other)

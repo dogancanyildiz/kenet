@@ -23,7 +23,7 @@ struct GoalFailureTests {
         #expect(await !model.save())
         #expect(try Data(contentsOf: file) == saved)
         #expect(sqlite3_exec(connection, "DROP TRIGGER reject_goals", nil, nil, nil) == SQLITE_OK)
-        await context.store.refresh(rebuild: true)
+        await context.store.refreshAndSettle(rebuild: true)
         #expect((try await context.store.goalDefinitions()).first?.key == "su-icme")
     }
 
@@ -44,7 +44,7 @@ struct GoalFailureTests {
         #expect(await !editor.save())
         #expect(String(decoding: try Data(contentsOf: context.file), as: UTF8.self).contains("  su: 8\n"))
         #expect(sqlite3_exec(connection, "DROP TRIGGER reject_goals", nil, nil, nil) == SQLITE_OK)
-        await context.store.refresh(rebuild: true)
+        await context.store.refreshAndSettle(rebuild: true)
         #expect(
             (try await context.store.goalHistory())["su"]?.contains {
                 $0.day == context.today && $0.value == .number(8)

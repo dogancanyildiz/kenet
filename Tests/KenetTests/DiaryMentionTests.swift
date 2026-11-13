@@ -114,7 +114,7 @@ struct DiaryMentionTests {
         file = file.replacingOccurrences(
             of: "Deniz eski satır.", with: "@Deniz Arıkan eski satır.")
         try file.write(to: context.file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let model = DiaryEditorModel(store: context.store, day: context.day)
         await model.load()
         let loaded = model.text
@@ -137,7 +137,7 @@ struct DiaryMentionTests {
         file = file.replacingOccurrences(
             of: "Deniz eski satır.", with: "@Zeynep Yeni eski satır.")
         try file.write(to: context.file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let model = DiaryEditorModel(store: context.store, day: context.day)
         await model.load()
         let loaded = model.text
@@ -160,7 +160,7 @@ struct DiaryMentionTests {
         file = file.replacingOccurrences(
             of: "Deniz eski satır.", with: "@Mert Aksu eski satır.")
         try file.write(to: context.file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let model = DiaryEditorModel(store: context.store, day: context.day)
         await model.load()
         let loaded = model.text

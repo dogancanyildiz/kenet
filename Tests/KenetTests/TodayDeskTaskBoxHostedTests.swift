@@ -23,7 +23,7 @@
             try FileManager.default.createDirectory(
                 at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
             try Data("## Tasks\n- [ ] 10:00 Sunum provası\n\n## Events\n- 11:00 Toplantı\n".utf8).write(to: url)
-            await context.store.refresh()
+            await context.store.refreshAndSettle()
 
             let mount = HostedLayout.Mount(
                 GoalScreenEnvironment.wrap(

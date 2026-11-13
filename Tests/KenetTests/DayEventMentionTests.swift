@@ -72,7 +72,7 @@ struct DayEventMentionTests {
         var file = try String(contentsOf: context.file, encoding: .utf8)
         file = file.replacingOccurrences(of: "Existing event", with: "Mert Aksu ile Deniz Arıkan")
         try file.write(to: context.file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let prepared = try Data(contentsOf: context.file)
         let row = try #require(try await context.store.computeDay(on: context.day).events.first)
         let model = EventEditorModel(store: context.store, day: context.day, row: row)

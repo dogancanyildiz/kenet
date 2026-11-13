@@ -283,7 +283,7 @@ import VaultStore
         let notes = context.root.appendingPathComponent("notes")
         try FileManager.default.createDirectory(at: notes, withIntermediateDirectories: true)
         try Data("Not\n".utf8).write(to: notes.appendingPathComponent("Selin Korkmaz.md"))
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         try await context.store.setList(
             at: Self.person, key: "related", values: [.text("[[Baran Tunç]]"), .text("[[Selin Korkmaz]]")])
         let relations = EntityRelationsModel(store: context.store, path: Self.person)

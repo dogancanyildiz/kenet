@@ -133,7 +133,7 @@ struct CadenceTests {
         let input = try Data(contentsOf: writeCase("cadence-days-add", "input.md"))
         let expected = try Data(contentsOf: writeCase("cadence-days-add", "expected.md"))
         try input.write(to: file)
-        await context.store.refresh(rebuild: true)
+        await context.store.refreshAndSettle(rebuild: true)
         let model = EntityDetailModel(store: context.store, path: path)
         await model.load()
         #expect(model.personCadence == .none)
@@ -162,7 +162,7 @@ struct CadenceTests {
         let file = context.root.appendingPathComponent(path)
         let input = try Data(contentsOf: writeCase("cadence-days-replace-text", "input.md"))
         try input.write(to: file)
-        await context.store.refresh(rebuild: true)
+        await context.store.refreshAndSettle(rebuild: true)
         let model = EntityDetailModel(store: context.store, path: path)
         await model.load()
         #expect(model.personCadence == .none)
@@ -188,7 +188,7 @@ struct CadenceTests {
         let file = context.root.appendingPathComponent(path)
         func place(_ name: String) async throws -> Data {
             try Data(contentsOf: writeCase(name, "input.md")).write(to: file)
-            await context.store.refresh(rebuild: true)
+            await context.store.refreshAndSettle(rebuild: true)
             return try Data(contentsOf: writeCase(name, "expected.md"))
         }
         let store = context.store
@@ -239,7 +239,7 @@ struct CadenceTests {
         let file = context.root.appendingPathComponent(path)
         let twice = Data("---\ntype: person\nname: Ada Kaya\ncadence_days: 7\ncadence_days: 30\n---\nNot.\n".utf8)
         try twice.write(to: file)
-        await context.store.refresh(rebuild: true)
+        await context.store.refreshAndSettle(rebuild: true)
         for command in UnseenCadenceCommand.allCases {
             #expect(await command.apply(path: path, today: today, store: context.store) != nil)
         }
@@ -252,7 +252,7 @@ struct CadenceTests {
         #expect(try Data(contentsOf: file) == twice)
 
         try Data("Not.\r\n".utf8).write(to: file)
-        await context.store.refresh(rebuild: true)
+        await context.store.refreshAndSettle(rebuild: true)
         #expect(await UnseenCadenceCommand.pause.apply(path: path, today: today, store: context.store) == nil)
         let written = try Data(contentsOf: file)
         #expect(written.suffix(6) == Data("Not.\r\n".utf8))
@@ -276,7 +276,7 @@ struct CadenceTests {
             "---\ntype: place\nname: Kıyı\ncadence_days: 30\ncadence_snoozed_until: 2026-11-01\ncadence_paused: true\n---\n"
                 .utf8)
         try bytes.write(to: file)
-        await context.store.refresh(rebuild: true)
+        await context.store.refreshAndSettle(rebuild: true)
         #expect(try await context.store.personCadences()[path] == nil)
         let model = EntityDetailModel(store: context.store, path: path)
         await model.load()

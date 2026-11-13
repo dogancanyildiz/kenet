@@ -54,7 +54,7 @@ struct TaskMoveDateTests {
             + "- [ ] monday 📅 2026-10-05 ^monday\n- [x] done 📅 2026-10-01 ✅ 2026-10-02 ^done\n"
             + "- [X] upper 📅 2026-10-03 ^upper\n- [-] dropped 📅 2026-10-01 ^dropped\n"
         try Data(source.utf8).write(to: context.file)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let all: [TaskMoveDestination] = [.today, .tomorrow, .nextWeek]
         #expect(try await destinations("past", in: context) == all)
         #expect(try await destinations("none", in: context) == all)
@@ -76,7 +76,7 @@ struct TaskMoveDateTests {
         defer { context.clean() }
         await context.start()
         try Data("- [ ] open ^open\n- [ ] here 📅 2026-10-03 ^here\n".utf8).write(to: context.file)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let saturday = CalendarDate("2026-10-03")!
         #expect(saturday.weekday == 5)
         #expect(context.today == saturday)
@@ -251,7 +251,7 @@ struct TaskMoveWriteTests {
         ]
         let source = lines.joined(separator: "\r\n")
         try Data(source.utf8).write(to: context.file)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let tomorrow = try #require(TaskMove.date(.tomorrow, today: context.today))
         #expect(try await move("call [[Ada]]", to: context.today, in: context))
         #expect(try await move("bare [[Ada|A.]] #tag", to: context.today, in: context))
@@ -276,7 +276,7 @@ struct TaskMoveWriteTests {
         defer { context.clean() }
         await context.start()
         try Data("- [ ] first 📅 2026-10-01\n- [ ] second 📅 2026-10-01\n".utf8).write(to: context.file)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         #expect(try await move("second", to: context.today, in: context))
         let text = String(decoding: try Data(contentsOf: context.file), as: UTF8.self)
         let prefix = "- [ ] first 📅 2026-10-01\n- [ ] second 📅 2026-10-03 ^"
@@ -295,7 +295,7 @@ struct TaskMoveWriteTests {
             + "- [ ] three 📅 2026-10-01 🔁 every week ^three\n- [x] done 📅 2026-10-01 ✅ 2026-10-02 ^done\n"
             + "- [ ] four 📅 2026-10-01 ^four\n- [ ] here 📅 2026-10-03 ^here\n"
         try Data(source.utf8).write(to: context.file)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let groups = await DayTasksModel.loaded(store: context.store, day: context.today, isToday: true).groups
         #expect(groups.overdue.map(\.sourceText).sorted() == ["four", "one", "three", "two"])
         var rows: [TaskRow] = []
@@ -322,7 +322,7 @@ struct TaskMoveWriteTests {
             "- [ ] one 📅 2026-10-01 ^one\n- [ ] gone 📅 2026-10-01 ^gone\n- [ ] closed 📅 2026-10-01 ^closed\n"
             + "- [ ] two 📅 2026-10-01 ^two\n"
         try Data(source.utf8).write(to: context.file)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         var rows: [TaskRow] = []
         for text in ["one", "gone", "closed", "two"] { rows.append(try await context.row(text)) }
         // Outside the app: lines added above, one task deleted, one completed.
@@ -346,7 +346,7 @@ struct TaskMoveWriteTests {
         await context.start()
         let source = "- [ ] same 📅 2026-10-01 ^a\n- [ ] same 📅 2026-10-01 ^a\n- [ ] other 📅 2026-10-01 ^b\n"
         try Data(source.utf8).write(to: context.file)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let rows = try await sameRows(in: context)
         #expect(rows.count == 2)
         let inPlace = await TaskMove.apply(rows, to: context.today, in: context.store)
@@ -359,7 +359,7 @@ struct TaskMoveWriteTests {
         #expect(written[2] == "- [ ] other 📅 2026-10-01 ^b")
 
         try Data(source.utf8).write(to: context.file)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let again = try await sameRows(in: context)
         try Data(("note\n" + source).utf8).write(to: context.file)
         let shifted = await TaskMove.apply(again, to: context.today, in: context.store)
@@ -377,7 +377,7 @@ struct TaskMoveWriteTests {
         let other = context.root.appendingPathComponent("diary/2026-10-02.md")
         try Data("- [ ] kept 📅 2026-10-01 ^kept\n".utf8).write(to: context.file)
         try Data("- [ ] lost 📅 2026-10-01 ^lost\n".utf8).write(to: other)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         var rows: [TaskRow] = []
         for text in ["lost", "kept"] { rows.append(try await context.row(text)) }
         try FileManager.default.removeItem(at: other)
@@ -395,7 +395,7 @@ struct TaskMoveWriteTests {
         await context.start()
         let source = "- [ ] here 📅 2026-10-03 ^here\n- [x] done 📅 2026-10-01 ✅ 2026-10-02 ^done\n"
         try Data(source.utf8).write(to: context.file)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let stamp = try FileManager.default.attributesOfItem(atPath: context.file.path)[.modificationDate] as? Date
         var rows: [TaskRow] = []
         for text in ["here", "done"] { rows.append(try await context.row(text)) }

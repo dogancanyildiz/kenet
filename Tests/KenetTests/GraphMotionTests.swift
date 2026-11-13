@@ -500,7 +500,7 @@ import VaultFormat
         let text = try String(contentsOf: file, encoding: .utf8)
         try text.replacingOccurrences(of: "name: Baran Tunç\n", with: "name: Baran Tunç\nqualifier: yürüyüş\n")
             .write(to: file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         await waitUntil { context.store.content.entities.first(where: { $0.id == id })?.qualifier != nil }
         screen.select(id, recenter: false)
         await screen.load(today: today)

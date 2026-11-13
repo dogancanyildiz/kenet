@@ -158,7 +158,7 @@ struct GoalEditingTests {
         await model.load()
         let source = "---\ntype: diary\ndate: 2026-09-27\ngoals:\n  su: 3\n---\n"
         try Data(source.utf8).write(to: context.root.appendingPathComponent("diary/\(day).md"))
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         await model.load()
         #expect(model.value(for: try #require(model.goals.first { $0.key == "su" })) == .number(3))
         #expect((try await context.store.goalHistory())["su"]?.last { $0.day == day }?.value == .number(3))

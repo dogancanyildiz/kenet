@@ -34,7 +34,7 @@ import VaultStore
         await context.store.select(context.root)
         #expect(EntityTypeGalleryEntry.isEnabled(context.store))
         try Data("{broken".utf8).write(to: context.root.appendingPathComponent(".app/types.json"))
-        await context.store.refresh(rebuild: true)
+        await context.store.refreshAndSettle(rebuild: true)
         #expect(context.store.entityTypes.issue != nil)
         #expect(!EntityTypeGalleryEntry.isEnabled(context.store))
     }

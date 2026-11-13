@@ -283,7 +283,7 @@ struct WriteQueueTests {
         let file = root.appendingPathComponent("diary/\(day).md")
         try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
         try Data(seed.utf8).write(to: file)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let row = try #require(try await context.store.allTasks().first { $0.sourceText == "Mark me done" })
         let beforeLine = row.sourceLine
 

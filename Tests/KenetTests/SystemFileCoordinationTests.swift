@@ -218,7 +218,7 @@ struct CoordinatedVaultWriteTests {
                 at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
             try Data(text.utf8).write(to: url)
         }
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
     }
 
     @Test func eventTaskDiaryAndRenameWritesAreCoordinatedAndIndexed() async throws {

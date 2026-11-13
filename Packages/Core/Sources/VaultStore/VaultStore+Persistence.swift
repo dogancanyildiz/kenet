@@ -4,6 +4,8 @@ import VaultFormat
 extension VaultStore {
     /// Called inside the operation’s coordination boundary; never starts nested coordination.
     nonisolated func persist(_ document: RawDocument, path: String, exclusive: Bool = false) throws {
+        // A day file is never created under the legacy day folder; only an existing one is written.
+        if exclusive, VaultLayout.isLegacyDayPath(path) { throw VaultStoreError.invalidPath }
         let url = try checkedURL(path, writing: true)
         try atomicWrite(Data(document.serialized()), to: url, exclusive: exclusive)
         do {

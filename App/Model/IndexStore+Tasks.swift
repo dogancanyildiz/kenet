@@ -12,7 +12,7 @@ extension IndexStore {
         guard canAddEvent else { return false }
         reportTaskEntryError(nil)
         do {
-            try await performEdit(path: dayFilePath(for: day)) { writer in
+            try await performDayEdit(on: day) { writer, _ in
                 try await writer.addingTask(on: day, text: text, due: due, priority: priority, recurrence: recurrence)
             }
             return true

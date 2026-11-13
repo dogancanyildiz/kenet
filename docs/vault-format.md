@@ -821,8 +821,9 @@ Uygulama eski adları kasa geçişi bitene kadar okur ve yazar. Başka cihazdaki
 | Gün yalnız eski klasörde | Gün dosyası `journal/YYYY-MM-DD.md` dosyasıdır. Uygulama o dosyayı okur ve o dosyaya yazar. `diary/` altında ikinci dosya açmaz. |
 | Eski klasördeki dosya indirilmeyi bekliyor | Dosya yine günün dosyasıdır. Yazma indirmeyi bekler; `diary/` altında dosya açılmaz. |
 | Eski başlıklı dosyaya yazma | Uygulama metni `## Journal` başlığının altına ekler. Başlığı değiştirmez. |
-| Gün hiçbir klasörde yok | Uygulama yeni dosyayı `diary/` altında açar. |
-| Aynı gün iki klasörde | `diary/` altındaki dosya günün dosyasıdır. Tarihe göre sayan görünümler eski dosyayı saymaz: gün listesi, özetler, geçmişte bugün, varlık zaman akışı, bağlanmamış anmalar. Görev listeleri iki dosyanın satırlarını da gösterir. Geçiş eski dosyayı gün kopyası yapar. |
+| Gün hiçbir klasörde yok | Uygulama yeni dosyayı `diary/` altında açar. Uygulama eski klasörde hiçbir zaman yeni gün dosyası açmaz. |
+| Gün seçimden sonra taşındı | Yazıcı eski dosyayı seçtikten sonra başka süreç onu taşıdıysa yazıcı günün dosyasını yeniden seçer. Yazı `diary/` altına gider. |
+| Aynı gün iki klasörde | `diary/` altındaki dosya günün dosyasıdır. Tarihe göre sayan görünümler eski dosyayı saymaz: gün listesi, özetler, geçmişte bugün, varlık zaman akışı, varlık kullanımı ve birlikte geçme, ilişki grafiği, bağlanmamış anmalar. Görev listeleri iki dosyanın satırlarını da gösterir. Geçiş eski dosyayı gün kopyası yapar. |
 | Eski klasördeki gün kopyası | `journal/YYYY-MM-DD N.md` indekse girmez ve birleştirilmez. Geçiş onu `diary/` altına taşır. |
 | İki başlık aynı dosyada | Önce gelen tanınan başlıktır. Yinelenen başlık kuralı geçerlidir. |
 | Birleştirme | Eski başlık bölge eşleşmesinde `## Diary` sayılır. |
@@ -880,6 +881,8 @@ flowchart TD
 | Sınır | Ayrıntı |
 |---|---|
 | Yeniden yazılan dosyanın öznitelikleri | Başlığı ya da `type` değeri değişen dosya yeni dosya olarak yazılır. Yalnız değişiklik zamanı kopyalanır. Genişletilmiş öznitelikler, Finder etiketleri ve oluşturma tarihi kaybolur. Bayt bayt taşınan dosya hepsini korur. |
+| Gölgelenen eski dosyanın görevleri | Görev listeleri iki dosyanın görevlerini de gösterir. Eski dosyadaki görevin oluşturulma günü yoktur; özetler onu güne bağlamaz. |
+| Gölgelenen eski dosyanın içeriği | Gün sayfası ve tarihe göre sayan görünümler eski dosyanın olaylarını ve yazısını göstermez. Geçiş onu gün kopyası yapınca birleştirme içeriği `diary/` dosyasına katar. |
 | Eski başlığın üstündeki `## Diary` | Kullanıcının `## Journal` başlığından önce yazdığı `## Diary` başlığı serbest yazı bölümü olur. `## Journal` yinelenen başlık sayılır ve geçişte değişmez. |
 
 ### Hedef gün kayıtları

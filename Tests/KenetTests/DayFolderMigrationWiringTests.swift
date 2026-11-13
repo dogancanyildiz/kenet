@@ -48,14 +48,18 @@ struct DayFolderMigrationWiringTests {
     @Test func confirmingMovesTheDays() async throws {
         let context = try await open()
         defer { context.clean() }
+        // A band left from an earlier run: this run's numbers replace its numbers and names.
+        context.store.sync.mergeReport = DayCopyMergeReport(
+            movedDays: 9, unmovedDays: 1, unmovedNames: ["\(LegacyVaultNames.dayFolder)/2026-01-01.md"])
         context.store.moveLegacyDayFolder()
+        #expect(!context.store.offersLegacyDayFolderMove)
         await context.store.waitForDayFolderMigration()
         await context.store.waitWhileRefreshInFlight()
         let expected = try DayCopyVaultContext.tree(Self.fixture.appendingPathComponent("expected"))
         #expect(try days(context.root) == expected)
         let report = try #require(context.store.sync.mergeReport)
         #expect(report.movedDays == 5 && report.copiedDays == 2 && report.unmovedDays == 0)
-        #expect(!report.hasFailures)
+        #expect(report.unmovedNames.isEmpty && !report.hasFailures)
         #expect(context.store.sync.legacyDayFiles == 0)
         #expect(!context.store.offersLegacyDayFolderMove)
         #expect(context.store.sync.dayCopies == ["diary/2026-10-05 2.md", "diary/2026-10-06 2.md"])
@@ -108,4 +112,13 @@ struct DayFolderMigrationWiringTests {
     #expect(after.contains("- 14:00 Kahve ^new123"))
     #expect(after.hasSuffix("## \(LegacyVaultNames.diaryHeading)\nEski.\n"))
     #expect(!FileManager.default.fileExists(atPath: context.dayFile.path))
+}
+
+/// The band names at most five files that stayed, through the String Catalog.
+@Test func unmovedDaysAreNamedThroughTheCatalog() {
+    let report = DayCopyMergeReport(
+        unmovedDays: 6, unmovedNames: (1...6).map { "\(LegacyVaultNames.dayFolder)/2026-10-0\($0).md" })
+    let names = "2026-10-01.md, 2026-10-02.md, 2026-10-03.md, 2026-10-04.md, 2026-10-05.md, …"
+    #expect(report.message.hasSuffix(String(localized: "Taşınamayanlar: \(names)")))
+    #expect(!report.message.contains("2026-10-06.md"))
 }

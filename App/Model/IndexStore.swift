@@ -355,9 +355,10 @@ final class IndexStore {
                 entryErrorText = nil
                 var saved = false
                 do {
-                    let path = writer.dayFilePath(for: day)
                     try await writer.addingEvent(on: day, text: text, time: time)
                     saved = true
+                    // Chosen after the write: the file that holds the day now.
+                    let path = await Self.dayFile(of: day, in: writer)
                     try await publishAfterWrite(from: index, changedPaths: [path])
                 } catch {
                     if case VaultStoreError.indexUpdateFailed = error { saved = true }
@@ -378,9 +379,24 @@ final class IndexStore {
     }
 
     /// The day's file as the writer resolves it: `diary/<date>.md`, or the legacy file of a vault
-    /// not yet migrated (`VaultStore.dayFilePath(for:)`). Edits publish this path.
-    func dayFilePath(for day: CalendarDate) -> String {
-        writer?.dayFilePath(for: day) ?? VaultLayout.dayPath(day)
+    /// not yet migrated (`VaultStore.dayFilePath(for:)`). The folder is read off the main actor.
+    func dayFilePath(for day: CalendarDate) async -> String {
+        guard let writer else { return VaultLayout.dayPath(day) }
+        return await Self.dayFile(of: day, in: writer)
+    }
+
+    nonisolated static func dayFile(of day: CalendarDate, in writer: VaultStore) async -> String {
+        await Task.detached { writer.dayFilePath(for: day) }.value
+    }
+
+    /// An edit of `day`'s file. The file is chosen inside the edit's turn and chosen again after the
+    /// write, so a day the folder migration moved meanwhile (perhaps in another process) publishes
+    /// the file that holds it now. Core maps a moved legacy path itself (`VaultStore.edit`).
+    func performDayEdit(on day: CalendarDate, _ operation: (VaultStore, String) async throws -> Void) async throws {
+        try await performEdit { writer in
+            try await operation(writer, await Self.dayFile(of: day, in: writer))
+            return [await Self.dayFile(of: day, in: writer)]
+        }
     }
 
     /// Disk reads belong to the selected vault, never to the index's paragraph projection. Like
@@ -1090,7 +1106,7 @@ final class IndexStore {
         refreshInFlight = false
         if holdsProcessing { isProcessing = false }
         scheduleDayCopyMerge()
-        updateLegacyDayFolderOffer()
+        await updateLegacyDayFolderOffer()
         await applyPendingSelection()
     }
 
@@ -1158,7 +1174,7 @@ final class IndexStore {
     /// write waits its turn is not written (`staleTarget`, nothing written).
     func appendToDiary(on day: CalendarDate, lines: [String]) async throws {
         guard lines.contains(where: { !$0.allSatisfy(\.isWhitespace) }) else { return }
-        try await performEdit(path: dayFilePath(for: day)) { writer in
+        try await performDayEdit(on: day) { writer, _ in
             try await writer.appendingDiary(on: day, lines: lines)
         }
     }

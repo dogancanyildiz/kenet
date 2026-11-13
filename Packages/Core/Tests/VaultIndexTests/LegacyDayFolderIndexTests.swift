@@ -1,3 +1,4 @@
+import EntityRecognition
 import Foundation
 import Testing
 import VaultFormat
@@ -72,18 +73,35 @@ struct LegacyDayFolderIndexTests {
         defer { try? FileManager.default.removeItem(at: scratch) }
         try FileManager.default.copyItem(
             at: Fixtures.root().appendingPathComponent("migration/legacy-vault/source"), to: scratch)
-        // The legacy file of this date holds an event with the same link and a diary paragraph.
-        try Data("## Events\n- 08:00 [[Ada Kurt]] ile yürüyüş ^x1y2z3\n\n## Diary\nYeni.\n".utf8)
-            .write(to: scratch.appendingPathComponent("diary/2026-10-01.md"))
+        // Both files of this date link the same two entities and spell one of them plainly.
+        let dayText = "## Events\n- 08:00 [[Ada Kurt]] ile [[Liman]] yürüyüşü ^x1y2z3\n- 09:00 Ada Kurt aradı ^p9o8i7\n"
+        try Data((dayText + "\n## Diary\nYeni.\n").utf8).write(
+            to: scratch.appendingPathComponent("diary/2026-10-01.md"))
+        try Data(
+            ("---\ntype: \(LegacyVaultNames.dayType)\n---\n\n" + dayText
+                + "\n## \(LegacyVaultNames.diaryHeading)\nEski.\n").utf8
+        )
+        .write(to: scratch.appendingPathComponent("\(legacy)/2026-10-01.md"))
+        try FileManager.default.createDirectory(
+            at: scratch.appendingPathComponent("places"), withIntermediateDirectories: true)
+        try Data("---\ntype: place\nname: Liman\n---\n".utf8).write(
+            to: scratch.appendingPathComponent("places/Liman.md"))
         let index = try VaultIndex()
         try index.rebuild(vaultRoot: scratch)
         let day = CalendarDate("2026-10-01")!
         #expect(try index.daySummaries(from: day, to: day).map(\.file) == ["diary/2026-10-01.md"])
-        #expect(try index.summaryDays(from: day, to: day).map(\.events) == [1])
+        #expect(try index.summaryDays(from: day, to: day).map(\.events) == [2])
         #expect(try index.blocks(on: day).allSatisfy { $0.file == "diary/2026-10-01.md" })
-        #expect(try index.onThisDayInput(for: day).mentions.filter { $0.day == day }.count == 1)
+        #expect(try index.onThisDayInput(for: day).mentions.filter { $0.day == day }.count == 2)
         #expect(try index.entityTimeline(for: "people/Ada Kurt.md").map(\.block.file) == ["diary/2026-10-01.md"])
-        #expect(try index.entityUsage().first { $0.file == "people/Ada Kurt.md" }?.totalCount == 1)
+        let usage = try #require(try index.entityUsage().first { $0.file == "people/Ada Kurt.md" })
+        #expect(usage.totalCount == 1)
+        #expect(usage.cooccurrences == ["places/Liman.md": 1])
+        let graph = try index.graphMentions(kinds: ["person", "place"])
+        #expect(graph.totals == ["people/Ada Kurt.md": 1, "places/Liman.md": 1])
+        #expect(graph.days.first { $0.date == day }?.mentions == ["people/Ada Kurt.md": 1, "places/Liman.md": 1])
+        let ada = KnownEntity(file: "people/Ada Kurt.md", kind: .person, name: "Ada Kurt")
+        #expect(try index.unlinkedMentions(of: ada, vaultRoot: scratch).map(\.file) == ["diary/2026-10-01.md"])
         // Both files stay in the index; only date-based views leave the legacy one out.
         #expect(try index.files().map(\.path).contains("\(legacy)/2026-10-01.md"))
     }

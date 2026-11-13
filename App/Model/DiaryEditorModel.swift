@@ -85,7 +85,7 @@ final class DiaryEditorModel {
             await acceptSaved(draft: draft, linked: linked)
             errorText = DayEditError.message(
                 for: VaultStoreError.indexUpdateFailed(
-                    path: store.dayFilePath(for: day), underlying: CocoaError(.fileReadUnknown)))
+                    path: await store.dayFilePath(for: day), underlying: CocoaError(.fileReadUnknown)))
             return true
         } catch {
             errorText = DayEditError.message(for: error)

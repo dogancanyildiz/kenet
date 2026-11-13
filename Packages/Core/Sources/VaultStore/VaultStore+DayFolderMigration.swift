@@ -22,6 +22,8 @@ public struct DayFolderMigrationOutcome: Sendable, Equatable {
     public var removedLegacyFolder = false
     /// Whether no legacy day file is left that this run has not tried: the run is over.
     public var finished = true
+    /// Whether the index missed a batch's files. They moved all the same; a refresh indexes them.
+    public var indexUpdateFailed = false
 
     public init() {}
 
@@ -44,6 +46,7 @@ public struct DayFolderMigrationOutcome: Sendable, Equatable {
         leftInPlace = batch.leftInPlace
         removedLegacyFolder = removedLegacyFolder || batch.removedLegacyFolder
         finished = batch.finished
+        indexUpdateFailed = indexUpdateFailed || batch.indexUpdateFailed
     }
 }
 
@@ -91,7 +94,7 @@ extension VaultStore {
 
     /// One batch of ``migratingLegacyDayFolder(batchSize:)``: up to `limit` legacy day files not in
     /// `skipping`, in one turn of the write queue. When none is left the folder is removed if empty
-    /// and the outcome is `finished`.
+    /// and the outcome is `finished`. A failed index update is reported in the outcome, not thrown.
     public func migratingLegacyDayBatch(limit: Int, skipping: Set<String> = []) async throws
         -> DayFolderMigrationOutcome
     {
@@ -157,11 +160,8 @@ extension VaultStore {
             }
         }
         if !touched.isEmpty {
-            do {
-                try index.update(paths: Set(touched), vaultRoot: root)
-            } catch {
-                throw VaultStoreError.indexUpdateFailed(path: touched[0], underlying: error)
-            }
+            // The files moved; a failed index update must not lose the batch's outcome.
+            do { try index.update(paths: Set(touched), vaultRoot: root) } catch { outcome.indexUpdateFailed = true }
         }
         return outcome
     }

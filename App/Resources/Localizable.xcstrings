@@ -2306,6 +2306,22 @@
         }
       }
     },
+    "Taşınamayanlar: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not moved: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taşınamayanlar: %@"
+          }
+        }
+      }
+    },
     "Bu kasa gün dosyalarını eski journal klasöründe tutuyor." : {
       "localizations" : {
         "en" : {

@@ -12,11 +12,17 @@ extension IndexStore {
     /// After a refresh: counts the legacy day folder's day files, day copies and the ones waiting
     /// for download, for the offer on the main screen (`vault-format.md`, "Eski adlar ve geçiş").
     /// Nothing moves until the user confirms (decision 2026-11-13): another device or Obsidian may
-    /// still write there. A read-only vault gets no offer.
-    func updateLegacyDayFolderOffer() {
+    /// still write there. A read-only vault gets no offer. The folder is read off the main actor.
+    func updateLegacyDayFolderOffer() async {
         guard let root = vaultURL, sync.root == root else { return }
-        let count = canAddEvent ? Self.legacyDayFileCount(in: root) : 0
+        let epoch = sync.epoch
+        let count = canAddEvent ? await Self.countLegacyDayFiles(in: root) : 0
+        guard vaultURL == root, sync.epoch == epoch else { return }
         if sync.legacyDayFiles != count { sync.legacyDayFiles = count }
+    }
+
+    nonisolated static func countLegacyDayFiles(in root: URL) async -> Int {
+        await Task.detached { legacyDayFileCount(in: root) }.value
     }
 
     /// Whether the main screen offers to move the legacy day folder now.
@@ -75,7 +81,7 @@ extension IndexStore {
                     return []
                 }
             } catch VaultStoreError.indexUpdateFailed {
-                // The files moved; the refresh below indexes them.
+                // The batch's files moved and its outcome is kept; the refresh below publishes them.
             } catch {
                 // Could not start (a `Diary/` case variant, a read-only vault, another vault opened).
                 stopped = true
@@ -83,13 +89,17 @@ extension IndexStore {
             outcome.add(batch)
         } while !stopped && !outcome.finished && vaultURL == root && sync.epoch == epoch
         guard vaultURL == root, sync.epoch == epoch else { return }
+        let left = await Self.countLegacyDayFiles(in: root)
+        guard vaultURL == root, sync.epoch == epoch else { return }
+        // This run's numbers replace the last run's; a day copy merge's numbers stay beside them.
         var report = sync.mergeReport ?? DayCopyMergeReport()
-        report.movedDays += outcome.moved.count
-        report.copiedDays += outcome.copies.count
-        let unmoved = stopped ? Self.legacyDayFileCount(in: root) : outcome.failed.count + outcome.waiting.count
-        report.unmovedDays += unmoved
-        report.unmovedNames += outcome.failed + outcome.waiting
-        if !report.isEmpty { sync.mergeReport = report }
+        report.movedDays = outcome.moved.count
+        report.copiedDays = outcome.copies.count
+        report.unmovedDays = stopped ? left : outcome.failed.count + outcome.waiting.count
+        report.unmovedNames = stopped ? [] : outcome.failed + outcome.waiting
+        sync.mergeReport = report.isEmpty ? nil : report
+        // Counted before the run ends, so the offer does not come back for a moment after a full move.
+        sync.legacyDayFiles = left
         sync.folderMigrationTask = nil
         // The moved days and the new day copies; the copies then merge as any other.
         await refresh(directories: [VaultLayout.dayFolder, LegacyVaultNames.dayFolder])

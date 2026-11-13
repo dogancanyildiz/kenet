@@ -21,7 +21,7 @@ struct LegacyDayWriteTests {
         let root: URL
         let store: VaultStore
 
-        init(files: [String: String]) throws {
+        init(files: [String: String], coordination: any FileCoordination = DirectFileCoordination()) throws {
             root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
             for (path, text) in files {
                 let url = root.appendingPathComponent(path)
@@ -31,7 +31,7 @@ struct LegacyDayWriteTests {
             }
             let index = try VaultIndex()
             try index.rebuild(vaultRoot: root)
-            store = VaultStore(vaultRoot: root, index: index)
+            store = VaultStore(vaultRoot: root, index: index, fileCoordination: coordination)
         }
 
         func text(_ path: String) throws -> String { try String(decoding: Data(contentsOf: url(path)), as: UTF8.self) }
@@ -96,5 +96,71 @@ struct LegacyDayWriteTests {
         let vault = try Vault(files: ["\(LegacyVaultNames.diaryHeading)/2026-10-01.md": Self.legacyDay])
         defer { vault.remove() }
         #expect(vault.store.dayFilePath(for: Self.day) == "diary/2026-10-01.md")
+    }
+
+    /// Another process (the app's folder migration) moves the day after this writer chose the
+    /// legacy file and before its coordinated read. The writer chooses again: the entry lands in
+    /// `diary/`, and the legacy folder the migration removed is not created again.
+    @Test(arguments: ["event", "diary", "explicitPath"])
+    func aDayMovedMeanwhileIsWrittenWhereItWent(_ write: String) async throws {
+        let moved = MoveOnce()
+        let vault = try Vault(
+            files: ["\(legacy)/2026-10-01.md": Self.legacyDay],
+            coordination: Moving { url in
+                guard url.lastPathComponent == "2026-10-01.md",
+                    url.deletingLastPathComponent().lastPathComponent == legacy, moved.first()
+                else { return }
+                let diary = url.deletingLastPathComponent().deletingLastPathComponent()
+                    .appendingPathComponent("diary")
+                try? FileManager.default.createDirectory(at: diary, withIntermediateDirectories: true)
+                try? FileManager.default.moveItem(at: url, to: diary.appendingPathComponent("2026-10-01.md"))
+                _ = rmdir(url.deletingLastPathComponent().path)
+            })
+        defer { vault.remove() }
+        let path = "\(legacy)/2026-10-01.md"
+        #expect(vault.store.dayFilePath(for: Self.day) == path)
+        switch write {
+        case "event": try await vault.store.addingEvent(on: Self.day, text: "Yürüyüş")
+        case "diary": try await vault.store.appendingDiary(on: Self.day, lines: ["Yeni satır."])
+        default:
+            // A line edit by the path the caller read earlier, as the app's event editor sends it.
+            let event = try #require(RawDocument(bytes: Array(Self.legacyDay.utf8)).bodyLines.events.first)
+            try await vault.store.deletingBlock(event.block, at: path)
+        }
+        #expect(!vault.exists(legacy))
+        let text = try vault.text("diary/2026-10-01.md")
+        switch write {
+        case "event": #expect(text.contains("- Yürüyüş"))
+        case "diary": #expect(text.hasSuffix("Eski yazı.\n\nYeni satır.\n"))
+        default: #expect(!text.contains("Kahvaltı"))
+        }
+        #expect(vault.store.dayFilePath(for: Self.day) == "diary/2026-10-01.md")
+    }
+}
+
+/// Runs `before` with the URL of each `.modify` just before its accessor, as another process would.
+private struct Moving: FileCoordination {
+    let before: @Sendable (URL) -> Void
+
+    init(_ before: @escaping @Sendable (URL) -> Void) { self.before = before }
+
+    func coordinate<T>(
+        _ operation: FileCoordinationOperation, accessor: (FileCoordinationAccess) throws -> T
+    ) throws -> T {
+        if case .modify(let url) = operation { before(url) }
+        return try accessor(FileCoordinationAccess())
+    }
+}
+
+/// True the first time only.
+private final class MoveOnce: @unchecked Sendable {
+    private let lock = NSLock()
+    private var done = false
+
+    func first() -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        defer { done = true }
+        return !done
     }
 }

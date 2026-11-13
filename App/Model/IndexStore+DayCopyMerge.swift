@@ -33,7 +33,8 @@ struct DayCopyMergeReport: Equatable, Sendable {
             parts.append(String(localized: "\(unmovedDays) gün dosyası taşınamadı; eski klasörde duruyor."))
             let names = unmovedNames.map { ($0 as NSString).lastPathComponent }
             if !names.isEmpty {
-                parts.append("(" + names.prefix(5).joined(separator: ", ") + (names.count > 5 ? ", …" : "") + ")")
+                let list = names.prefix(5).joined(separator: ", ") + (names.count > 5 ? ", …" : "")
+                parts.append(String(localized: "Taşınamayanlar: \(list)"))
             }
         }
         if merged > 0 { parts.append(String(localized: "\(merged) gün kopyası birleştirildi.")) }

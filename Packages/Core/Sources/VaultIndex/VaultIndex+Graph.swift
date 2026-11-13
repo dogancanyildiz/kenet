@@ -54,7 +54,7 @@ extension VaultIndex {
     /// resolved link into an entity of `kinds` (`date` nil), or only those from `date`'s day files.
     func graphRows(kinds: Set<String>, date: CalendarDate?) throws -> GraphRows {
         let placeholders = Array(repeating: "?", count: kinds.count).joined(separator: ",")
-        let oneDay = date == nil ? "" : "AND f.kind = 'day' AND f.date = ? AND \(Self.countsForItsDate("f"))"
+        let oneDay = date == nil ? "" : "AND f.kind = 'day' AND f.date = ?"
         var arguments = kinds.sorted()
         if let date { arguments.append(date.description) }
         var rows = GraphRows()
@@ -67,6 +67,7 @@ extension VaultIndex {
                     JOIN entities e ON e.file = l.resolvedFile
                     LEFT JOIN files f ON f.path = l.file
                     WHERE e.kind IN (\(placeholders)) \(oneDay)
+                        AND (f.path IS NULL OR \(Self.countsForItsDate("f")))
                     GROUP BY l.resolvedFile, l.file
                     """, arguments: StatementArguments(arguments))
             while let row = try cursor.next() {

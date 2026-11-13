@@ -308,12 +308,25 @@ public actor VaultStore {
     ) throws -> RawDocument {
         for attempt in 0..<2 {
             do {
-                return try editOnce(path, date: date, createDay: createDay, transform: transform)
+                return try editOnce(
+                    resolvingMovedLegacyDay(path), date: date, createDay: createDay, transform: transform)
             } catch VaultStoreError.nameTaken where date != nil {
+                guard attempt == 0 else { throw VaultStoreError.staleTarget }
+            } catch is LegacyDayMoved {
+                // The folder migration moved the day after the path was chosen: choose again.
                 guard attempt == 0 else { throw VaultStoreError.staleTarget }
             }
         }
         throw VaultStoreError.staleTarget
+    }
+
+    /// A path of the legacy day folder whose file is gone, moved by the folder migration perhaps in
+    /// another process, becomes the day's current file (`dayFilePath(for:)`). Any other path stays.
+    nonisolated func resolvingMovedLegacyDay(_ path: String) -> String {
+        guard VaultLayout.isLegacyDayPath(path), let day = VaultLayout.day(ofDayPath: path),
+            !Self.dayFileIsThere(path, in: root)
+        else { return path }
+        return dayFilePath(for: day)
     }
 
     private nonisolated func editOnce(
@@ -327,6 +340,10 @@ public actor VaultStore {
             do {
                 original = RawDocument(bytes: try readFile(url))
                 wasMissing = false
+            } catch CocoaError.fileReadNoSuchFile where VaultLayout.isLegacyDayPath(path) {
+                // Never a new file under the legacy day folder: the day moved since the path was chosen.
+                try rejectPendingDownload(at: url, path: path)
+                throw LegacyDayMoved()
             } catch CocoaError.fileReadNoSuchFile where date != nil {
                 try rejectPendingDownload(at: url, path: path)
                 guard createDay else { return RawDocument(bytes: []) }
@@ -374,3 +391,6 @@ public actor VaultStore {
         return try freshID(in: document)
     }
 }
+
+/// The legacy day file an edit chose was gone inside the coordinated read; `edit` chooses again.
+struct LegacyDayMoved: Error {}

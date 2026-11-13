@@ -321,6 +321,26 @@ struct DayFolderMigrationTests {
         #expect(outcome.failed.isEmpty)
     }
 
+    /// An index that cannot take a batch's paths does not end the run or lose its counts: every
+    /// batch moves its files, and the outcome says the index missed them.
+    @Test func aFailedIndexUpdateNeitherStopsTheRunNorLosesItsCounts() async throws {
+        let vault = try LegacyVault()
+        defer { vault.remove() }
+        try await vault.index.database.write {
+            try $0.execute(
+                sql: "CREATE TRIGGER fail_files BEFORE INSERT ON files BEGIN SELECT RAISE(FAIL, 'test'); END")
+        }
+        let first = try await vault.store().migratingLegacyDayBatch(limit: 2)
+        #expect(first.indexUpdateFailed && !first.finished && first.moved.count == 2)
+        let outcome = try await vault.store().migratingLegacyDayFolder(batchSize: 2)
+        let wanted = try JSONDecoder().decode(
+            Outcome.self, from: Data(contentsOf: LegacyVault.fixture().appendingPathComponent("outcome.json")))
+        #expect(outcome.indexUpdateFailed && outcome.finished)
+        #expect(first.moved + outcome.moved == wanted.moved && outcome.copies == wanted.copies)
+        #expect(outcome.failed.isEmpty)
+        #expect(try Self.tree(vault.root) == expected())
+    }
+
     /// Batches leave the write queue between them and add up to the same run.
     @Test func batchesAddUpToOneRun() async throws {
         let vault = try LegacyVault()

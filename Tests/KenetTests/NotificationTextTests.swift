@@ -23,6 +23,10 @@ struct NotificationTextTests {
             .localized("Önceki günlerden %@ açık görev.", "10"), "Önceki günlerden 10 açık görev.",
             "10 open tasks from previous days."
         ),
+        (
+            .localized("Önceki günlerden 1 açık görev."), "Önceki günlerden 1 açık görev.",
+            "1 open task from previous days."
+        ),
         (.localized("Günlük hedefler"), "Günlük hedefler", "Daily goals"),
         (.localized("Bugün bekleyen hedefler var"), "Bugün bekleyen hedefler var", "There are goals remaining today"),
         (

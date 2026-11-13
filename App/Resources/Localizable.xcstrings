@@ -19202,6 +19202,23 @@
         }
       }
     },
+    "Önceki günlerden 1 açık görev." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 open task from previous days."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Önceki günlerden 1 açık görev."
+          }
+        }
+      }
+    },
     "Önceki hafta" : {
       "localizations" : {
         "en" : {

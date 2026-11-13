@@ -160,6 +160,8 @@ struct GoalDetailView: View {
             // A picked past day follows outside changes too, or a quick step adds to a stale value.
             await pickedDay?.load()
         }
+        // Every number, chart and log row on the page is computed from the history model.
+        .pageReady(history.isCurrent)
         .task {
             guard let day = initialAmountDay, !pickedInitialDay else { return }
             pickedInitialDay = true
@@ -693,5 +695,8 @@ struct GoalDetailColumn: View {
             guard let rows = try? await store.computeGoalDefinitions() else { return }
             loaded = (vault, rows.map(\.definition))
         }
+        // With a goal selected the column is blank until the definitions answer; the page it then
+        // shows reports its own loads.
+        .pageReady(goalID == nil || goals != nil)
     }
 }

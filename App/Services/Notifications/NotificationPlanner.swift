@@ -152,8 +152,13 @@ enum NotificationPlanner {
         } else {
             title = .verbatim(due[0].text.plainText)
         }
-        let body: NotificationText =
-            overdue > 0 ? .localized("Önceki günlerden %@ açık görev.", "\(overdue)") : .verbatim("")
+        let body: NotificationText
+        switch overdue {
+        case 0: body = .verbatim("")
+        // The delivery-time formatter fills only `%@`, so the singular has its own key.
+        case 1: body = .localized("Önceki günlerden 1 açık görev.")
+        default: body = .localized("Önceki günlerden %@ açık görev.", "\(overdue)")
+        }
         return (title, body)
     }
 }

@@ -76,6 +76,8 @@ struct KanbanView: View {
         .onChange(of: selectedRow?.id) { _, _ in sourceDay = nil }
         .onChange(of: model.grouping) { _, _ in model.clearDrags() }
         .task(id: model.request) { await model.load() }
+        // The columns' rows are in and the byline's counts (the page top's list load) are current.
+        .pageReady(model.rows != nil && model.tasks.isListCurrent)
         .task(id: TaskSelectionRequest(id: selectedRow?.id, updated: model.store.lastUpdated)) {
             let request = TaskSelectionRequest(id: selectedRow?.id, updated: model.store.lastUpdated)
             if let answer = await TaskSelectionAnswer.load(request, store: model.store) { selectionAnswer = answer }

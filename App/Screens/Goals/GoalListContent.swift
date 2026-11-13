@@ -13,6 +13,8 @@ struct GoalListContent: View {
     @State private var deletion = DefinitionDeletionModel()
     @State private var deletingGoal: GoalDefinition?
     @State private var model: GoalDayModel
+    /// The request the status answer on screen was asked for (``PageReadyKey``).
+    @State private var answeredRequest: GoalListRequest?
     @Environment(\.locale) private var locale
 
     init(
@@ -124,6 +126,7 @@ struct GoalListContent: View {
         }
         .task(id: store.lastUpdated) { await model.load() }
         .task(id: GoalListRequest(day: model.day, updated: store.lastUpdated)) {
+            let request = GoalListRequest(day: model.day, updated: store.lastUpdated)
             let vault = store.vaultURL
             let revision = model.currentRevision()
             guard let rows = try? await store.computeGoalStatuses(today: model.day), !Task.isCancelled
@@ -133,7 +136,13 @@ struct GoalListContent: View {
                 vault: vault, goals: rows.map(\.definition),
                 statuses: Dictionary(statuses, uniquingKeysWith: { first, _ in first }))
             if vault == store.vaultURL { model.answerShown(askedAt: revision) }
+            answeredRequest = request
         }
+        // The rows draw from the status answer, their tallies and marks from the model's history.
+        .pageReady(
+            answer != nil && answeredRequest == GoalListRequest(day: model.day, updated: store.lastUpdated)
+                && model.isCurrent
+        )
     }
 
     /// The split shell passes a selection: the list is its middle column.
@@ -145,6 +154,7 @@ struct GoalListContent: View {
             GoalColumnRow(
                 goal: goal, status: status, day: model.day, logs: model.logs[goal.key] ?? [],
                 locale: locale, isDisabled: goal.kind == .milestone && (!model.canEdit || markReadOnly),
+                markedToday: markedToday,
                 isSelected: selection?.wrappedValue == goal.id, onOpen: open)
         } else {
             listCard(goal: goal, status: status, markedToday: markedToday, markReadOnly: markReadOnly)

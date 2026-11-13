@@ -185,7 +185,7 @@ struct GoalListPresentationTests {
         #expect(
             GoalListPresentation.listOpenHint(kind: .milestone, markedToday: true, bundle: english, locale: en)
                 == "Clear mark")
-        // Column omits markedToday: always the mark hint.
+        // Without a mark state the hint is the mark.
         #expect(
             GoalListPresentation.listOpenHint(kind: .milestone, bundle: turkish, locale: tr)
                 == "Bugünü işaretle")
@@ -221,7 +221,8 @@ struct GoalListPresentationTests {
                 == "Mark Today")
     }
 
-    /// Only milestones get the mark hint; a boolean goal opens details whatever `markedToday` says.
+    /// Only milestones get the mark hint; a boolean goal's row opens its page (phone link, column
+    /// selection) whatever `markedToday` says: its mark is the trailing control, not the row.
     @Test func booleanGoalOpenHintIsDetails() {
         for marked in [nil, false, true] as [Bool?] {
             #expect(

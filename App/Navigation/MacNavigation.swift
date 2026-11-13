@@ -287,16 +287,22 @@ struct MacNavigation: View {
                         MacEmptyDetail("Bir gün seç")
                     }
                 case .tasks:
-                    if let row = taskSelection.row(
-                        for: navigation.selectedTask, listed: kanbanTasks.listedRow(id: navigation.selectedTask))
-                    {
-                        TaskDetailView(store: store, row: row) { path in
-                            navigation.selectedDay = path
-                            navigation.section = .days
+                    Group {
+                        if let row = taskSelection.row(
+                            for: navigation.selectedTask, listed: kanbanTasks.listedRow(id: navigation.selectedTask))
+                        {
+                            TaskDetailView(store: store, row: row) { path in
+                                navigation.selectedDay = path
+                                navigation.section = .days
+                            }
+                        } else {
+                            MacEmptyDetail("Bir görev seç")
                         }
-                    } else {
-                        MacEmptyDetail("Bir görev seç")
                     }
+                    // The selected task's row is the index's answer for this publish, not the listed one.
+                    .pageReady(
+                        taskSelection.answers(
+                            TaskSelectionRequest(id: navigation.selectedTask, updated: store.lastUpdated)))
                 case .summaries, .graph, .map: EmptyView()
                 case .goals:
                     GoalDetailColumn(store: store, goalID: navigation.selectedGoal)

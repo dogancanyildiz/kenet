@@ -40,6 +40,8 @@ struct TasksView: View {
                             await model.loadList()
                             scrollNotification(using: proxy)
                         }
+                        // The sections, counts and weekly card answer the current filters and publish.
+                        .pageReady(model.isListCurrent)
                 }
             }
             .inkPage()

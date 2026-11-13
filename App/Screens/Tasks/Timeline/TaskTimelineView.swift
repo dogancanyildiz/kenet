@@ -13,6 +13,8 @@ struct TaskTimelineView: View {
     @State private var availableWidth: CGFloat = 0
     @State private var selectedDay: CalendarDate
     @State private var weekSummaries: [DaySummary] = []
+    /// The request `weekSummaries` answers (``PageReadyKey``).
+    @State private var loadedWeek: TimelineWeekRequest?
     @State private var eventEditor: EventEditorModel?
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.shellKind) private var shellKind
@@ -71,6 +73,8 @@ struct TaskTimelineView: View {
             await model.loadDay(selectedDay)
         }
         .task(id: TimelineWeekRequest(date: selectedDay, updated: model.store.lastUpdated, scale: model.scale)) {
+            let request = TimelineWeekRequest(
+                date: selectedDay, updated: model.store.lastUpdated, scale: model.scale)
             guard model.scale == .week else {
                 weekSummaries = []
                 return
@@ -83,7 +87,15 @@ struct TaskTimelineView: View {
                 }
             }
             weekSummaries = loaded
+            if !Task.isCancelled { loadedWeek = request }
         }
+        // Rows (and the day scale's summary) are in; the week scale also waits for its days' events.
+        .pageReady(
+            model.isLoaded
+                && (model.scale != .week
+                    || loadedWeek
+                        == TimelineWeekRequest(date: selectedDay, updated: model.store.lastUpdated, scale: model.scale))
+        )
         .task(id: TaskSelectionRequest(id: selected?.id, updated: model.store.lastUpdated)) {
             let request = TaskSelectionRequest(id: selected?.id, updated: model.store.lastUpdated)
             if let answer = await TaskSelectionAnswer.load(request, store: model.store) { selectionAnswer = answer }

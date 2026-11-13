@@ -140,8 +140,9 @@ enum GoalListPresentation {
             .joined(separator: ", ")
     }
 
-    /// Open / mark hint for list card and column row. Pass `markedToday` on the phone card so a
-    /// marked milestone says "İşareti kaldır"; omit it in the column (always "Bugünü işaretle").
+    /// What a tap on the list card or the column row does. A milestone's row toggles today's mark,
+    /// so a marked one says "İşareti kaldır"; every other kind (boolean too) opens its page, and
+    /// its mark lives on the trailing control or in the context menu.
     static func listOpenHint(
         kind: GoalKind, markedToday: Bool? = nil, bundle: Bundle? = nil, locale: Locale = .current
     ) -> String {

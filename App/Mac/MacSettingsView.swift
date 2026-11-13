@@ -148,15 +148,18 @@
         }
     }
 
-    /// The Hakkında tab. The licenses page replaces the tab's content, as on Tanılama.
+    /// The Hakkında tab. A subpage (licenses, support) replaces the tab's content, as on Tanılama.
     struct MacAboutSettingsPage: View {
-        @State private var showingLicenses = false
+        private enum Subpage { case licenses, support }
+
+        @Environment(SupportService.self) private var support: SupportService?
+        @State private var subpage: Subpage?
 
         var body: some View {
-            if showingLicenses {
+            if let subpage {
                 VStack(alignment: .leading, spacing: 0) {
                     Button {
-                        showingLicenses = false
+                        self.subpage = nil
                     } label: {
                         Label("Hakkında", systemImage: "chevron.left")
                     }
@@ -168,11 +171,17 @@
                     .padding(.horizontal, InkSpacing.margin + 8)
                     .padding(.top, 8)
                     .inkPageColumn()
-                    ThirdPartyLicensesView()
+                    switch subpage {
+                    case .licenses:
+                        ThirdPartyLicensesView()
+                    case .support:
+                        if let support { SupportSettingsView(service: support) }
+                    }
                 }
                 .inkPage()
             } else {
-                AboutSettingsView(openLicenses: { showingLicenses = true })
+                AboutSettingsView(
+                    openLicenses: { subpage = .licenses }, openSupport: { subpage = .support })
             }
         }
     }

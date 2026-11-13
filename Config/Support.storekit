@@ -1,0 +1,75 @@
+{
+  "identifier" : "5C3D9A10",
+  "nonRenewingSubscriptions" : [],
+  "products" : [
+    {
+      "displayPrice" : "49.00",
+      "familyShareable" : false,
+      "internalID" : "B7E2A0C1",
+      "localizations" : [
+        {
+          "description" : "Kenet'e gönüllü destek. Hiçbir özelliği açmaz.",
+          "displayName" : "Küçük destek",
+          "locale" : "tr"
+        },
+        {
+          "description" : "A voluntary tip for Kenet. Unlocks nothing.",
+          "displayName" : "Small tip",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.dogancanyildiz.kenet.support.small",
+      "referenceName" : "support.small",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "99.00",
+      "familyShareable" : false,
+      "internalID" : "B7E2A0C2",
+      "localizations" : [
+        {
+          "description" : "Kenet'e gönüllü destek. Hiçbir özelliği açmaz.",
+          "displayName" : "Orta destek",
+          "locale" : "tr"
+        },
+        {
+          "description" : "A voluntary tip for Kenet. Unlocks nothing.",
+          "displayName" : "Medium tip",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.dogancanyildiz.kenet.support.medium",
+      "referenceName" : "support.medium",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "249.00",
+      "familyShareable" : false,
+      "internalID" : "B7E2A0C3",
+      "localizations" : [
+        {
+          "description" : "Kenet'e gönüllü destek. Hiçbir özelliği açmaz.",
+          "displayName" : "Büyük destek",
+          "locale" : "tr"
+        },
+        {
+          "description" : "A voluntary tip for Kenet. Unlocks nothing.",
+          "displayName" : "Large tip",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.dogancanyildiz.kenet.support.large",
+      "referenceName" : "support.large",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_locale" : "tr",
+    "_storefront" : "TUR"
+  },
+  "subscriptionGroups" : [],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

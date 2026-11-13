@@ -857,6 +857,7 @@ Ajanlar ekranı göremez; bu yüzden ekran görüntüsü testleri bu projede zor
 | zincir günü | af günü, joker | Streak save | Zinciri koruyan biriken gün |
 | konuma girince | check-in | On arrival | Konuma girince çalışan hatırlatma ve kayıt |
 | gün ekranı | gün sayfası | (başlık tarih) | Geçmiş günün saatli programı |
+| gönüllü destek | bağış, bahşiş, premium | Tip | Hiçbir özelliği açmayan, tek seferlik uygulama içi satın alma |
 
 ## İlgili belgeler
 

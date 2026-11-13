@@ -201,12 +201,12 @@ Kimlikler 2026-10-21'de karara bağlandı. Güvenli yazmanın kalanı kullanıc�
 |---|---|---|
 | Mağaza teknik hazırlığı | Açık. Kalan iş: gizlilik politikası. Adres karara bağlandı: `kenet.app/gizlilik`; alan adını kullanıcı alır. Lisans bildirimi bitti. Yer tutucu bölüm olan Mac "Notlar" girdisi kalktı. Ötekiler ilk TestFlight yüklemesi için bitti. | #130, #151, #188 |
 | CD | Açık. Elle yol hazır: `.github/scripts/testflight.sh` temiz kopyadan arşivler ve yükler. İlk yapı 0.9.0 yüklendi. `dev`'e her itmede imzasız arşiv denetimi koşar. CI iş akışı hazır: `testflight.yml` elle tetiklenir; `dev` itmesinde gönderim `KENET_CD_ON_PUSH` ile açılır. İlk koşu kullanıcının GitHub Secrets'a koyacağı App Store Connect API anahtarını ve imza sertifikalarını bekliyor. | #134, #197, #313 <!-- sır değil --> |
-| Lisans, ad, gelir modeli | Açık. Ad Kenet, lisans "tüm hakları saklıdır" ve gelir modeli karara bağlandı. Gelir modeli gönüllü destektir: karar günlüğü, 2026-11-13. Kalan iş: üç tüketilebilir ürün, destek sayfası ve yazılı taahhüt. | #131 |
+| Lisans, ad, gelir modeli | Açık. Ad Kenet, lisans "tüm hakları saklıdır" ve gelir modeli karara bağlandı. Gelir modeli gönüllü destektir: karar günlüğü, 2026-11-13. Destek alt ekranı ve StoreKit katmanı kodda bitti: Ayarlar → Hakkında → Kenet'i destekle. Kalan iş: üç ürünü App Store Connect'te oluşturmak ve yazılı taahhüt. | #131 |
 | Mağaza sayfası | Açık | - |
 
 - [ ] Mağaza teknik hazırlığı: gizlilik bildirimi dosyası, ihracat bildirimi, uygulama simgesi, gizlilik politikası, üçüncü taraf lisans bildirimi. Ayrıca derleme numarası, platforma göre ayrı yetki dosyaları, iPad kararı ve yer tutucu bölümleri kaldırma.
 - [ ] CD: TestFlight'a otomatik gönderim. CD, sürekli dağıtım demektir. Araç seçenekleri: Xcode Cloud ya da fastlane. Madde Aşama 7'den devretti.
-- [ ] Lisans, ad, gelir modeli; gönüllü destek ürünleri ve destek sayfası; yazılı "veri kilidi yok" taahhüdü.
+- [ ] Lisans, ad, gelir modeli; gönüllü destek ürünlerinin App Store Connect kaydı; yazılı "veri kilidi yok" taahhüdü.
 - [ ] Mağaza sayfası: metinler, ekran görüntüleri, yaş derecelendirmesi.
 
 **Çıkış ölçütü:** İlk dış kullanıcı uygulamayı TestFlight'tan kurar ve kendi kasasını açar.

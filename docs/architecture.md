@@ -109,6 +109,7 @@ flowchart TD
 | Yapı numarası | Derleme `CFBundleVersion` değerini HEAD commit'inin UTC işlenme zamanından üretir: `YYAAGG.SSDDss`, örnek `261111.153012`; `.github/scripts/build-number.sh`. İkinci parçanın baştaki sıfırları atılır. iOS ve Mac aynı numarayı alır. `main` ve `dev` ayrı commit'lerde ayrı numara alır; sürüm birleşmesi sonraki `dev` yapılarıyla çakışmaz. Git yoksa yedek değer `1` kalır ve derleme uyarı verir |
 | Lisanslar | Uygulamaya bağlanan her uzak paketin LICENSE dosyası `App/Resources` altına olduğu gibi girer. Kullanıcı metni Ayarlar → Tanılama içinde okur. Test hedefinin paketleri bildirime girmez: `ThirdPartyLicenseTests` |
 | Gizlilik bildirimi | `App/Resources/PrivacyInfo.xcprivacy` iki platformun paketine girer. İzleme ve toplanan veri yok. Neden bildirimi isteyen API'ler: UserDefaults `CA92.1`; dosya zaman damgası `C617.1` kapsayıcıdaki kasa için, `3B52.1` kullanıcının seçtiği klasör için. Widget ve paylaşım uzantısı kendi bildirimini taşır: `Widgets/Support/PrivacyInfo.xcprivacy`, `ShareExtension/Support/PrivacyInfo.xcprivacy`. İkisinde yalnız dosya zaman damgası `C617.1` vardır; uzantılar yalnız App Group'a ve iCloud kapsayıcısına erişir. Günlük önerileri seçicisi neden bildirimi istemez: uygulama seçici dışından veri almaz, seçilen öneriden yalnız metne giren adları ve sözcükleri okur, fotoğraf ve video dosyasını açmaz; hiçbir veri cihazdan çıkmaz |
+| StoreKit ve gizlilik bildirimi | StoreKit neden bildirimi isteyen API kümesinde değildir. Uygulama satın alma verisi toplamaz ve saklamaz. Bildirim dosyaları değişmez |
 | Gizlilik bildiriminin bakımı | Yeni bir API kümesi kullanan PR bildirimi aynı PR'da günceller. `ReleaseConfigurationTests` iki yönü de denetler |
 | Şifreleme | Uygulama şifreleme kullanmaz, yalnız SHA-256 özeti alır. `ITSAppUsesNonExemptEncryption` değeri `NO` |
 | Arayüz metinleri | `App/Resources/Localizable.xcstrings`. Kaynak dil Türkçe, çeviri İngilizce |
@@ -1266,6 +1267,36 @@ flowchart TD
 | Yerelleştirme | Uzantı uygulamanın String Catalog'unu derler. `check-catalog-keys.py` `ShareExtension/` ve `Shared/` klasörlerini de tarar |
 
 Uzantı `AddEventIntent` çağırmaz: intent uygulamanın `IndexStore` nesnesine bağlıdır ve uzantı ayrı süreçtir. İki yol aynı Core yazıcısını kullanır: `VaultStore.addingEvent`. Olay satırının biçimi değişmez.
+
+## Gönüllü destek
+
+**Tablo destek katmanının parçalarını gösterir.**
+
+| Parça | İş |
+|---|---|
+| `SupportTier` | Üç kalıcı ürün kimliği: `com.dogancanyildiz.kenet.support.small`, `.medium`, `.large`. Sıra küçükten büyüğedir |
+| `SupportStorefront` | Mağaza protokolü: ürünleri yükler, satın alır, satın alma dışı işlemleri akıtır. Birim testleri sahte mağaza kullanır |
+| `StoreKitSupportStorefront` | StoreKit 2 uygulaması: `Product.products(for:)`, `Product.purchase()`, `Transaction.updates` |
+| `SupportService` | Durum makinesi. Ürün durumu: yükleniyor, yüklü, yüklenemedi. Satın alma durumu: boşta, sürüyor, teşekkür, iptal, onay bekliyor, hata |
+| `SupportSettingsView` | Ayarlar → Hakkında → Kenet'i destekle alt ekranı |
+| `Config/Support.storekit` | Yerel StoreKit yapılandırması: üç tüketilebilir ürün, Türkiye mağazası, `49`, `99`, `249` TL |
+
+```mermaid
+stateDiagram-v2
+    [*] --> Bosta
+    Bosta --> Suruyor: satıra dokunma
+    Suruyor --> Tesekkur: doğrulanmış işlem, finish
+    Suruyor --> Iptal: kullanıcı vazgeçti
+    Suruyor --> OnayBekliyor: mağaza onay bekliyor
+    Suruyor --> Hata: mağaza hatası ya da doğrulanmamış işlem
+    OnayBekliyor --> Tesekkur: Transaction.updates, finish
+    Iptal --> Suruyor: satıra dokunma
+    Hata --> Suruyor: satıra dokunma
+```
+
+Uygulama satın almayı hiçbir yere yazmaz: dosya, indeks ve UserDefaults değişmez. `SupportService` her işlemi `finish()` ile kapatır; kapanmayan işlemi mağaza her açılışta yeniden yollar. Dinleme uygulama açılışında başlar (`KenetApp`); kapalıyken onaylanan satın alma böyle kapanır.
+
+Satın alma sürerken ikinci dokunuş mağazaya gitmez. Doğrulanmamış ve iade edilmiş işlem kapanır ama teşekkür göstermez. `project.yml` yapılandırma dosyasını yalnız şemaların run eylemine bağlar; dosya hiçbir hedefin kaynağı değildir ve arşive girmez.
 
 ## Platform düzeni
 

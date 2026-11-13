@@ -1,6 +1,10 @@
 import Foundation
 import XCTest
 
+#if os(iOS)
+    import UIKit
+#endif
+
 enum UITestSupport {
     static let smokeEventText = "smoke event from ui test 42"
 
@@ -109,8 +113,62 @@ enum UITestSupport {
         app.launchArguments += extraArguments
         app.launchEnvironment.merge(extraEnvironment) { _, new in new }
         app.launch()
+        #if os(iOS)
+            relaunchIfNotDrawn(app)
+        #endif
         return app
     }
+
+    #if os(iOS)
+        /// On a CI runner the app can come up answering queries while nothing of it reaches the
+        /// screen (dev run 43004609707: the recording is black from launch to the end; the audit
+        /// measured quarter-size frames and failed on the greeting). One relaunch, logged.
+        @MainActor
+        static func relaunchIfNotDrawn(_ app: XCUIApplication) {
+            guard !isDrawn(app) else { return }
+            print("UITEST: the launched app drew nothing on screen; relaunching once")
+            app.terminate()
+            app.launch()
+            if !isDrawn(app) {
+                print("UITEST: the relaunched app drew nothing on screen either")
+            }
+        }
+
+        /// Whether the screen shows the app: a black capture (the status bar's few light pixels
+        /// aside) is a window that is not drawn. The page grounds are never pure black.
+        @MainActor
+        static func isDrawn(_ app: XCUIApplication, timeout: TimeInterval = 10) -> Bool {
+            let deadline = Date().addingTimeInterval(timeout)
+            repeat {
+                guard let share = blackShare(of: app.screenshot().image) else { return true }
+                if share < 0.98 { return true }
+                RunLoop.current.run(until: Date().addingTimeInterval(0.5))
+            } while Date() < deadline
+            return false
+        }
+
+        /// The share of black pixels in a 60 × 120 reduction of the capture; nil when it cannot be read.
+        static func blackShare(of image: UIImage) -> Double? {
+            guard let cgImage = image.cgImage, let space = CGColorSpace(name: CGColorSpace.sRGB) else { return nil }
+            let width = 60
+            let height = 120
+            var pixels = [UInt8](repeating: 0, count: width * height * 4)
+            let drawn = pixels.withUnsafeMutableBytes { buffer -> Bool in
+                guard
+                    let context = CGContext(
+                        data: buffer.baseAddress, width: width, height: height, bitsPerComponent: 8,
+                        bytesPerRow: width * 4, space: space, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+                else { return false }
+                context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
+                return true
+            }
+            guard drawn else { return nil }
+            let black = stride(from: 0, to: pixels.count, by: 4).filter { index in
+                pixels[index] < 3 && pixels[index + 1] < 3 && pixels[index + 2] < 3
+            }.count
+            return Double(black) / Double(width * height)
+        }
+    #endif
 
     /// Dismisses first-run system permission sheets without relying on localized chrome.
     static func installSystemAlertMonitor(on test: XCTestCase) {

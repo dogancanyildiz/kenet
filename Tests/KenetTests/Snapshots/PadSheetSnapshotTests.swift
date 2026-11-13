@@ -39,12 +39,20 @@
     struct PadSheetSnapshotTests {
         @Test(arguments: PadSheetCase.allCases)
         func sheet(_ snapshotCase: PadSheetCase) async throws {
+            // The task detail sits over a board, not a day page: its columns and byline come from
+            // loads of their own after the index goes idle. Captured before them, the page behind
+            // the sheet was empty (run 43456271642).
+            var board: KanbanModel?
+            let isReady: @MainActor () -> Bool = {
+                snapshotCase.sheet != .taskDetail || board.map(PadBoardSnapshotTests.isLoaded) ?? false
+            }
             try await PadSnapshotHost.assertWindow(
                 named: snapshotCase.rawValue, testName: "sheet", canvas: .pad13Landscape,
                 dynamicType: snapshotCase.dynamicType, presentsSheet: true,
                 shellKind: snapshotCase.sheet == .taskDetail ? .split : nil,
                 masks: snapshotCase.sheet == .taskDetail ? [] : [PadSnapshotHost.Mask.sidebarButton],
                 inspect: Self.checkSheet(snapshotCase),
+                isReady: isReady,
                 draws: snapshotCase.isDrawn
             ) { scene in
                 let store = scene.store
@@ -60,10 +68,12 @@
                 case .taskDetail:
                     let tasks = TasksModel(store: store, today: { snapshotDay })
                     tasks.section = .kanban
+                    let model = KanbanModel.board(for: tasks)
+                    board = model
                     let row = try #require(try await store.allTasks().first { !$0.isClosed })
                     // Narrower than the panel threshold: the board presents its own sheet.
                     return AnyView(
-                        NavigationStack { KanbanView(tasks: tasks, showsFilters: true, selection: row) }
+                        NavigationStack { KanbanView(tasks: tasks, showsFilters: true, selection: row, board: model) }
                             .frame(width: 600)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                             .inkPage())

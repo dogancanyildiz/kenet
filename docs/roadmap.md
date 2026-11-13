@@ -97,7 +97,7 @@ flowchart LR
 
 | Karar | Neyi açar | Not |
 |---|---|---|
-| Yapay zeka | Sonraki fikirler | Cihaz üstü model maliyetsiz bir seçenektir. Öneri: varsayılan kapalı. |
+| Yapay zeka | Sonraki fikirler | Cihaz üstü model maliyetsiz bir seçenektir. Öneri: varsayılan kapalı. Türkçe ölçümü 2026-11-13'te yapıldı; sonuç açık soru 4'tedir. |
 
 **DİKKAT:** Mağazada yayımlanan iPad desteğini geri alamazsın; iPad desteğini sonradan eklemek serbesttir.
 
@@ -254,6 +254,8 @@ iPhone Duo'nun dış ekranı sıkışık, iç ekranı düzenli × düzenli boyut
 | Cihaz üstü sesle giriş | - |
 | Day One ve Apple Journal'dan içe aktarma | - |
 | İsteğe bağlı yapay zeka: haftalık ve aylık yazılı değerlendirme, yeni varlık önerisi, notlara soru | Aşama 6'dan devretti. Karar açık. |
+| Yazılı değerlendirmenin kasada saklanması ve Özetler'de gösterimi | Biçim önce belgeye girer. Uygulama metni yalnız kullanıcı kaydederse dosyaya yazar. |
+| Kestirmeler eylemleri: haftayı metin olarak ver, özeti kaydet | Kullanıcı modeli Kestirmeler'de seçer. Uygulama ağ kodu taşımaz; içerik cihazdan kullanıcının eliyle çıkar. |
 | Apple Watch: hızlı giriş ve hedef işaretleme | - |
 | Yıl özeti, paylaşım kartı ve PDF | - |
 | Kişi ve konumları Spotlight'a açma; Siri için okuma eylemleri | - |

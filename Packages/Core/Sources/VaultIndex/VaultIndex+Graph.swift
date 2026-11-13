@@ -54,7 +54,7 @@ extension VaultIndex {
     /// resolved link into an entity of `kinds` (`date` nil), or only those from `date`'s day files.
     func graphRows(kinds: Set<String>, date: CalendarDate?) throws -> GraphRows {
         let placeholders = Array(repeating: "?", count: kinds.count).joined(separator: ",")
-        let oneDay = date == nil ? "" : "AND f.kind = 'day' AND f.date = ?"
+        let oneDay = date == nil ? "" : "AND f.kind = 'day' AND f.date = ? AND \(Self.countsForItsDate("f"))"
         var arguments = kinds.sorted()
         if let date { arguments.append(date.description) }
         var rows = GraphRows()

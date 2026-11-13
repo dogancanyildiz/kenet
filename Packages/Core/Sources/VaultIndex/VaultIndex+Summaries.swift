@@ -16,7 +16,7 @@ extension VaultIndex {
                         MAX(CASE WHEN b.section='Diary' AND b.kind IN ('paragraph','heading')
                             AND trim(b.text)<>'' THEN 1 ELSE 0 END) AS hasDiary
                     FROM files f LEFT JOIN blocks b ON b.file=f.path
-                    WHERE f.kind='day' AND f.readable=1 AND f.date BETWEEN ? AND ?
+                    WHERE f.kind='day' AND f.readable=1 AND f.date BETWEEN ? AND ? AND \(Self.countsForItsDate("f"))
                     GROUP BY f.date ORDER BY f.date
                     """, arguments: [from.description, to.description])
             let days = dayRows.compactMap { row -> SummaryInput.Day? in
@@ -28,7 +28,8 @@ extension VaultIndex {
                 db,
                 sql: """
                     SELECT e.*, (SELECT MIN(f.date) FROM links l JOIN files f ON f.path=l.file
-                        WHERE l.resolvedFile=e.file AND l.key IS NULL AND f.kind='day' AND f.date<=?) AS firstMention
+                        WHERE l.resolvedFile=e.file AND l.key IS NULL AND f.kind='day' AND f.date<=?
+                            AND \(Self.countsForItsDate("f"))) AS firstMention
                     FROM entities e WHERE e.kind IN ('person','place') ORDER BY e.file
                     """, arguments: [to.description])
             let entities = entityRows.compactMap { row -> SummaryInput.Entity? in
@@ -45,7 +46,8 @@ extension VaultIndex {
                 sql: """
                     SELECT f.date, l.resolvedFile FROM links l JOIN files f ON f.path=l.file
                     JOIN entities e ON e.file=l.resolvedFile AND e.kind IN ('person','place')
-                    WHERE f.kind='day' AND l.key IS NULL AND f.date BETWEEN ? AND ? ORDER BY f.date,l.file,l.ordinal
+                    WHERE f.kind='day' AND l.key IS NULL AND f.date BETWEEN ? AND ?
+                        AND \(Self.countsForItsDate("f")) ORDER BY f.date,l.file,l.ordinal
                     """, arguments: [from.description, to.description])
             let mentions = linkRows.compactMap { row -> SummaryInput.Mention? in
                 let source: String = row["date"]
@@ -76,7 +78,7 @@ extension VaultIndex {
         let taskRows = try Row.fetchAll(
             db,
             sql: """
-                SELECT b.*, CASE WHEN f.kind='day' THEN f.date ELSE NULL END AS created
+                SELECT b.*, CASE WHEN f.kind='day' AND \(Self.countsForItsDate("f")) THEN f.date ELSE NULL END AS created
                 FROM blocks b JOIN files f ON f.path=b.file WHERE b.kind='task' ORDER BY b.file,b.ordinal
                 """)
         return taskRows.map { row -> SummaryInput.Task in

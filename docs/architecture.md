@@ -1125,11 +1125,14 @@ App bağlantısı `IndexStore+DayCopyMerge` içindedir. Yenileme bitince `IndexS
 | Bayt çevirisi | `Core`: `RawDocument.migratingLegacyDayNames()` | Yalnız başlığın adını ve `type` değerini çevirir. |
 | Dosya taşıma | `Core`: `VaultStore.migratingLegacyDayFolder()` | Dosya başına tek koordinasyon sınırı. Kural: `vault-format.md`, "Eski adlar ve geçiş". |
 | Koordinasyon | App: `SystemFileCoordination` | `.move`, `.merge` ve `.delete` niyetlerini `NSFileCoordinator`'a bağlar. |
-| Tetikleme | App: `IndexStore+DayFolderMigration` | Her yenilemeden sonra, eski klasörün listesi değiştiyse tek yazma. Sonra iki klasörü tarar. |
+| Öneri | App: `IndexStore+DayFolderMigration`, `ContentView` | Her yenilemeden sonra eski klasördeki gün dosyalarını sayar. Ana ekran bandı onay ister. |
+| Tetikleme | App: `moveLegacyDayFolder()` | Yalnız onaydan sonra. 50 dosyalık partiler; her parti ayrı `performEdit`. Sonra iki klasörü tarar. |
+| Eski dosyaya yazma | `Core`: `VaultStore.dayFilePath(for:)` | `diary/` dosyası yoksa ve eski dosya varsa okuma ve yazma eski dosyaya gider. App yayımı aynı yolu kullanır. |
+| Tekil tarih | `Core`: `VaultIndex.countsForItsDate` | Tarihe göre sayan sorgular `diary/` dosyası olan tarihin eski dosyasını atlar. |
 | Bildirim | App: ana ekran bandı | Taşınan, kopya olan ve taşınamayan gün sayısını `DayCopyMergeReport` ile gösterir. |
 | Cihaz ayarları | App: `LegacyDefaults` | Açılışta `journal.*` değerlerini `kenet.*` anahtarlarına bir kez taşır. Eski bildirim kimliklerini ve bölgeleri siler. Eski indeks dizinini siler. |
 
-Geçiş indeksi dosyalardan sonra günceller. Yarım kalan geçiş sonraki açılışta sürer.
+Geçiş indeksi her partide dosyalardan sonra günceller. Yarım kalan geçiş kullanıcı yeniden onaylayınca sürer.
 
 ### Çakışan sürümler
 

@@ -12,7 +12,8 @@ extension VaultIndex {
                 db,
                 sql: """
                     SELECT DISTINCT f.date FROM files f
-                    WHERE f.kind='day' AND f.readable=1 AND substr(f.date,6)=? ORDER BY f.date
+                    WHERE f.kind='day' AND f.readable=1 AND substr(f.date,6)=? AND \(Self.countsForItsDate("f"))
+                    ORDER BY f.date
                     """, arguments: [monthDay]
             ).compactMap { CalendarDate($0) }
             let rows = try Row.fetchAll(
@@ -21,6 +22,7 @@ extension VaultIndex {
                     SELECT f.date, e.file, e.name, e.kind FROM links l JOIN files f ON f.path=l.file
                     JOIN entities e ON e.file=l.resolvedFile AND e.kind IN ('person','place')
                     WHERE f.kind='day' AND f.readable=1 AND l.key IS NULL AND substr(f.date,6)=?
+                        AND \(Self.countsForItsDate("f"))
                     ORDER BY f.date,l.file,l.ordinal
                     """, arguments: [monthDay])
             let mentions = rows.compactMap { row -> OnThisDayInput.Mention? in

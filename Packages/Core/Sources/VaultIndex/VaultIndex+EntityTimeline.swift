@@ -20,7 +20,7 @@ extension VaultIndex {
     /// Blocks counted as an encounter: events and Diary paragraphs of a day file. Tasks,
     /// headings, frontmatter and files outside `diary/<date>.md` never are.
     static let encounterBlocks = """
-        f.kind = 'day' AND f.date IS NOT NULL
+        f.kind = 'day' AND f.date IS NOT NULL AND \(countsForItsDate("f"))
           AND (b.kind = 'event' OR (b.kind = 'paragraph' AND b.section = 'Diary'))
         """
 

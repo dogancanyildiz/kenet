@@ -161,7 +161,7 @@ struct SystemWidgetTimelines: WidgetTimelineReloading {
         {
             // The widget wrote a day file since: the index learns it before it answers.
             reconciledMark = markedAt
-            await store.refresh(directories: [VaultLayout.dayFolder])
+            await store.refresh(directories: [VaultLayout.dayFolder, LegacyVaultNames.dayFolder])
             await store.waitWhileRefreshInFlight()
         }
         let today = LocalDay.today(at: now())

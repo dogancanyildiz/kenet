@@ -64,10 +64,12 @@ final class SyncState {
     /// Day copies a merge already took up in this vault; a failed one is not tried again.
     @ObservationIgnored var attemptedCopies: Set<String> = []
     @ObservationIgnored var mergeTask: Task<Void, Never>?
-    /// The running move of the legacy day folder (`scheduleDayFolderMigration`).
-    @ObservationIgnored var folderMigrationTask: Task<Void, Never>?
-    /// The legacy day folder's names after the last move; the same listing starts no new run.
-    @ObservationIgnored var migratedLegacyListing: [String]?
+    /// The running move of the legacy day folder, which the user started (`moveLegacyDayFolder`).
+    var folderMigrationTask: Task<Void, Never>?
+    /// Day files and day copies still under the legacy day folder, as the last refresh counted them.
+    var legacyDayFiles = 0
+    /// The user put off the move; the offer comes back when the vault is opened again.
+    var legacyOfferDismissed = false
     /// The last download request sent; requests go out one after another, nothing waits for them.
     @ObservationIgnored var downloadTask: Task<Void, Never>?
 
@@ -87,7 +89,8 @@ final class SyncState {
         attemptedCopies = []
         mergeTask = nil
         folderMigrationTask = nil
-        migratedLegacyListing = nil
+        legacyDayFiles = 0
+        legacyOfferDismissed = false
         downloadTask = nil
     }
 

@@ -64,4 +64,27 @@ struct LegacyDayFolderIndexTests {
             #expect(VaultLayout.day(ofDayPath: path) == nil, "\(path)")
         }
     }
+
+    /// A date held by both folders counts once, from `diary/`: day lists, summaries, on this day,
+    /// an entity's timeline and usage, and a day's blocks never add the legacy file's lines.
+    @Test func aDateInBothFoldersCountsOnceFromDiary() throws {
+        let scratch = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: scratch) }
+        try FileManager.default.copyItem(
+            at: Fixtures.root().appendingPathComponent("migration/legacy-vault/source"), to: scratch)
+        // The legacy file of this date holds an event with the same link and a diary paragraph.
+        try Data("## Events\n- 08:00 [[Ada Kurt]] ile yürüyüş ^x1y2z3\n\n## Diary\nYeni.\n".utf8)
+            .write(to: scratch.appendingPathComponent("diary/2026-10-01.md"))
+        let index = try VaultIndex()
+        try index.rebuild(vaultRoot: scratch)
+        let day = CalendarDate("2026-10-01")!
+        #expect(try index.daySummaries(from: day, to: day).map(\.file) == ["diary/2026-10-01.md"])
+        #expect(try index.summaryDays(from: day, to: day).map(\.events) == [1])
+        #expect(try index.blocks(on: day).allSatisfy { $0.file == "diary/2026-10-01.md" })
+        #expect(try index.onThisDayInput(for: day).mentions.filter { $0.day == day }.count == 1)
+        #expect(try index.entityTimeline(for: "people/Ada Kurt.md").map(\.block.file) == ["diary/2026-10-01.md"])
+        #expect(try index.entityUsage().first { $0.file == "people/Ada Kurt.md" }?.totalCount == 1)
+        // Both files stay in the index; only date-based views leave the legacy one out.
+        #expect(try index.files().map(\.path).contains("\(legacy)/2026-10-01.md"))
+    }
 }

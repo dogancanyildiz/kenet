@@ -67,9 +67,30 @@ public actor VaultStore {
         writeGate = WriteGate()
     }
 
-    /// Returns the canonical vault-relative path of a day.
+    /// Returns the vault-relative path of a day's file: `diary/<date>.md`, unless the vault is not
+    /// migrated and only the legacy day folder holds that day (`LegacyVaultNames`). Then reads and
+    /// writes go to the legacy file, so a day never gets a second file (`vault-format.md`, "Eski
+    /// adlar ve geçiş"). A file waiting for download counts as there. The legacy folder counts only
+    /// in its exact spelling.
     public nonisolated func dayFilePath(for date: CalendarDate) -> String {
-        VaultLayout.dayPath(date)
+        let current = VaultLayout.dayPath(date)
+        guard !Self.dayFileIsThere(current, in: root) else { return current }
+        let legacy = VaultLayout.legacyDayPath(date)
+        guard
+            (try? FileManager.default.contentsOfDirectory(atPath: root.path))?.contains(LegacyVaultNames.dayFolder)
+                == true,
+            Self.dayFileIsThere(legacy, in: root)
+        else { return current }
+        return legacy
+    }
+
+    /// Whether the file or its download placeholder is there.
+    private nonisolated static func dayFileIsThere(_ path: String, in root: URL) -> Bool {
+        let url = root.appendingPathComponent(path)
+        if FileManager.default.fileExists(atPath: url.path) { return true }
+        let placeholder = url.deletingLastPathComponent()
+            .appendingPathComponent(PlaceholderName.placeholderName(for: url.lastPathComponent))
+        return FileManager.default.fileExists(atPath: placeholder.path)
     }
 
     /// Reads the current disk bytes without querying the index.

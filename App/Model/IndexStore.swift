@@ -355,9 +355,10 @@ final class IndexStore {
                 entryErrorText = nil
                 var saved = false
                 do {
+                    let path = writer.dayFilePath(for: day)
                     try await writer.addingEvent(on: day, text: text, time: time)
                     saved = true
-                    try await publishAfterWrite(from: index, changedPaths: [VaultLayout.dayPath(day)])
+                    try await publishAfterWrite(from: index, changedPaths: [path])
                 } catch {
                     if case VaultStoreError.indexUpdateFailed = error { saved = true }
                     entryErrorText =
@@ -374,6 +375,12 @@ final class IndexStore {
             entryErrorText = EntryWriteError.message(for: error)
             return false
         }
+    }
+
+    /// The day's file as the writer resolves it: `diary/<date>.md`, or the legacy file of a vault
+    /// not yet migrated (`VaultStore.dayFilePath(for:)`). Edits publish this path.
+    func dayFilePath(for day: CalendarDate) -> String {
+        writer?.dayFilePath(for: day) ?? VaultLayout.dayPath(day)
     }
 
     /// Disk reads belong to the selected vault, never to the index's paragraph projection. Like
@@ -1083,7 +1090,7 @@ final class IndexStore {
         refreshInFlight = false
         if holdsProcessing { isProcessing = false }
         scheduleDayCopyMerge()
-        scheduleDayFolderMigration()
+        updateLegacyDayFolderOffer()
         await applyPendingSelection()
     }
 
@@ -1151,7 +1158,7 @@ final class IndexStore {
     /// write waits its turn is not written (`staleTarget`, nothing written).
     func appendToDiary(on day: CalendarDate, lines: [String]) async throws {
         guard lines.contains(where: { !$0.allSatisfy(\.isWhitespace) }) else { return }
-        try await performEdit(path: VaultLayout.dayPath(day)) { writer in
+        try await performEdit(path: dayFilePath(for: day)) { writer in
             try await writer.appendingDiary(on: day, lines: lines)
         }
     }

@@ -2306,6 +2306,86 @@
         }
       }
     },
+    "Bu kasa gün dosyalarını eski journal klasöründe tutuyor." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This vault keeps its day files in the old journal folder."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu kasa gün dosyalarını eski journal klasöründe tutuyor."
+          }
+        }
+      }
+    },
+    "Taşı…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move…"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taşı…"
+          }
+        }
+      }
+    },
+    "Sonra" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sonra"
+          }
+        }
+      }
+    },
+    "Gün dosyaları taşınsın mı?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move the day files?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gün dosyaları taşınsın mı?"
+          }
+        }
+      }
+    },
+    "Önce Kenet'i bütün cihazlarında güncelle. Gün dosyaları journal klasöründen diary klasörüne taşınır; başlık ve type değeri yeni adı alır. [[journal/…]] gibi yol bağlantıları çalışmaz." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update Kenet on all your devices first. Day files move from the journal folder to the diary folder; their heading and type take the new name. Path links such as [[journal/…]] stop working."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Önce Kenet'i bütün cihazlarında güncelle. Gün dosyaları journal klasöründen diary klasörüne taşınır; başlık ve type değeri yeni adı alır. [[journal/…]] gibi yol bağlantıları çalışmaz."
+          }
+        }
+      }
+    },
     "%lld gün kopyası birleştiriliyor." : {
       "localizations" : {
         "en" : {

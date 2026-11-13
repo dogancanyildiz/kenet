@@ -49,13 +49,16 @@ struct DayFolderMigrationTests {
         }
 
         func store(
-            removeFile: @escaping @Sendable (URL) throws -> Void = { try FileManager.default.removeItem(at: $0) }
-        )
-            -> VaultStore
-        {
+            removeFile: @escaping @Sendable (URL) throws -> Void = { try FileManager.default.removeItem(at: $0) },
+            moveFile: @escaping @Sendable (URL, URL) throws -> Void = {
+                try FileManager.default.moveItem(at: $0, to: $1)
+            },
+            readFile: @escaping @Sendable (URL) throws -> Data = { try Data(contentsOf: $0) },
+            coordination: any FileCoordination = DirectFileCoordination()
+        ) -> VaultStore {
             VaultStore(
                 vaultRoot: root, index: index, linkFile: { try FileManager.default.linkItem(at: $0, to: $1) },
-                removeFile: removeFile)
+                moveFile: moveFile, readFile: readFile, removeFile: removeFile, fileCoordination: coordination)
         }
     }
 
@@ -216,5 +219,158 @@ struct DayFolderMigrationTests {
         let outcome = try await vault.store().migratingLegacyDayFolder()
         #expect(outcome.isEmpty)
         #expect(try Self.tree(vault.root) == before)
+    }
+
+    // MARK: - Another process acts inside the window
+
+    /// Leaves the legacy folder with day files only, so the run can empty it.
+    private func onlyDays(_ vault: LegacyVault) throws {
+        for name in ["notlar.md", "eski"] { try FileManager.default.removeItem(at: vault.url("\(legacy)/" + name)) }
+    }
+
+    /// A file that arrives in the emptied folder inside the delete boundary stays, and so does the
+    /// folder: removal is `rmdir`, never recursive.
+    @Test func aFileArrivingBeforeTheFolderGoesIsKept() async throws {
+        let vault = try LegacyVault()
+        defer { vault.remove() }
+        try onlyDays(vault)
+        let late = vault.url("\(legacy)/geç.md")
+        let coordination = Planting { operation in
+            if case .delete = operation { try? Data("Geç gelen.\n".utf8).write(to: late) }
+        }
+        let outcome = try await vault.store(coordination: coordination).migratingLegacyDayFolder()
+        #expect(!outcome.removedLegacyFolder)
+        #expect(try Data(contentsOf: late) == Data("Geç gelen.\n".utf8))
+    }
+
+    /// A placeholder of the day's name under `diary/` blocks that name when the target is chosen:
+    /// the source becomes a day copy, and the placeholder is left alone.
+    @Test func aDownloadOnItsWayBlocksTheNameWhenChoosing() async throws {
+        let vault = try LegacyVault()
+        defer { vault.remove() }
+        let placeholder = vault.url("diary/.2026-10-01.md.icloud")
+        try Data("yer tutucu".utf8).write(to: placeholder)
+        let outcome = try await vault.store().migratingLegacyDayFolder()
+        #expect(outcome.copies.contains("diary/2026-10-01 2.md"))
+        #expect(!FileManager.default.fileExists(atPath: vault.url("diary/2026-10-01.md").path))
+        #expect(FileManager.default.fileExists(atPath: placeholder.path))
+    }
+
+    /// A placeholder that appears after the name was chosen, inside the boundary, stops that file:
+    /// nothing is written beside it and the source stays.
+    @Test func aDownloadArrivingInsideTheBoundaryStopsTheFile() async throws {
+        let vault = try LegacyVault()
+        defer { vault.remove() }
+        let target = vault.url("diary/2026-10-01.md").standardizedFileURL.path
+        let placeholder = vault.url("diary/.2026-10-01.md.icloud")
+        let coordination = Planting { operation in
+            if case .move(_, let destination) = operation, destination.standardizedFileURL.path == target {
+                try? Data("yer tutucu".utf8).write(to: placeholder)
+            }
+        }
+        let outcome = try await vault.store(coordination: coordination).migratingLegacyDayFolder()
+        #expect(outcome.waiting.contains("\(legacy)/2026-10-01.md"))
+        #expect(!FileManager.default.fileExists(atPath: target))
+        #expect(FileManager.default.fileExists(atPath: vault.url("\(legacy)/2026-10-01.md").path))
+    }
+
+    /// A day file another process writes under the chosen name before the boundary is never
+    /// replaced, even with a move that would replace it: the existence check inside the boundary
+    /// stops the claim and the retry picks a day copy.
+    @Test func aTargetCreatedBeforeTheBoundaryIsNeverReplaced() async throws {
+        let vault = try LegacyVault()
+        defer { vault.remove() }
+        // `2026-10-04` needs no change, so it is moved; this move replaces like `rename(2)`.
+        let target = vault.url("diary/2026-10-04.md").standardizedFileURL.path
+        let planted = Data("Başka cihaz.\n".utf8)
+        let once = Once()
+        let coordination = Planting { operation in
+            if case .move(_, let destination) = operation, destination.standardizedFileURL.path == target,
+                once.first()
+            {
+                try? planted.write(to: URL(fileURLWithPath: target))
+            }
+        }
+        let replacingMove: @Sendable (URL, URL) throws -> Void = { source, destination in
+            guard rename(source.path, destination.path) == 0 else { throw CocoaError(.fileWriteUnknown) }
+        }
+        let outcome = try await vault.store(moveFile: replacingMove, coordination: coordination)
+            .migratingLegacyDayFolder()
+        #expect(try Data(contentsOf: URL(fileURLWithPath: target)) == planted)
+        #expect(outcome.copies.contains("diary/2026-10-04 2.md"))
+        #expect(outcome.failed.isEmpty)
+    }
+
+    /// A day file another process writes under the chosen name inside the boundary, after the
+    /// checks, is never replaced: the write is exclusive, and the retry picks a day copy.
+    @Test func aTargetCreatedInsideTheBoundaryIsNeverReplaced() async throws {
+        let vault = try LegacyVault()
+        defer { vault.remove() }
+        let source = vault.url("\(legacy)/2026-10-01.md").standardizedFileURL.path
+        let target = vault.url("diary/2026-10-01.md")
+        let planted = Data("Başka cihaz.\n".utf8)
+        let reads = Counter()
+        // The second read of the source is the one inside the boundary, after the checks.
+        let readFile: @Sendable (URL) throws -> Data = { url in
+            if url.standardizedFileURL.path == source, reads.next() == 2 { try? planted.write(to: target) }
+            return try Data(contentsOf: url)
+        }
+        let outcome = try await vault.store(readFile: readFile).migratingLegacyDayFolder()
+        #expect(try Data(contentsOf: target) == planted)
+        #expect(outcome.copies.contains("diary/2026-10-01 2.md"))
+        #expect(outcome.failed.isEmpty)
+    }
+
+    /// Batches leave the write queue between them and add up to the same run.
+    @Test func batchesAddUpToOneRun() async throws {
+        let vault = try LegacyVault()
+        defer { vault.remove() }
+        let outcome = try await vault.store().migratingLegacyDayFolder(batchSize: 2)
+        let wanted = try JSONDecoder().decode(
+            Outcome.self, from: Data(contentsOf: LegacyVault.fixture().appendingPathComponent("outcome.json")))
+        #expect(outcome.moved == wanted.moved && outcome.copies == wanted.copies)
+        #expect(try Self.tree(vault.root) == expected())
+        let first = try await vault.store().migratingLegacyDayBatch(limit: 1)
+        #expect(first.finished && first.moved.isEmpty)
+    }
+}
+
+/// Runs `before` with each operation just before its accessor, as another process would.
+private struct Planting: FileCoordination {
+    let before: @Sendable (FileCoordinationOperation) -> Void
+
+    init(_ before: @escaping @Sendable (FileCoordinationOperation) -> Void) { self.before = before }
+
+    func coordinate<T>(
+        _ operation: FileCoordinationOperation, accessor: (FileCoordinationAccess) throws -> T
+    ) throws -> T {
+        before(operation)
+        return try accessor(FileCoordinationAccess())
+    }
+}
+
+/// True the first time only.
+private final class Once: @unchecked Sendable {
+    private let lock = NSLock()
+    private var done = false
+
+    func first() -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        defer { done = true }
+        return !done
+    }
+}
+
+/// Counts calls, from 1.
+private final class Counter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var count = 0
+
+    func next() -> Int {
+        lock.lock()
+        defer { lock.unlock() }
+        count += 1
+        return count
     }
 }

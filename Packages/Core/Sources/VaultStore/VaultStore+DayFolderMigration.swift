@@ -2,7 +2,8 @@ import Foundation
 import VaultFormat
 import VaultIndex
 
-/// What one run of the day folder migration did (`vault-format.md`, "Eski adlar ve geçiş").
+/// What the day folder migration did (`vault-format.md`, "Eski adlar ve geçiş"): one batch, or a
+/// whole run when batches are added up.
 public struct DayFolderMigrationOutcome: Sendable, Equatable {
     /// Day files now under `diary/` with their day's name, such as `diary/2026-10-02.md`.
     public var moved: [String] = []
@@ -13,12 +14,14 @@ public struct DayFolderMigrationOutcome: Sendable, Equatable {
     public var resumed: [String] = []
     /// Legacy day files that wait for iCloud's download; the next run moves them.
     public var waiting: [String] = []
-    /// Legacy day files left in place after an error; the next run tries them again.
+    /// Legacy day files left in place after an error and one retry; the next run tries them again.
     public var failed: [String] = []
     /// Other entries of the legacy folder, never moved: notes, subfolders, names that are no day.
     public var leftInPlace: [String] = []
     /// Whether the legacy folder ended up empty and was removed.
     public var removedLegacyFolder = false
+    /// Whether no legacy day file is left that this run has not tried: the run is over.
+    public var finished = true
 
     public init() {}
 
@@ -27,10 +30,25 @@ public struct DayFolderMigrationOutcome: Sendable, Equatable {
         moved.isEmpty && copies.isEmpty && resumed.isEmpty && waiting.isEmpty && failed.isEmpty
             && leftInPlace.isEmpty && !removedLegacyFolder
     }
+
+    /// The legacy paths this outcome tried and left: the next batch of the same run skips them.
+    public var attempted: Set<String> { Set(waiting + failed) }
+
+    /// Adds a later batch of the same run.
+    public mutating func add(_ batch: DayFolderMigrationOutcome) {
+        moved += batch.moved
+        copies += batch.copies
+        resumed += batch.resumed
+        waiting += batch.waiting.filter { !waiting.contains($0) }
+        failed += batch.failed
+        leftInPlace = batch.leftInPlace
+        removedLegacyFolder = removedLegacyFolder || batch.removedLegacyFolder
+        finished = batch.finished
+    }
 }
 
 /// One legacy day file or day copy and where its day lives under `diary/`.
-private struct LegacyDaySource {
+private struct LegacyDaySource: Sendable {
     let path: String
     let url: URL
     let day: CalendarDate
@@ -42,25 +60,45 @@ private enum LegacyDayTarget {
     case done(path: String, url: URL)
 }
 
+/// Removes an empty directory and nothing else: `rmdir`, which fails on a folder that is not empty.
+private func removeEmptyDirectory(_ url: URL) throws {
+    guard rmdir(url.path) == 0 else { throw CocoaError(.fileWriteUnknown) }
+}
+
 extension VaultStore {
     /// Moves the day files and day copies of the legacy day folder to `diary/`, as `vault-format.md`
-    /// describes under "Eski adlar ve geçiş".
+    /// describes under "Eski adlar ve geçiş". The user starts it; nothing calls it on its own.
     ///
-    /// Only the exact legacy spelling is read; a case variant stays. Each file is one coordination
-    /// boundary: a free target is claimed with `.move(source → target)`, a target that already holds
-    /// the migrated bytes with `.merge(source into target)`. The migrated bytes differ from the file
-    /// only in the diary heading's name and the day `type` value (`migratingLegacyDayNames`). A file
-    /// that needs no change is moved as it is; any other is written exclusively, given the source's
-    /// modification date and only then is the source removed. A target that exists with other bytes
-    /// is never replaced: the source becomes the first free day copy of its day. A run that stopped
-    /// half way therefore resumes: a target holding the migrated bytes only loses its source. A file
-    /// waiting for download is skipped. The legacy folder is removed only when it is empty. The
-    /// index learns every touched path once, after the files.
-    public func migratingLegacyDayFolder() async throws -> DayFolderMigrationOutcome {
-        try await perform { try self.migrateLegacyDayFolder() }
+    /// The run goes in batches of `batchSize` files; each batch is one turn of the vault's write
+    /// queue, so other writes run between batches. Only the exact legacy spelling is read; a case
+    /// variant stays. Each file is one coordination boundary: a free target is claimed with
+    /// `.move(source → target)`, a target that already holds the migrated bytes with
+    /// `.merge(source into target)`. The migrated bytes differ from the file only in the diary
+    /// heading's name and the day `type` value (`migratingLegacyDayNames`). A file that needs no
+    /// change is moved as it is; any other is written exclusively, given the source's modification
+    /// date and only then is the source removed. A target that exists with other bytes is never
+    /// replaced: the source becomes the first free day copy of its day. A name taken or changed
+    /// meanwhile is tried once more with a fresh listing. A run that stopped half way resumes: a
+    /// target holding the migrated bytes only loses its source. A file waiting for download is
+    /// skipped. The legacy folder is removed only when empty, and never recursively.
+    public func migratingLegacyDayFolder(batchSize: Int = 50) async throws -> DayFolderMigrationOutcome {
+        var total = DayFolderMigrationOutcome()
+        repeat {
+            total.add(try await migratingLegacyDayBatch(limit: batchSize, skipping: total.attempted))
+        } while !total.finished
+        return total
     }
 
-    nonisolated func migrateLegacyDayFolder() throws -> DayFolderMigrationOutcome {
+    /// One batch of ``migratingLegacyDayFolder(batchSize:)``: up to `limit` legacy day files not in
+    /// `skipping`, in one turn of the write queue. When none is left the folder is removed if empty
+    /// and the outcome is `finished`.
+    public func migratingLegacyDayBatch(limit: Int, skipping: Set<String> = []) async throws
+        -> DayFolderMigrationOutcome
+    {
+        try await perform { try self.migrateLegacyDayBatch(limit: max(1, limit), skipping: skipping) }
+    }
+
+    nonisolated func migrateLegacyDayBatch(limit: Int, skipping: Set<String>) throws -> DayFolderMigrationOutcome {
         var outcome = DayFolderMigrationOutcome()
         let legacy = LegacyVaultNames.dayFolder
         // Only the exact spelling: a case-insensitive volume would open a case variant as well.
@@ -71,17 +109,30 @@ extension VaultStore {
         let values = try folder.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
         guard values.isSymbolicLink != true, values.isDirectory == true else { return outcome }
         try ensureReservedFolderCase(forCanonicalFolder: VaultLayout.dayFolder)
-        let (sources, waiting, others) = try legacyDaySources(in: folder)
-        outcome.waiting = waiting
+        let (all, waiting, others) = try legacyDaySources(in: folder)
+        let open = all.filter { !skipping.contains($0.path) }
+        let batch = open.prefix(limit)
+        outcome.waiting = waiting.filter { !skipping.contains($0) }
         outcome.leftInPlace = others
+        outcome.finished = open.count <= limit
         var touched: [String] = []
-        // Names under `diary/`, listed once and kept in step with this run's own writes.
+        // Names under `diary/`, listed once and kept in step with this batch's own writes.
         let diary = root.appendingPathComponent(VaultLayout.dayFolder, isDirectory: true)
         func listing() -> Set<String> { Set((try? FileManager.default.contentsOfDirectory(atPath: diary.path)) ?? []) }
         var names = listing()
-        for source in sources {
+        for source in batch {
+            // Moved meanwhile, by another device or another run: nothing left to do here.
+            guard FileManager.default.fileExists(atPath: source.url.path) else { continue }
             do {
-                switch try migrateLegacyDay(source, names: &names) {
+                let target: LegacyDayTarget
+                do {
+                    target = try migrateLegacyDay(source, names: &names)
+                } catch VaultStoreError.staleTarget, VaultStoreError.nameTaken {
+                    names = listing()
+                    guard FileManager.default.fileExists(atPath: source.url.path) else { continue }
+                    target = try migrateLegacyDay(source, names: &names)
+                }
+                switch target {
                 case .free(let path, _, let isCopy):
                     if isCopy { outcome.copies.append(path) } else { outcome.moved.append(path) }
                     touched += [source.path, path]
@@ -97,12 +148,12 @@ extension VaultStore {
                 names = listing()
             }
         }
-        if (try? FileManager.default.contentsOfDirectory(atPath: folder.path))?.isEmpty == true {
-            try? fileCoordination.coordinate(.delete(folder)) { _ in
-                // Something may have arrived since the listing; only an empty folder goes.
-                guard (try FileManager.default.contentsOfDirectory(atPath: folder.path)).isEmpty else { return }
-                try removeFile(folder)
+        if outcome.finished, (try? FileManager.default.contentsOfDirectory(atPath: folder.path))?.isEmpty == true {
+            do {
+                try fileCoordination.coordinate(.delete(folder)) { _ in try removeEmptyDirectory(folder) }
                 outcome.removedLegacyFolder = true
+            } catch {
+                // Something arrived after the listing: the folder and its new file stay.
             }
         }
         if !touched.isEmpty {
@@ -183,7 +234,8 @@ extension VaultStore {
                 guard FileManager.default.fileExists(atPath: source.url.path) else {
                     throw VaultStoreError.staleTarget
                 }
-                // Claimed from outside the boundary: the name must still be free.
+                // Claimed from outside the boundary: the name must still be free, and no download of
+                // that name may be on its way.
                 if FileManager.default.fileExists(atPath: url.path) { throw VaultStoreError.staleTarget }
                 try rejectPendingDownload(at: url, path: VaultLayout.dayFolder + "/" + url.lastPathComponent)
                 let original = try readFile(source.url)

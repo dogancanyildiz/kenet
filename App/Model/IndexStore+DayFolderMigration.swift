@@ -1,22 +1,37 @@
 import Foundation
 import VaultFormat
+import VaultIndex
 import VaultStore
 
 // MARK: - Day folder migration
 
 extension IndexStore {
-    /// After a refresh: moves the day files of a vault written before 2026-11-13 from the legacy day
-    /// folder to `diary/` (`VaultStore.migratingLegacyDayFolder`, `vault-format.md` "Eski adlar ve
-    /// geçiş"). It runs in any writable vault, local or iCloud, as one write through the write queue.
-    /// The run starts only when the legacy folder's listing differs from the one the last run of
-    /// this vault saw: a folder left with notes or with files waiting for a download does not start
-    /// a run after every refresh, while a file another device adds starts one. Opening the vault
-    /// again starts over, so a stopped run resumes there.
-    func scheduleDayFolderMigration() {
-        guard canAddEvent, let root = vaultURL, sync.root == root, sync.folderMigrationTask == nil,
-            let listing = Self.legacyDayFolderListing(in: root), listing != sync.migratedLegacyListing
-        else { return }
-        sync.migratedLegacyListing = listing
+    /// How many files a batch moves; each batch is one turn of the write queue.
+    static let dayFolderMigrationBatch = 50
+
+    /// After a refresh: counts the legacy day folder's day files, day copies and the ones waiting
+    /// for download, for the offer on the main screen (`vault-format.md`, "Eski adlar ve geçiş").
+    /// Nothing moves until the user confirms (decision 2026-11-13): another device or Obsidian may
+    /// still write there. A read-only vault gets no offer.
+    func updateLegacyDayFolderOffer() {
+        guard let root = vaultURL, sync.root == root else { return }
+        let count = canAddEvent ? Self.legacyDayFileCount(in: root) : 0
+        if sync.legacyDayFiles != count { sync.legacyDayFiles = count }
+    }
+
+    /// Whether the main screen offers to move the legacy day folder now.
+    var offersLegacyDayFolderMove: Bool {
+        sync.legacyDayFiles > 0 && !sync.legacyOfferDismissed && sync.folderMigrationTask == nil && canAddEvent
+    }
+
+    /// "Sonra": the offer leaves until the vault is opened again.
+    func dismissLegacyDayFolderOffer() { sync.legacyOfferDismissed = true }
+
+    /// The user confirmed: moves the legacy day folder in batches, each one write through the write
+    /// queue, so edits and queued share entries run between them. The band then says what moved,
+    /// what became a day copy and what stayed, by name.
+    func moveLegacyDayFolder() {
+        guard canAddEvent, let root = vaultURL, sync.root == root, sync.folderMigrationTask == nil else { return }
         let epoch = sync.epoch
         sync.folderMigrationTask = Task { [weak self] in
             await self?.migrateDayFolder(in: root, epoch: epoch)
@@ -31,46 +46,50 @@ extension IndexStore {
         }
     }
 
-    /// The names under the exact legacy day folder in byte order, or `nil` when the vault root has
-    /// no such folder. A case variant of its name never counts.
-    nonisolated static func legacyDayFolderListing(in root: URL) -> [String]? {
+    /// The day files, day copies and download placeholders of either directly under the exact
+    /// legacy day folder; 0 when the vault root has no such folder. A case variant never counts.
+    nonisolated static func legacyDayFileCount(in root: URL) -> Int {
         let manager = FileManager.default
-        guard (try? manager.contentsOfDirectory(atPath: root.path))?.contains(LegacyVaultNames.dayFolder) == true
-        else { return nil }
-        let folder = root.appendingPathComponent(LegacyVaultNames.dayFolder, isDirectory: true)
+        let legacy = LegacyVaultNames.dayFolder
+        guard (try? manager.contentsOfDirectory(atPath: root.path))?.contains(legacy) == true else { return 0 }
+        let folder = root.appendingPathComponent(legacy, isDirectory: true)
         let values = try? folder.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
-        guard values?.isSymbolicLink != true, values?.isDirectory == true else { return nil }
-        return ((try? manager.contentsOfDirectory(atPath: folder.path)) ?? [])
-            .sorted { $0.utf8.lexicographicallyPrecedes($1.utf8) }
+        guard values?.isSymbolicLink != true, values?.isDirectory == true else { return 0 }
+        return ((try? manager.contentsOfDirectory(atPath: folder.path)) ?? []).filter { name in
+            let path = legacy + "/" + (PlaceholderName.originalName(ofPlaceholder: name) ?? name)
+            return VaultLayout.day(ofDayPath: path) != nil || DayCopyName.isLegacyDayCopy(path: path)
+        }.count
     }
 
     private func migrateDayFolder(in root: URL, epoch: UUID) async {
         var outcome = DayFolderMigrationOutcome()
-        var failed = false
-        do {
-            try await performEdit { writer in
-                outcome = try await writer.migratingLegacyDayFolder()
-                return []
+        var stopped = false
+        repeat {
+            var batch = DayFolderMigrationOutcome()
+            let skipping = outcome.attempted
+            do {
+                try await performEdit { writer in
+                    batch = try await writer.migratingLegacyDayBatch(
+                        limit: Self.dayFolderMigrationBatch, skipping: skipping)
+                    // Core updated the index; the refresh after the run publishes every moved day.
+                    return []
+                }
+            } catch VaultStoreError.indexUpdateFailed {
+                // The files moved; the refresh below indexes them.
+            } catch {
+                // Could not start (a `Diary/` case variant, a read-only vault, another vault opened).
+                stopped = true
             }
-        } catch VaultStoreError.indexUpdateFailed {
-            // The files moved; the refresh below indexes them.
-        } catch {
-            failed = true
-        }
+            outcome.add(batch)
+        } while !stopped && !outcome.finished && vaultURL == root && sync.epoch == epoch
         guard vaultURL == root, sync.epoch == epoch else { return }
-        sync.migratedLegacyListing = Self.legacyDayFolderListing(in: root)
-        var report = DayCopyMergeReport()
-        report.movedDays = outcome.moved.count
-        report.copiedDays = outcome.copies.count
-        // A run that could not start (a `Diary/` case variant, a read-only vault) moved nothing.
-        report.unmovedDays = failed ? max(1, sync.migratedLegacyListing?.count ?? 0) : outcome.failed.count
-        if !report.isEmpty {
-            var total = sync.mergeReport ?? DayCopyMergeReport()
-            total.movedDays += report.movedDays
-            total.copiedDays += report.copiedDays
-            total.unmovedDays += report.unmovedDays
-            sync.mergeReport = total
-        }
+        var report = sync.mergeReport ?? DayCopyMergeReport()
+        report.movedDays += outcome.moved.count
+        report.copiedDays += outcome.copies.count
+        let unmoved = stopped ? Self.legacyDayFileCount(in: root) : outcome.failed.count + outcome.waiting.count
+        report.unmovedDays += unmoved
+        report.unmovedNames += outcome.failed + outcome.waiting
+        if !report.isEmpty { sync.mergeReport = report }
         sync.folderMigrationTask = nil
         // The moved days and the new day copies; the copies then merge as any other.
         await refresh(directories: [VaultLayout.dayFolder, LegacyVaultNames.dayFolder])

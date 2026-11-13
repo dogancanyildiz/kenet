@@ -12,8 +12,10 @@ struct DayCopyMergeReport: Equatable, Sendable {
     var movedDays = 0
     /// Day files the migration wrote as day copies, because `diary/` held another version.
     var copiedDays = 0
-    /// Day files the migration left in the legacy folder after an error.
+    /// Day files the migration left in the legacy folder after an error or waiting for download.
     var unmovedDays = 0
+    /// Their vault-relative paths; the band names the first few.
+    var unmovedNames: [String] = []
 
     var isEmpty: Bool { merged == 0 && failed == 0 && movedDays == 0 && copiedDays == 0 && unmovedDays == 0 }
 
@@ -29,6 +31,10 @@ struct DayCopyMergeReport: Equatable, Sendable {
         }
         if unmovedDays > 0 {
             parts.append(String(localized: "\(unmovedDays) gün dosyası taşınamadı; eski klasörde duruyor."))
+            let names = unmovedNames.map { ($0 as NSString).lastPathComponent }
+            if !names.isEmpty {
+                parts.append("(" + names.prefix(5).joined(separator: ", ") + (names.count > 5 ? ", …" : "") + ")")
+            }
         }
         if merged > 0 { parts.append(String(localized: "\(merged) gün kopyası birleştirildi.")) }
         if failed > 0 {

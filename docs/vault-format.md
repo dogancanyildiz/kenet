@@ -88,7 +88,8 @@ Dosyadaki yapı her dilde aynı kalır. Böylece her istemci kasayı her dilde a
 Kural 1'in ayrıntıları:
 
 - Hedef satır uygulamanın üretmediği bir satır da olabilir. Örnek: kullanıcının Obsidian'da yazdığı bir görevi tamamlamak. O durumda da yalnız o satır değişir.
-- Birden çok dosyaya dokunan işlemler 2 tanedir: varlık adını değiştirme ve çakışma birleştirme. Ad değiştirmede uygulama bağlantıları da günceller.
+- Birden çok dosyaya dokunan işlemler 3 tanedir: varlık adını değiştirme, çakışma birleştirme ve eski gün klasörünün geçişi. Ad değiştirmede uygulama bağlantıları da günceller.
+- Eski gün klasörünün geçişi yalnız kullanıcının onayıyla çalışır. Uygulama onu kendiliğinden başlatmaz. Ayrıntı: [Eski adlar ve geçiş](#eski-adlar-ve-geçiş).
 - Uygulama, kendi dışında yazılan metni kendiliğinden yeniden yazmaz. Uygulama o metnin biçimini düzeltmez. Uygulama o metindeki adları sonradan bağlantıya çevirmez.
 
 ### Tek geçişi bağlantıya çevirme
@@ -811,57 +812,75 @@ Gün dosyasının kimliği yoludur. `diary/` altında adı geçerli bir tarih ol
 | Serbest yazı başlığı | `## Journal` | `## Diary` | İki başlık da serbest yazı bölümünü açar. | Yalnız `## Diary` |
 | Gün dosyasının `type` değeri | `journal` | `diary` | İki değer de ayrılmıştır. Gün kimliği yine yoldur. | Yalnız `diary` |
 
-Uygulama eski adları kasa geçişi bitene kadar okur. Başka cihazdaki eski sürüm de eski adlarla yazmayı sürdürebilir. Geri alma: bu 3 adı eski değerine döndüren sürüm ve ters yönde aynı geçiş.
+Uygulama eski adları kasa geçişi bitene kadar okur ve yazar. Başka cihazdaki eski sürüm de eski adlarla yazmayı sürdürebilir. Geri alma: bu 3 adı eski değerine döndüren sürüm ve ters yönde aynı geçiş.
 
-**Okuma kuralları.**
+**Okuma ve yazma kuralları.**
 
 | Durum | Kural |
 |---|---|
-| Aynı gün iki klasörde | `diary/` altındaki dosya günün dosyasıdır. Eski klasördeki dosya geçişte gün kopyası olur. |
+| Gün yalnız eski klasörde | Gün dosyası `journal/YYYY-MM-DD.md` dosyasıdır. Uygulama o dosyayı okur ve o dosyaya yazar. `diary/` altında ikinci dosya açmaz. |
+| Eski klasördeki dosya indirilmeyi bekliyor | Dosya yine günün dosyasıdır. Yazma indirmeyi bekler; `diary/` altında dosya açılmaz. |
+| Eski başlıklı dosyaya yazma | Uygulama metni `## Journal` başlığının altına ekler. Başlığı değiştirmez. |
+| Gün hiçbir klasörde yok | Uygulama yeni dosyayı `diary/` altında açar. |
+| Aynı gün iki klasörde | `diary/` altındaki dosya günün dosyasıdır. Tarihe göre sayan görünümler eski dosyayı saymaz: gün listesi, özetler, geçmişte bugün, varlık zaman akışı, bağlanmamış anmalar. Görev listeleri iki dosyanın satırlarını da gösterir. Geçiş eski dosyayı gün kopyası yapar. |
 | Eski klasördeki gün kopyası | `journal/YYYY-MM-DD N.md` indekse girmez ve birleştirilmez. Geçiş onu `diary/` altına taşır. |
 | İki başlık aynı dosyada | Önce gelen tanınan başlıktır. Yinelenen başlık kuralı geçerlidir. |
 | Birleştirme | Eski başlık bölge eşleşmesinde `## Diary` sayılır. |
 | Yalnız harfi farklı eski klasör | `Journal/` gün klasörü değildir. Geçişe girmez. |
 
-**Geçiş: uygulama eski klasörü her yenilemeden sonra `diary/` altına taşır.**
+**Geçiş: kullanıcı onaylayınca uygulama eski klasörü `diary/` altına taşır.**
 
 ```mermaid
 flowchart TD
-  A["Yenileme biter; kasa yazılabilir"] --> B{"Kökte tam yazımla journal/ var mı?"}
-  B -- Hayır --> Z["Geçiş yok"]
-  B -- Evet --> C{"Klasörün listesi son geçişten beri değişti mi?"}
-  C -- Hayır --> Z
-  C -- Evet --> D["Önce gün dosyaları ad sırasıyla, sonra gün kopyaları birleştirme sırasıyla"]
+  A["Yenileme biter; kasa yazılabilir"] --> B{"Kökte tam yazımla journal/ altında gün dosyası var mı?"}
+  B -- Hayır --> Z["Öneri yok"]
+  B -- Evet --> O["Ana ekranda öneri bandı: Taşı… ve kapat"]
+  O -- "Kapat" --> Z2["Kasa yeniden açılana kadar öneri yok"]
+  O -- "Taşı…" --> Q{"Onay: önce bütün cihazları güncelle; yol bağlantıları kırılır"}
+  Q -- Sonra --> Z2
+  Q -- Taşı --> D["50 dosyalık partiler; her parti yazma kuyruğunda tek sıra"]
   D --> E{"Kaynak indirilmiş mi?"}
-  E -- Hayır --> E1["Atlar; sonraki geçiş yeniden dener"]
+  E -- Hayır --> E1["Atlar; dosya eski klasörde kalır"]
   E -- Evet --> F["Çevrilmiş baytlar: başlığın adı ve type değeri yeni ad"]
   F --> G{"diary/ altında aynı ad var mı?"}
   G -- Hayır --> H["Dosyayı o ada yazar; kaynağın zamanını verir; kaynağı siler"]
   G -- "Evet, baytlar çevrilmiş baytlarla aynı" --> I["Yarım kalmış geçiş: yalnız kaynağı siler"]
   G -- "Evet, baytlar farklı" --> J["İlk boş gün kopyası adına yazar: YYYY-MM-DD N.md"]
   J --> H2["Kaynağı siler; gün kopyası birleştirmesi ya da Tanılama onu ele alır"]
-  H --> K{"journal/ boş mu?"}
+  H --> K{"Partiler bitti ve journal/ boş mu?"}
   I --> K
   H2 --> K
-  K -- Evet --> L["Klasörü siler"]
-  K -- Hayır --> M["Klasörü bırakır"]
+  K -- Evet --> L["Klasörü rmdir ile siler"]
+  K -- Hayır --> M["Klasörü bırakır; bant kalan dosyaları adıyla sayar"]
 ```
 
 | Konu | Kural |
 |---|---|
+| Başlatma | Yalnız kullanıcının onayı. Uygulama geçişi kendiliğinden başlatmaz; içe aktarılan kasada da başlatmaz. |
+| Onay metni | Önce Kenet'i bütün cihazlarda güncelle. Dosyalar `journal/` klasöründen `diary/` klasörüne taşınır. Başlık ve `type` yeni adı alır. `[[journal/…]]` yol bağlantıları çalışmaz. |
+| Ertelenen öneri | Kapatılan öneri kasa yeniden açılana kadar gelmez. Uygulama kasaya hiçbir işaret yazmaz. |
 | Kapsam | Yalnız `journal/` klasörünün hemen altındaki gün dosyaları ve gün kopyaları. Notlar, alt klasörler ve öteki adlar yerinde kalır. |
 | Değişen baytlar | Tanınan başlık `## Journal` ise yalnız ad `Diary` olur. Sondaki boşluklar ve satır sonu kalır. |
 | `type` alanı | Okunabilen frontmatter'daki `type: journal` değeri tek alan kuralıyla `diary` olur. |
 | Değişmeyen dosya | UTF-8 olarak çözülemeyen dosya ve eski adı olmayan dosya bayt bayt taşınır. |
 | Değişiklik zamanı | Yeni dosya kaynağın değişiklik zamanını alır. Gün kopyası birleştirmesi bu zamanı karşılaştırır. |
-| Var olan hedef | Uygulama var olan dosyanın üzerine yazmaz. Yer tutucusu olan ad da dolu sayılır. |
+| Var olan hedef | Uygulama var olan dosyanın üzerine yazmaz. Yazma dışlayıcıdır. Yer tutucusu olan ad da dolu sayılır. |
 | Koordinasyon | Boş hedef tek `.move(kaynak → hedef)` sınırıdır. Hazır hedef tek `.merge(kaynak → hedef)` sınırıdır. Klasör silme tek silme sınırıdır. |
-| Hata | Hata o dosyayı eski klasörde bırakır. Öteki dosyalar sürer. Uygulama sayıyı ana ekranın bandında gösterir. |
-| Yalnız harfi farklı yeni klasör | `Diary/` varsa geçiş hiçbir dosyayı taşımaz. Uygulama bandda bildirir. |
+| Sınırın içi | Uygulama hedef adın boş olduğunu ve yer tutucusu olmadığını sınırın içinde yeniden denetler. |
+| Partiler | Her parti en çok 50 dosyadır ve yazma kuyruğunda tek sıradır. Düzenlemeler ve paylaşım satırları partilerin arasında yazılır. |
+| Yeniden deneme | Ad dolduysa ya da hedef değiştiyse uygulama yeni listeyle bir kez daha dener. |
+| Hata | Hata o dosyayı eski klasörde bırakır. Öteki dosyalar sürer. Bant kalan dosyaları sayar ve ilk 5 adını yazar. Öneri yeniden gelir. |
+| Klasör silme | Uygulama klasörü yalnız boşsa ve `rmdir` ile siler; içi dolu klasör silinmez. Son anda gelen dosya da klasörü tutar. |
+| Yalnız harfi farklı yeni klasör | `Diary/` varsa geçiş hiçbir dosyayı taşımaz. Bant kalan dosyaları sayar. |
 | Bağlantılar | Uygulama gün dosyasına bağlantı yazmaz. Adla yazılan `[[2026-10-02]]` taşımadan sonra da aynı günü bulur. Yol taşıyan `[[journal/…]]` bağlantısına uygulama dokunmaz. |
 | Format sürümü | `formatVersion` değişmez. Eski adlar okunduğu için eski kasa açılır. |
 
-Uygulama eski klasörün listesini her geçişten sonra saklar. Aynı liste yeni geçiş başlatmaz; başka cihazın eklediği dosya listeyi değiştirir. Kasa yeniden açılınca saklanan liste silinir.
+**Bilinen sınırlar.**
+
+| Sınır | Ayrıntı |
+|---|---|
+| Yeniden yazılan dosyanın öznitelikleri | Başlığı ya da `type` değeri değişen dosya yeni dosya olarak yazılır. Yalnız değişiklik zamanı kopyalanır. Genişletilmiş öznitelikler, Finder etiketleri ve oluşturma tarihi kaybolur. Bayt bayt taşınan dosya hepsini korur. |
+| Eski başlığın üstündeki `## Diary` | Kullanıcının `## Journal` başlığından önce yazdığı `## Diary` başlığı serbest yazı bölümü olur. `## Journal` yinelenen başlık sayılır ve geçişte değişmez. |
 
 ### Hedef gün kayıtları
 

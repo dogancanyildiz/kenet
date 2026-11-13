@@ -10,7 +10,7 @@ extension IndexStore {
     /// coordinated write (`VaultStore.changingDiary(on:to:expectedBody:)`). A changed section is
     /// `staleTarget`, and nothing is written.
     func changeDiary(on day: CalendarDate, to text: String, base: String? = nil) async throws {
-        try await performEdit(path: VaultLayout.dayPath(day)) { writer in
+        try await performEdit(path: dayFilePath(for: day)) { writer in
             try await writer.changingDiary(on: day, to: text, expectedBody: base)
         }
     }
@@ -30,14 +30,14 @@ extension IndexStore {
     }
 
     func changeEvent(on day: CalendarDate, target: LineBlock, to text: String) async throws {
-        let path = VaultLayout.dayPath(day)
+        let path = dayFilePath(for: day)
         try await performEdit(path: path) { writer in
             try await writer.changingText(of: target, at: path, to: text)
         }
     }
 
     func deleteEvent(on day: CalendarDate, target: LineBlock) async throws {
-        let path = VaultLayout.dayPath(day)
+        let path = dayFilePath(for: day)
         try await performEdit(path: path) { writer in
             try await writer.deletingBlock(target, at: path)
         }
@@ -55,7 +55,7 @@ extension IndexStore {
         let body = document.bodyLines
         let lines = (body.tasks.map(\.block) + body.events.map(\.block)).filter { $0.id == id }
         guard lines.count == 1, let line = lines.first else { return }
-        let path = VaultLayout.dayPath(day)
+        let path = dayFilePath(for: day)
         let holders = try await indexQuery(seam: \.testingQueryDidFinish, whenClosed: .empty([])) {
             try $0.files(holdingIdentifier: id)
         }

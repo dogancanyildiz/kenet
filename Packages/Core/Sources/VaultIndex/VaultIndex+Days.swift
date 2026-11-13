@@ -37,7 +37,7 @@ extension VaultIndex {
     /// first. A day file is `diary/<date>.md` with valid UTF-8; every other file is absent.
     public func daySummaries(from: CalendarDate? = nil, to: CalendarDate? = nil) throws -> [DaySummaryEntry] {
         // Stored dates are written as `YYYY-MM-DD`, so text order is date order.
-        var range = "f.kind = 'day' AND f.date IS NOT NULL"
+        var range = "f.kind = 'day' AND f.date IS NOT NULL AND \(Self.countsForItsDate("f"))"
         var bounds: [String] = []
         if let from {
             range += " AND f.date >= ?"

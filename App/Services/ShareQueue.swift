@@ -109,14 +109,14 @@ struct ShareImportReport: Equatable, Sendable {
             if case .unreadable = contents {
                 // Only markers: the lines are in the vault already. Bytes that are not a list move
                 // aside; a list that cannot be read now stays for the next run.
-                if !refreshed { await store.refresh(directories: [VaultLayout.dayFolder]) }
+                if !refreshed { await store.refresh(directories: [VaultLayout.dayFolder, LegacyVaultNames.dayFolder]) }
                 refreshed = true
                 if (try? file.setAsideIfUnreadable()) != true { listProblems.insert(url.lastPathComponent) }
                 continue
             }
             let elements = contents.elements
             guard !elements.isEmpty else { continue }
-            if !refreshed { await store.refresh(directories: [VaultLayout.dayFolder]) }
+            if !refreshed { await store.refresh(directories: [VaultLayout.dayFolder, LegacyVaultNames.dayFolder]) }
             refreshed = true
             // The extension checked the new `^id` against its day file alone.
             var failed = Set<String>()

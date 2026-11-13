@@ -93,7 +93,10 @@ public struct VaultIndex: Sendable {
         try database.read {
             try IndexedBlock.fetchAll(
                 $0,
-                sql: "SELECT b.* FROM blocks b JOIN files f ON f.path=b.file WHERE f.date=? ORDER BY b.file,b.ordinal",
+                sql: """
+                    SELECT b.* FROM blocks b JOIN files f ON f.path=b.file
+                    WHERE f.date=? AND \(Self.countsForItsDate("f")) ORDER BY b.file,b.ordinal
+                    """,
                 arguments: [date.description])
         }
     }

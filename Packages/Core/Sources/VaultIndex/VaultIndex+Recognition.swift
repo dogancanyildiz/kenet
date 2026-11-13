@@ -63,7 +63,8 @@ extension VaultIndex {
             let totals = try Row.fetchAll(
                 db,
                 sql: """
-                    SELECT e.file, COUNT(l.ordinal) AS total, MAX(f.date) AS lastDate
+                    SELECT e.file, COUNT(CASE WHEN \(Self.countsForItsDate("f")) THEN l.ordinal END) AS total,
+                        MAX(CASE WHEN \(Self.countsForItsDate("f")) THEN f.date END) AS lastDate
                     FROM entities e LEFT JOIN links l ON l.resolvedFile=e.file
                     LEFT JOIN files f ON f.path=l.file
                     WHERE e.kind != 'goal' GROUP BY e.file ORDER BY e.file
@@ -75,7 +76,7 @@ extension VaultIndex {
                         SELECT DISTINCT f.date, l.resolvedFile AS entity
                         FROM links l JOIN files f ON f.path=l.file
                         JOIN entities e ON e.file=l.resolvedFile
-                        WHERE f.kind='day' AND f.date IS NOT NULL AND e.kind != 'goal'
+                        WHERE f.kind='day' AND f.date IS NOT NULL AND e.kind != 'goal' AND \(Self.countsForItsDate("f"))
                     )
                     SELECT a.entity AS first, b.entity AS second, COUNT(*) AS count
                     FROM days a JOIN days b ON a.date=b.date AND a.entity<b.entity

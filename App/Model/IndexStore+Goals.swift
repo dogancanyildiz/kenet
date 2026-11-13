@@ -3,7 +3,7 @@ import VaultFormat
 
 extension IndexStore {
     func setGoal(on day: CalendarDate, key: String, value: GoalValue?) async throws {
-        try await performEdit(path: VaultLayout.dayPath(day)) {
+        try await performEdit(path: dayFilePath(for: day)) {
             try await $0.settingGoalValue(on: day, key: key, value: value)
         }
     }

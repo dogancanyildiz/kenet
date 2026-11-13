@@ -134,7 +134,7 @@ Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru 
 | `diary/weekly-review/` | `Tests/KenetTests/WeeklyReviewTests.swift` | Ad kodda |
 | `entities/fields/` | `Tests/KenetTests/EntityPageTests.swift` | Ad kodda |
 | `entity-types/` | `VaultIndexTests/EntityTypeTests.swift`, `VaultStoreTests/EntityTypeStoreTests.swift` | Ad listesi |
-| `migration/legacy-vault/` | `VaultStoreTests/DayFolderMigrationTests.swift`, `VaultIndexTests/LegacyDayFolderIndexTests.swift` | Ad kodda |
+| `migration/legacy-vault/` | `VaultStoreTests/DayFolderMigrationTests.swift`, `VaultIndexTests/LegacyDayFolderIndexTests.swift`, `Tests/KenetTests/DayFolderMigrationWiringTests.swift` | Ad kodda |
 | `rename/` | `VaultStoreTests/RenameTests.swift` | Ad listesi |
 | `import/` | `Tests/KenetTests/VaultImportFixtureTests.swift` | Ad listesi |
 | `dates/cases.json` | `DateParsingTests/DateFixtureTests.swift` | JSON vaka |

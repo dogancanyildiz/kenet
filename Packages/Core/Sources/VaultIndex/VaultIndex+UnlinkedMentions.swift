@@ -110,13 +110,17 @@ extension VaultIndex {
                             SELECT DISTINCT f.path, f.date FROM search
                             JOIN files f ON f.path = search.file
                             JOIN blocks b ON b.file = search.file AND b.ordinal = search.block
-                            WHERE search MATCH ? AND f.kind = 'day' AND f.date IS NOT NULL
+                            WHERE search MATCH ? AND f.kind = 'day' AND f.date IS NOT NULL AND \(Self.countsForItsDate("f"))
                                 AND b.kind IN ('event', 'task')
                             """, arguments: [expression])
                 }
             } else {
                 rows = try Row.fetchAll(
-                    db, sql: "SELECT path, date FROM files WHERE kind = 'day' AND date IS NOT NULL")
+                    db,
+                    sql: """
+                        SELECT f.path, f.date FROM files f
+                        WHERE f.kind = 'day' AND f.date IS NOT NULL AND \(Self.countsForItsDate("f"))
+                        """)
             }
             var seen: Set<String> = []
             return rows.map { (path: $0["path"] as String, date: $0["date"] as String) }

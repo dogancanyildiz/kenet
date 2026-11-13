@@ -38,6 +38,49 @@ import VaultFormat
         #expect(model.completed.count == 2)
     }
 
+    /// The project page's "Açık görevler" groups: carried over, this week, later, undated.
+    @Test func openSectionsSplitAroundTodayAndTheWeek() async throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        await context.start()
+        try FileManager.default.createDirectory(
+            at: context.file.deletingLastPathComponent(), withIntermediateDirectories: true)
+        // 2026-10-03 is a Saturday.
+        try """
+        ## Tasks
+        - [ ] Later #project/depo 📅 2026-10-05 ^later
+        - [ ] Sunday #project/depo 📅 2026-10-04 ^sunday
+        - [ ] Undated #project/depo ^undated
+        - [ ] Today #project/depo 📅 2026-10-03 ^today
+        - [ ] Old #project/depo 📅 2026-10-01 ^old
+        - [ ] Older #project/depo 📅 2026-09-20 ^older
+        - [x] Done #project/depo 📅 2026-10-01 ✅ 2026-10-02 ^done
+        """.write(to: context.file, atomically: true, encoding: .utf8)
+        await context.store.refreshAndSettle()
+        let model = try await ProjectModel.loaded(store: context.store, name: "depo")
+        func blocks(_ sections: [ProjectOpenSection]) -> [[String]] {
+            sections.map { section in section.rows.map { $0.sourceIdentifier ?? "" } }
+        }
+
+        var monday = Calendar(identifier: .gregorian)
+        monday.firstWeekday = 2
+        let mondayFirst = model.openSections(asOf: context.today, calendar: monday)
+        #expect(mondayFirst.map(\.kind) == [.carriedOver, .thisWeek, .later, .undated])
+        #expect(blocks(mondayFirst) == [["older", "old"], ["today", "sunday"], ["later"], ["undated"]])
+        #expect(mondayFirst.map(\.rows.count).reduce(0, +) == model.openCount)
+
+        // A Sunday-first week ends on that Saturday: Sunday's task is no longer this week's.
+        var sunday = Calendar(identifier: .gregorian)
+        sunday.firstWeekday = 1
+        let sundayFirst = model.openSections(asOf: context.today, calendar: sunday)
+        #expect(blocks(sundayFirst) == [["older", "old"], ["today"], ["sunday", "later"], ["undated"]])
+
+        // An empty group is left out.
+        let afterAll = model.openSections(asOf: try #require(CalendarDate("2026-11-01")), calendar: monday)
+        #expect(afterAll.map(\.kind) == [.carriedOver, .undated])
+        #expect(ProjectOpenSection.Kind.carriedOver.catalogKey == "Devreden")
+    }
+
     @Test func projectSuggestionsRespectModeContextCursorAndUnicode() async throws {
         let context = try TaskTestContext()
         defer { context.clean() }

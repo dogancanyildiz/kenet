@@ -6,6 +6,8 @@ struct LinkedTextView: View {
     let store: IndexStore
     /// Completed task text: plain runs in secondary ink (links keep their underline style).
     var isMuted: Bool = false
+    /// The text's font; vault content size unless the caller draws a title with it.
+    var font: Font = .ink.content
     @Environment(\.entityLookup) private var entityLookup
     @State private var destination: LinkDestination?
 
@@ -17,7 +19,7 @@ struct LinkedTextView: View {
     }
 
     var body: some View {
-        InkLinkedText(segments: segments, isMuted: isMuted) { url in
+        InkLinkedText(segments: segments, font: font, isMuted: isMuted) { url in
             guard url.scheme == "kenet-entity",
                 let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
                 let name = components.queryItems?.first(where: { $0.name == "name" })?.value

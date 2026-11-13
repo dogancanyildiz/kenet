@@ -203,7 +203,7 @@ struct TaskTimelineView: View {
                             sourceDay = VaultLayout.day(ofDayPath: path)
                         }
                         .navigationDestination(item: $sourceDay) { DayView(store: model.store, date: $0) }
-                        .inkSheet("Görev", onClose: { selected = nil })
+                        .inkSheet("Görev", onClose: { selected = nil }, titleInBar: false)
                     }
                 }.inkAdaptiveSheetPresentation()
             }

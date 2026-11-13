@@ -738,7 +738,7 @@ Manşetin altında görünüm sekmesi durur. Sekmenin altında görünüme göre
 | Tarihsiz | 2 | Bitiş tarihi olmayan açık görevler. Alt satır proje ve oluşturma günüdür: "Projesiz · 19 Eyl". |
 | Tamamlanan | 2 | Son tamamlananlar. Satır soluktur. Üstünde çizgi yoktur. Alt satır proje ve tamamlanma günüdür. |
 | Projeler | 5 | Etiketlerden türeyen proje listesi kartta. Satır proje renkli nokta, ad ve açık görev sayısıdır. |
-| Proje ekranı | 5 | Manşet proje adı; künye "3 açık · 5 bitti". Altında ilerleme kartı: tamamlanan/toplam ve çubuk. Sonra görev grupları kartlarda: bitiş gününe göre açık görevler, tarihsizler, tamamlananlar. En altta ilgili günler: projenin görevlerinin yazıldığı günler, yeniden eskiye; satır o günü açar. Satırlar Görevler ile aynı görev satırı bileşenidir. |
+| Proje ekranı | 5 | Manşet proje adı; künye "3 açık · 5 bitti". Altında ilerleme kartı: tamamlanan/toplam ve çubuk. Sonra "Açık görevler" başlığı ve sayısı gelir. Altında küçük etiketli gruplar durur: Devreden (uyarı renginde), Bu hafta, Sonra, Tarihsiz. Devreden, bitişi bugünden önce olandır. Bu hafta, bitişi bugünden hafta sonuna kadar olandır. Boş grup çizilmez. Ardından "Tamamlanan" bölümü gelir. En altta ilgili günler: projenin görevlerinin yazıldığı günler, yeniden eskiye; satır o günü açar. Satırlar Görevler ile aynı görev satırı bileşenidir. |
 
 **Kanban (5).**
 
@@ -786,7 +786,7 @@ Manşetin altında görünüm sekmesi durur. Sekmenin altında görünüme göre
 | Düzenleme menüsü | Başta "Bitti" durur; kapalı görevde yeniden açma izinliyse "Görevi yeniden aç" durur. Ardından Bugüne, Yarına, Haftaya, Tekrar ve Öncelik gelir. Taşıma kuralları Bugün'deki görev satırıyla aynıdır: bitişin zaten olduğu gün yoktur, kapalı görevde taşıma yoktur. |
 | Tekrar sheet'i | Ortak sheet kalıbı, `elevated` zemin, "Vazgeç / Kaydet". |
 | Tarih sheet'i | Ortak sheet kalıbı, `elevated` zemin, "Kapat". Tarih seçici yalnız hızlı girişteki küçük pencerede `surface` üstündedir. |
-| Görev ayrıntısı | Görev metni ve altında etiket-değer kartı: proje çipi, bitiş tarihi (devredende uyarı rengi ve "30 Eyl'den"), tekrar, kişi ve konum. Öncelik altı çizili sözcük seçimidir: Düşük · Normal · ! Orta · !! Yüksek. Altında not. Altta "Yarına taşı" ve "Haftaya taşı" ikincil düğme, "Bitti" birincil dolu düğme. Kapalı görevde taşıma ve "Bitti" yoktur. |
+| Görev ayrıntısı | Sheet'te çubukta yalnız "Kapat" durur; başlık görevin kendi metnidir, arama simgesi aynı satırdadır. Panelde ve Mac'te "Görev" manşeti metnin üstündedir. Görev metni ve altında etiket-değer kartı: proje çipi, bitiş tarihi (devredende uyarı rengi ve "30 Eyl'den"), tekrar, kişi ve konum. Öncelik altı çizili sözcük seçimidir: Düşük · Normal · ! Orta · !! Yüksek. Altında not. Altta "Yarına taşı" ve "Haftaya taşı" ikincil düğme, "Bitti" birincil dolu düğme. Kapalı görevde taşıma ve "Bitti" yoktur. |
 
 ### Kişiler ve Konumlar (1)
 
@@ -1071,7 +1071,7 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Son kayıtlar | En yeni 3 kayıt kart satırlarında, yeniden eskiye: "19 Eyl Cumartesi", hedefe ulaşan günde ✓, kalın değer ve "›". Başlığın sağında "Dokun, düzelt" yazar. 3'ten çok kayıt varsa kartın altında "Tüm kayıtlar (12)" bütün listeyi açar. Kullanıcı geçmiş günlerin kaydını üstteki alanda düzeltir. |
 | Hedefi düzenle | Sayfanın altında solda kalem simgeli küçük düz yazı düğme; "Hedefi sil" aynı satırın sağındadır. Tanım formunu açar. Kasa yazılamıyorsa yoktur. |
 | Hedefi sil | "Hedefi düzenle" ile aynı satırda sağda, çöp kutusu simgeli, tehlike renginde küçük düz yazı. Çok büyük yazı boyunda ikisi alt alta durur. Onay ister: "<Ad> silinsin mi? Gün kayıtları kalır." Yalnız hedef dosyasını siler. Sonra ayrıntı kapanır ve Hedefler listesi görünür. Mac'te ayrıntı sütunu "Bir hedef seç" durumuna döner. Silme başarısız olursa ayrıntı açık kalır ve nedeni yazar. |
-| Tanım formu | Sheet. Ortak kalıp: `elevated` zemin, solda "Vazgeç", sağda "Kaydet". Alanlar: ad, anahtar (salt okunur), dönem (sekme), tür (sekme: İşaret \| Sayı), hedef miktar, birim. Birim sayı türünde ya da dosyada birim varsa görünür. Kilometre taşında dönem ve tür salt okunur satırdır. Altında "Kilometre taşının dönemi ve türü değişmez." yazar. Hedef miktar yoktur. |
+| Tanım formu | Sheet. Ortak kalıp: `elevated` zemin, solda "Vazgeç", sağda "Kaydet". Alanlar: ad, anahtar (salt okunur), dönem (sekme), tür (sekme: İşaret \| Sayı), hedef miktar, birim. Ad, hedef miktar ve birim "Yeni hedef" sheet'indeki dolu kutudadır; odaktaki kutu vurgu çerçevesi alır. Birim sayı türünde ya da dosyada birim varsa görünür. Kilometre taşında dönem ve tür salt okunur satırdır. Altında "Kilometre taşının dönemi ve türü değişmez." yazar. Hedef miktar yoktur. |
 | Formda kaydetme | "Kaydet" yalnız değişen alanları yazar; öteki satırlar ve tanınmayan alanlar bayt düzeyinde kalır. Ad değişse de dosya adı değişmez. Değişen alanlardan biri geçersizse hiçbir alan yazılmaz. Hata alanın altında yazar: boş ad, kullanılan ad, sıfır ya da sayı olmayan miktar. Hiçbir alan değişmediyse "Kaydet" kapalıdır. |
 | Formdan çıkma | Kaydedilmemiş değişiklik varsa "Vazgeç" ve aşağı kaydırma soru sorar: "Değişiklikleri at" ya da "Düzenlemeye devam et". Değişiklik yoksa sheet hemen kapanır. |
 

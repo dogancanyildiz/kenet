@@ -209,6 +209,6 @@ struct EntityTypeEditorView: View {
 
     private func removeFieldButton(_ id: UUID) -> some View {
         Button("Alanı kaldır", role: .destructive) { deleteConfirmation.request(id) }
-            .buttonStyle(InkDestructiveButtonStyle())
+            .buttonStyle(EntityEditorLinkStyle(isDestructive: true))
     }
 }

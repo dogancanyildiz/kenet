@@ -54,7 +54,7 @@ struct KanbanView: View {
                                 .navigationDestination(item: $sourceDay) { day in
                                     DayView(store: model.store, date: day)
                                 }
-                                .inkSheet("Görev", onClose: { selectedRow = nil })
+                                .inkSheet("Görev", onClose: { selectedRow = nil }, titleInBar: false)
                             }
                         }.inkAdaptiveSheetPresentation()
                     }

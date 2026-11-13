@@ -19,6 +19,9 @@ struct TaskDetailView: View {
     @Environment(\.calendar) private var calendar
     @Environment(\.locale) private var locale
     @Environment(\.clockNow) private var clockNow
+    @Environment(\.inkInSheet) private var isInSheet
+    @Environment(\.inkMastheadPlacement) private var mastheadPlacement
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     /// The task as the index last answered for it; the listed row until then.
     private var task: TaskRow { answer.row(for: row.id, listed: row) ?? row }
@@ -32,12 +35,12 @@ struct TaskDetailView: View {
         // A table-backed page with the pinned manşet, like every Mac column page
         // (MacPinnedMastheadHostedTests, InkPageScrollColumnTests).
         List {
-            InkScrolledMasthead(masthead)
-            LinkedTextView(text: task.text, store: store, isMuted: task.isClosed)
-                .font(.ink.content)
-                .foregroundStyle(task.isClosed ? Color.ink.secondaryText : Color.ink.text)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .inkListRow()
+            if titlesWithTaskText {
+                sheetTitle.inkListRow()
+            } else {
+                InkScrolledMasthead(masthead)
+                taskText(font: .ink.content).inkListRow()
+            }
             factsCard.inkListRow()
             priorityCard.inkListRow()
             if !task.isClosed {
@@ -65,6 +68,40 @@ struct TaskDetailView: View {
         .sheet(item: $recurrenceEditor) { model in
             NavigationStack { TaskRecurrenceEditor(model: model) }
                 .inkAdaptiveSheetPresentation(fitsContent: true)
+        }
+    }
+
+    // MARK: - Title
+
+    /// A sheet whose manşet scrolls (iPhone, narrow iPad) has no generic "Görev" title: the
+    /// task's own text is the title, under "Kapat" (design.md: a user-text title stays in the
+    /// page). The panel and the Mac keep the "Görev" manşet above the text.
+    private var titlesWithTaskText: Bool { isInSheet && mastheadPlacement == .scrolled }
+
+    private func taskText(font: Font) -> some View {
+        LinkedTextView(text: task.text, store: store, isMuted: task.isClosed, font: font)
+            .foregroundStyle(task.isClosed ? Color.ink.secondaryText : Color.ink.text)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// The sheet's title row: the task text as the title and the page's search icon on its
+    /// row, as on a manşet row (above it at accessibility sizes).
+    @ViewBuilder private var sheetTitle: some View {
+        let title = taskText(font: .ink.sectionTitle).accessibilityAddTraits(.isHeader)
+        let search = SearchButton()
+            .buttonStyle(InkHeaderButtonStyle())
+            .environment(\.isInkHeaderActionSlot, true)
+        switch InkPageHeaderLayout.resolve(dynamicTypeSize: dynamicTypeSize) {
+        case .inline:
+            HStack(alignment: .firstTextBaseline, spacing: InkHeaderActionChrome.spacing) {
+                title
+                search
+            }
+        case .stacked:
+            VStack(alignment: .trailing, spacing: InkSpacing.row) {
+                search
+                title
+            }
         }
     }
 
@@ -277,7 +314,7 @@ private struct TaskDetailSheet: ViewModifier {
                     sourceDay = VaultLayout.day(ofDayPath: path)
                 }
                 .navigationDestination(item: $sourceDay) { DayView(store: store, date: $0) }
-                .inkSheet("Görev", onClose: { self.row = nil })
+                .inkSheet("Görev", onClose: { self.row = nil }, titleInBar: false)
             }
             .inkAdaptiveSheetPresentation()
         }

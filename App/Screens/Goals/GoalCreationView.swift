@@ -36,7 +36,7 @@ struct GoalCreationView: View {
                         .font(.ink.content)
                         .focused($focusedField, equals: .name)
                         .accessibilityIdentifier("goal.create.name")
-                        .modifier(GoalCreationFieldBox(isFocused: focusedField == .name))
+                        .modifier(InkFieldBox(isFocused: focusedField == .name))
                 }
                 .inkListRow()
             }
@@ -114,7 +114,7 @@ struct GoalCreationView: View {
                                 #if os(iOS)
                                     .keyboardType(.decimalPad)
                                 #endif
-                                .modifier(GoalCreationFieldBox(isFocused: focusedField == .target))
+                                .modifier(InkFieldBox(isFocused: focusedField == .target))
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         if model.kind == .number {
@@ -123,7 +123,7 @@ struct GoalCreationView: View {
                                 TextField("Birim (isteğe bağlı)", text: $model.unit)
                                     .font(.ink.content)
                                     .focused($focusedField, equals: .unit)
-                                    .modifier(GoalCreationFieldBox(isFocused: focusedField == .unit))
+                                    .modifier(InkFieldBox(isFocused: focusedField == .unit))
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                         }
@@ -252,28 +252,4 @@ private enum GoalCreationLayout {
     /// Templates listed before "Tümünü göster" (drawing: "15 hedeften 5'i").
     static let shownTemplates = 5
     static let iconBox: CGFloat = 32
-}
-
-/// The visible text field of the drawing: a filled box, an accent outline while editing.
-private struct GoalCreationFieldBox: ViewModifier {
-    let isFocused: Bool
-    @ScaledMetric(relativeTo: .body) private var height: CGFloat = 44
-    @Environment(\.displayScale) private var displayScale
-
-    func body(content: Content) -> some View {
-        content
-            .textFieldStyle(.plain)
-            .padding(.horizontal, 12)
-            .frame(minHeight: height)
-            .background(
-                RoundedRectangle(cornerRadius: InkCorner.sm, style: .continuous)
-                    .fill(isFocused ? Color.ink.surface : Color.ink.well)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: InkCorner.sm, style: .continuous)
-                    .stroke(
-                        isFocused ? Color.ink.accent : Color.ink.rule,
-                        lineWidth: isFocused ? 1.5 : InkStroke.hairline(scale: displayScale))
-            )
-    }
 }

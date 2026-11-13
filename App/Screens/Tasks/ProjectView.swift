@@ -81,11 +81,20 @@ struct ProjectView: View {
                 .inkListRow()
             }
         }
-        ForEach(model.openGroups) { group in
+        // Drawing: one "Açık görevler" title, the groups under it as small labels.
+        let open = model.openSections(asOf: actions.day, calendar: actions.calendar)
+        if !open.isEmpty {
             Section {
-                SectionHeader(title: groupHeading(group.date), count: group.rows.count)
-                    .inkListRow()
-                rows(group.rows)
+                SectionHeader(
+                    title: PresentationLocalization.string(localized: "Açık görevler", locale: locale),
+                    count: model.openCount
+                )
+                .inkListRow()
+                ForEach(open) { section in
+                    groupLabel(section)
+                        .inkListRow()
+                    rows(section.rows)
+                }
             }
         }
         Section {
@@ -151,12 +160,29 @@ struct ProjectView: View {
         }
     }
 
-    private func groupHeading(_ day: CalendarDate?) -> String {
-        if let day {
-            return LocalDay.instant(for: day).formatted(
-                .dateTime.day().month().year().locale(PresentationLocalization.resolvedLocale(locale)))
+    /// A group's small label and count; "Devreden" in the warning color, as its rows' meta line.
+    private func groupLabel(_ section: ProjectOpenSection) -> some View {
+        let title = PresentationLocalization.string(
+            localized: String.LocalizationValue(section.kind.catalogKey), locale: locale)
+        let count = section.rows.count.formatted(.number.grouping(.never).locale(locale))
+        let color = section.kind == .carriedOver ? Color.ink.warning : Color.ink.secondaryText
+        return HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(verbatim: title)
+                .font(.ink.meta.weight(.semibold))
+            Spacer(minLength: 0)
+            Text(verbatim: count)
+                .font(.ink.meta.monospacedDigit())
+                .fixedSize()
+                .layoutPriority(1)
         }
-        return PresentationLocalization.string(localized: "Tarihsiz", locale: locale)
+        .foregroundStyle(color)
+        // A list row is at least 44 pt tall: the label sits at its foot, next to its own card.
+        .frame(minHeight: TapTarget.minimumLength - 2 * InkListRowInsets.vertical, alignment: .bottom)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: "\(title), \(count)"))
+        .accessibilityAddTraits(.isHeader)
+        // A section title to the tests and the audit, like ``SectionHeader``'s.
+        .accessibilityIdentifier(SectionHeader.titleIdentifier)
     }
 
     private func labeled<Value: View>(_ title: LocalizedStringKey, @ViewBuilder value: () -> Value)

@@ -24,7 +24,7 @@ import VaultIndex
         // is open and named.
         let morning = try await plan(context.store, on: "2026-10-03")
         let task = try #require(morning.first { $0.id == "task-2026-10-03" })
-        #expect(task.title == String(localized: "\(2) görev bugün"))
+        #expect(task.titleText == .localized("%@ görev bugün", "2"))
         #expect(morning.first { $0.id == "task-2026-10-04" }?.title == "unknown")
     }
 
@@ -289,11 +289,11 @@ private enum LegacyNotificationPlanner {
                 if !remaining.isEmpty {
                     let body =
                         preferences.hideContent
-                        ? String(localized: "Bugün bekleyen hedefler var")
-                        : String(localized: "Bugün bekleyen hedefler: \(remaining.joined(separator: ", "))")
+                        ? NotificationText.localized("Bugün bekleyen hedefler var")
+                        : .localized("Bugün bekleyen hedefler: %@", remaining.joined(separator: ", "))
                     result.append(
                         NotificationRequest(
-                            id: "goals-\(day)", date: date, title: String(localized: "Günlük hedefler"),
+                            id: "goals-\(day)", date: date, title: .localized("Günlük hedefler"),
                             body: body, destination: .goals))
                 }
             }
@@ -305,8 +305,8 @@ private enum LegacyNotificationPlanner {
                 if summary.events.isEmpty && summary.diary.isEmpty {
                     result.append(
                         NotificationRequest(
-                            id: "diary-\(day)", date: date, title: String(localized: "Gününden bir an"),
-                            body: String(localized: "Bugünden bir an yazmak ister misin?"), destination: .diary))
+                            id: "diary-\(day)", date: date, title: .localized("Gününden bir an"),
+                            body: .localized("Bugünden bir an yazmak ister misin?"), destination: .diary))
                 }
             }
         }
@@ -315,20 +315,23 @@ private enum LegacyNotificationPlanner {
 
     private static func taskMessage(
         _ tasks: [TaskRow], on day: CalendarDate, hideContent: Bool
-    ) -> (title: String, body: String)? {
+    ) -> (title: NotificationText, body: NotificationText)? {
         let open = tasks.filter { !$0.isClosed }
         let due = open.filter { $0.due == day }.sorted { $0.id < $1.id }
         let overdue = open.filter { $0.due.map { $0 < day } ?? false }.count
         guard !due.isEmpty || overdue > 0 else { return nil }
-        let title: String
+        let title: NotificationText
         if due.isEmpty {
-            title = String(localized: "Bugünkü görevler")
+            title = .localized("Bugünkü görevler")
+        } else if hideContent && due.count == 1 {
+            title = .localized("1 görev bugün")
         } else if hideContent || due.count > 1 {
-            title = String(localized: "\(due.count) görev bugün")
+            title = .localized("%@ görev bugün", "\(due.count)")
         } else {
-            title = due[0].text.plainText
+            title = .verbatim(due[0].text.plainText)
         }
-        let body = overdue > 0 ? String(localized: "Önceki günlerden \(overdue) açık görev.") : ""
+        let body: NotificationText =
+            overdue > 0 ? .localized("Önceki günlerden %@ açık görev.", "\(overdue)") : .verbatim("")
         return (title, body)
     }
 }

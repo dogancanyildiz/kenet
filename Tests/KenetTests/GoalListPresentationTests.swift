@@ -190,4 +190,46 @@ struct GoalListPresentationTests {
             GoalListPresentation.listOpenHint(kind: .milestone, bundle: turkish, locale: tr)
                 == "Bugünü işaretle")
     }
+
+    /// Without an explicit bundle the hint follows the locale's language, not the runner's.
+    @Test func openHintFollowsLocaleWithoutBundle() {
+        #expect(GoalListPresentation.listOpenHint(kind: .number, locale: tr) == "Ayrıntıları göster")
+        #expect(GoalListPresentation.listOpenHint(kind: .number, locale: en) == "Show details")
+        #expect(
+            GoalListPresentation.listOpenHint(kind: .milestone, markedToday: false, locale: tr)
+                == "Bugünü işaretle")
+        #expect(
+            GoalListPresentation.listOpenHint(kind: .milestone, markedToday: false, locale: en)
+                == "Mark Today")
+        #expect(
+            GoalListPresentation.listOpenHint(kind: .milestone, markedToday: true, locale: tr)
+                == "İşareti kaldır")
+        #expect(
+            GoalListPresentation.listOpenHint(kind: .milestone, markedToday: true, locale: en)
+                == "Clear mark")
+    }
+
+    /// An explicit bundle decides the language; the locale only formats.
+    @Test func openHintUsesGivenBundle() throws {
+        let turkish = try languageBundle("tr")
+        let english = try languageBundle("en")
+        #expect(
+            GoalListPresentation.listOpenHint(kind: .milestone, bundle: turkish, locale: en)
+                == "Bugünü işaretle")
+        #expect(
+            GoalListPresentation.listOpenHint(kind: .milestone, bundle: english, locale: tr)
+                == "Mark Today")
+    }
+
+    /// Only milestones get the mark hint; a boolean goal opens details whatever `markedToday` says.
+    @Test func booleanGoalOpenHintIsDetails() {
+        for marked in [nil, false, true] as [Bool?] {
+            #expect(
+                GoalListPresentation.listOpenHint(kind: .boolean, markedToday: marked, locale: tr)
+                    == "Ayrıntıları göster")
+            #expect(
+                GoalListPresentation.listOpenHint(kind: .boolean, markedToday: marked, locale: en)
+                    == "Show details")
+        }
+    }
 }

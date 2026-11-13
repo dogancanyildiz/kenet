@@ -172,25 +172,35 @@ enum CadenceReminderPlan {
         return rows
     }
 
-    static func message(people: [CadenceReminderPerson], hideContent: Bool) -> (title: String, body: String) {
-        let title = String(localized: "Görüşme zamanı")
+    /// Keys take only `%@` and the singular has its own key: see `NotificationText`.
+    static func message(
+        people: [CadenceReminderPerson], hideContent: Bool
+    ) -> (title: NotificationText, body: NotificationText) {
+        let title = NotificationText.localized("Görüşme zamanı")
         if hideContent {
             let count = people.count
-            return (title, String(localized: "Görüşme zamanı gelen \(count) kişi var"))
+            return (
+                title,
+                count == 1
+                    ? .localized("Görüşme zamanı gelen 1 kişi var")
+                    : .localized("Görüşme zamanı gelen %@ kişi var", "\(count)")
+            )
         }
         let shown = people.prefix(nameLimit).map(\.name)
-        let body: String
+        let body: NotificationText
         switch people.count {
         case 1:
-            body = shown[0]
+            body = .verbatim(shown[0])
         case 2:
-            body = String(localized: "\(shown[0]) ve \(shown[1])")
+            body = .localized("%@ ve %@", shown[0], shown[1])
         case 3:
-            body = String(localized: "\(shown[0]), \(shown[1]) ve \(shown[2])")
+            body = .localized("%@, %@ ve %@", shown[0], shown[1], shown[2])
         default:
             let extra = people.count - nameLimit
-            body = String(
-                localized: "\(shown[0]), \(shown[1]), \(shown[2]) ve \(extra) kişi daha")
+            body =
+                extra == 1
+                ? .localized("%@, %@, %@ ve 1 kişi daha", shown[0], shown[1], shown[2])
+                : .localized("%@, %@, %@ ve %@ kişi daha", shown[0], shown[1], shown[2], "\(extra)")
         }
         return (title, body)
     }

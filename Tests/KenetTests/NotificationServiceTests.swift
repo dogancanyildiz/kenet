@@ -1,5 +1,7 @@
 import Foundation
 import Testing
+import VaultFormat
+import VaultIndex
 
 @testable import Kenet
 
@@ -63,6 +65,57 @@ struct NotificationServiceTests {
         #expect(center.additions.count == planned + 1)
         #expect(center.additions.last == first)
         #expect(service.pending == pending)
+    }
+
+    /// Text is compared by key and arguments: the same key with another count, or another task
+    /// name, is another plan.
+    @Test func aPendingRequestWhoseArgumentsChangedIsPlannedAgain() async throws {
+        let defaults = try TestDefaults()
+        defer { defaults.clean() }
+        let day = CalendarDate("2026-09-28")!
+        let id = "task-\(day)"
+
+        // Content hidden: three tasks read as a count.
+        var week = NotificationVaultDays()
+        week.dueTasks = try notificationTasks(
+            "- [ ] 📅 2026-09-28 bir\n- [ ] 📅 2026-09-28 iki\n- [ ] 📅 2026-09-28 üç\n")
+        week.openTaskCounts = [day: 3]
+        var center = FakeNotificationCenter()
+        var service = service(center, defaults: defaults)
+        service.useVaultDays(week)
+        service.update(isOpen: true, vaultID: "sample")
+        await service.replanNow()
+        var planned = try #require(service.pending.first { $0.id == id })
+        #expect(planned.titleText == .localized("%@ görev bugün", "3"))
+        var added = center.additions.count
+        center.values[id] = NotificationRequest(
+            id: id, date: planned.date, title: .localized("%@ görev bugün", "2"), body: planned.bodyText,
+            destination: .tasks)
+        await service.replanNow()
+        #expect(center.additions.count == added + 1)
+        #expect(center.additions.last == planned)
+        #expect(center.values[id] == planned)
+        await service.replanNow()
+        #expect(center.additions.count == added + 1)
+
+        // Content shown: one task goes by its name, verbatim on both sides.
+        week.dueTasks = try notificationTasks("- [ ] 📅 2026-09-28 yeni ad\n")
+        week.openTaskCounts = [day: 1]
+        center = FakeNotificationCenter()
+        service = self.service(center, defaults: defaults)
+        service.preferences.hideContent = false
+        service.useVaultDays(week)
+        service.update(isOpen: true, vaultID: "sample")
+        await service.replanNow()
+        planned = try #require(service.pending.first { $0.id == id })
+        #expect(planned.titleText == .verbatim("yeni ad"))
+        added = center.additions.count
+        center.values[id] = NotificationRequest(
+            id: id, date: planned.date, title: .verbatim("eski ad"), body: planned.bodyText, destination: .tasks)
+        await service.replanNow()
+        #expect(center.additions.count == added + 1)
+        #expect(center.additions.last == planned)
+        #expect(center.values[id] == planned)
     }
 
     @Test func onlyAllowedAuthorizationSchedulesAndNeverPromptsOnReplan() async throws {

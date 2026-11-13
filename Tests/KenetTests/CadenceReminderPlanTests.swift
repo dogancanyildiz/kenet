@@ -19,10 +19,10 @@ struct CadenceReminderPlanTests {
         let due = planned[today] ?? []
         #expect(due.map(\.name) == ["Deniz", "Ada", "Bora", "Cem"])
         let message = CadenceReminderPlan.message(people: due, hideContent: false)
-        #expect(message.title == String(localized: "Görüşme zamanı"))
-        #expect(message.body == String(localized: "\("Deniz"), \("Ada"), \("Bora") ve \(1) kişi daha"))
-        #expect(!message.body.contains("Cem"))
-        #expect(!message.title.contains("Deniz"))
+        #expect(message.title == .localized("Görüşme zamanı"))
+        #expect(message.body == .localized("%@, %@, %@ ve 1 kişi daha", "Deniz", "Ada", "Bora"))
+        #expect(!message.body.resolved.contains("Cem"))
+        #expect(!message.title.resolved.contains("Deniz"))
     }
 
     @Test func equalOverdueBreaksTiesByIdentifier() {
@@ -33,7 +33,7 @@ struct CadenceReminderPlanTests {
         let due = CadenceReminderPlan.plan(people: people, days: [today])[today] ?? []
         #expect(due.map(\.id) == ["people/a.md", "people/b.md"])
         let message = CadenceReminderPlan.message(people: due, hideContent: false)
-        #expect(message.body == String(localized: "\("Ada") ve \("Ada")"))
+        #expect(message.body == .localized("%@ ve %@", "Ada", "Ada"))
     }
 
     @Test func pausedSnoozedRhythmlessAndNeverMetStayOut() {
@@ -105,10 +105,10 @@ struct CadenceReminderPlanTests {
         ]
         let due = CadenceReminderPlan.plan(people: people, days: [today])[today] ?? []
         let hidden = CadenceReminderPlan.message(people: due, hideContent: true)
-        #expect(hidden.body == String(localized: "Görüşme zamanı gelen \(2) kişi var"))
-        #expect(!hidden.body.contains("Deniz"))
-        #expect(!hidden.body.contains("Ada"))
-        #expect(!hidden.title.contains("Deniz"))
+        #expect(hidden.body == .localized("Görüşme zamanı gelen %@ kişi var", "2"))
+        #expect(!hidden.body.resolved.contains("Deniz"))
+        #expect(!hidden.body.resolved.contains("Ada"))
+        #expect(!hidden.title.resolved.contains("Deniz"))
     }
 
     @Test func fiveDuePeopleShareOneBodyWithThreeNamesAndTheRest() {
@@ -118,8 +118,9 @@ struct CadenceReminderPlanTests {
         let planned = CadenceReminderPlan.plan(people: people.reversed(), days: [today])
         let due = planned[today] ?? []
         #expect(planned.count == 1 && due.count == 5)
-        let body = CadenceReminderPlan.message(people: due, hideContent: false).body
-        #expect(body == String(localized: "\("Ad1"), \("Ad2"), \("Ad3") ve \(2) kişi daha"))
+        let text = CadenceReminderPlan.message(people: due, hideContent: false).body
+        #expect(text == .localized("%@, %@, %@ ve %@ kişi daha", "Ad1", "Ad2", "Ad3", "2"))
+        let body = text.resolved
         #expect(!body.contains("Ad4") && !body.contains("Ad5"))
     }
 

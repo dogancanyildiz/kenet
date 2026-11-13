@@ -156,7 +156,7 @@ import UniformTypeIdentifiers
     private static func board(_ context: TaskTestContext) async throws -> KanbanModel {
         await context.start()
         try source.write(to: context.file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let model = KanbanModel(tasks: TasksModel(store: context.store, today: { context.today }))
         await model.load()
         return model

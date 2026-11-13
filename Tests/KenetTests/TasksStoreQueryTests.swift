@@ -25,7 +25,7 @@ import VaultStore
         defer { context.clean() }
         await context.start()
         try Self.writeEdgeCases(context)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         try await expectScreens(
             context, days: ["2026-09-20", "2026-10-02", "2026-10-03", "2026-10-04"], projects: ["CAFÉ", "Cafe\u{301}"])
 
@@ -51,7 +51,7 @@ import VaultStore
         defer { context.clean() }
         await context.start()
         try Self.writeEdgeCases(context)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let days = ["2026-10-02", "2026-10-03"]
         let projects = ["café"]
         let tasks = TasksModel(store: context.store, today: { context.today })
@@ -80,7 +80,7 @@ import VaultStore
         try await expectScreens(context, days: days, projects: projects)
         // A file deleted outside the app.
         try FileManager.default.removeItem(at: context.root.appendingPathComponent("notes/Edge.md"))
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         try await expectScreens(context, days: days, projects: projects)
         try await expectRebuild(context, days: days)
         await tasks.loadList()
@@ -150,7 +150,7 @@ import VaultStore
         defer { context.clean() }
         await context.start()
         try Self.writeEdgeCases(context)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let store = context.store
         let tapped = try #require(try await store.allTasks().first { $0.sourceIdentifier == "note" })
         var answer = TaskSelectionAnswer()

@@ -118,3 +118,14 @@ private actor WatcherClockTicks {
     private(set) var value = 0
     func increment() { value += 1 }
 }
+
+extension IndexStore {
+    /// A refresh the caller can query after. `refresh()` joins one already in flight and returns
+    /// at once: the watcher starts one after every outside write, so a test that writes a file,
+    /// refreshes and reads would meet the index before its write. This form returns when the
+    /// index holds what was on disk when it was called.
+    func refreshAndSettle(rebuild: Bool = false) async {
+        await refresh(rebuild: rebuild)
+        await waitWhileRefreshInFlight()
+    }
+}

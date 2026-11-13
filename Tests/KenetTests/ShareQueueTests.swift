@@ -365,7 +365,7 @@ struct ShareQueueTests {
         let older = root.appendingPathComponent("diary/2000-01-05.md")
         let olderBytes = Data("## Events\n- Eski olay ^abc123\n".utf8)
         try olderBytes.write(to: older)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
 
         let container = context.container
         let writer = ShareEntryWriter(
@@ -406,7 +406,7 @@ struct ShareQueueTests {
         let day = root.appendingPathComponent("diary/2026-11-10.md")
         let userLine = "- 09:30 Kahve ^abc123\n"
         try Data(("## Events\n" + userLine).utf8).write(to: day)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
 
         let container = context.container
         let writer = ShareEntryWriter(

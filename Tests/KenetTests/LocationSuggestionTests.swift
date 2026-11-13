@@ -192,7 +192,7 @@ struct QuickEntryLocationTests {
         let bytes = try Data(contentsOf: file)
         let changed = String(decoding: bytes, as: UTF8.self).replacingOccurrences(of: "10.5000", with: "11.5000")
         try Data(changed.utf8).write(to: file)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         #expect(context.store.nearbyPlaces.first { $0.entity.name == "Liman Ofis" }?.coordinate.latitude == 11.5)
         model.dismissedLocation = false
         #expect(model.suggestedPlace == nil)
@@ -206,7 +206,7 @@ struct QuickEntryLocationTests {
         let bytes =
             "---\ntype: place\nname: Liman Ofis\nqualifier: iş\ncoordinates: [10.5210, 20.0415]\nradius: 80\n---\n"
         try Data(bytes.utf8).write(to: context.root.appendingPathComponent(entity.file))
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let source = FakeLocationSource()
         source.authorization = .authorized
         source.fix = PlaceCoordinate(latitude: 10.521, longitude: 20.0415)

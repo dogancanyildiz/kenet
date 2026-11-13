@@ -139,7 +139,7 @@ struct DayEventEditingTests {
         #expect(model.errorText == nil)
         #expect(try Data(contentsOf: context.file) == saved)
         #expect(sqlite3_exec(handle, "DROP TRIGGER reject_edit", nil, nil, nil) == SQLITE_OK)
-        await context.store.refresh(rebuild: true)
+        await context.store.refreshAndSettle(rebuild: true)
         #expect(try await context.store.computeDay(on: context.day).events.first?.text.plainText == "Saved edit")
     }
 

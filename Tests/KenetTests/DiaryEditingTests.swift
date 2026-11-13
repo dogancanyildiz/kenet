@@ -132,7 +132,7 @@ struct DiaryEditingTests {
         #expect(
             try context.file.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate == modified)
         #expect(sqlite3_exec(handle, "DROP TRIGGER reject_diary", nil, nil, nil) == SQLITE_OK)
-        await context.store.refresh(rebuild: true)
+        await context.store.refreshAndSettle(rebuild: true)
         #expect(try await context.store.computeDay(on: context.day).preview == "Deniz yeni günlük.")
     }
 

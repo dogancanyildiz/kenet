@@ -135,7 +135,7 @@
             #expect(text.contains("#project/altyapi"))
             try text.replacingOccurrences(of: " #project/altyapi", with: "")
                 .write(to: file, atomically: true, encoding: .utf8)
-            await shell.context.store.refresh()
+            await shell.context.store.refreshAndSettle()
             await shell.mount.settle(rounds: 16)
             #expect(try await !shell.context.store.computeProjects().contains("altyapi"))
             #expect(shell.window.title == String(localized: "Görevler"), "window: \(shell.window.title)")

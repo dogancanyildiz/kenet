@@ -100,7 +100,7 @@ import VaultIndex
         - [ ] [[Deniz Arıkan]] Medium 📅 2026-10-03 🔼 #project/order ^medium
         - [ ] [[Deniz Arıkan]] High 📅 2026-10-03 ⏫ #project/order ^high
         """.write(to: context.file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let tasks = TasksModel(store: context.store, today: { context.today })
         tasks.projectFilter = "order"
         await tasks.loadList()
@@ -143,7 +143,7 @@ import VaultIndex
 
             """.utf8
         ).write(to: context.file)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let unknown = try #require(try await context.store.allTasks().first { $0.sourceIdentifier == "unknown" })
         let known = try #require(try await context.store.allTasks().first { $0.sourceIdentifier == "known" })
         #expect(unknown.recurrenceSource != nil && unknown.recurrence == nil)

@@ -48,7 +48,7 @@ struct DigitNamePickTests {
         defer { context.clean() }
         try Data("---\ntype: place\nname: 12\nqualifier: iş\n---\n".utf8)
             .write(to: context.root.appendingPathComponent("places/12 (iş).md"))
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let model = context.model()
         model.text = "bugün @1"
         model.selectSuggestion(try #require(context.store.knownEntities.first { $0.file == "places/12 (iş).md" }))

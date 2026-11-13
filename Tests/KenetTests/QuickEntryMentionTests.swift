@@ -99,7 +99,7 @@ struct QuickEntryMentionTests {
         #expect(await context.model.submit(time: nil))
         #expect(FileManager.default.fileExists(atPath: context.root.appendingPathComponent("people/Ad.md").path))
         #expect(RawDocument(bytes: try context.eventBytes()).bodyLines.events.last?.block.text == "[[Ad]] ile")
-        await context.store.refresh(rebuild: true)
+        await context.store.refreshAndSettle(rebuild: true)
         #expect(context.store.knownEntities.contains { $0.file == "people/Ad.md" })
     }
 
@@ -233,7 +233,7 @@ struct QuickEntryMentionTests {
         await context.start()
         let file = context.root.appendingPathComponent("people/Yeni Ad.md")
         try Data("---\ntype: person\nname: Yeni Ad\naliases: [Yeni]\n---\n".utf8).write(to: file)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         context.model.text = "@Yeni"
         #expect(context.model.suggestions().map(\.name) == ["Yeni Ad"])
         #expect(context.store.entityUsage.contains { $0.file == "people/Yeni Ad.md" })

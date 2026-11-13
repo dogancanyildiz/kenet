@@ -18,7 +18,7 @@ import VaultFormat
         - [-] Cancel #project/Café ^cancel
         - [ ] Child #project/Café/mobile ^child
         """.write(to: context.file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let tasks = TasksModel(store: context.store)
         await tasks.loadList()
         #expect(tasks.projects.filter { $0.lowercased() == "café" }.count == 1)

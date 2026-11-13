@@ -46,7 +46,7 @@ struct EntityRenameTests {
         await context.start()
         let raw = context.root.appendingPathComponent("notes/Su.md")
         try Data("---\nraw: |\n  [[Deniz Arıkan]]\n---\n[[Deniz Arıkan|Deniz]]\n".utf8).write(to: raw)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let detail = EntityDetailModel(store: context.store, path: context.path)
         await detail.load()
         let model = EntityRenameModel(detail: detail, name: "Deniz Arıkan Yılmaz", qualifier: nil)

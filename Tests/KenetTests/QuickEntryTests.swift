@@ -82,7 +82,7 @@ struct QuickEntryTests {
         let file = root.appendingPathComponent("diary/\(LocalDay.today()).md")
         #expect(RawDocument(bytes: try Data(contentsOf: file)).bodyLines.events.count == 1)
         #expect(sqlite3_exec(handle, "DROP TRIGGER reject_event", nil, nil, nil) == SQLITE_OK)
-        await context.store.refresh(rebuild: true)
+        await context.store.refreshAndSettle(rebuild: true)
         let saved = try await context.store.computeDay(on: LocalDay.today())
         #expect(saved.events.map(\.text.plainText) == ["Saved event"])
         #expect(context.store.counts.events == 1)

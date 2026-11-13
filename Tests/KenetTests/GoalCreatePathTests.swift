@@ -24,7 +24,7 @@ struct GoalCreatePathTests {
             !FileManager.default.fileExists(
                 atPath: root.appendingPathComponent("goals/Koşu: 5 km.md").path))
 
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         #expect((try await context.store.goalDefinitions()).contains { $0.name == "Koşu: 5 km" })
         #expect((try await context.store.goalDefinitions()).count == 1)
     }

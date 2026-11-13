@@ -78,7 +78,7 @@ import VaultFormat
         let model = try await Self.board(context)
         #expect(model.columns.first?.rows.compactMap(\.sourceIdentifier) == ["plan"])
         try (Self.source + "\n- [ ] Added ^added\n").write(to: context.file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         await model.load()
         #expect(model.columns.first?.rows.compactMap(\.sourceIdentifier) == ["added", "plan"])
         #expect(model.columnBuilds == 2)
@@ -90,7 +90,7 @@ import VaultFormat
         defer { context.clean() }
         await context.start()
         try Self.source.write(to: context.file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let clock = BoardClock(day: context.today)
         let model = KanbanModel(tasks: TasksModel(store: context.store, today: { clock.day }))
         await model.load()
@@ -167,7 +167,7 @@ import VaultFormat
         - [ ] [[Deniz Arıkan]] Shared #project/board ^shared
         - [ ] Free #project/board ^free
         """.write(to: context.file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let model = KanbanModel(tasks: TasksModel(store: context.store, today: { context.today }))
         model.tasks.projectFilter = "board"
         await model.load()
@@ -187,7 +187,7 @@ import VaultFormat
         let source = try String(contentsOf: file, encoding: .utf8)
         try source.replacingOccurrences(of: "name: Deniz Arıkan\n", with: "name: Deniz Arıkan\nqualifier: okul\n")
             .write(to: file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         #expect(changed.isSet)
         #expect(model.columns.first?.name == "Deniz Arıkan (okul)")
         #expect(model.moveTargets.first?.name == "Deniz Arıkan (okul)")
@@ -214,7 +214,7 @@ import VaultFormat
     private static func board(_ context: TaskTestContext) async throws -> KanbanModel {
         await context.start()
         try source.write(to: context.file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let model = KanbanModel(tasks: TasksModel(store: context.store, today: { context.today }))
         await model.load()
         return model

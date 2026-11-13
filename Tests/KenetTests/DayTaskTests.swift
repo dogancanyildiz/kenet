@@ -15,7 +15,7 @@ struct DayTaskTests {
             "## Tasks\n- [ ] late 📅 2026-10-02 ^late\n- [ ] today 📅 2026-10-03 ^today\n- [ ] created ^created\n- [x] closed 📅 2026-10-03 ✅ 2026-10-03 ^closed\n- [-] cancelled 📅 2026-10-02 ^cancel\n"
                 .utf8
         ).write(to: context.file)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let groups = TaskGroups(rows: try await context.store.allTasks(), on: context.today, isToday: true)
         #expect(groups.overdue.contains { $0.sourceText == "late" })
         #expect(groups.dated.map(\.sourceText) == ["today"])
@@ -43,7 +43,7 @@ struct DayTaskTests {
                 .utf8
         ).write(
             to: context.root.appendingPathComponent("diary/2026-10-02.md"))
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let groups = await DayTasksModel.loaded(store: context.store, day: context.today, isToday: true).groups
         #expect(groups.overdue.map(\.sourceText) == ["late"])
         #expect(groups.dated.map(\.sourceText) == ["today"])
@@ -86,7 +86,7 @@ struct DayTaskTests {
         await context.start()
         let source = "\u{FEFF}## Tasks\r\n- [ ] call 📅 2026-10-03 x ^task\r\n  keep\r\n"
         try Data(source.utf8).write(to: context.file)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let editor = TaskEditorModel(store: context.store, row: try await context.row("call x"))
         await editor.load()
         #expect(await editor.setDue(CalendarDate("2026-10-05")))

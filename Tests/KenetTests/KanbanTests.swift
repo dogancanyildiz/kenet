@@ -45,7 +45,7 @@ struct KanbanBoardLayoutTests {
         - [x] No date ^nodate
         - [-] Cancel ^cancel
         """.write(to: context.file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let model = await board(context)
         #expect(model.columns.map { $0.rows.count } == [2, 1, 2])
         #expect(model.columns.map(\.destination) == [.status(.todo), .status(.inProgress), .status(.done)])
@@ -67,7 +67,7 @@ struct KanbanBoardLayoutTests {
         - [ ] Free ^free
         - [-] Cancel #project/empty ^cancel
         """.write(to: context.file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let model = await board(context)
         model.grouping = .project
         #expect(model.columns.count == 4)
@@ -89,7 +89,7 @@ struct KanbanBoardLayoutTests {
         - [ ] [[Liman Ofis]] Place #project/board ^place
         - [ ] [[Unknown Person]] Unresolved #project/board ^unresolved
         """.write(to: context.file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let model = await board(context)
         model.tasks.projectFilter = "board"
         await model.load()
@@ -121,7 +121,7 @@ struct KanbanBoardLayoutTests {
             - [ ] Early 📅 2026-10-02 ^early
             """
         try source.write(to: context.file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let model = await board(context)
         #expect(
             model.columns.first?.rows.compactMap(\.sourceIdentifier) == [
@@ -138,7 +138,7 @@ struct KanbanBoardLayoutTests {
         let source =
             "\u{feff}---\r\ntype: diary\r\ndate: 2026-10-03\r\ncustom: 'keep'\r\n---\r\n\r\n## Tasks\r\n- [ ] Plan 📅 2026-10-06 #project/Alpha ^task\r\n  Note untouched\r\n\r\n## Other\r\nCustom bytes  \r\n"
         try Data(source.utf8).write(to: context.file)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let model = await board(context)
         let row = try #require(try await context.store.allTasks().first)
         #expect(await model.move(row, to: try #require(model.columns.first { $0.destination == .status(.inProgress) })))
@@ -152,7 +152,7 @@ struct KanbanBoardLayoutTests {
         await context.start()
         let source = "## Tasks\n- [ ] Plan 📅 2026-10-06 #project/Alpha ^task\n- [ ] Other #project/Beta ^other\n"
         try source.write(to: context.file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let model = await board(context)
         model.grouping = .project
         let row = try #require(try await context.store.allTasks().first { $0.sourceIdentifier == "task" })
@@ -174,7 +174,7 @@ struct KanbanBoardLayoutTests {
         await context.start()
         let source = "## Tasks\n- [/] Plan 📅 2026-10-03 🔁 every week ^original\n"
         try source.write(to: context.file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let model = await board(context)
         let row = try #require(try await context.store.allTasks().first)
         let done = try #require(model.columns.first { $0.destination == .status(.done) })
@@ -199,7 +199,7 @@ struct KanbanBoardLayoutTests {
         defer { context.clean() }
         await context.start()
         try "## Tasks\n- [ ] Plan ^task\n".write(to: context.file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let model = await board(context)
         let token = model.beginDrag(try #require(try await context.store.allTasks().first))
         let target = try #require(model.columns.first { $0.destination == .status(.inProgress) })
@@ -219,7 +219,7 @@ struct KanbanBoardLayoutTests {
         await context.start()
         let source = "## Tasks\n- [?] Plan #project/demo ^task\n"
         try source.write(to: context.file, atomically: true, encoding: .utf8)
-        await context.store.refresh()
+        await context.store.refreshAndSettle()
         let model = await board(context)
         let row = try #require(try await context.store.allTasks().first)
         #expect(await !model.move(row, to: try #require(model.columns.first)))
@@ -237,7 +237,7 @@ struct KanbanBoardLayoutTests {
             defer { context.clean() }
             await context.start()
             try "## Tasks\n- [ ] Plan ^task\n".write(to: context.file, atomically: true, encoding: .utf8)
-            await context.store.refresh()
+            await context.store.refreshAndSettle()
             let tasks = TasksModel(store: context.store, today: { context.today })
             for hostWidth in [CGFloat(900), CGFloat(1400)] {
                 let sink = HostedLayout.Sink()

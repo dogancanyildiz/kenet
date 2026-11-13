@@ -27,7 +27,7 @@ struct TaskTestContext {
     }
 
     func start() async { await store.start() }
-    var file: URL { root.appendingPathComponent("journal/\(today).md") }
+    var file: URL { root.appendingPathComponent("diary/\(today).md") }
     func document() throws -> RawDocument { RawDocument(bytes: try Data(contentsOf: file)) }
     /// The task written as `text` once the index has it. A test's outside write ends in a
     /// refresh that can meet one the watcher already started; the row arrives with that one, so

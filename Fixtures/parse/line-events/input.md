@@ -24,7 +24,7 @@
 - [x]bitişik
   - alt olay değil
 - ^ID
-## Journal
+## Diary
 - liste
 ## Events
 - yinelenen bölüm

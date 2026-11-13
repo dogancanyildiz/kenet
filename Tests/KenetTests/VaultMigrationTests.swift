@@ -10,7 +10,7 @@ struct VaultMigrationTests {
         let context = try CloudVaultContext()
         defer { context.clean() }
         try context.installLocalSample()
-        let file = "journal/2026-09-20.md"
+        let file = "diary/2026-09-20.md"
         let before = try Data(contentsOf: context.location.localRoot.appendingPathComponent(file))
         // Include arbitrary non-Markdown bytes and empty directories in the copy contract.
         let unknown = context.location.localRoot.appendingPathComponent(".unknown")
@@ -31,7 +31,7 @@ struct VaultMigrationTests {
         #expect(FileManager.default.fileExists(atPath: opened.appendingPathComponent("empty").path))
         let eventDay = try #require(CalendarDate("2039-01-01"))
         #expect(await context.store.addEvent(on: eventDay, text: "Cloud-only event", time: nil))
-        let day = "journal/\(eventDay).md"
+        let day = "diary/\(eventDay).md"
         #expect(
             try String(contentsOf: opened.appendingPathComponent(day), encoding: .utf8).contains("Cloud-only event"))
         #expect(!FileManager.default.fileExists(atPath: context.location.localRoot.appendingPathComponent(day).path))
@@ -45,7 +45,7 @@ struct VaultMigrationTests {
         try await context.location.refreshCloudAvailability()
         let migration = VaultMigration(copyDirectory: { source, target in
             try FileManager.default.copyItem(at: source, to: target)
-            let file = target.appendingPathComponent("journal/2026-09-20.md")
+            let file = target.appendingPathComponent("diary/2026-09-20.md")
             if damage == "missing" {
                 try FileManager.default.removeItem(at: file)
             } else if damage == "short" {
@@ -85,9 +85,9 @@ struct VaultMigrationTests {
         #expect(context.store.notice?.contains(canonical.path) == true)
         #expect(context.store.notice?.contains(copied.path) == true)
         #expect(try Data(contentsOf: marker) == before)
-        #expect(!FileManager.default.fileExists(atPath: canonical.appendingPathComponent("journal/2026-09-20.md").path))
+        #expect(!FileManager.default.fileExists(atPath: canonical.appendingPathComponent("diary/2026-09-20.md").path))
         #expect(
-            FileManager.default.fileExists(atPath: copied.appendingPathComponent("journal/2026-09-20.md").path))
+            FileManager.default.fileExists(atPath: copied.appendingPathComponent("diary/2026-09-20.md").path))
         #expect(FileManager.default.fileExists(atPath: context.location.localRoot.path))
         #expect(context.location.kind == .icloud)
     }
@@ -172,8 +172,8 @@ struct VaultMigrationTests {
         #expect(requested.count == 2)
         #expect(samePath(requested.first, root))
         let copied = context.container.appendingPathComponent("Documents/Kenet-Phone")
-        #expect(FileManager.default.fileExists(atPath: copied.appendingPathComponent("journal/2026-09-20.md").path))
-        #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent("journal/2026-09-20.md").path))
+        #expect(FileManager.default.fileExists(atPath: copied.appendingPathComponent("diary/2026-09-20.md").path))
+        #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent("diary/2026-09-20.md").path))
         #expect(
             try Data(contentsOf: root.appendingPathComponent(".app/vault.json"))
                 == DownloadingUbiquityContainer.settings)
@@ -194,7 +194,7 @@ struct VaultMigrationTests {
         #expect(try FileManager.default.subpathsOfDirectory(atPath: root.path).sorted() == before)
         #expect(
             FileManager.default.fileExists(
-                atPath: result.copied.appendingPathComponent("journal/2026-09-20.md").path))
+                atPath: result.copied.appendingPathComponent("diary/2026-09-20.md").path))
     }
 
     @Test func stayingLocalAfterFailedMoveRemovesOnlyOwnTemporaryCopy() async throws {
@@ -224,7 +224,7 @@ struct VaultMigrationTests {
         #expect(context.store.vaultURL == context.location.localRoot)
         #expect(
             FileManager.default.fileExists(
-                atPath: context.location.localRoot.appendingPathComponent("journal/2026-09-20.md").path))
+                atPath: context.location.localRoot.appendingPathComponent("diary/2026-09-20.md").path))
     }
 
     @Test func writesAreClosedWhileTheVaultIsCopied() async throws {
@@ -258,7 +258,7 @@ struct VaultMigrationTests {
         let late = Data("- 10:00 Late event\n".utf8)
         let migration = VaultMigration(copyDirectory: { source, target in
             try FileManager.default.copyItem(at: source, to: target)
-            try late.write(to: source.appendingPathComponent("journal/2026-09-21-late.md"))
+            try late.write(to: source.appendingPathComponent("diary/2026-09-21-late.md"))
         })
         do {
             _ = try await context.location.migrateToCloud(deviceName: "Phone", migration: migration)
@@ -268,7 +268,7 @@ struct VaultMigrationTests {
         #expect(
             !FileManager.default.fileExists(atPath: context.container.appendingPathComponent("Documents/Kenet").path))
         #expect(
-            try Data(contentsOf: context.location.localRoot.appendingPathComponent("journal/2026-09-21-late.md"))
+            try Data(contentsOf: context.location.localRoot.appendingPathComponent("diary/2026-09-21-late.md"))
                 == late)
     }
 

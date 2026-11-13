@@ -8,7 +8,7 @@ import VaultFormat
 @Test func continuationsNestedLinksSectionsAndGoalValues() throws {
     try withVault { root in
         try write(
-            root, "journal/2026-01-01.md",
+            root, "diary/2026-01-01.md",
             """
             ---
             goals:
@@ -21,7 +21,7 @@ import VaultFormat
             - [?] Kitap ^parent
               - [/] [[Su]] ^child
               devam
-            ## Journal
+            ## Diary
             Su
             Kitap
 
@@ -40,7 +40,7 @@ import VaultFormat
         #expect(snapshot.blocks[0].rawStatus == "?")
         #expect(snapshot.blocks[1].status == "inProgress")
         #expect(snapshot.blocks[2].text == "Su\nKitap")
-        #expect(snapshot.blocks[2].section == "Journal")
+        #expect(snapshot.blocks[2].section == "Diary")
         #expect(snapshot.blocks[5].section == "other")
         #expect(snapshot.links.count == 2)
         #expect(snapshot.links[0].key == "place" && snapshot.links[0].block == nil)

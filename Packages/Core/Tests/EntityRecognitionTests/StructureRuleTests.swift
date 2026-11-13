@@ -45,7 +45,7 @@ private let people = [
     ("- su iç 🔁 her hafta Deniz ile", "- su iç 🔁 her hafta [[Deniz Arıkan|Deniz]] ile"),
 ])
 func everydayNameIsHeldOnlyByAnUnreadRecurrenceRule(_ text: String, _ expected: String) throws {
-    for prefix in ["", "## Journal\n", "## Tasks\n", "## Events\n"] {
+    for prefix in ["", "## Diary\n", "## Tasks\n", "## Events\n"] {
         #expect(try linked(prefix + text, people + numbers) == prefix + expected)
     }
 }
@@ -79,7 +79,7 @@ private let structurePieces = [
 
 private let structureMarkers = [
     "- [ ] ", "- [x] ", "* [/] ", "1. [ ] ", "12) [ ] ", "> - [ ] ", "  - [ ] ", "\t- [-] ", "- ", "* ", "- 12:30 ",
-    "- 9:05 ", "+ 12:30 ", "  - 12:30 ", "1. ", "> ", "", "", "## Events\n- ", "## Tasks\n", "## Journal\n",
+    "- 9:05 ", "+ 12:30 ", "  - 12:30 ", "1. ", "> ", "", "", "## Events\n- ", "## Tasks\n", "## Diary\n",
 ]
 
 /// Whatever the recognizer offers, linking all of it leaves every task and event reading as it did.

@@ -303,13 +303,12 @@ enum TodayDayRing: Sendable {
     }
 }
 
-/// Journal file path used by Mac Days selection (`journal/YYYY-MM-DD.md`).
+/// Diary file path used by Mac Days selection (`diary/YYYY-MM-DD.md`).
 enum TodayDayPath {
-    static func file(for day: CalendarDate) -> String { "journal/\(day).md" }
+    static func file(for day: CalendarDate) -> String { VaultLayout.dayPath(day) }
 
+    /// The day of a day file path, under `diary/` or a folder not yet migrated (`LegacyVaultNames`).
     static func day(fromFile path: String) -> CalendarDate? {
-        guard path.hasPrefix("journal/"), path.hasSuffix(".md") else { return nil }
-        let stamp = String(path.dropFirst("journal/".count).dropLast(3))
-        return CalendarDate(stamp)
+        VaultLayout.day(ofDayPath: path)
     }
 }

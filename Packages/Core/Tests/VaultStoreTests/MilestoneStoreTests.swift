@@ -14,18 +14,18 @@ struct MilestoneStoreTests {
         let day = CalendarDate("2026-10-04")!
         let source = try String(
             contentsOf: Fixtures.root().appendingPathComponent("goals/writes/milestone-input.md"), encoding: .utf8)
-        let journal = "journal/2026-10-04.md"
-        try vault.write(journal, source)
+        let diary = "diary/2026-10-04.md"
+        try vault.write(diary, source)
         _ = try await vault.store.settingGoalValue(on: day, key: "portfolio", value: .boolean(true))
         #expect(
-            try vault.bytes(journal)
+            try vault.bytes(diary)
                 == Data(
                     source.replacingOccurrences(of: "---\nUnchanged", with: "  portfolio: true\n---\nUnchanged").utf8))
         await #expect(throws: EditError.invalidValue) {
             try await vault.store.settingGoalValue(on: day.addingDays(1)!, key: "portfolio", value: .boolean(true))
         }
         _ = try await vault.store.settingGoalValue(on: day, key: "portfolio", value: nil)
-        #expect(try vault.bytes(journal) == Data(source.utf8))
+        #expect(try vault.bytes(diary) == Data(source.utf8))
         try vault.check()
     }
 

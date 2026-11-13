@@ -1,4 +1,4 @@
 ## Tasks
 yeni
 
-## Journal
+## Diary

@@ -131,7 +131,7 @@ import VaultStore
             ("timeline", { try await store.computeTimelineTasks(from: day, to: day, today: day).count }),
             ("project", { try await store.computeProjectTasks("mobil").count }),
             ("week", { try await store.computeOpenTasks(dueBy: day, orWrittenFrom: day).count }),
-            ("task", { try await store.computeTask(id: "journal/2026-09-14.md^g8f1cb") == nil ? 0 : 1 }),
+            ("task", { try await store.computeTask(id: "diary/2026-09-14.md^g8f1cb") == nil ? 0 : 1 }),
             ("counts", { try await store.computeOpenTaskCounts().count }),
         ]
         for (name, query) in queries {
@@ -278,7 +278,7 @@ import VaultStore
         for row in all {
             #expect(try await store.computeTask(id: row.id)?.queryKey == row.queryKey)
         }
-        #expect(try await store.computeTask(id: "journal/2026-01-01.md#1") == nil)
+        #expect(try await store.computeTask(id: "diary/2026-01-01.md#1") == nil)
     }
 
     /// The day-page groups after a fresh rebuild of the vault equal the store's answers.
@@ -321,7 +321,7 @@ import VaultStore
 
     static func writeEdgeCases(_ context: TaskTestContext) throws {
         let files = [
-            "journal/2026-10-03.md": """
+            "diary/2026-10-03.md": """
             ## Tasks
             - [ ] undated here ^undated
             - [ ] past [[Deniz Arıkan]] 📅 2026-09-30 ⏫ #project/Café ^past
@@ -337,7 +337,7 @@ import VaultStore
             - [ ] no identifier 📅 2026-10-02
 
             """,
-            "journal/2026-10-02.md":
+            "diary/2026-10-02.md":
                 "## Tasks\r\n- [ ] crlf undated ^crlf\r\n- [x] crlf done ✅ 2026-10-02 ^crlfdone\r\n",
             "notes/Edge.md":
                 "- [ ] note [[Ece Yalın]] 📅 2026-10-01 #project/Cafe\u{301} ^note\n- [ ] note undated ^noteundated\n",

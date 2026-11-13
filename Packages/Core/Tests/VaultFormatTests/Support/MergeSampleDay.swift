@@ -26,7 +26,7 @@ enum MergeSampleDay {
         var lines: [String] = []
         var counter = 0
         if chance(85, using: &random) {
-            lines += ["---", "type: journal", "date: 2026-09-21"]
+            lines += ["---", "type: diary", "date: 2026-09-21"]
             if chance(70, using: &random) {
                 lines.append("goals:")
                 lines.append("  spor: \(chance(50, using: &random) ? "true" : "false")")
@@ -65,7 +65,7 @@ enum MergeSampleDay {
             lines.append("")
         }
         if chance(80, using: &random) {
-            lines.append("## Journal")
+            lines.append("## Diary")
             for index in 0..<(1 + random.next() % 3) {
                 lines.append("Gün \(index): \(pick(words, using: &random)) ve [[\(pick(people, using: &random))]].")
             }
@@ -94,15 +94,15 @@ enum MergeSampleDay {
             case 2: deleteBlock(&lines, using: &random)
             case 3: toggleStatus(&lines, using: &random)
             case 4: changeText(&lines, using: &random)
-            case 5: addToSection(&lines, "## Journal", "Ek \(tag): \(pick(words, using: &random)).", using: &random)
+            case 5: addToSection(&lines, "## Diary", "Ek \(tag): \(pick(words, using: &random)).", using: &random)
             case 6: deleteFreeLine(&lines, using: &random, fences: unclosedFences)
             case 7: changeGoal(&lines, using: &random)
             case 8: addField(&lines, "\(pick(words, using: &random).lowercased())\(tag): \(random.next() % 100)")
             case 9: lines.append(contentsOf: ["", "## Notlar \(tag)", "Düşünce \(random.next() % 5)."])
             case 10:
-                addToSection(&lines, "## Journal", "```", using: &random)
-                addToSection(&lines, "## Journal", "- [ ] sahte \(tag)", using: &random)
-                addToSection(&lines, "## Journal", "```", using: &random)
+                addToSection(&lines, "## Diary", "```", using: &random)
+                addToSection(&lines, "## Diary", "- [ ] sahte \(tag)", using: &random)
+                addToSection(&lines, "## Diary", "```", using: &random)
             case 11: duplicateLine(&lines, using: &random)
             case 12: if lines.first == "---" { lines.insert("bozuk satır", at: 1) }
             case 13:
@@ -111,7 +111,7 @@ enum MergeSampleDay {
                 }
             case 14:
                 addToSection(
-                    &lines, "## Journal",
+                    &lines, "## Diary",
                     chance(50, using: &random) ? "> - [ ] alıntı \(tag)" : "  - [ ] girintili \(tag)", using: &random)
             case 15: addToSection(&lines, "## Tasks", "  - [ ] alt görev \(tag)", using: &random)
             case 16: duplicateFreeLine(&lines, using: &random)
@@ -128,7 +128,7 @@ enum MergeSampleDay {
             case 19:
                 if let heading = lines.firstIndex(where: { $0.hasPrefix("## Notlar") }) {
                     lines[heading] = "## Fikirler \(tag)"
-                } else if let heading = lines.firstIndex(of: "## Journal"), chance(30, using: &random) {
+                } else if let heading = lines.firstIndex(of: "## Diary"), chance(30, using: &random) {
                     lines[heading] = "## Günlük"
                 }
             case 20:
@@ -145,7 +145,7 @@ enum MergeSampleDay {
                     lines.insert(contentsOf: ["etiketler\(counter):", "  - a # \(tag)", "  - b # \(tag)"], at: closing)
                     counter += 1
                 }
-            default: addToSection(&lines, "## Journal", "", using: &random)
+            default: addToSection(&lines, "## Diary", "", using: &random)
             }
         }
         var bytes = Array((lines.joined(separator: "\n") + "\n").utf8)
@@ -163,8 +163,8 @@ enum MergeSampleDay {
     static func garbage(using random: inout SeededGenerator) -> [UInt8] {
         let alphabet: [[UInt8]] = [
             Array("- [ ] ".utf8), Array("- [x] ".utf8), Array("## Tasks\n".utf8), Array("## Events\n".utf8),
-            Array("## Journal\n".utf8), Array("---\n".utf8), Array("goals:\n".utf8), Array("  kitap: 3\n".utf8),
-            Array("type: journal\n".utf8), Array("^ab1\n".utf8), Array(" ✅ 2026-09-21".utf8), Array("09:00 ".utf8),
+            Array("## Diary\n".utf8), Array("---\n".utf8), Array("goals:\n".utf8), Array("  kitap: 3\n".utf8),
+            Array("type: diary\n".utf8), Array("^ab1\n".utf8), Array(" ✅ 2026-09-21".utf8), Array("09:00 ".utf8),
             Array("```\n".utf8), Array("[[Ev]]".utf8), Array("Su".utf8), Array("\n".utf8), Array("\r\n".utf8),
             Array("\r".utf8), Array("  ".utf8), Array("> ".utf8), Array("#".utf8), Array("::".utf8),
             [0xEF, 0xBB, 0xBF],

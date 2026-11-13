@@ -2,11 +2,16 @@ import Foundation
 import VaultFormat
 
 enum NotificationDestination: String, Codable, Sendable {
-    case tasks, goals, journal, people
+    case tasks, goals, diary, people
     var prefix: String { self == .tasks ? "task" : rawValue }
+    /// Also reads the diary reminder's identifier of a build before 2026-11-13, so a reminder
+    /// still pending or delivered from it opens the diary and the next plan removes it.
     static func from(identifier: String) -> Self? {
-        for destination in [Self.tasks, .goals, .journal, .people] {
-            let prefix = destination.prefix + "-"
+        let prefixes =
+            [Self.tasks, .goals, .diary, .people].map { ($0, $0.prefix) }
+            + [(Self.diary, LegacyDefaults.codeName)]
+        for (destination, prefix) in prefixes {
+            let prefix = prefix + "-"
             if identifier.hasPrefix(prefix), CalendarDate(String(identifier.dropFirst(prefix.count))) != nil {
                 return destination
             }
@@ -15,7 +20,7 @@ enum NotificationDestination: String, Codable, Sendable {
     }
 }
 
-/// Screen a tapped notification opens. Goals and the journal prompt both land on Today.
+/// Screen a tapped notification opens. Goals and the diary prompt both land on Today.
 enum NotificationRoute: Equatable, Sendable {
     case today
     case tasks
@@ -24,7 +29,7 @@ enum NotificationRoute: Equatable, Sendable {
     init(_ destination: NotificationDestination) {
         switch destination {
         case .tasks: self = .tasks
-        case .goals, .journal: self = .today
+        case .goals, .diary: self = .today
         case .people: self = .unseenPeople
         }
     }

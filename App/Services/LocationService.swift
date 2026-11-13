@@ -52,7 +52,7 @@ final class LocationService {
             if !isEnabled { coordinate = nil }
         }
     }
-    static let preferenceKey = "journal.locationSuggestions.enabled"
+    nonisolated static let preferenceKey = "kenet.locationSuggestions.enabled"
     @ObservationIgnored let source: any LocationSource
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let now: () -> Date

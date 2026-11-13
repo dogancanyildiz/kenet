@@ -46,7 +46,7 @@
             let context = try TaskTestContext(sample: true)
             defer { context.clean() }
             await context.start()
-            let column = MacDaysColumn(store: context.store, selection: .constant("journal/2026-09-25.md")) {}
+            let column = MacDaysColumn(store: context.store, selection: .constant("diary/2026-09-25.md")) {}
             let snapshot = try await Self.host(
                 column, context: context, size: CGSize(width: InkSpacing.macListIdealWidth, height: Self.columnHeight))
             defer { snapshot.close() }

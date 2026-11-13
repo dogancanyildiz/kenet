@@ -7,59 +7,59 @@ import VaultIndex
 
 @MainActor struct CalendarDensityTests {
     private func makeDay(
-        date: CalendarDate, eventCount: Int, taskCount: Int = 0, hasJournal: Bool
+        date: CalendarDate, eventCount: Int, taskCount: Int = 0, hasDiary: Bool
     ) -> DayOverview {
         DayOverview(
-            id: "journal/\(date).md", date: date, eventCount: eventCount, journalCount: hasJournal ? 1 : 0,
-            preview: hasJournal ? "Günlük yazısı" : nil, taskCount: taskCount)
+            id: "diary/\(date).md", date: date, eventCount: eventCount, diaryCount: hasDiary ? 1 : 0,
+            preview: hasDiary ? "Günlük yazısı" : nil, taskCount: taskCount)
     }
 
     @Test func scoreAndDensityThresholds() throws {
-        let day0 = makeDay(date: CalendarDate("2026-09-01")!, eventCount: 0, hasJournal: false)
-        #expect(JournalCalendar.score(for: day0) == 0)
-        #expect(JournalCalendar.densityLevel(for: day0) == 0)
+        let day0 = makeDay(date: CalendarDate("2026-09-01")!, eventCount: 0, hasDiary: false)
+        #expect(DiaryCalendar.score(for: day0) == 0)
+        #expect(DiaryCalendar.densityLevel(for: day0) == 0)
 
-        // Level 1: 1–2 (event + task count, or journal-only = 1)
-        let day1Event = makeDay(date: CalendarDate("2026-09-02")!, eventCount: 1, hasJournal: false)
-        #expect(JournalCalendar.score(for: day1Event) == 1)
-        #expect(JournalCalendar.densityLevel(for: day1Event) == 1)
+        // Level 1: 1–2 (event + task count, or diary-only = 1)
+        let day1Event = makeDay(date: CalendarDate("2026-09-02")!, eventCount: 1, hasDiary: false)
+        #expect(DiaryCalendar.score(for: day1Event) == 1)
+        #expect(DiaryCalendar.densityLevel(for: day1Event) == 1)
 
-        let day1JournalOnly = makeDay(date: CalendarDate("2026-09-03")!, eventCount: 0, hasJournal: true)
-        #expect(JournalCalendar.score(for: day1JournalOnly) == 1)
-        #expect(JournalCalendar.densityLevel(for: day1JournalOnly) == 1)
+        let day1DiaryOnly = makeDay(date: CalendarDate("2026-09-03")!, eventCount: 0, hasDiary: true)
+        #expect(DiaryCalendar.score(for: day1DiaryOnly) == 1)
+        #expect(DiaryCalendar.densityLevel(for: day1DiaryOnly) == 1)
 
-        let day2 = makeDay(date: CalendarDate("2026-09-04")!, eventCount: 1, taskCount: 1, hasJournal: false)
-        #expect(JournalCalendar.score(for: day2) == 2)
-        #expect(JournalCalendar.densityLevel(for: day2) == 1)
+        let day2 = makeDay(date: CalendarDate("2026-09-04")!, eventCount: 1, taskCount: 1, hasDiary: false)
+        #expect(DiaryCalendar.score(for: day2) == 2)
+        #expect(DiaryCalendar.densityLevel(for: day2) == 1)
 
         // Level 2: 3–5
-        let day3 = makeDay(date: CalendarDate("2026-09-05")!, eventCount: 2, taskCount: 1, hasJournal: true)
-        #expect(JournalCalendar.score(for: day3) == 3)
-        #expect(JournalCalendar.densityLevel(for: day3) == 2)
+        let day3 = makeDay(date: CalendarDate("2026-09-05")!, eventCount: 2, taskCount: 1, hasDiary: true)
+        #expect(DiaryCalendar.score(for: day3) == 3)
+        #expect(DiaryCalendar.densityLevel(for: day3) == 2)
 
-        let day5 = makeDay(date: CalendarDate("2026-09-06")!, eventCount: 3, taskCount: 2, hasJournal: false)
-        #expect(JournalCalendar.score(for: day5) == 5)
-        #expect(JournalCalendar.densityLevel(for: day5) == 2)
+        let day5 = makeDay(date: CalendarDate("2026-09-06")!, eventCount: 3, taskCount: 2, hasDiary: false)
+        #expect(DiaryCalendar.score(for: day5) == 5)
+        #expect(DiaryCalendar.densityLevel(for: day5) == 2)
 
         // Level 3: 6+
-        let day6 = makeDay(date: CalendarDate("2026-09-08")!, eventCount: 4, taskCount: 2, hasJournal: false)
-        #expect(JournalCalendar.score(for: day6) == 6)
-        #expect(JournalCalendar.densityLevel(for: day6) == 3)
+        let day6 = makeDay(date: CalendarDate("2026-09-08")!, eventCount: 4, taskCount: 2, hasDiary: false)
+        #expect(DiaryCalendar.score(for: day6) == 6)
+        #expect(DiaryCalendar.densityLevel(for: day6) == 3)
 
-        let day8 = makeDay(date: CalendarDate("2026-09-10")!, eventCount: 6, taskCount: 2, hasJournal: true)
-        #expect(JournalCalendar.score(for: day8) == 8)
-        #expect(JournalCalendar.densityLevel(for: day8) == 3)
+        let day8 = makeDay(date: CalendarDate("2026-09-10")!, eventCount: 6, taskCount: 2, hasDiary: true)
+        #expect(DiaryCalendar.score(for: day8) == 8)
+        #expect(DiaryCalendar.densityLevel(for: day8) == 3)
     }
 
     @Test func monthTransitionPreservesMonthIsolation() throws {
         // sepDay: score 4 -> level 2; octDay: score 1 -> level 1
-        let sepDay = makeDay(date: CalendarDate("2026-09-15")!, eventCount: 3, taskCount: 1, hasJournal: true)
-        let octDay = makeDay(date: CalendarDate("2026-10-15")!, eventCount: 1, hasJournal: false)
-        let novDay = makeDay(date: CalendarDate("2026-11-01")!, eventCount: 6, hasJournal: false)  // score 6 -> level 3
+        let sepDay = makeDay(date: CalendarDate("2026-09-15")!, eventCount: 3, taskCount: 1, hasDiary: true)
+        let octDay = makeDay(date: CalendarDate("2026-10-15")!, eventCount: 1, hasDiary: false)
+        let novDay = makeDay(date: CalendarDate("2026-11-01")!, eventCount: 6, hasDiary: false)  // score 6 -> level 3
         let days = [sepDay, octDay, novDay]
 
         // September calendar
-        let calSep = JournalCalendar(month: CalendarDate("2026-09-01")!, days: days)
+        let calSep = DiaryCalendar(month: CalendarDate("2026-09-01")!, days: days)
         #expect(calSep.level(for: sepDay.date) == 2)
         #expect(calSep.level(for: octDay.date) == 0)
         #expect(calSep.level(for: novDay.date) == 0)
@@ -70,7 +70,7 @@ import VaultIndex
         // Navigate to October
         let octMonth = calSep.adjacentMonth(1)
         #expect(octMonth.description == "2026-10-01")
-        let calOct = JournalCalendar(month: octMonth, days: days)
+        let calOct = DiaryCalendar(month: octMonth, days: days)
         #expect(calOct.level(for: octDay.date) == 1)
         #expect(calOct.level(for: sepDay.date) == 0)
         #expect(calOct.level(for: novDay.date) == 0)
@@ -80,7 +80,7 @@ import VaultIndex
         // Navigate to November
         let novMonth = calOct.adjacentMonth(1)
         #expect(novMonth.description == "2026-11-01")
-        let calNov = JournalCalendar(month: novMonth, days: days)
+        let calNov = DiaryCalendar(month: novMonth, days: days)
         #expect(calNov.level(for: novDay.date) == 3)
         #expect(calNov.level(for: octDay.date) == 0)
         #expect(calNov.level(for: sepDay.date) == 0)
@@ -176,7 +176,7 @@ import VaultIndex
     /// Real task rows: the day file's tasks take their place among the events by line, so the
     /// "Saatsiz" group is the file's order; a task from another file comes after them.
     @Test func dayScheduleKeepsTheFileOrderOfRealTaskRows() throws {
-        let file = "journal/2026-10-01.md"
+        let file = "diary/2026-10-01.md"
         func task(_ line: Int, _ text: String, in path: String = file) throws -> TaskRow {
             let fields: [String: Any] = [
                 "file": path, "ordinal": line, "kind": "task", "firstLine": line + 1, "lastLine": line + 1,

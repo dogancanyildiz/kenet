@@ -24,6 +24,6 @@
     { "folder": "places", "copy": "places/Liman Kafe 3.md", "original": "places/Liman Kafe.md" }
   ],
   "dayCopies": [
-    { "folder": "journal", "copy": "journal/2026-10-02 2.md", "original": "journal/2026-10-02.md" }
+    { "folder": "diary", "copy": "diary/2026-10-02 2.md", "original": "diary/2026-10-02.md" }
   ]
 }

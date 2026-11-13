@@ -135,7 +135,7 @@ struct QuickEntryTaskControls: View {
         .accessibilityLabel(Text("Katılımcıyı ekle: \(name)"))
     }
 
-    /// A journaling suggestion's person or place the vault does not know by that kind: the name
+    /// A diary suggestion's person or place the vault does not know by that kind: the name
     /// enters the text only once its entity exists (or now answers to it), pinned.
     private func suggestedNameChip(_ name: SuggestionLine.Mention) -> some View {
         Button {

@@ -14,7 +14,7 @@ public struct DayCopyMergeOutcome: Sendable, Equatable {
     }
 
     public let kind: Kind
-    /// The day file that now holds both versions, such as `journal/2026-10-02.md`.
+    /// The day file that now holds both versions, such as `diary/2026-10-02.md`.
     public let dayPath: String
     /// Whether this call wrote or moved the day file; callers can force an index reread.
     public let dayFileChanged: Bool
@@ -43,7 +43,7 @@ private struct DayCopyTarget {
 }
 
 extension VaultStore {
-    /// Merges an iCloud day copy (`journal/2026-10-02 2.md`) into its day file, as `vault-format.md`
+    /// Merges an iCloud day copy (`diary/2026-10-02 2.md`) into its day file, as `vault-format.md`
     /// describes under "Eşitleme çakışması".
     ///
     /// An existing day file is merged in one `.merge(copy into day)` coordination boundary, which
@@ -152,13 +152,13 @@ extension VaultStore {
             conflictPaths: saved.paths, fellBack: merge.fellBack)
     }
 
-    private nonisolated func setModificationTime(_ seconds: Int, _ url: URL) throws {
+    nonisolated func setModificationTime(_ seconds: Int, _ url: URL) throws {
         try FileManager.default.setAttributes(
             [.modificationDate: Date(timeIntervalSince1970: TimeInterval(seconds))], ofItemAtPath: url.path)
     }
 
     /// Whole seconds since 1970 in UTC, the unit of the conflict copy name.
-    private nonisolated func modificationTime(_ url: URL) throws -> Int {
+    nonisolated func modificationTime(_ url: URL) throws -> Int {
         let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
         guard let date = attributes[.modificationDate] as? Date else { throw CocoaError(.fileReadUnknown) }
         return Int(date.timeIntervalSince1970.rounded(.down))

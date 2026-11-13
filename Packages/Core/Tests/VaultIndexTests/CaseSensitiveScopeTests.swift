@@ -12,13 +12,13 @@ import VaultFormat
     // even when the notification only opened `.subtree("notes")`.
     let scopes = scopesCoveringIndexedPaths(
         base: [.subtree("notes")],
-        indexedPaths: ["notes/a.md", "Notes/b.md", "journal/keep.md"],
+        indexedPaths: ["notes/a.md", "Notes/b.md", "diary/keep.md"],
         includes: includes,
         directorySpellings: { [$0] })
     #expect(scopes.contains(.subtree("notes")))
     #expect(scopes.contains(.shallow("notes")))
     #expect(scopes.contains(.shallow("Notes")))
-    #expect(!scopes.contains(.shallow("journal")))
+    #expect(!scopes.contains(.shallow("diary")))
 }
 
 @Test func scopesCoveringIndexedPathsExpandsComparisonKeySiblingSpellings() {

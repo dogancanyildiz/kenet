@@ -13,14 +13,15 @@ extension VaultIndex {
         }
     }
 
-    /// Day copies directly under the exact `journal/` folder on disk, in `DayCopyName.copies` merge
+    /// Day copies directly under the exact `diary/` folder on disk, in `DayCopyName.copies` merge
     /// order. They are never indexed, so this lists that one folder instead of reading the index.
     public static func dayCopies(vaultRoot: URL) throws -> [CopyFile] {
         let names = try FileManager.default.contentsOfDirectory(atPath: vaultRoot.path)
-        // Only the exact spelling: on a case-insensitive volume `Journal/` would also open as `journal`.
-        guard names.contains("journal") else { return [] }
-        return try VaultScanner.scan(vaultRoot, scopes: [.shallow("journal")]).result.dayCopies.compactMap { copy in
-            DayCopyName.dayPath(ofCopy: copy).map { CopyFile(folder: "journal", copy: copy, original: $0) }
+        // Only the exact spelling: on a case-insensitive volume `Diary/` would also open as `diary`.
+        guard names.contains(VaultLayout.dayFolder) else { return [] }
+        return try VaultScanner.scan(vaultRoot, scopes: [.shallow(VaultLayout.dayFolder)]).result.dayCopies.compactMap {
+            copy in
+            DayCopyName.dayPath(ofCopy: copy).map { CopyFile(folder: VaultLayout.dayFolder, copy: copy, original: $0) }
         }
     }
 }
@@ -31,7 +32,7 @@ extension VaultIndex {
     /// one folder; links, folders and names outside the rule are left out. Nothing is read or changed.
     public static func conflictCopies(vaultRoot: URL) throws -> [CopyFile] {
         let names = try FileManager.default.contentsOfDirectory(atPath: vaultRoot.path)
-        // Only the exact spelling, as for `journal/`: a case-insensitive volume would open `Conflicts/` too.
+        // Only the exact spelling, as for `diary/`: a case-insensitive volume would open `Conflicts/` too.
         guard names.contains("conflicts") else { return [] }
         let directory = vaultRoot.appendingPathComponent("conflicts")
         let keys: Set<URLResourceKey> = [.isDirectoryKey, .isSymbolicLinkKey]
@@ -64,9 +65,9 @@ public enum ConflictCopyName {
         parse(path) != nil
     }
 
-    /// The day file the copy was saved from, such as `journal/2026-10-02.md`.
+    /// The day file the copy was saved from, such as `diary/2026-10-02.md`.
     public static func dayPath(ofCopy path: String) -> String? {
-        parse(path).map { "journal/" + $0.day.description + ".md" }
+        parse(path).map { VaultLayout.dayPath($0.day) }
     }
 
     /// The copies among `paths`: by day, then by saved time, then unnumbered before numbered by number.

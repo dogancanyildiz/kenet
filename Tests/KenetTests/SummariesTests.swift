@@ -81,7 +81,7 @@ import VaultFormat
 
     @Test func rhythmColumnsAlignThePreviousPeriodAndKeepDaysToComeEmpty() throws {
         let days = (0..<10).compactMap { CalendarDate("2026-09-28")!.addingDays($0) }.map {
-            SummaryInput.Day(date: $0, events: $0.day, hasJournal: false)
+            SummaryInput.Day(date: $0, events: $0.day, hasDiary: false)
         }
         let today = CalendarDate("2026-10-07")!
         let turkish = Locale(identifier: "tr_TR")
@@ -364,7 +364,7 @@ import VaultFormat
         let today = CalendarDate("2026-09-20")!
         let states: [CalendarDate: YearWritingCalendar.Day] = [
             CalendarDate("2026-09-01")!: .events,
-            CalendarDate("2026-09-02")!: .journal,
+            CalendarDate("2026-09-02")!: .diary,
             CalendarDate("2026-09-03")!: .unwritten,
             CalendarDate("2026-09-20")!: .events,
         ]

@@ -256,7 +256,7 @@ struct UnlinkedMentionAdversarialTests {
                 ["- \($0) geldi.", "- x_\($0)'in; (\($0))", "- [ ] \($0)-\($0) 📅 2026-05-01"]
             }
             try vault.write(
-                String(format: "journal/2026-05-%02d.md", number + 1),
+                String(format: "diary/2026-05-%02d.md", number + 1),
                 "## Events\n" + lines.joined(separator: "\n") + "\n- Kaya\u{00A0}\u{00A0}Su ve Kaya\tSu\n")
         }
         try vault.index.rebuild(vaultRoot: vault.root)
@@ -279,14 +279,14 @@ struct UnlinkedMentionAdversarialTests {
         let vault = try setup()
         defer { vault.remove() }
         try vault.write("people/\(stem).md", "---\ntype: person\nname: Yabancı\n---\n")
-        try vault.write("journal/2026-05-01.md", "## Events\n- Yabancı geldi, Elif de.\n")
+        try vault.write("diary/2026-05-01.md", "## Events\n- Yabancı geldi, Elif de.\n")
         try vault.index.rebuild(vaultRoot: vault.root)
         let stranger = try entity("people/\(stem).md", in: vault)
         #expect(try vault.index.unlinkedMentions(of: stranger, vaultRoot: vault.root).isEmpty)
         let elif = try entity("people/Elif.md", in: vault)
         #expect(
             try vault.index.unlinkedMentions(of: elif, vaultRoot: vault.root).contains {
-                $0.file == "journal/2026-05-01.md"
+                $0.file == "diary/2026-05-01.md"
             })
     }
 
@@ -306,11 +306,11 @@ struct UnlinkedMentionAdversarialTests {
         let vault = try setup()
         defer { vault.remove() }
         // This day mixes terminators already and cannot be rewritten with one.
-        try FileManager.default.removeItem(at: vault.root.appendingPathComponent("journal/2026-03-06.md"))
+        try FileManager.default.removeItem(at: vault.root.appendingPathComponent("diary/2026-03-06.md"))
         try vault.index.rebuild(vaultRoot: vault.root)
         let plain = try linkable(in: vault)
         for day in 1...5 {
-            let path = String(format: "journal/2026-03-%02d.md", day)
+            let path = String(format: "diary/2026-03-%02d.md", day)
             var lines = String(decoding: try vault.bytes(path), as: UTF8.self).components(separatedBy: "\n")
             #expect(lines.removeLast().isEmpty)
             let ending = variant == "cr" ? "\r" : variant.contains("crlf") ? "\r\n" : "\n"
@@ -338,13 +338,13 @@ struct UnlinkedMentionAdversarialTests {
         let vault = try setup()
         defer { vault.remove() }
         for file in try FileManager.default.contentsOfDirectory(
-            atPath: vault.root.appendingPathComponent("journal").path)
+            atPath: vault.root.appendingPathComponent("diary").path)
         {
-            try FileManager.default.removeItem(at: vault.root.appendingPathComponent("journal/" + file))
+            try FileManager.default.removeItem(at: vault.root.appendingPathComponent("diary/" + file))
         }
         var generator = Generator(state: seed)
         for day in 1...20 {
-            try vault.write(String(format: "journal/2026-04-%02d.md", day), Self.randomDay(&generator, lines: 10))
+            try vault.write(String(format: "diary/2026-04-%02d.md", day), Self.randomDay(&generator, lines: 10))
         }
         try vault.index.rebuild(vaultRoot: vault.root)
         let entities = try vault.index.unlinkedMentionEntities()
@@ -365,7 +365,7 @@ struct UnlinkedMentionAdversarialTests {
     @Test(.timeLimit(.minutes(2))) func veryLongLineLinksAtEitherEnd() async throws {
         let vault = try setup()
         defer { vault.remove() }
-        let path = "journal/2026-05-02.md"
+        let path = "diary/2026-05-02.md"
         let words = (0..<3000).map { $0.isMultiple(of: 10) ? "Elif" : "kelime\($0) 🎸 çağrı" }
         try vault.write(path, "## Events\n- 23:59 " + words.joined(separator: " ") + " ^uzun\n- Ece\n")
         try vault.index.update(paths: [path], vaultRoot: vault.root)
@@ -388,7 +388,7 @@ struct UnlinkedMentionAdversarialTests {
     func changedFileNeverLinksAnotherLine(change: String) async throws {
         let vault = try setup()
         defer { vault.remove() }
-        let path = "journal/2026-03-01.md"
+        let path = "diary/2026-03-01.md"
         let elif = try entity("people/Elif.md", in: vault)
         let all = try vault.index.unlinkedMentions(of: elif, vaultRoot: vault.root).filter { $0.file == path }
         let twin = try #require(all.first { $0.position.line == 7 })
@@ -441,7 +441,7 @@ struct UnlinkedMentionAdversarialTests {
     @Test(arguments: [7, 8]) func twinLinksItsOwnLineWhileTheFileIsUnchanged(line: Int) async throws {
         let vault = try setup()
         defer { vault.remove() }
-        let path = "journal/2026-03-01.md"
+        let path = "diary/2026-03-01.md"
         let elif = try entity("people/Elif.md", in: vault)
         let twin = try #require(
             vault.index.unlinkedMentions(of: elif, vaultRoot: vault.root).first {
@@ -527,7 +527,7 @@ struct UnlinkedMentionAdversarialTests {
     @Test func indexFailureLeavesTheLinkedFileAndRefreshRepairsIt() async throws {
         let vault = try setup()
         defer { vault.remove() }
-        let path = "journal/2026-03-01.md"
+        let path = "diary/2026-03-01.md"
         let elif = try entity("people/Elif.md", in: vault)
         let mention = try #require(
             vault.index.unlinkedMentions(of: elif, vaultRoot: vault.root).first {
@@ -566,13 +566,13 @@ struct UnlinkedMentionAdversarialTests {
     @Test(.enabled(if: geteuid() != 0)) func failedWriteLeavesTheFileAndTheIndex() async throws {
         let vault = try setup()
         defer { vault.remove() }
-        let path = "journal/2026-03-01.md"
+        let path = "diary/2026-03-01.md"
         let elif = try entity("people/Elif.md", in: vault)
         let mention = try #require(
             vault.index.unlinkedMentions(of: elif, vaultRoot: vault.root).first { $0.file == path })
         let source = try vault.bytes(path)
         let index = try vault.index.snapshot()
-        let directory = vault.root.appendingPathComponent("journal")
+        let directory = vault.root.appendingPathComponent("diary")
         let siblings = try FileManager.default.contentsOfDirectory(atPath: directory.path).sorted()
         try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: directory.path)
         defer { try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: directory.path) }

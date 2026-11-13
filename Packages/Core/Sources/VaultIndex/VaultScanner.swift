@@ -14,7 +14,7 @@ public struct RebuildResult: Sendable, Equatable {
     public let skippedPaths: [SkippedPath]
     /// Physical vault-relative original paths awaiting download, in UTF-8 byte order.
     public let pendingDownloads: [String]
-    /// Physical paths of day copies (`journal/2026-10-02 2.md`), in `DayCopyName.copies` merge order.
+    /// Physical paths of day copies (`diary/2026-10-02 2.md`), in `DayCopyName.copies` merge order.
     /// Copies are not indexed: their content belongs to the day and reaches it only by merging.
     public let dayCopies: [String]
 
@@ -154,6 +154,9 @@ enum VaultScanner {
                 if !FileManager.default.fileExists(atPath: originalURL.path) { pending.insert(prefix + original) }
             } else if DayCopyName.isDayCopy(path: path) {
                 copies.append(path)
+            } else if DayCopyName.isLegacyDayCopy(path: path) {
+                // Waits for the vault migration, which moves it to `diary/`; never indexed.
+                continue
             } else if name.hasSuffix(".md") {
                 files.append(
                     ScannedFile(url: url, path: path.precomposedStringWithCanonicalMapping, physicalPath: path))

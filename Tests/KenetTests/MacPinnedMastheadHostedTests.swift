@@ -132,7 +132,7 @@
 
         let context: TaskTestContext
         let mount: HostedLayout.Mount
-        private let releaseJournalMark: @MainActor () -> Void
+        private let releaseKenetMark: @MainActor () -> Void
 
         init(_ page: MacPinnedMastheadHostedTests.Page) async throws {
             context = try TaskTestContext(sample: true)
@@ -159,7 +159,7 @@
                 .environment(\.openSearch, .nothing)
                 .environment(\.locale, Locale(identifier: "tr_TR"))
             mount = HostedLayout.Mount(view, size: Self.size, bridgesToolbar: true)
-            releaseJournalMark = await HostedJournalWindow.claim(mount.window)
+            releaseKenetMark = await HostedKenetWindow.claim(mount.window)
             for _ in 0..<60 {
                 await mount.settle(rounds: 1)
                 if !context.store.isProcessing { break }
@@ -176,7 +176,7 @@
                 navigation.section = .today
             case .day:
                 navigation.section = .days
-                navigation.selectedDay = "journal/2026-09-25.md"
+                navigation.selectedDay = "diary/2026-09-25.md"
             case .tasks:
                 navigation.section = .tasks
                 let projects = try await store.computeProjects()
@@ -257,7 +257,7 @@
         }
 
         func close() {
-            releaseJournalMark()
+            releaseKenetMark()
             mount.close()
             context.clean()
         }

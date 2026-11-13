@@ -203,7 +203,7 @@ struct WeekStartTests {
             actions.calendar = calendar
             _ = try await actions.addTask(text: "haftaya plan")
             _ = try await actions.addTask(text: "every day review next week")
-            let file = context.root.appendingPathComponent("journal/\(today).md")
+            let file = context.root.appendingPathComponent("diary/\(today).md")
             let tasks = RawDocument(bytes: try Data(contentsOf: file)).bodyLines.tasks
             #expect(tasks.map(\.text) == ["plan", "review"])
             #expect(tasks.map(\.dueDate) == [CalendarDate(day), CalendarDate(day)], "\(today)")
@@ -374,7 +374,7 @@ struct TaskMoveWriteTests {
         let context = try TaskTestContext()
         defer { context.clean() }
         await context.start()
-        let other = context.root.appendingPathComponent("journal/2026-10-02.md")
+        let other = context.root.appendingPathComponent("diary/2026-10-02.md")
         try Data("- [ ] kept 📅 2026-10-01 ^kept\n".utf8).write(to: context.file)
         try Data("- [ ] lost 📅 2026-10-01 ^lost\n".utf8).write(to: other)
         await context.store.refresh()

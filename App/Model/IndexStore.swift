@@ -184,7 +184,7 @@ final class IndexStore {
         self.supportURL =
             supportURL
             ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("Journal/Indexes", isDirectory: true)
+            .appendingPathComponent("Kenet/Indexes", isDirectory: true)
     }
 
     func startAutomatically(
@@ -357,7 +357,9 @@ final class IndexStore {
                 do {
                     try await writer.addingEvent(on: day, text: text, time: time)
                     saved = true
-                    try await publishAfterWrite(from: index, changedPaths: ["journal/\(day).md"])
+                    // Chosen after the write: the file that holds the day now.
+                    let path = await Self.dayFile(of: day, in: writer)
+                    try await publishAfterWrite(from: index, changedPaths: [path])
                 } catch {
                     if case VaultStoreError.indexUpdateFailed = error { saved = true }
                     entryErrorText =
@@ -373,6 +375,27 @@ final class IndexStore {
         } catch {
             entryErrorText = EntryWriteError.message(for: error)
             return false
+        }
+    }
+
+    /// The day's file as the writer resolves it: `diary/<date>.md`, or the legacy file of a vault
+    /// not yet migrated (`VaultStore.dayFilePath(for:)`). The folder is read off the main actor.
+    func dayFilePath(for day: CalendarDate) async -> String {
+        guard let writer else { return VaultLayout.dayPath(day) }
+        return await Self.dayFile(of: day, in: writer)
+    }
+
+    nonisolated static func dayFile(of day: CalendarDate, in writer: VaultStore) async -> String {
+        await Task.detached { writer.dayFilePath(for: day) }.value
+    }
+
+    /// An edit of `day`'s file. The file is chosen inside the edit's turn and chosen again after the
+    /// write, so a day the folder migration moved meanwhile (perhaps in another process) publishes
+    /// the file that holds it now. Core maps a moved legacy path itself (`VaultStore.edit`).
+    func performDayEdit(on day: CalendarDate, _ operation: (VaultStore, String) async throws -> Void) async throws {
+        try await performEdit { writer in
+            try await operation(writer, await Self.dayFile(of: day, in: writer))
+            return [await Self.dayFile(of: day, in: writer)]
         }
     }
 
@@ -1083,6 +1106,7 @@ final class IndexStore {
         refreshInFlight = false
         if holdsProcessing { isProcessing = false }
         scheduleDayCopyMerge()
+        await updateLegacyDayFolderOffer()
         await applyPendingSelection()
     }
 
@@ -1142,16 +1166,16 @@ final class IndexStore {
         }
     }
 
-    // MARK: - Journal append
+    // MARK: - Diary append
 
-    /// Adds text below the day's Journal; no existing byte changes. The lines are text, never
-    /// structure (see `VaultStore.appendingJournal`). Blank lines write nothing and create no file.
+    /// Adds text below the day's Diary; no existing byte changes. The lines are text, never
+    /// structure (see `VaultStore.appendingDiary`). Blank lines write nothing and create no file.
     /// The text belongs to the vault selected when this is called: a vault selected while the
     /// write waits its turn is not written (`staleTarget`, nothing written).
-    func appendToJournal(on day: CalendarDate, lines: [String]) async throws {
+    func appendToDiary(on day: CalendarDate, lines: [String]) async throws {
         guard lines.contains(where: { !$0.allSatisfy(\.isWhitespace) }) else { return }
-        try await performEdit(path: "journal/\(day).md") { writer in
-            try await writer.appendingJournal(on: day, lines: lines)
+        try await performDayEdit(on: day) { writer, _ in
+            try await writer.appendingDiary(on: day, lines: lines)
         }
     }
 
@@ -1180,7 +1204,7 @@ final class IndexStore {
     /// generation is checked.
     @ObservationIgnored var testingEntityTimelineQueryDidFinish: (@MainActor () async throws -> Void)?
 
-    /// Day-file events and Journal paragraphs linking to `path`, newest day first, queried from the
+    /// Day-file events and Diary paragraphs linking to `path`, newest day first, queried from the
     /// index on demand. Belongs to this vault generation; with no index open it is empty.
     func computeEntityTimeline(for path: String) async throws -> [EntityTimelineDay] {
         try await indexQuery(seam: \.testingEntityTimelineQueryDidFinish, whenClosed: .empty([])) {
@@ -1248,7 +1272,7 @@ final class IndexStore {
         }
     }
 
-    /// One day's events and Journal paragraphs and headings in source order; a date without a day
+    /// One day's events and Diary paragraphs and headings in source order; a date without a day
     /// file is empty. Belongs to this vault generation; with no index open it is empty. A caller
     /// cancelled meanwhile gets `CancellationError`, as above.
     func computeDay(on date: CalendarDate) async throws -> DaySummary {
@@ -1463,7 +1487,7 @@ extension IndexStore {
 
     /// What the notification planner reads for the days `first` through `last`: open tasks per
     /// due day through `last`, the rows of those due within the days, and the days whose file has
-    /// events or Journal paragraphs and headings. A task query, as above.
+    /// events or Diary paragraphs and headings. A task query, as above.
     func computeNotificationDays(from first: CalendarDate, through last: CalendarDate) async throws
         -> NotificationVaultDays
     {
@@ -1476,7 +1500,7 @@ extension IndexStore {
                 if due >= first { days.dueTasks.append(TaskRow(entry: entry)) }
             }
             days.writtenDays = Set(
-                try index.daySummaries(from: first, to: last).filter { $0.eventCount > 0 || $0.journalCount > 0 }
+                try index.daySummaries(from: first, to: last).filter { $0.eventCount > 0 || $0.diaryCount > 0 }
                     .map(\.date))
             return days
         }
@@ -1492,9 +1516,9 @@ extension IndexStore {
         return vaultURL.flatMap(SyncedFolderKind.detect(url:))
     }
 
-    /// Copies the vault keeps beside their originals, for Diagnostics: day copies under `journal/`,
+    /// Copies the vault keeps beside their originals, for Diagnostics: day copies under `diary/`,
     /// read from disk because they are never indexed, then entity copies from the index. Nothing
-    /// is merged or moved. A task query, as above. An unreadable `journal/` (a symlink, no
+    /// is merged or moved. A task query, as above. An unreadable `diary/` (a symlink, no
     /// permission) hides only the day copies, not the entity copies.
     func computeCopyFiles() async throws -> [CopyFile] {
         guard let root = vaultURL else { return [] }

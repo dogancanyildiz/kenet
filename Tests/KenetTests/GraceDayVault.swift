@@ -67,12 +67,12 @@ enum GraceDayVault {
             var goals = done.contains(day) ? "  esneme: true\n" : ""
             if let pages = readingDays["\(day)"] { goals += "  okuma: \(pages)\n" }
             let front = goals.isEmpty ? "" : "goals:\n" + goals
-            try write(root, "journal/\(day).md", "---\ntype: journal\ndate: \(day)\n\(front)---\n")
+            try write(root, "diary/\(day).md", "---\ntype: diary\ndate: \(day)\n\(front)---\n")
             day = day.addingDays(1)!
         }
         try write(
-            root, "journal/\(today).md",
-            "---\ntype: journal\ndate: \(today)\n---\n\n## Events\n- 08:30 Sabah yürüyüşü ^gr4c01\n")
+            root, "diary/\(today).md",
+            "---\ntype: diary\ndate: \(today)\n---\n\n## Events\n- 08:30 Sabah yürüyüşü ^gr4c01\n")
     }
 
     private static func write(_ root: URL, _ path: String, _ text: String) throws {

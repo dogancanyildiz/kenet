@@ -37,8 +37,8 @@ struct CloudVaultContext {
         try FileManager.default.createDirectory(at: app, withIntermediateDirectories: true)
         try Data().write(to: app.appendingPathComponent(".vault.json.icloud"))
         try FileManager.default.createDirectory(
-            at: root.appendingPathComponent("journal"), withIntermediateDirectories: true)
-        try Data().write(to: root.appendingPathComponent("journal/.2030-01-01.md.icloud"))
+            at: root.appendingPathComponent("diary"), withIntermediateDirectories: true)
+        try Data().write(to: root.appendingPathComponent("diary/.2030-01-01.md.icloud"))
         return root
     }
 
@@ -151,7 +151,7 @@ struct VaultLocationCloudTests {
                 == DownloadingUbiquityContainer.settings)
         #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent("templates").path))
         #expect(
-            FileManager.default.fileExists(atPath: root.appendingPathComponent("journal/.2030-01-01.md.icloud").path))
+            FileManager.default.fileExists(atPath: root.appendingPathComponent("diary/.2030-01-01.md.icloud").path))
     }
 
     @Test func placeholderCloudVaultThatDoesNotArriveChangesNothing() async throws {
@@ -246,7 +246,7 @@ struct VaultLocationCloudTests {
         let context = try CloudVaultContext(available: false)
         defer { context.clean() }
         try context.installLocalSample()
-        let file = context.location.localRoot.appendingPathComponent("journal/2026-09-20.md")
+        let file = context.location.localRoot.appendingPathComponent("diary/2026-09-20.md")
         let before = try Data(contentsOf: file)
         context.defaults.defaults.set("icloud", forKey: VaultLocation.kindKey)
         await context.store.start()

@@ -16,6 +16,6 @@
 - [ ]  metin
 	- olay değil
 - olay
-## Journal
+## Diary
 > [!todo]
 > 1) [ ] kitap ^quote

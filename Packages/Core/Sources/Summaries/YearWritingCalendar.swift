@@ -1,12 +1,12 @@
 import VaultFormat
 
 /// The written days of one calendar year, month by month: the Özetler year map.
-/// A day is written as ``SummaryCounts/writtenDays`` counts it: an event or a non-empty Journal.
+/// A day is written as ``SummaryCounts/writtenDays`` counts it: an event or a non-empty Diary.
 public struct YearWritingCalendar: Sendable, Equatable {
     public enum Day: String, Sendable {
         case unwritten
-        /// Journal text and no event.
-        case journal
+        /// Diary text and no event.
+        case diary
         /// At least one event.
         case events
     }
@@ -58,10 +58,10 @@ public struct YearWritingCalendar: Sendable, Equatable {
             case .some(let today): min(today, end)
             }
         var events: Set<CalendarDate> = []
-        var journal: Set<CalendarDate> = []
+        var diary: Set<CalendarDate> = []
         for row in days where row.date.year == year {
             if row.events > 0 { events.insert(row.date) }
-            if row.hasJournal { journal.insert(row.date) }
+            if row.hasDiary { diary.insert(row.date) }
         }
         let months = (1...12).map { month in
             var states: [Day] = []
@@ -70,7 +70,7 @@ public struct YearWritingCalendar: Sendable, Equatable {
                     guard let date = CalendarDate(year: year, month: month, day: number), date <= measuredEnd else {
                         break
                     }
-                    states.append(events.contains(date) ? .events : journal.contains(date) ? .journal : .unwritten)
+                    states.append(events.contains(date) ? .events : diary.contains(date) ? .diary : .unwritten)
                 }
             }
             return Month(month: month, days: states)

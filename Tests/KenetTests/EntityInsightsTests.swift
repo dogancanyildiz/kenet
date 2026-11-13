@@ -121,9 +121,9 @@ import VaultFormat
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
         try "## Tasks\n- [ ] [[Deniz Arıkan]]\n".write(
-            to: context.root.appendingPathComponent("journal/2026-10-03.md"), atomically: true, encoding: .utf8)
+            to: context.root.appendingPathComponent("diary/2026-10-03.md"), atomically: true, encoding: .utf8)
         try "## Events\n- [[Deniz Arıkan]]\n".write(
-            to: context.root.appendingPathComponent("journal/2026-10-05.md"), atomically: true, encoding: .utf8)
+            to: context.root.appendingPathComponent("diary/2026-10-05.md"), atomically: true, encoding: .utf8)
         await context.start()
         let insight = try await Self.insight("people/Deniz Arıkan.md", context.store, today)
         #expect(insight.lastDay == CalendarDate("2026-09-25") && insight.recentDayCount == 5)

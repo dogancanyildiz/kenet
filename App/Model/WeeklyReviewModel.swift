@@ -66,10 +66,10 @@ struct WeeklyReviewGoal: Equatable, Sendable, Identifiable {
     let standing: Standing
 }
 
-/// What the review shows for one week, and the sentences it offers for the journal.
+/// What the review shows for one week, and the sentences it offers for the diary.
 ///
 /// The sentences are plain text in the user's language. A person is written by name alone: the
-/// text goes into Journal as written and is not run through recognition, so link syntax is never
+/// text goes into Diary as written and is not run through recognition, so link syntax is never
 /// produced here.
 struct WeeklyReviewContent: Equatable, Sendable {
     static let listedTasks = 3
@@ -98,7 +98,7 @@ struct WeeklyReviewContent: Equatable, Sendable {
         var result = Self(range: range)
         let days = input.days.filter { range.contains($0.date) }
         result.events = days.reduce(0) { $0 + max(0, $1.events) }
-        result.writtenDays = Set(days.filter { $0.events > 0 || $0.hasJournal }.map(\.date)).count
+        result.writtenDays = Set(days.filter { $0.events > 0 || $0.hasDiary }.map(\.date)).count
         result.completedTasks = input.tasks.filter { $0.status == .done && $0.done.map(range.contains) == true }.count
 
         // Left from the week: due by its last day, or written in it without a date.
@@ -226,14 +226,14 @@ enum WeeklyReviewResult: Equatable, Sendable {
 @MainActor @Observable
 final class WeeklyReviewModel {
     let store: IndexStore
-    /// The day the review is made on: the week is counted from it and its Journal gets the text.
+    /// The day the review is made on: the week is counted from it and its Diary gets the text.
     let today: CalendarDate
     private let calendar: Calendar
     private let locale: Locale
     private let defaults: UserDefaults
     /// The vault the review was opened on; its numbers are never written into another one.
     private let root: URL?
-    /// The store's Journal append; tests replace it to fail the way a real write can.
+    /// The store's Diary append; tests replace it to fail the way a real write can.
     private let append: @MainActor (CalendarDate, [String]) async throws -> Void
 
     private(set) var step: WeeklyReviewStep
@@ -272,7 +272,7 @@ final class WeeklyReviewModel {
         self.defaults = defaults
         self.step = step
         root = store.vaultURL
-        self.append = append ?? { try await store.appendToJournal(on: $0, lines: $1) }
+        self.append = append ?? { try await store.appendToDiary(on: $0, lines: $1) }
     }
 
     var range: ClosedRange<CalendarDate> { week.range(containing: today, calendar: calendar) }
@@ -451,7 +451,7 @@ final class WeeklyReviewModel {
             days: input.days, range: range, previousRange: previousRange, today: today)
     }
 
-    /// Appends the previewed lines to the review day's Journal. A second call while the first is
+    /// Appends the previewed lines to the review day's Diary. A second call while the first is
     /// writing, or after it has written, does nothing.
     func write() async {
         guard canWrite else { return }

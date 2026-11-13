@@ -6,5 +6,5 @@
 - 17:00 Spor ^e3b002
 - [[Ece Yalın]] aradı ^e3a002
 
-## Journal
+## Diary
 Gün.

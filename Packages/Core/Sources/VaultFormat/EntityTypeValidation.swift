@@ -15,10 +15,11 @@ extension EntityTypeDefinition {
     }
 
     public func validate() throws {
-        let reserved = ["person", "place", "goal", "journal", "day", "note"]
+        let reserved = ["person", "place", "goal", VaultLayout.dayType, LegacyVaultNames.dayType, "day", "note"]
         let names = [name.tr, name.en, plural.tr, plural.en, icon]
         guard Self.isValidID(id), !reserved.contains(id), Self.isRelativePath(folder),
-            !["templates", "conflicts", "journal"].contains(String(folder.split(separator: "/")[0]).lowercased()),
+            !["templates", "conflicts", VaultLayout.dayFolder, LegacyVaultNames.dayFolder].contains(
+                String(folder.split(separator: "/")[0]).lowercased()),
             names.allSatisfy({
                 !$0.allSatisfy(\.isWhitespace)
                     && $0.unicodeScalars.allSatisfy {

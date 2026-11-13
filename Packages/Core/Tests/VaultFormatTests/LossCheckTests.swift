@@ -22,29 +22,29 @@ struct LossCheckTests {
     }
 
     @Test func acceptsAResultThatHoldsEverything() {
-        #expect(passes(result: "## Journal\nA\nB\n", newer: "## Journal\nA\nB\n", older: "## Journal\nA\n"))
+        #expect(passes(result: "## Diary\nA\nB\n", newer: "## Diary\nA\nB\n", older: "## Diary\nA\n"))
     }
 
     @Test func rejectsAMissingFreeTextLine() {
-        #expect(!passes(result: "## Journal\nA\n", newer: "## Journal\nA\n", older: "## Journal\nA\nB\n"))
+        #expect(!passes(result: "## Diary\nA\n", newer: "## Diary\nA\n", older: "## Diary\nA\nB\n"))
     }
 
     @Test func rejectsFreeTextMovedToAnotherRegion() {
         #expect(
             !passes(
-                result: "## Journal\n\n## Notlar\nA\n", newer: "## Journal\n\n## Notlar\nA\n", older: "## Journal\nA\n")
+                result: "## Diary\n\n## Notlar\nA\n", newer: "## Diary\n\n## Notlar\nA\n", older: "## Diary\nA\n")
         )
     }
 
     @Test func rejectsFreeTextThatLostARepetition() {
-        #expect(!passes(result: "## Journal\nA\n", newer: "## Journal\nA\n", older: "## Journal\nA\nA\n"))
+        #expect(!passes(result: "## Diary\nA\n", newer: "## Diary\nA\n", older: "## Diary\nA\nA\n"))
     }
 
     @Test func rejectsBlockOrFrontmatterLinesStandingInForFreeText() {
-        let eventElsewhere = "## Events\n- 09:00 A\n\n## Journal\n"
-        #expect(!passes(result: eventElsewhere, newer: eventElsewhere, older: "## Journal\n- 09:00 A\n"))
-        let inFrontmatter = "---\ntype: journal\n---\n## Journal\n"
-        #expect(!passes(result: inFrontmatter, newer: inFrontmatter, older: "## Journal\ntype: journal\n"))
+        let eventElsewhere = "## Events\n- 09:00 A\n\n## Diary\n"
+        #expect(!passes(result: eventElsewhere, newer: eventElsewhere, older: "## Diary\n- 09:00 A\n"))
+        let inFrontmatter = "---\ntype: diary\n---\n## Diary\n"
+        #expect(!passes(result: inFrontmatter, newer: inFrontmatter, older: "## Diary\ntype: diary\n"))
     }
 
     @Test func acceptsAClosedTaskInPlaceOfAnOpenOneWithTheSameText() {
@@ -83,8 +83,8 @@ struct LossCheckTests {
     @Test func frontmatterCommentsMustSurvive() {
         #expect(
             !passes(
-                result: "---\ntype: journal\n---\n", newer: "---\ntype: journal\n---\n",
-                older: "---\n# not\ntype: journal\n---\n"))
+                result: "---\ntype: diary\n---\n", newer: "---\ntype: diary\n---\n",
+                older: "---\n# not\ntype: diary\n---\n"))
         #expect(
             !passes(result: "---\nmood: iyi\n---\n", newer: "---\nmood: iyi\n---\n", older: "---\nmood: iyi # c\n---\n")
         )

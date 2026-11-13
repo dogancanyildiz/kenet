@@ -49,11 +49,11 @@ struct OwnershipRegressionTests {
         // Insert the later path first so its non-owner row precedes the actual owner's row in SQLite.
         try vault.write(storePath, "## Events\n- Selin ^keepme\n")
         try vault.index.refresh(vaultRoot: vault.root)
-        try vault.write("journal/2026-09-14.md", "## Events\n- Deniz ^keepme\n")
+        try vault.write("diary/2026-09-14.md", "## Events\n- Deniz ^keepme\n")
         try vault.index.refresh(vaultRoot: vault.root)
         let owner = try #require(try vault.index.owner(of: "keepme"))
         #expect(owner.ownsIdentifier)
-        #expect(owner.file == "journal/2026-09-14.md")
+        #expect(owner.file == "diary/2026-09-14.md")
         let target = try await vault.store.dayDocument(for: storeDate).bodyLines.events[0].block
         let changed = try await vault.store.changingText(of: target, at: storePath, to: "Su")
         #expect(changed.bodyLines.events[0].block.id == "aaaaaa")

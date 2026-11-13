@@ -1,6 +1,0 @@
-## Journal
-Kitap
-
-	
-## Other
-Su

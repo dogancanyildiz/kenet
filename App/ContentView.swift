@@ -54,6 +54,7 @@ struct ContentView: View {
                         VStack(spacing: 0) {
                             SyncStatusIndicator(status: store.syncStatus)
                             DayCopyMergeBand(sync: store.sync)
+                            LegacyDayFolderBand(store: store)
                         }
                     }
             }
@@ -134,6 +135,36 @@ final class SearchPresentation {
     }
 }
 
+/// The offer to move a vault's legacy day folder to `diary/` (docs/screens.md, "Eski gün klasörü").
+/// The move starts only from the confirmation; "Sonra" puts the offer off until the vault opens again.
+private struct LegacyDayFolderBand: View {
+    let store: IndexStore
+    @State private var confirms = false
+
+    var body: some View {
+        if store.offersLegacyDayFolderMove {
+            InfoBand(
+                kind: .info, "Bu kasa gün dosyalarını eski journal klasöründe tutuyor.",
+                actionTitle: "Taşı…", action: { confirms = true },
+                onDismiss: store.dismissLegacyDayFolderOffer
+            )
+            .background(Color.ink.paper)
+            .accessibilityIdentifier("banner.legacyDayFolder")
+            .alert("Gün dosyaları taşınsın mı?", isPresented: $confirms) {
+                Button("Taşı") { store.moveLegacyDayFolder() }
+                Button("Sonra", role: .cancel) {}
+            } message: {
+                // Plain text: the `[[…]]` sample must not be read as Markdown.
+                Text(
+                    verbatim: String(
+                        localized:
+                            "Önce Kenet'i bütün cihazlarında güncelle. Gün dosyaları journal klasöründen diary klasörüne taşınır; başlık ve type değeri yeni adı alır. [[journal/…]] gibi yol bağlantıları çalışmaz."
+                    ))
+            }
+        }
+    }
+}
+
 /// "2 gün kopyası birleştirildi." and the like, after a day copy merge, until dismissed.
 private struct DayCopyMergeBand: View {
     let sync: SyncState
@@ -141,7 +172,7 @@ private struct DayCopyMergeBand: View {
     var body: some View {
         if let report = sync.mergeReport {
             InfoBand(
-                kind: report.failed > 0 ? .warning : .info, verbatim: report.message,
+                kind: report.hasFailures ? .warning : .info, verbatim: report.message,
                 onDismiss: sync.dismissMergeReport
             )
             .background(Color.ink.paper)

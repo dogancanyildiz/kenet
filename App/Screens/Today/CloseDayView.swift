@@ -54,7 +54,7 @@ struct CloseDayView: View {
                 switch model.step {
                 case .tasks: tasksStep
                 case .goals: goalsStep
-                case .journal: journalStep
+                case .diary: diaryStep
                 }
             }
         }
@@ -76,7 +76,7 @@ struct CloseDayView: View {
         // The page changes under the same title: VoiceOver starts over and reads the new step.
         .onChange(of: model.step) { AccessibilityNotification.ScreenChanged().post() }
         // "Yaz" keeps the focus and the field empties: the outcome is read out.
-        .onChange(of: model.journalNotice ?? model.journalError) { _, text in
+        .onChange(of: model.diaryNotice ?? model.diaryError) { _, text in
             if let text { AccessibilityNotification.Announcement(text).post() }
         }
     }
@@ -209,9 +209,9 @@ struct CloseDayView: View {
         stepButtons
     }
 
-    // MARK: - Journal
+    // MARK: - Diary
 
-    @ViewBuilder private var journalStep: some View {
+    @ViewBuilder private var diaryStep: some View {
         @Bindable var model = model
         SectionHeader(title: String(localized: "Günlük", bundle: bundle, locale: locale))
         InkCard(padded: true) {
@@ -239,10 +239,10 @@ struct CloseDayView: View {
                             for: InkFilterFieldChrome.borderToken(isFocused: sentenceFocused)),
                         lineWidth: InkStroke.control)
             )
-            if let notice = model.journalNotice {
+            if let notice = model.diaryNotice {
                 InfoBand(kind: .info, verbatim: notice)
             }
-            if let error = model.journalError {
+            if let error = model.diaryError {
                 InfoBand(kind: .error, verbatim: error)
             }
         }

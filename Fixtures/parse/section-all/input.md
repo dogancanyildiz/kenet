@@ -8,5 +8,5 @@ type: day
 ## Events
 - not
 
-## Journal
+## Diary
 yazı

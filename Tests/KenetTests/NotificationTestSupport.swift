@@ -50,7 +50,7 @@ struct NotificationVault {
         week.writtenDays = Set(
             (0..<7).compactMap { first.addingDays($0) }.filter {
                 let day = DaySummary.day(on: $0, in: days)
-                return !day.events.isEmpty || !day.journal.isEmpty
+                return !day.events.isEmpty || !day.diary.isEmpty
             })
         return week
     }
@@ -68,9 +68,9 @@ func notificationSample() throws -> NotificationVault {
 func notificationTasks(_ text: String) throws -> [TaskRow] {
     let root = try testDirectory()
     defer { try? FileManager.default.removeItem(at: root) }
-    let directory = root.appendingPathComponent("journal")
+    let directory = root.appendingPathComponent("diary")
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-    try Data(("---\ntype: journal\ndate: 2026-09-27\n---\n\n## Tasks\n" + text).utf8).write(
+    try Data(("---\ntype: diary\ndate: 2026-09-27\n---\n\n## Tasks\n" + text).utf8).write(
         to: directory.appendingPathComponent("2026-09-27.md"))
     let index = try VaultIndex()
     try index.rebuild(vaultRoot: root)

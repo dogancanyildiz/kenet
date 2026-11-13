@@ -46,10 +46,10 @@ enum IncrementalReadModelVault {
             ---
             """)
         try write(
-            root, "journal/2026-10-05.md",
+            root, "diary/2026-10-05.md",
             """
             ---
-            type: journal
+            type: diary
             date: 2026-10-05
             goals:
               reading: 5
@@ -62,21 +62,21 @@ enum IncrementalReadModelVault {
             ## Events
             - 09:15 Coffee at [[Harbor Cafe]] ^evt1
 
-            ## Journal
+            ## Diary
             Morning with [[Deniz Example]].
             """)
         try write(
-            root, "journal/2026-10-04.md",
+            root, "diary/2026-10-04.md",
             """
             ---
-            type: journal
+            type: diary
             date: 2026-10-04
             ---
 
             ## Events
             - 18:00 Walk near [[Harbor Cafe]] ^evt2
 
-            ## Journal
+            ## Diary
             Quiet evening.
             """)
         try write(root, "notes/Scratch.md", "- [ ] Loose note ^note1\n")
@@ -128,7 +128,7 @@ extension GraphInput {
 
 extension EntityTimeline {
     /// How the read model built every entity's timeline before it moved to a Core query: the
-    /// oracle the query is compared with. Events and Journal paragraphs of day files, one row per
+    /// oracle the query is compared with. Events and Diary paragraphs of day files, one row per
     /// block and linked file, newest day first, rows by descending file and block.
     static func build(snapshot: IndexSnapshot) -> [String: [EntityTimelineDay]] {
         let dates = Dictionary(
@@ -139,7 +139,7 @@ extension EntityTimeline {
         let links = Dictionary(grouping: snapshot.links, by: \.file)
         var result: [String: [CalendarDate: [EntityTimelineRow]]] = [:]
         for block in snapshot.blocks
-        where block.kind == "event" || (block.kind == "paragraph" && block.section == "Journal") {
+        where block.kind == "event" || (block.kind == "paragraph" && block.section == "Diary") {
             guard let date = dates[block.file] else { continue }
             let source = links[block.file] ?? []
             let targets = Set(source.filter { $0.block == block.ordinal }.compactMap(\.resolvedFile))
@@ -179,7 +179,7 @@ extension EntityTimeline {
 extension DaySummary {
     /// How the read model built its `days` before they moved to Core queries: the oracle the
     /// queries are compared with. Day files newest first (path on ties), each with its events and
-    /// Journal paragraphs and headings in source order.
+    /// Diary paragraphs and headings in source order.
     static func build(snapshot: IndexSnapshot) -> [DaySummary] {
         let goalFiles = Set(snapshot.goalLogs.map(\.file))
         let blocks = Dictionary(grouping: snapshot.blocks, by: \.file)
@@ -198,14 +198,14 @@ extension DaySummary {
                     sourceLine: row.firstLine - 1, sourceEnd: row.lastLine,
                     sourceText: row.text, sourceIdentifier: row.identifier)
             }
-            let journal = rows.filter { $0.section == "Journal" && ["paragraph", "heading"].contains($0.kind) }
+            let diary = rows.filter { $0.section == "Diary" && ["paragraph", "heading"].contains($0.kind) }
                 .map { row in
-                    JournalRow(
+                    DiaryRow(
                         id: row.ordinal, headingLevel: row.headingLevel,
                         text: LinkedText(row: row, links: sourceLinks))
                 }
             return DaySummary(
-                id: file.path, date: date, events: events, journal: journal,
+                id: file.path, date: date, events: events, diary: diary,
                 hasGoalRecords: goalFiles.contains(file.path))
         }.sorted {
             if $0.date != $1.date { return $0.date > $1.date }
@@ -215,7 +215,7 @@ extension DaySummary {
 
     /// The old `day(on:)` over a built list: a date without a day file is empty.
     static func day(on date: CalendarDate, in days: [DaySummary]) -> DaySummary {
-        days.first { $0.date == date } ?? DaySummary(id: "journal/\(date).md", date: date, events: [], journal: [])
+        days.first { $0.date == date } ?? DaySummary(id: "diary/\(date).md", date: date, events: [], diary: [])
     }
 
     /// Everything a day shows, as the read model's equality key compared it.
@@ -226,16 +226,16 @@ extension DaySummary {
         let eventKeys = events.map {
             "\($0.id)|\($0.time?.raw ?? "")|\($0.text.plainText)|\($0.sourceLine)|\($0.sourceEnd)|\($0.sourceText)|\($0.sourceIdentifier ?? "")|\(spans($0.text))"
         }.joined(separator: ";")
-        let journalKeys = journal.map {
+        let diaryKeys = diary.map {
             "\($0.id)|\($0.headingLevel.map(String.init) ?? "")|\($0.text.plainText)|\(spans($0.text))"
         }.joined(separator: ";")
-        return "\(id)|\(date)|\(hasGoalRecords)|\(eventKeys)|\(journalKeys)"
+        return "\(id)|\(date)|\(hasGoalRecords)|\(eventKeys)|\(diaryKeys)"
     }
 
     /// The list row and calendar mark the old read model gave this day.
     var overview: DayOverview {
         DayOverview(
-            id: id, date: date, eventCount: events.count, journalCount: journal.count, preview: preview,
+            id: id, date: date, eventCount: events.count, diaryCount: diary.count, preview: preview,
             hasGoalRecords: hasGoalRecords)
     }
 }

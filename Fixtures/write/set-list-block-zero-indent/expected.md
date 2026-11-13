@@ -4,5 +4,5 @@ tags:
 - iş
 - "#etiket"
 - a, b
-type: journal
+type: diary
 ---

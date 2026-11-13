@@ -15,9 +15,9 @@ struct CloseDayTests {
             "---\ntype: goal\nname: Kitap\nkey: kitap\nperiod: day\nkind: number\ntarget: 20\nunit: sayfa\n---\n",
     ]
     private static let todayWithGoals =
-        "---\ntype: journal\ndate: 2026-10-03\ngoals:\n  kitap: 20\n  su: 3\n---\n\n## Tasks\n"
+        "---\ntype: diary\ndate: 2026-10-03\ngoals:\n  kitap: 20\n  su: 3\n---\n\n## Tasks\n"
         + "- [ ] call 📅 2026-10-03 ⏫ ^call\n- [ ] no identifier\n\n## Events\n- 09:00 walk ^walk\n\n"
-        + "## Journal\nA quiet day.\n"
+        + "## Diary\nA quiet day.\n"
 
     private func write(_ files: [String: String], in context: TaskTestContext) async throws {
         for (path, text) in files {
@@ -68,9 +68,9 @@ struct CloseDayTests {
         defer { context.clean() }
         await context.start()
         var files = Self.goalFiles
-        files["journal/2026-10-03.md"] = Self.todayWithGoals
-        files["journal/2026-10-01.md"] =
-            "\u{FEFF}## Tasks\r\n- [ ] carried 📅 2026-10-01 ^carried\r\n  kept note\r\n\r\n## Journal\r\nno final newline"
+        files["diary/2026-10-03.md"] = Self.todayWithGoals
+        files["diary/2026-10-01.md"] =
+            "\u{FEFF}## Tasks\r\n- [ ] carried 📅 2026-10-01 ^carried\r\n  kept note\r\n\r\n## Diary\r\nno final newline"
         files["notes/Plan.md"] = "# Plan\n- [ ] from a note 📅 2026-10-03\n"
         try await write(files, in: context)
         let before = try vaultFiles(context)
@@ -91,14 +91,14 @@ struct CloseDayTests {
         #expect(!model.canApply)
         await model.apply()
         #expect(model.report == nil)
-        #expect(model.steps == [.tasks, .goals, .journal])
+        #expect(model.steps == [.tasks, .goals, .diary])
         #expect(model.stepNumber == 1 && model.stepCount == 3)
         model.advance()
         #expect(model.step == .goals && model.stepNumber == 2)
         model.advance()
-        #expect(model.step == .journal && model.stepNumber == 3)
+        #expect(model.step == .diary && model.stepNumber == 3)
         model.advance()
-        #expect(model.step == .journal)
+        #expect(model.step == .diary)
         model.sentence = " \n\t"
         #expect(!model.canWriteSentence)
         await model.writeSentence()
@@ -116,13 +116,13 @@ struct CloseDayTests {
         await context.start()
         let today =
             "## Tasks\n- [ ] done here 📅 2026-10-03 ^done\n- [ ] to tomorrow 📅 2026-10-03 ⏫ ^tom\n"
-            + "- [ ] stays 📅 2026-10-03 ^stay\n- [ ] undated stays ^undated\n\n## Journal\nUnrelated text.\n"
+            + "- [ ] stays 📅 2026-10-03 ^stay\n- [ ] undated stays ^undated\n\n## Diary\nUnrelated text.\n"
         let older =
             "## Tasks\r\n- [ ] to next week 📅 2026-10-01 ^week\r\n- [ ] old stays 📅 2026-09-30 ^old\r\n"
             + "  note under\r\n"
         let note = "- [ ] note stays 📅 2026-10-02 ^note\n"
         try await write(
-            ["journal/2026-10-03.md": today, "journal/2026-10-01.md": older, "notes/Plan.md": note], in: context)
+            ["diary/2026-10-03.md": today, "diary/2026-10-01.md": older, "notes/Plan.md": note], in: context)
         let before = try vaultFiles(context)
 
         // "Haftaya" follows the calendar's week start; the expected date below is a Monday week's.
@@ -145,12 +145,12 @@ struct CloseDayTests {
         let expectedToday =
             "## Tasks\n- [x] done here 📅 2026-10-03 ✅ 2026-10-03 ^done\n"
             + "- [ ] to tomorrow 📅 2026-10-04 ⏫ ^tom\n"
-            + "- [ ] stays 📅 2026-10-03 ^stay\n- [ ] undated stays ^undated\n\n## Journal\nUnrelated text.\n"
+            + "- [ ] stays 📅 2026-10-03 ^stay\n- [ ] undated stays ^undated\n\n## Diary\nUnrelated text.\n"
         let expectedOlder =
             "## Tasks\r\n- [ ] to next week 📅 2026-10-05 ^week\r\n- [ ] old stays 📅 2026-09-30 ^old\r\n"
             + "  note under\r\n"
-        #expect(try read("journal/2026-10-03.md", in: context) == Data(expectedToday.utf8))
-        #expect(try read("journal/2026-10-01.md", in: context) == Data(expectedOlder.utf8))
+        #expect(try read("diary/2026-10-03.md", in: context) == Data(expectedToday.utf8))
+        #expect(try read("diary/2026-10-01.md", in: context) == Data(expectedOlder.utf8))
         let after = try vaultFiles(context)
         #expect(after["notes/Plan.md"] == before["notes/Plan.md"])
         #expect(after.count == before.count)
@@ -171,7 +171,7 @@ struct CloseDayTests {
         let source =
             "- [ ] finish 📅 2026-10-03 ^a\n- [ ] changed done 📅 2026-10-03 ^b\n"
             + "- [ ] move 📅 2026-10-03 ^c\n- [ ] changed move 📅 2026-10-03 ^d\n"
-        try await write(["journal/2026-10-03.md": source], in: context)
+        try await write(["diary/2026-10-03.md": source], in: context)
         let model = try await CloseDayModel.opened(store: context.store, today: context.today)
         model.choose(.done, for: try await context.row("finish"))
         model.choose(.done, for: try await context.row("changed done"))
@@ -203,11 +203,11 @@ struct CloseDayTests {
         let context = try TaskTestContext()
         defer { context.clean() }
         await context.start()
-        try await write(["journal/2026-10-03.md": "- [ ] first 📅 2026-10-03\n- [ ] second 📅 2026-10-03\n"], in: context)
+        try await write(["diary/2026-10-03.md": "- [ ] first 📅 2026-10-03\n- [ ] second 📅 2026-10-03\n"], in: context)
         let model = try await CloseDayModel.opened(store: context.store, today: context.today)
         model.choose(.done, for: try await context.row("first"))
         let outside = "- [ ] newcomer 📅 2026-10-03\n- [ ] first 📅 2026-10-03\n- [ ] second 📅 2026-10-03\n"
-        try await write(["journal/2026-10-03.md": outside], in: context)
+        try await write(["diary/2026-10-03.md": outside], in: context)
         #expect(model.choice(for: try await context.row("newcomer")) == .keep)
         await model.apply()
         #expect(try Data(contentsOf: context.file) == Data(outside.utf8))
@@ -218,8 +218,8 @@ struct CloseDayTests {
         defer { context.clean() }
         await context.start()
         var files = Self.goalFiles
-        files["journal/2026-10-03.md"] = Self.todayWithGoals
-        files["journal/2026-10-02.md"] = "---\ntype: journal\ndate: 2026-10-02\ngoals:\n  spor: true\n---\n"
+        files["diary/2026-10-03.md"] = Self.todayWithGoals
+        files["diary/2026-10-02.md"] = "---\ntype: diary\ndate: 2026-10-02\ngoals:\n  spor: true\n---\n"
         try await write(files, in: context)
         let before = try vaultFiles(context)
 
@@ -233,7 +233,7 @@ struct CloseDayTests {
         let marked = Self.todayWithGoals.replacingOccurrences(of: "  su: 3\n", with: "  su: 3\n  spor: true\n")
         #expect(try Data(contentsOf: context.file) == Data(marked.utf8))
         var after = try vaultFiles(context)
-        after["journal/2026-10-03.md"] = before["journal/2026-10-03.md"]
+        after["diary/2026-10-03.md"] = before["diary/2026-10-03.md"]
         #expect(after == before)
         // Still listed (and reversible) in this opening; gone from the next one.
         #expect(model.pendingGoals.map(\.key) == ["spor", "su"])
@@ -251,7 +251,7 @@ struct CloseDayTests {
         let source =
             "- [ ] water 🔁 every day 📅 2026-10-01 ^water\n- [ ] under done 📅 2026-10-03\n"
             + "- [ ] under moved 📅 2026-10-03\n- [ ] under kept 📅 2026-10-03\n"
-        try await write(["journal/2026-10-03.md": source], in: context)
+        try await write(["diary/2026-10-03.md": source], in: context)
         let model = try await CloseDayModel.opened(store: context.store, today: context.today)
         model.choose(.done, for: try await context.row("water"))
         model.choose(.done, for: try await context.row("under done"))
@@ -281,7 +281,7 @@ struct CloseDayTests {
         defer { context.clean() }
         await context.start()
         let source = "- [ ] twin 📅 2026-10-03\n- [ ] other 📅 2026-10-03\n- [ ] twin 📅 2026-10-03\n"
-        try await write(["journal/2026-10-03.md": source], in: context)
+        try await write(["diary/2026-10-03.md": source], in: context)
         let model = try await CloseDayModel.opened(store: context.store, today: context.today)
         let twins = model.tasks.filter { $0.sourceText == "twin" }.sorted { $0.sourceLine < $1.sourceLine }
         #expect(twins.count == 2)
@@ -306,7 +306,7 @@ struct CloseDayTests {
         let source =
             "- [ ] closed outside 📅 2026-10-03 ^a\n- [ ] removed outside 📅 2026-10-03 ^b\n"
             + "- [ ] moved then removed 📅 2026-10-03 ^c\n- [ ] untouched 📅 2026-10-03 ^d\n"
-        try await write(["journal/2026-10-03.md": source], in: context)
+        try await write(["diary/2026-10-03.md": source], in: context)
         let model = try await CloseDayModel.opened(store: context.store, today: context.today)
         model.choose(.done, for: try await context.row("closed outside"))
         model.choose(.done, for: try await context.row("removed outside"))
@@ -330,7 +330,7 @@ struct CloseDayTests {
         defer { context.clean() }
         await context.start()
         try await write(
-            ["journal/2026-10-03.md": "- [ ] once 📅 2026-10-03 ^once\n- [ ] later 📅 2026-10-03 ^later\n"],
+            ["diary/2026-10-03.md": "- [ ] once 📅 2026-10-03 ^once\n- [ ] later 📅 2026-10-03 ^later\n"],
             in: context)
         let model = try await CloseDayModel.opened(store: context.store, today: context.today)
         model.choose(.done, for: try await context.row("once"))
@@ -352,7 +352,7 @@ struct CloseDayTests {
         defer { context.clean() }
         await context.start()
         var files = Self.goalFiles
-        files["journal/2026-10-03.md"] = Self.todayWithGoals
+        files["diary/2026-10-03.md"] = Self.todayWithGoals
         files["goals/Hafta.md"] =
             "---\ntype: goal\nname: Hafta\nkey: hafta\nperiod: week\nkind: boolean\ntarget: 3\n---\n"
         files["goals/Yil.md"] =
@@ -388,7 +388,7 @@ struct CloseDayTests {
         #expect(!model.goals.isComplete(for: spor))
         #expect(try Data(contentsOf: context.file) == Data(Self.todayWithGoals.utf8))
         var after = try vaultFiles(context)
-        after["journal/2026-10-03.md"] = before["journal/2026-10-03.md"]
+        after["diary/2026-10-03.md"] = before["diary/2026-10-03.md"]
         #expect(after == before)
     }
 
@@ -399,7 +399,7 @@ struct CloseDayTests {
         defer { context.clean() }
         await context.start()
         try await write(
-            ["journal/2026-10-03.md": "## Tasks\n- [ ] later 📅 2026-10-10 ^later\n- [ ] undated ^undated\n"],
+            ["diary/2026-10-03.md": "## Tasks\n- [ ] later 📅 2026-10-10 ^later\n- [ ] undated ^undated\n"],
             in: context)
         let today = await DayTasksModel.loaded(store: context.store, day: context.today, isToday: true)
         #expect(today.groups.created.map(\.sourceText) == ["later", "undated"])
@@ -408,13 +408,13 @@ struct CloseDayTests {
         #expect(model.steps.contains(.tasks))
 
         // Only the later one open: there is no task step.
-        try await write(["journal/2026-10-03.md": "## Tasks\n- [ ] later 📅 2026-10-10 ^later\n"], in: context)
+        try await write(["diary/2026-10-03.md": "## Tasks\n- [ ] later 📅 2026-10-10 ^later\n"], in: context)
         let alone = try await CloseDayModel.opened(store: context.store, today: context.today)
         #expect(alone.tasks.isEmpty)
         #expect(!alone.steps.contains(.tasks))
     }
 
-    @Test func entryRowShowsOnTodayWhileWorkIsOpenOrTheJournalIsEmpty() async throws {
+    @Test func entryRowShowsOnTodayWhileWorkIsOpenOrTheDiaryIsEmpty() async throws {
         let context = try TaskTestContext()
         defer { context.clean() }
         await context.start()
@@ -422,7 +422,7 @@ struct CloseDayTests {
         #expect(try await offered(context))
         #expect(try await !offered(context, isToday: false))
 
-        // A goal with a longer period is not the day's business, and there is still no journal.
+        // A goal with a longer period is not the day's business, and there is still no diary.
         try await write(
             [
                 "goals/Kitap.md":
@@ -431,26 +431,26 @@ struct CloseDayTests {
             in: context)
         #expect(try await offered(context))
 
-        // A journal entry and nothing else open: the row goes away.
-        try await write(["journal/2026-10-03.md": "## Journal\nA quiet day.\n"], in: context)
+        // A diary entry and nothing else open: the row goes away.
+        try await write(["diary/2026-10-03.md": "## Diary\nA quiet day.\n"], in: context)
         #expect(try await !offered(context))
         #expect(try await !offered(context, isToday: false))
 
         // Only a task written today and due later is open: the flow would not list it, so the row
         // is not offered though Today counts it (decision 82). Due today, it is offered.
         try await write(
-            ["journal/2026-10-03.md": "## Tasks\n- [ ] later 📅 2026-10-10 ^later\n\n## Journal\nA quiet day.\n"],
+            ["diary/2026-10-03.md": "## Tasks\n- [ ] later 📅 2026-10-10 ^later\n\n## Diary\nA quiet day.\n"],
             in: context)
         #expect(try await presentation(context).remainingTaskCount == 1)
         #expect(try await !offered(context))
         try await write(
-            ["journal/2026-10-03.md": "## Tasks\n- [ ] later 📅 2026-10-03 ^later\n\n## Journal\nA quiet day.\n"],
+            ["diary/2026-10-03.md": "## Tasks\n- [ ] later 📅 2026-10-03 ^later\n\n## Diary\nA quiet day.\n"],
             in: context)
         #expect(try await offered(context))
 
-        // One open task, even with a journal entry.
+        // One open task, even with a diary entry.
         try await write(
-            ["journal/2026-10-03.md": "## Tasks\n- [ ] only 📅 2026-10-03 ^only\n\n## Journal\nA quiet day.\n"],
+            ["diary/2026-10-03.md": "## Tasks\n- [ ] only 📅 2026-10-03 ^only\n\n## Diary\nA quiet day.\n"],
             in: context)
         #expect(try await offered(context))
         #expect(try await !offered(context, isToday: false))
@@ -460,7 +460,7 @@ struct CloseDayTests {
         #expect(model.report?.completed == 1)
         #expect(try await !offered(context))
 
-        // One unmarked daily goal, no open task, journal already written.
+        // One unmarked daily goal, no open task, diary already written.
         try await write(["goals/Spor.md": try #require(Self.goalFiles["goals/Spor.md"])], in: context)
         #expect(try await offered(context))
         #expect(try await !offered(context, isToday: false))
@@ -469,31 +469,31 @@ struct CloseDayTests {
         #expect(await goals.goals.toggle(try #require(goals.pendingGoals.first)))
         #expect(try await !offered(context))
 
-        // Only the journal changes from here on: the task is done and the goal mark stays in the
+        // Only the diary changes from here on: the task is done and the goal mark stays in the
         // same file. Headings alone (an Obsidian template) are not an entry: the row returns.
         let marked = try String(contentsOf: context.file, encoding: .utf8)
         #expect(marked.contains("A quiet day."))
-        func journal(_ text: String) async throws {
+        func diary(_ text: String) async throws {
             try await write(
-                ["journal/2026-10-03.md": marked.replacingOccurrences(of: "A quiet day.", with: text)], in: context)
+                ["diary/2026-10-03.md": marked.replacingOccurrences(of: "A quiet day.", with: text)], in: context)
             let shown = try await presentation(context)
             #expect(shown.remainingTaskCount == 0 && shown.remainingGoalCount == 0)
         }
-        try await journal("### Sabah\n### Akşam")
+        try await diary("### Sabah\n### Akşam")
         #expect(try await offered(context))
         #expect(try await !offered(context, isToday: false))
-        // A blank Journal is not one either.
-        try await journal(" ")
+        // A blank Diary is not one either.
+        try await diary(" ")
         #expect(try await offered(context))
         // One sentence under a heading is.
-        try await journal("### Akşam\nBir cümle.")
+        try await diary("### Akşam\nBir cümle.")
         #expect(try await !offered(context))
     }
 
     private func offered(_ context: TaskTestContext, isToday: Bool = true) async throws -> Bool {
         CloseDayEntry.isOffered(
             isToday: isToday, presentation: try await presentation(context, isToday: isToday),
-            hasJournal: CloseDayEntry.hasJournal(try await context.store.computeDay(on: context.today)))
+            hasDiary: CloseDayEntry.hasDiary(try await context.store.computeDay(on: context.today)))
     }
 
     @Test func reportNamesEveryOutcomeAndIsSilentWhenNothingHappened() {
@@ -524,48 +524,48 @@ struct CloseDayTests {
         defer { context.clean() }
         await context.start()
 
-        let onlyJournal = try await CloseDayModel.opened(store: context.store, today: context.today, step: .tasks)
-        #expect(onlyJournal.steps == [.journal] && onlyJournal.step == .journal)
-        #expect(onlyJournal.stepNumber == 1 && onlyJournal.stepCount == 1)
-        #expect(!onlyJournal.canGoBack && !onlyJournal.canAdvance)
-        onlyJournal.advance()
-        onlyJournal.back()
-        #expect(onlyJournal.step == .journal)
+        let onlyDiary = try await CloseDayModel.opened(store: context.store, today: context.today, step: .tasks)
+        #expect(onlyDiary.steps == [.diary] && onlyDiary.step == .diary)
+        #expect(onlyDiary.stepNumber == 1 && onlyDiary.stepCount == 1)
+        #expect(!onlyDiary.canGoBack && !onlyDiary.canAdvance)
+        onlyDiary.advance()
+        onlyDiary.back()
+        #expect(onlyDiary.step == .diary)
 
-        try await write(["journal/2026-10-03.md": "- [ ] only 📅 2026-10-03 ^only\n"], in: context)
+        try await write(["diary/2026-10-03.md": "- [ ] only 📅 2026-10-03 ^only\n"], in: context)
         let tasks = try await CloseDayModel.opened(store: context.store, today: context.today)
-        #expect(tasks.steps == [.tasks, .journal])
+        #expect(tasks.steps == [.tasks, .diary])
         #expect(tasks.step == .tasks && tasks.stepNumber == 1 && tasks.stepCount == 2)
         tasks.advance()
-        #expect(tasks.step == .journal && tasks.stepNumber == 2)
+        #expect(tasks.step == .diary && tasks.stepNumber == 2)
         tasks.back()
         #expect(tasks.step == .tasks)
 
         try await write(
             [
-                "journal/2026-10-03.md": "## Journal\nA quiet day.\n",
+                "diary/2026-10-03.md": "## Diary\nA quiet day.\n",
                 "goals/Spor.md": try #require(Self.goalFiles["goals/Spor.md"]),
             ], in: context)
         let goals = try await CloseDayModel.opened(store: context.store, today: context.today, step: .tasks)
-        #expect(goals.steps == [.goals, .journal] && goals.step == .goals)
+        #expect(goals.steps == [.goals, .diary] && goals.step == .goals)
         #expect(goals.stepNumber == 1 && goals.stepCount == 2 && !goals.canGoBack && goals.canAdvance)
 
-        try await write(["journal/2026-10-03.md": "- [ ] only 📅 2026-10-03 ^only\n"], in: context)
-        let opened = try await CloseDayModel.opened(store: context.store, today: context.today, step: .journal)
-        #expect(opened.steps == [.tasks, .goals, .journal])
-        #expect(opened.step == .journal && opened.stepNumber == 3 && opened.stepCount == 3)
+        try await write(["diary/2026-10-03.md": "- [ ] only 📅 2026-10-03 ^only\n"], in: context)
+        let opened = try await CloseDayModel.opened(store: context.store, today: context.today, step: .diary)
+        #expect(opened.steps == [.tasks, .goals, .diary])
+        #expect(opened.step == .diary && opened.stepNumber == 3 && opened.stepCount == 3)
         opened.back()
         #expect(opened.step == .goals && opened.stepNumber == 2)
         opened.back()
         #expect(opened.step == .tasks && opened.stepNumber == 1)
     }
 
-    /// A journal reminder opens today's flow on the journal step. The day in the identifier is not
+    /// A diary reminder opens today's flow on the diary step. The day in the identifier is not
     /// the flow's day, so a reminder from yesterday does the same.
-    @Test func journalReminderOpensTodaysCloseDayOnTheJournalStep() throws {
-        let yesterday = try #require(NotificationDestination.from(identifier: "journal-2026-09-27"))
-        let today = try #require(NotificationDestination.from(identifier: "journal-2026-10-03"))
-        #expect(yesterday == .journal && today == .journal)
+    @Test func diaryReminderOpensTodaysCloseDayOnTheDiaryStep() throws {
+        let yesterday = try #require(NotificationDestination.from(identifier: "diary-2026-09-27"))
+        let today = try #require(NotificationDestination.from(identifier: "diary-2026-10-03"))
+        #expect(yesterday == .diary && today == .diary)
         let fromYesterday = NotificationNavigationRequest(destination: yesterday)
         let fromToday = NotificationNavigationRequest(destination: today)
         #expect(fromYesterday.closeDayRequestID == fromYesterday.id)
@@ -575,7 +575,7 @@ struct CloseDayTests {
     }
 
     /// A tap stays the service's latest request until the next one, and Today can be built again
-    /// for it (a Mac section switch): the flow opens once per tap, and only for the journal reminder.
+    /// for it (a Mac section switch): the flow opens once per tap, and only for the diary reminder.
     @Test func eachReminderTapOpensTheFlowOnce() async throws {
         let defaults = try TestDefaults()
         defer { defaults.clean() }
@@ -584,7 +584,7 @@ struct CloseDayTests {
         service.activateAutomatically(environment: [:], arguments: [])
         await service.replanNow()
 
-        center.response?(.journal)
+        center.response?(.diary)
         let tap = try #require(service.navigationRequest?.closeDayRequestID)
         #expect(CloseDayReminder.claim(tap))
         #expect(service.navigationRequest?.closeDayRequestID == tap)
@@ -595,7 +595,7 @@ struct CloseDayTests {
         center.response?(.goals)
         #expect(!CloseDayReminder.claim(service.navigationRequest?.closeDayRequestID))
 
-        center.response?(.journal)
+        center.response?(.diary)
         let next = try #require(service.navigationRequest?.closeDayRequestID)
         #expect(next != tap)
         #expect(CloseDayReminder.claim(next))
@@ -623,17 +623,17 @@ struct CloseDayTests {
         #expect(model.canWriteSentence && model.canClose)
         await model.writeSentence()
         #expect(model.sentence.isEmpty)
-        #expect(model.journalNotice == String(localized: "Cümle günlüğe eklendi."))
-        #expect(model.journalError == nil)
+        #expect(model.diaryNotice == String(localized: "Cümle günlüğe eklendi."))
+        #expect(model.diaryError == nil)
         #expect(model.canClose)
         let created = Data(
-            "---\ntype: journal\ndate: 2026-10-03\n---\n\n## Journal\n\nSakin bir akşam.\n".utf8)
-        #expect(try read("journal/2026-10-03.md", in: context) == created)
+            "---\ntype: diary\ndate: 2026-10-03\n---\n\n## Diary\n\nSakin bir akşam.\n".utf8)
+        #expect(try read("diary/2026-10-03.md", in: context) == created)
 
         // A second sentence is another block under the first. The first bytes stay.
         model.sentence = "İkinci cümle."
         await model.writeSentence()
-        let twice = try read("journal/2026-10-03.md", in: context)
+        let twice = try read("diary/2026-10-03.md", in: context)
         #expect(twice.starts(with: created))
         #expect(twice == Data((String(decoding: created, as: UTF8.self) + "\nİkinci cümle.\n").utf8))
     }
@@ -643,15 +643,15 @@ struct CloseDayTests {
         defer { context.clean() }
         await context.start()
         let original = Data(
-            "\u{FEFF}## Tasks\r\n- [ ] eski 📅 2026-10-03 ^eski\r\n\r\n## Journal\r\nEski satır\r\n".utf8)
-        try await write(["journal/2026-10-03.md": String(decoding: original, as: UTF8.self)], in: context)
+            "\u{FEFF}## Tasks\r\n- [ ] eski 📅 2026-10-03 ^eski\r\n\r\n## Diary\r\nEski satır\r\n".utf8)
+        try await write(["diary/2026-10-03.md": String(decoding: original, as: UTF8.self)], in: context)
         // `write` encodes the string; the BOM and CRLF are in the string, so the bytes match.
-        #expect(try read("journal/2026-10-03.md", in: context) == original)
+        #expect(try read("diary/2026-10-03.md", in: context) == original)
         let tasksBefore = try await context.store.allTasks().count
         let model = try await CloseDayModel.opened(store: context.store, today: context.today)
         model.sentence = "- [ ] süt al"
         await model.writeSentence()
-        let after = try read("journal/2026-10-03.md", in: context)
+        let after = try read("diary/2026-10-03.md", in: context)
         #expect(after.starts(with: original))
         #expect(after == original + Data("\r\n· - [ ] süt al\r\n".utf8))
         #expect(try await context.store.allTasks().count == tasksBefore)
@@ -659,7 +659,7 @@ struct CloseDayTests {
 
         model.sentence = "İlk satır\nİkinci satır"
         await model.writeSentence()
-        let more = try read("journal/2026-10-03.md", in: context)
+        let more = try read("diary/2026-10-03.md", in: context)
         #expect(more.starts(with: after))
         #expect(more == after + Data("\r\nİlk satır\r\nİkinci satır\r\n".utf8))
         #expect(try await context.store.allTasks().count == tasksBefore)
@@ -668,48 +668,48 @@ struct CloseDayTests {
     /// A file the writer cannot add to keeps every byte, and the message names the file, not the
     /// sentence the user typed: the sentence stays for another try.
     @Test(arguments: [
-        "## Journal\n```\n",
-        "## Journal\nEski\n~~~ swift\nlet a = 1\n",
+        "## Diary\n```\n",
+        "## Diary\nEski\n~~~ swift\nlet a = 1\n",
     ])
     func aFileThatCannotTakeTheSentenceKeepsItsBytes(original: String) async throws {
         let context = try TaskTestContext()
         defer { context.clean() }
         await context.start()
-        try await write(["journal/2026-10-03.md": original], in: context)
+        try await write(["diary/2026-10-03.md": original], in: context)
         let model = try await CloseDayModel.opened(store: context.store, today: context.today)
         model.sentence = "Yeni cümle"
         await model.writeSentence()
         #expect(
-            model.journalError
+            model.diaryError
                 == String(
                     localized:
                         "Bugünün dosyasındaki günlük bölümüne eklenemiyor. Kapanmamış kod bloğunu ya da dosyanın başındaki alanları kontrol et."
                 ))
-        #expect(model.journalNotice == nil)
+        #expect(model.diaryNotice == nil)
         #expect(model.sentence == "Yeni cümle" && model.canWriteSentence)
         #expect(try Data(contentsOf: context.file) == Data(original.utf8))
     }
 
     /// Whatever the file looks like, the write is one insertion: every byte that was there is
     /// still there, in order, around one new run that holds the sentence. The index reads the
-    /// sentence as journal text, and no task or event is born.
+    /// sentence as diary text, and no task or event is born.
     @Test(arguments: [
-        "## Journal\nİlk\n\n## Notes\nNot\n",
-        "## Journal\n",
+        "## Diary\nİlk\n\n## Notes\nNot\n",
+        "## Diary\n",
         "",
         "## Events\n- 09:00 yürüyüş ^walk\n",
-        "## Journal\nEski",
-        "## Journal\r\nEski\r\n\r\n## Notes\r\nNot",
-        "## Journal\rEski\r",
-        "\u{FEFF}---\ntype: journal\ndate: 2026-10-03\n---\n## Journal\n### Sabah\n",
-        // Never closed, so not frontmatter (as in Obsidian): the Journal below it takes the sentence.
-        "---\ntype: journal\n## Journal\nEski\n",
+        "## Diary\nEski",
+        "## Diary\r\nEski\r\n\r\n## Notes\r\nNot",
+        "## Diary\rEski\r",
+        "\u{FEFF}---\ntype: diary\ndate: 2026-10-03\n---\n## Diary\n### Sabah\n",
+        // Never closed, so not frontmatter (as in Obsidian): the Diary below it takes the sentence.
+        "---\ntype: diary\n## Diary\nEski\n",
     ])
     func aSentenceIsOneInsertionInAnyDayFile(original: String) async throws {
         let context = try TaskTestContext()
         defer { context.clean() }
         await context.start()
-        try await write(["journal/2026-10-03.md": original], in: context)
+        try await write(["diary/2026-10-03.md": original], in: context)
         let before = [UInt8](try Data(contentsOf: context.file))
         #expect(before == Array(original.utf8))
         let tasks = try await context.store.allTasks().count
@@ -717,7 +717,7 @@ struct CloseDayTests {
         let model = try await CloseDayModel.opened(store: context.store, today: context.today)
         model.sentence = "Sakin bir akşam."
         await model.writeSentence()
-        #expect(model.journalError == nil)
+        #expect(model.diaryError == nil)
         let after = [UInt8](try Data(contentsOf: context.file))
         let prefix = zip(before, after).prefix { $0 == $1 }.count
         let suffix = min(
@@ -727,33 +727,33 @@ struct CloseDayTests {
         #expect(inserted.contains("Sakin bir akşam."))
         #expect(try await context.store.allTasks().count == tasks)
         #expect(try await context.store.computeDay(on: context.today).events.count == events)
-        let journal = try await context.store.computeDay(on: context.today).journal
-        #expect(journal.contains { $0.headingLevel == nil && $0.text.plainText == "Sakin bir akşam." })
+        let diary = try await context.store.computeDay(on: context.today).diary
+        #expect(diary.contains { $0.headingLevel == nil && $0.text.plainText == "Sakin bir akşam." })
     }
 
-    /// A paste with a task, a section heading, a fence and an event line stays journal text: no
-    /// task, event or section is born, and a later sentence still lands in the same Journal.
-    @Test func aPastedStructureStaysJournalText() async throws {
+    /// A paste with a task, a section heading, a fence and an event line stays diary text: no
+    /// task, event or section is born, and a later sentence still lands in the same Diary.
+    @Test func aPastedStructureStaysDiaryText() async throws {
         let context = try TaskTestContext()
         defer { context.clean() }
         await context.start()
-        let original = "## Tasks\n- [ ] eski ^eski\n\n## Events\n- 08:00 kahve ^kahve\n\n## Journal\nEski.\n"
-        try await write(["journal/2026-10-03.md": original], in: context)
+        let original = "## Tasks\n- [ ] eski ^eski\n\n## Events\n- 08:00 kahve ^kahve\n\n## Diary\nEski.\n"
+        try await write(["diary/2026-10-03.md": original], in: context)
         let tasks = try await context.store.allTasks().count
         #expect(try await context.store.computeDay(on: context.today).events.count == 1)
         let model = try await CloseDayModel.opened(store: context.store, today: context.today)
         model.sentence = "- [ ] süt al\n## Başlık\n```\n- 09:00 yürüyüş\n  - [ ] girintili"
         await model.writeSentence()
-        #expect(model.journalError == nil)
+        #expect(model.diaryError == nil)
         model.sentence = "Son cümle."
         await model.writeSentence()
-        #expect(model.journalError == nil)
+        #expect(model.diaryError == nil)
         let text = try String(contentsOf: context.file, encoding: .utf8)
         #expect(text.hasPrefix(original))
         #expect(try await context.store.allTasks().count == tasks)
         let day = try await context.store.computeDay(on: context.today)
         #expect(day.events.count == 1)
-        #expect(day.journal.last?.text.plainText == "Son cümle.")
+        #expect(day.diary.last?.text.plainText == "Son cümle.")
     }
 
     /// While a write is in flight the sheet cannot close and a second "Yaz" writes nothing.
@@ -761,7 +761,7 @@ struct CloseDayTests {
         let context = try TaskTestContext()
         defer { context.clean() }
         await context.start()
-        try await write(["journal/2026-10-03.md": "## Journal\nEski\n"], in: context)
+        try await write(["diary/2026-10-03.md": "## Diary\nEski\n"], in: context)
         let store = context.store
         let gate = FirstWriteGate()
         let calls = CallCount()
@@ -770,7 +770,7 @@ struct CloseDayTests {
             append: { day, lines in
                 calls.value += 1
                 await gate.holdIfFirst()
-                try await store.appendToJournal(on: day, lines: lines)
+                try await store.appendToDiary(on: day, lines: lines)
             })
         model.sentence = "Bir kez"
         let first = Task { await model.writeSentence() }
@@ -781,7 +781,7 @@ struct CloseDayTests {
         await gate.open()
         await first.value
         #expect(calls.value == 1 && model.canClose && model.sentence.isEmpty)
-        #expect(try String(contentsOf: context.file, encoding: .utf8) == "## Journal\nEski\n\nBir kez\n")
+        #expect(try String(contentsOf: context.file, encoding: .utf8) == "## Diary\nEski\n\nBir kez\n")
     }
 
     /// The bytes are in the file when only the index failed: the sentence is not offered again.
@@ -789,25 +789,25 @@ struct CloseDayTests {
         let context = try TaskTestContext()
         defer { context.clean() }
         await context.start()
-        try await write(["journal/2026-10-03.md": "## Journal\nEski\n"], in: context)
+        try await write(["diary/2026-10-03.md": "## Diary\nEski\n"], in: context)
         let store = context.store
         let calls = CallCount()
         let model = try await CloseDayModel.opened(
             store: store, today: context.today,
             append: { day, lines in
                 calls.value += 1
-                try await store.appendToJournal(on: day, lines: lines)
+                try await store.appendToDiary(on: day, lines: lines)
                 throw VaultStoreError.indexUpdateFailed(
-                    path: "journal/\(day).md", underlying: CocoaError(.fileWriteUnknown))
+                    path: "diary/\(day).md", underlying: CocoaError(.fileWriteUnknown))
             })
         model.sentence = "Bir kez"
         await model.writeSentence()
-        #expect(model.journalError == String(localized: "Değişiklik kaydedildi, indeks güncellenemedi."))
-        #expect(model.journalNotice == nil)
+        #expect(model.diaryError == String(localized: "Değişiklik kaydedildi, indeks güncellenemedi."))
+        #expect(model.diaryNotice == nil)
         #expect(model.sentence.isEmpty && !model.canWriteSentence && model.canClose)
         await model.writeSentence()
         #expect(calls.value == 1)
-        #expect(try String(contentsOf: context.file, encoding: .utf8) == "## Journal\nEski\n\nBir kez\n")
+        #expect(try String(contentsOf: context.file, encoding: .utf8) == "## Diary\nEski\n\nBir kez\n")
     }
 
     /// A refusal before any byte is written keeps the sentence; the next "Yaz" writes it once.
@@ -815,7 +815,7 @@ struct CloseDayTests {
         let context = try TaskTestContext()
         defer { context.clean() }
         await context.start()
-        try await write(["journal/2026-10-03.md": "## Journal\nEski\n"], in: context)
+        try await write(["diary/2026-10-03.md": "## Diary\nEski\n"], in: context)
         let store = context.store
         let calls = CallCount()
         let model = try await CloseDayModel.opened(
@@ -823,16 +823,16 @@ struct CloseDayTests {
             append: { day, lines in
                 calls.value += 1
                 if calls.value == 1 { throw VaultStoreError.staleTarget }
-                try await store.appendToJournal(on: day, lines: lines)
+                try await store.appendToDiary(on: day, lines: lines)
             })
         model.sentence = "Bir kez"
         await model.writeSentence()
-        #expect(model.journalError == DayEditError.message(for: VaultStoreError.staleTarget))
+        #expect(model.diaryError == DayEditError.message(for: VaultStoreError.staleTarget))
         #expect(model.sentence == "Bir kez" && model.canWriteSentence)
-        #expect(try String(contentsOf: context.file, encoding: .utf8) == "## Journal\nEski\n")
+        #expect(try String(contentsOf: context.file, encoding: .utf8) == "## Diary\nEski\n")
         await model.writeSentence()
-        #expect(calls.value == 2 && model.journalError == nil && model.journalNotice != nil)
-        #expect(try String(contentsOf: context.file, encoding: .utf8) == "## Journal\nEski\n\nBir kez\n")
+        #expect(calls.value == 2 && model.diaryError == nil && model.diaryNotice != nil)
+        #expect(try String(contentsOf: context.file, encoding: .utf8) == "## Diary\nEski\n\nBir kez\n")
     }
 
     /// A sentence typed for one vault is not written into a vault selected since the flow opened.
@@ -840,7 +840,7 @@ struct CloseDayTests {
         let context = try TaskTestContext()
         defer { context.clean() }
         await context.start()
-        try await write(["journal/2026-10-03.md": "## Journal\nEski\n"], in: context)
+        try await write(["diary/2026-10-03.md": "## Diary\nEski\n"], in: context)
         let model = try await CloseDayModel.opened(store: context.store, today: context.today)
         let other = context.directory.appendingPathComponent("Other")
         try FileManager.default.copyItem(at: context.root, to: other)
@@ -848,7 +848,7 @@ struct CloseDayTests {
         await context.store.select(other)
         #expect(context.store.vaultURL?.standardizedFileURL.path != context.root.standardizedFileURL.path)
         #expect(context.store.canAddEvent)
-        let otherFile = other.appendingPathComponent("journal/2026-10-03.md")
+        let otherFile = other.appendingPathComponent("diary/2026-10-03.md")
         let otherBytes = try Data(contentsOf: otherFile)
         model.sentence = "Yanlış kasa"
         #expect(!model.canWriteSentence)

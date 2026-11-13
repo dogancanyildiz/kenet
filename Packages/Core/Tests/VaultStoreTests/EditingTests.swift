@@ -30,14 +30,14 @@ struct EditingTests {
     @Test func ownerKeepsIdentifierAndDuplicateGetsNewOne() async throws {
         let vault = try StoreVault()
         defer { vault.remove() }
-        try vault.write("journal/2026-09-14.md", "## Events\n- Deniz ^duplicate\n")
+        try vault.write("diary/2026-09-14.md", "## Events\n- Deniz ^duplicate\n")
         try vault.write(storePath, "## Events\n- Selin ^duplicate\n")
         try vault.index.refresh(vaultRoot: vault.root)
         let target = try await vault.store.dayDocument(for: storeDate).bodyLines.events[0].block
         let changed = try await vault.store.changingText(of: target, at: storePath, to: "Su")
         #expect(changed.bodyLines.events[0].block.id == "aaaaaa")
-        let owner = try await vault.store.document(at: "journal/2026-09-14.md").bodyLines.events[0].block
-        let retained = try await vault.store.changingText(of: owner, at: "journal/2026-09-14.md", to: "Kitap")
+        let owner = try await vault.store.document(at: "diary/2026-09-14.md").bodyLines.events[0].block
+        let retained = try await vault.store.changingText(of: owner, at: "diary/2026-09-14.md", to: "Kitap")
         #expect(retained.bodyLines.events[0].block.id == "duplicate")
         try vault.check()
     }
@@ -47,10 +47,10 @@ struct EditingTests {
     @Test func uniqueIdentifierRenewsOnlyAClash() async throws {
         let vault = try StoreVault()
         defer { vault.remove() }
-        try vault.write("journal/2026-09-14.md", "## Events\n- Deniz ^abc123\n")
+        try vault.write("diary/2026-09-14.md", "## Events\n- Deniz ^abc123\n")
         try vault.write(storePath, "## Events\r\n- 09:00 Selin ^abc123\r\n- Su ^own001\r\n")
         try vault.index.refresh(vaultRoot: vault.root)
-        let older = try vault.bytes("journal/2026-09-14.md")
+        let older = try vault.bytes("diary/2026-09-14.md")
         let events = try await vault.store.dayDocument(for: storeDate).bodyLines.events
 
         let unchanged = try await vault.store.givingUniqueIdentifier(to: events[1].block, at: storePath)
@@ -58,7 +58,7 @@ struct EditingTests {
         let renewed = try await vault.store.givingUniqueIdentifier(to: events[0].block, at: storePath)
         #expect(renewed.bodyLines.events[0].block.id == "aaaaaa")
         #expect(try vault.bytes() == Data("## Events\r\n- 09:00 Selin ^aaaaaa\r\n- Su ^own001\r\n".utf8))
-        #expect(try vault.bytes("journal/2026-09-14.md") == older)
+        #expect(try vault.bytes("diary/2026-09-14.md") == older)
         try vault.check()
 
         let stale = events[0].block
@@ -73,7 +73,7 @@ struct EditingTests {
         let random = CountingRandom()
         let vault = try StoreVault(random: { random.next() })
         defer { vault.remove() }
-        try vault.write("journal/2026-09-14.md", "## Events\n- Deniz ^abc123\n- Su ^def456\n")
+        try vault.write("diary/2026-09-14.md", "## Events\n- Deniz ^abc123\n- Su ^def456\n")
         let day = "## Tasks\n- [ ] Ara 📅 2026-11-20 Ayşe ^def456\n\n## Events\n- 09:00   Kitap  okudum   ^abc123\n"
         try vault.write(storePath, day)
         try vault.index.refresh(vaultRoot: vault.root)

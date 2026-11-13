@@ -1,5 +1,5 @@
 ## Tasks
 - [ ] Çay ^c7b001
 
-## Journal
+## Diary
 Gün.

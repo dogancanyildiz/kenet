@@ -12,8 +12,8 @@
         "key": "type",
         "firstLine": 17,
         "lastLine": 17,
-        "scalar": { "type": "text", "text": "journal", "raw": "journal" },
-        "listItems": ["journal"]
+        "scalar": { "type": "text", "text": "diary", "raw": "diary" },
+        "listItems": ["diary"]
       }
     ]
   }

@@ -12,7 +12,7 @@ struct TaskFieldStoreTests {
             due: CalendarDate("2026-10-05"), start: CalendarDate("2026-10-01"), priority: .medium, project: "iş")
         #expect(
             String(decoding: document.serialized(), as: UTF8.self)
-                == "---\ntype: journal\ndate: 2026-09-27\n---\n\n## Tasks\n- [ ] [[Deniz]] ile görüş 🛫 2026-10-01 📅 2026-10-05 🔼 #project/iş ^aaaaaa\n"
+                == "---\ntype: diary\ndate: 2026-09-27\n---\n\n## Tasks\n- [ ] [[Deniz]] ile görüş 🛫 2026-10-01 📅 2026-10-05 🔼 #project/iş ^aaaaaa\n"
         )
         let task = document.bodyLines.tasks[0]
         #expect(task.text == "[[Deniz]] ile görüş")
@@ -25,7 +25,7 @@ struct TaskFieldStoreTests {
         let vault = try StoreVault()
         defer { vault.remove() }
         let original =
-            "\u{FEFF}## Tasks\r\n*  [ ] x 📅 2026-10-05 #project/iş ^task\r\n  continuation\r\n\r\n## Journal\r\nkeep"
+            "\u{FEFF}## Tasks\r\n*  [ ] x 📅 2026-10-05 #project/iş ^task\r\n  continuation\r\n\r\n## Diary\r\nkeep"
         try vault.write(storePath, original)
         let before = try await vault.store.document(at: storePath)
         let completed = try await vault.store.changingStatus(

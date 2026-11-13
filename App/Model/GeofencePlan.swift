@@ -4,7 +4,9 @@ import GoalTracking
 import VaultIndex
 
 struct GeofenceRegion: Equatable, Sendable, Identifiable {
-    static let prefix = "journal-geofence-"
+    static let prefix = "kenet-geofence-"
+    /// The prefix of regions a build before 2026-11-13 registered; they are stopped, never matched.
+    static let legacyPrefix = LegacyDefaults.codeName + "-geofence-"
     let id: String
     let coordinate: PlaceCoordinate
     let radius: Double

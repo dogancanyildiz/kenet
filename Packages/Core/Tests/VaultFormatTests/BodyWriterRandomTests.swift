@@ -208,7 +208,7 @@ struct BodyWriterRandomTests {
             if random.next() % 2 == 0 { contents.append("  Kitap") }
             if random.next() % 2 == 0 { contents.append("") }
         }
-        contents += ["## Journal", "Spor"]
+        contents += ["## Diary", "Spor"]
         var bytes: [UInt8] = []
         for (index, content) in contents.enumerated() {
             bytes += Array(content.utf8)

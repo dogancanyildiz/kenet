@@ -42,7 +42,7 @@ struct CoordinationCostMeasureTests {
             let clock = ContinuousClock()
 
             let readStart = clock.now
-            for _ in 0..<200 { _ = try await store.document(at: "journal/2026-10-05.md") }
+            for _ in 0..<200 { _ = try await store.document(at: "diary/2026-10-05.md") }
             print("MEASURE_COORDINATION reads200 \(label): \(Self.seconds(readStart.duration(to: clock.now))) s")
 
             let placeStart = clock.now

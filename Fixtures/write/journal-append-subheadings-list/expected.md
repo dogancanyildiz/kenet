@@ -1,5 +1,0 @@
-## Journal
-### Alt
-- Kitap
-
-Yeni

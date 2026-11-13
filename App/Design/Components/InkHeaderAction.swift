@@ -11,7 +11,7 @@ enum InkHeaderActionRole: Equatable, Sendable {
 /// Pure color and count rules for manşet-row icons (unit-tested; the views below call these).
 enum InkHeaderActionChrome {
     /// A manşet row holds at most this many icons. The components do not block a fourth;
-    /// anything beyond becomes a row at the top of the page (e.g. the Summaries row in Journal).
+    /// anything beyond becomes a row at the top of the page (e.g. the Summaries row in Diary).
     static let maximumCount = 3
 
     /// Gap between neighboring icons, and between the manşet and the first icon.

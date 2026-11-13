@@ -49,7 +49,7 @@ struct KanbanView: View {
                         NavigationStack {
                             if let row = selectionAnswer.row(for: selection.id, listed: selection) {
                                 TaskDetailView(store: model.store, row: row) { path in
-                                    sourceDay = CalendarDate(String(path.dropFirst("journal/".count).dropLast(3)))
+                                    sourceDay = VaultLayout.day(ofDayPath: path)
                                 }
                                 .navigationDestination(item: $sourceDay) { day in
                                     DayView(store: model.store, date: day)

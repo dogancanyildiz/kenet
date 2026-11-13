@@ -15,7 +15,7 @@ public enum VaultStoreError: Error, Sendable, Equatable {
     case invalidPath
     /// `.app/vault.json` is missing a readable supported formatVersion, or the version is newer than this build.
     case readOnlyVault
-    /// A write targets a reserved folder that exists under a different spelling (for example `Journal/` instead of `journal/`).
+    /// A write targets a reserved folder that exists under a different spelling (for example `Diary/` instead of `diary/`).
     case reservedFolderCaseMismatch(found: String, expected: String)
     /// The file was written successfully; only index updating failed. Do not repeat the write.
     case indexUpdateFailed(path: String, underlying: any Error)

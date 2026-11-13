@@ -2,5 +2,5 @@
 invalid
 ## Tasks
 ---
-## Journal
+## Diary
 yazı

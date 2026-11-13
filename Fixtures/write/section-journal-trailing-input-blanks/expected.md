@@ -1,5 +1,0 @@
-## Journal
-Kitap
-
-## Other
-Deniz

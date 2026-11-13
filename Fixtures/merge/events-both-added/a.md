@@ -4,5 +4,5 @@
 - 15:00 Toplantı ^e3x002
 - [[Ece Yalın]] aradı ^e3a002
 
-## Journal
+## Diary
 Gün.

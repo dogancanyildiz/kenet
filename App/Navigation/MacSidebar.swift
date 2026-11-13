@@ -113,12 +113,12 @@ enum MacSidebar {
             return responder === window
         }
 
-        /// The journal window the sidebar lives in (`MainWindowMarker`); the key one when several
+        /// The diary window the sidebar lives in (`MainWindowMarker`); the key one when several
         /// are open. A key window elsewhere (Settings, the quick-entry panel) is not it, so it
         /// does not decide whether the sidebar's focus is free.
         static func sidebarWindow(among windows: [NSWindow], key: NSWindow?) -> NSWindow? {
-            let journals = windows.filter { $0.identifier == MainWindowMarker.identifier }
-            return journals.first { $0 === key } ?? journals.first
+            let diarys = windows.filter { $0.identifier == MainWindowMarker.identifier }
+            return diarys.first { $0 === key } ?? diarys.first
         }
     }
 #endif

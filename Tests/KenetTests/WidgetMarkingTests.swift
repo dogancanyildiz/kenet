@@ -55,7 +55,7 @@ import VaultFormat
 
     var snapshotFile: URL { WidgetSnapshotFile.url(in: group) }
     var snapshot: WidgetSnapshot? { WidgetSnapshotFile.read(from: snapshotFile) }
-    var dayFile: URL { root.appendingPathComponent("journal/\(GraceDayVault.today).md") }
+    var dayFile: URL { root.appendingPathComponent("diary/\(GraceDayVault.today).md") }
 
     /// The widget's side, as `MarkGoalInWidgetIntent` builds it, at the test's clock.
     func marker(container: URL?? = nil) -> WidgetGoalMarker {
@@ -91,9 +91,9 @@ import VaultFormat
 @MainActor @Suite("Widget marking")
 struct WidgetMarkingTests {
     /// The day file of `GraceDayVault.today` as generated, and with "Esneme" marked.
-    static let unmarkedDay = "---\ntype: journal\ndate: 2026-09-20\n---\n\n## Events\n- 08:30 Sabah yürüyüşü ^gr4c01\n"
+    static let unmarkedDay = "---\ntype: diary\ndate: 2026-09-20\n---\n\n## Events\n- 08:30 Sabah yürüyüşü ^gr4c01\n"
     static let markedDay =
-        "---\ntype: journal\ndate: 2026-09-20\ngoals:\n  esneme: true\n---\n\n## Events\n- 08:30 Sabah yürüyüşü ^gr4c01\n"
+        "---\ntype: diary\ndate: 2026-09-20\ngoals:\n  esneme: true\n---\n\n## Events\n- 08:30 Sabah yürüyüşü ^gr4c01\n"
 
     @Test func cloudSnapshotNamesTheVaultPlaceAndTheWidgetMarksItsOpenYesNoGoal() async throws {
         let harness = try CloudWidgetHarness()
@@ -128,7 +128,7 @@ struct WidgetMarkingTests {
         let other = harness.directory.appendingPathComponent("OtherCloud", isDirectory: true)
         let root = other.appendingPathComponent("Documents/Kenet", isDirectory: true)
         try GraceDayVault.generate(at: root)
-        let day = root.appendingPathComponent("journal/\(GraceDayVault.today).md")
+        let day = root.appendingPathComponent("diary/\(GraceDayVault.today).md")
         let before = try Data(contentsOf: day)
 
         #expect(await harness.marker(container: .some(other)).mark(goalID: id) == .unavailable)
@@ -156,7 +156,7 @@ struct WidgetMarkingTests {
         #expect(await harness.marker().mark(goalID: id) == .marked)
         #expect(
             try String(decoding: Data(contentsOf: harness.dayFile), as: UTF8.self)
-                == "---\ntype: journal\ndate: 2026-09-20\ngoals:\n  esneme: true\n---\n")
+                == "---\ntype: diary\ndate: 2026-09-20\ngoals:\n  esneme: true\n---\n")
         #expect(harness.snapshot?.markedAt == WidgetSnapshotTests.noon)
     }
 
@@ -169,13 +169,13 @@ struct WidgetMarkingTests {
         await harness.start()
         let id = try harness.goalID("esneme")
         harness.clock.now = WidgetSnapshotTests.noon.addingTimeInterval(24 * 3600)
-        let tomorrow = harness.root.appendingPathComponent("journal/2026-09-21.md")
+        let tomorrow = harness.root.appendingPathComponent("diary/2026-09-21.md")
         #expect(!FileManager.default.fileExists(atPath: tomorrow.path))
 
         #expect(await harness.marker().mark(goalID: id) == .marked)
         #expect(
             try String(decoding: Data(contentsOf: tomorrow), as: UTF8.self)
-                == "---\ntype: journal\ndate: 2026-09-21\ngoals:\n  esneme: true\n---\n")
+                == "---\ntype: diary\ndate: 2026-09-21\ngoals:\n  esneme: true\n---\n")
         #expect(try String(decoding: Data(contentsOf: harness.dayFile), as: UTF8.self) == Self.unmarkedDay)
         let snapshot = try #require(harness.snapshot)
         #expect(snapshot.days[0].goals.first { $0.key == "esneme" }?.isPending == true)
@@ -365,7 +365,7 @@ struct WidgetMarkingTests {
         #expect(snapshot.tap(for: esneme) == .open(.markGoal(id: id)))
 
         let before = try Data(contentsOf: harness.file)
-        let day = harness.context.root.appendingPathComponent("journal/\(GraceDayVault.today).md")
+        let day = harness.context.root.appendingPathComponent("diary/\(GraceDayVault.today).md")
         let dayBefore = try Data(contentsOf: day)
         // Even handed the vault's own folder as a container, the marker leaves a local vault alone.
         let marker = WidgetGoalMarker(
@@ -452,7 +452,7 @@ struct WidgetMarkingTests {
         let snapshot = try Data(contentsOf: harness.snapshotFile)
         let id = try harness.goalID("esneme")
         try FileManager.default.removeItem(at: harness.dayFile)
-        let placeholder = harness.root.appendingPathComponent("journal/.\(GraceDayVault.today).md.icloud")
+        let placeholder = harness.root.appendingPathComponent("diary/.\(GraceDayVault.today).md.icloud")
         try Data().write(to: placeholder)
 
         #expect(await harness.marker().mark(goalID: id) == .unavailable)
@@ -499,7 +499,7 @@ struct WidgetMarkingTests {
         let types = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
             .deletingLastPathComponent().appendingPathComponent("Fixtures/vaults/gallery/.app/types.json")
         try FileManager.default.copyItem(at: types, to: root.appendingPathComponent(".app/types.json"))
-        let day = "journal/\(GraceDayVault.today).md"
+        let day = "diary/\(GraceDayVault.today).md"
 
         let reads = ReadLog()
         let index = try ThrowawayIndex.make(for: root) { url in
@@ -562,11 +562,11 @@ struct WidgetMarkingTests {
             at: root.appendingPathComponent(".app"), withIntermediateDirectories: true)
         try Data().write(to: root.appendingPathComponent(".app/.vault.json.icloud"))
         try FileManager.default.createDirectory(
-            at: root.appendingPathComponent("journal"), withIntermediateDirectories: true)
+            at: root.appendingPathComponent("diary"), withIntermediateDirectories: true)
 
         #expect(await harness.marker(container: .some(other)).mark(goalID: id) == .unavailable)
         #expect(
-            try FileManager.default.contentsOfDirectory(atPath: root.appendingPathComponent("journal").path).isEmpty)
+            try FileManager.default.contentsOfDirectory(atPath: root.appendingPathComponent("diary").path).isEmpty)
     }
 }
 

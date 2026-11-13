@@ -2,5 +2,5 @@
 - [-] Deniz ^id
   continuation
 
-## Journal
+## Diary
 keep

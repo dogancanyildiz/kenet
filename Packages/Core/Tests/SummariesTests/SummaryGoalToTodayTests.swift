@@ -112,15 +112,15 @@ struct SummaryGoalToTodayTests {
     @Test func dayFileAfterTodayAddsNoProgressThroughTheIndex() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }
-        for path in ["journal", "goals"] {
+        for path in ["diary", "goals"] {
             try FileManager.default.createDirectory(
                 at: root.appendingPathComponent(path), withIntermediateDirectories: true)
         }
         try "---\ntype: goal\nname: Spor\nkey: spor\nperiod: week\nkind: boolean\ntarget: 3\n---\n".write(
             to: root.appendingPathComponent("goals/Spor.md"), atomically: true, encoding: .utf8)
         for day in ["2026-10-05", "2026-10-06", "2026-10-09", "2026-10-10"] {
-            try "---\ntype: journal\ndate: \(day)\ngoals:\n  spor: true\n---\n".write(
-                to: root.appendingPathComponent("journal/\(day).md"), atomically: true, encoding: .utf8)
+            try "---\ntype: diary\ndate: \(day)\ngoals:\n  spor: true\n---\n".write(
+                to: root.appendingPathComponent("diary/\(day).md"), atomically: true, encoding: .utf8)
         }
         let index = try VaultIndex()
         try index.rebuild(vaultRoot: root)

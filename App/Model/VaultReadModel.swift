@@ -177,16 +177,16 @@ struct VaultReadModel: Sendable {
     }
 }
 
-/// A source-ordered day and its read-only journal paragraphs.
+/// A source-ordered day and its read-only diary paragraphs.
 struct DaySummary: Identifiable, Sendable {
     let id: String
     let date: CalendarDate
     let events: [EventRow]
-    let journal: [JournalRow]
+    let diary: [DiaryRow]
     var hasGoalRecords = false
 
     var preview: String? {
-        journal.first { $0.headingLevel == nil }?.text.plainText.components(separatedBy: "\n").first
+        diary.first { $0.headingLevel == nil }?.text.plainText.components(separatedBy: "\n").first
     }
 }
 
@@ -200,7 +200,7 @@ struct EventRow: Identifiable, Sendable {
     let sourceIdentifier: String?
 }
 
-struct JournalRow: Identifiable, Sendable {
+struct DiaryRow: Identifiable, Sendable {
     let id: Int
     let headingLevel: Int?
     let text: LinkedText

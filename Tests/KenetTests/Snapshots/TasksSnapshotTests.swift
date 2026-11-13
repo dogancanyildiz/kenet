@@ -391,7 +391,7 @@
 
         /// Open range 18–22 Sep completed on snapshot day → outline bar + filled end in week view.
         private static func writeCompletedDatedTask(in root: URL) throws {
-            let file = root.appendingPathComponent("journal/2026-09-20.md")
+            let file = root.appendingPathComponent("diary/2026-09-20.md")
             var text = try String(contentsOf: file, encoding: .utf8)
             let line =
                 "- [x] Zaman çizelgesi tamamlanan örnek 🛫 2026-09-18 📅 2026-09-22 ✅ 2026-09-20 ^tlmdone\n"

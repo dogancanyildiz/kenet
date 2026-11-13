@@ -8,8 +8,8 @@ import VaultStore
 
 @MainActor struct DayBacklinksTests {
     private static func writeDay(_ date: String, in root: URL) throws {
-        let text = "---\ntype: journal\ndate: \(date)\n---\n\n## Tasks\n\n## Events\n\n## Journal\n"
-        let file = root.appendingPathComponent("journal/\(date).md")
+        let text = "---\ntype: diary\ndate: \(date)\n---\n\n## Tasks\n\n## Events\n\n## Diary\n"
+        let file = root.appendingPathComponent("diary/\(date).md")
         try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
         try text.write(to: file, atomically: true, encoding: .utf8)
     }

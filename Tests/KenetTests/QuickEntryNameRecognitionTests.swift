@@ -41,7 +41,7 @@ struct QuickEntryNameRecognitionTests {
         #expect(
             try Data(contentsOf: context.file)
                 == Data(
-                    "---\ntype: journal\ndate: 2026-10-03\n---\n\n## Events\n- 13:00 [[Deniz Arıkan|Deniz]] ile [[Liman Ofis]]'te ^\(id)\n"
+                    "---\ntype: diary\ndate: 2026-10-03\n---\n\n## Events\n- 13:00 [[Deniz Arıkan|Deniz]] ile [[Liman Ofis]]'te ^\(id)\n"
                         .utf8))
         #expect(model.suppressedNames.isEmpty && model.recognizedNames.isEmpty)
     }
@@ -64,7 +64,7 @@ struct QuickEntryNameRecognitionTests {
         #expect(
             try Data(contentsOf: context.file)
                 == Data(
-                    "---\ntype: journal\ndate: 2026-10-03\n---\n\n## Events\n- 13:00 Deniz'le kahve, sonra [[Deniz Arıkan|Deniz]]'i ara ^\(id)\n"
+                    "---\ntype: diary\ndate: 2026-10-03\n---\n\n## Events\n- 13:00 Deniz'le kahve, sonra [[Deniz Arıkan|Deniz]]'i ara ^\(id)\n"
                         .utf8))
     }
 
@@ -85,7 +85,7 @@ struct QuickEntryNameRecognitionTests {
         #expect(
             try Data(contentsOf: context.file)
                 == Data(
-                    "---\ntype: journal\ndate: 2026-10-03\n---\n\n## Tasks\n- [ ] [[Deniz Arıkan|Deniz]]'e sor, Deniz'le git 📅 2026-10-04 ^\(id)\n"
+                    "---\ntype: diary\ndate: 2026-10-03\n---\n\n## Tasks\n- [ ] [[Deniz Arıkan|Deniz]]'e sor, Deniz'le git 📅 2026-10-04 ^\(id)\n"
                         .utf8))
         #expect(model.text.isEmpty && model.suppressedNames.isEmpty && model.suppressedExpressions.isEmpty)
     }

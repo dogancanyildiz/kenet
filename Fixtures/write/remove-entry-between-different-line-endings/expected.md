@@ -1,3 +1,3 @@
 ---goals:  spor: true
-type: journal
+type: diary
 ---

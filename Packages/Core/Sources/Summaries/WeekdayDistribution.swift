@@ -2,7 +2,7 @@ import VaultFormat
 
 /// Per-weekday written-day ratios and event counts for a period (Monday = 0 … Sunday = 6):
 /// the "Haftanın günleri" section in Özetler.
-/// A day is written as ``SummaryCounts/writtenDays`` counts it: an event or a non-empty Journal.
+/// A day is written as ``SummaryCounts/writtenDays`` counts it: an event or a non-empty Diary.
 public struct WeekdayDistribution: Sendable, Equatable {
     public struct Entry: Identifiable, Sendable, Equatable {
         /// Monday = 0 … Sunday = 6 (`CalendarDate.weekday`).
@@ -65,7 +65,7 @@ public struct WeekdayDistribution: Sendable, Equatable {
         if let measured {
             for row in days where measured.contains(row.date) {
                 eventsByDate[row.date, default: 0] += max(0, row.events)
-                if row.events > 0 || row.hasJournal {
+                if row.events > 0 || row.hasDiary {
                     writtenDates.insert(row.date)
                 }
             }

@@ -21,13 +21,13 @@ struct ConflictedFileTests {
     @Test func filesAreInPathByteOrderWithSortedVersions() {
         let files = [
             ConflictedFile(path: "people/Mira Tan.md", versions: [Self.older, Self.ada]),
-            ConflictedFile(path: "journal/2026-10-02.md", versions: [Self.unknown, Self.ece, Self.unnamed]),
+            ConflictedFile(path: "diary/2026-10-02.md", versions: [Self.unknown, Self.ece, Self.unnamed]),
             ConflictedFile(path: "Ada.md", versions: [Self.ada]),
         ]
         #expect(
             ConflictedFile.sorted(files) == [
                 ConflictedFile(path: "Ada.md", versions: [Self.ada]),
-                ConflictedFile(path: "journal/2026-10-02.md", versions: [Self.ece, Self.unnamed, Self.unknown]),
+                ConflictedFile(path: "diary/2026-10-02.md", versions: [Self.ece, Self.unnamed, Self.unknown]),
                 ConflictedFile(path: "people/Mira Tan.md", versions: [Self.ada, Self.older]),
             ])
         #expect(ConflictedFile.sorted(files.reversed()) == ConflictedFile.sorted(files))

@@ -3,5 +3,5 @@
 
 ## Tasks
 
-## Journal
+## Diary
 Gün.

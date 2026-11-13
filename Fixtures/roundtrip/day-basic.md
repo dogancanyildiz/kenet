@@ -1,5 +1,5 @@
 ---
-type: journal
+type: diary
 date: 2026-10-02
 goals:
   spor: true
@@ -15,5 +15,5 @@ goals:
 - 14:30 [[Deniz Arıkan|Deniz]] ile [[Liman Ofis]]'te teklifi konuştuk ^a1b2c3
 - [[Selin Korkmaz]] ile [[Çınaraltı Kafe]]'de yemek ^d4e5f6
 
-## Journal
+## Diary
 Bugün genel olarak verimli geçti. Akşam [[Selin Korkmaz|Selin]] aradı, hafta sonu için plan yaptık.

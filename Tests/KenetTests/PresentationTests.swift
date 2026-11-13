@@ -15,13 +15,13 @@ struct PresentationTests {
         #expect(days.first?.date.description == "2026-09-27")
         #expect(days.last?.date.description == "2026-09-14")
         let day = try Self.day(index, try #require(CalendarDate("2026-09-20")))
-        #expect(day.id == "journal/2026-09-20.md")
+        #expect(day.id == "diary/2026-09-20.md")
         #expect(day.events.count == 2)
         #expect(day.events.map { $0.time?.raw } == ["11:00", "16:00"])
         #expect(
             day.events.map(\.text.plainText) == ["Ev'de dinlenme ve haftalık plan", "Ece Yalın ile sergi ziyareti"])
         #expect(day.preview == "Pazar gününü evde toparlanarak geçirdim. Öğleden sonra Ece ile sergiyi gezdik.")
-        let link = try #require(day.journal.first?.text.spans.first { $0.text == "Ece" })
+        let link = try #require(day.diary.first?.text.spans.first { $0.text == "Ece" })
         #expect(link.destination == "people/Ece Yalın.md")
     }
 
@@ -42,15 +42,15 @@ struct PresentationTests {
         #expect(!content.entities.contains { $0.kind == "goal" })
     }
 
-    @Test func emptyDaysAndNestedJournalHeadings() throws {
+    @Test func emptyDaysAndNestedDiaryHeadings() throws {
         let index = try sampleIndex()
         let empty = try Self.day(index, try #require(CalendarDate("2026-10-03")))
-        #expect(empty.id == "journal/2026-10-03.md")
-        #expect(empty.events.isEmpty && empty.journal.isEmpty && empty.preview == nil)
+        #expect(empty.id == "diary/2026-10-03.md")
+        #expect(empty.events.isEmpty && empty.diary.isEmpty && empty.preview == nil)
         let day = try Self.day(index, try #require(CalendarDate("2026-09-22")))
         #expect(day.events.isEmpty)
-        #expect(day.journal.contains { $0.headingLevel == 3 && $0.text.plainText == "Akşam" })
-        #expect(day.journal.last?.headingLevel == nil)
+        #expect(day.diary.contains { $0.headingLevel == 3 && $0.text.plainText == "Akşam" })
+        #expect(day.diary.last?.headingLevel == nil)
     }
 
     @Test func localDayChangesAtLocalMidnightAndTimesStayLocal() throws {
@@ -73,16 +73,16 @@ struct PresentationTests {
         defer { try? FileManager.default.removeItem(at: temp) }
         let root = temp.appendingPathComponent("vault")
         try FileManager.default.createDirectory(
-            at: root.appendingPathComponent("journal"), withIntermediateDirectories: true)
+            at: root.appendingPathComponent("diary"), withIntermediateDirectories: true)
         let text =
-            "## Events\n- 16:00 [[Ece Yalın|Ece]] ve `[[Ev]]`\n- Saat yok\n- 9:00 Önceki saat\n\n## Journal\nBirinci satır\nikinci satır [[Ev|evde]].\n"
-        try Data(text.utf8).write(to: root.appendingPathComponent("journal/2026-09-20.md"))
+            "## Events\n- 16:00 [[Ece Yalın|Ece]] ve `[[Ev]]`\n- Saat yok\n- 9:00 Önceki saat\n\n## Diary\nBirinci satır\nikinci satır [[Ev|evde]].\n"
+        try Data(text.utf8).write(to: root.appendingPathComponent("diary/2026-09-20.md"))
         let index = try VaultIndex(databaseURL: temp.appendingPathComponent("index.sqlite"))
         _ = try index.refresh(vaultRoot: root)
         let day = try Self.day(index, try #require(CalendarDate("2026-09-20")))
         #expect(day.events.map { $0.time?.raw } == ["16:00", nil, "9:00"])
         #expect(day.events[0].text.plainText == "Ece ve `[[Ev]]`")
-        #expect(day.journal[0].text.plainText == "Birinci satır\nikinci satır evde.")
+        #expect(day.diary[0].text.plainText == "Birinci satır\nikinci satır evde.")
         #expect(day.preview == "Birinci satır")
     }
 
@@ -128,7 +128,7 @@ struct PresentationUpdateTests {
             supportURL: temp.appendingPathComponent("indexes"))
         await store.start()
         let root = try #require(store.vaultURL)
-        let file = root.appendingPathComponent("journal/2026-09-20.md")
+        let file = root.appendingPathComponent("diary/2026-09-20.md")
         try Data("## Events\n- 11:00 Bir an\n".utf8).write(to: file)
         // The day query reads the index as soon as the refresh wrote it; the counts arrive with the
         // published read model a moment later. Both are awaited (bounded), neither is assumed.

@@ -31,7 +31,7 @@ struct SearchNoteView: View {
                             // Reading text stays on the page, full width; only the backlinks are a card.
                             Text(verbatim: bodyText).textSelection(.enabled)
                                 .font(.ink.content)
-                                .inkJournalParagraph()
+                                .inkDiaryParagraph()
                                 .foregroundStyle(.ink.text)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             if !backlinks.isEmpty { backlinksSection }

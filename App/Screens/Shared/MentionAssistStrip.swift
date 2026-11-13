@@ -15,7 +15,7 @@ extension EnvironmentValues {
     }
 }
 
-/// Shared @ suggestion chips and ambiguity / unknown resolution strip (quick entry, event, journal).
+/// Shared @ suggestion chips and ambiguity / unknown resolution strip (quick entry, event, diary).
 struct MentionAssistStrip: View {
     @Bindable var composer: MentionComposer
     let store: IndexStore

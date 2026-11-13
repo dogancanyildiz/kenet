@@ -56,7 +56,7 @@ extension VaultStore {
 
     /// Whether the result differs from the source by the entity's wikilink over the mention and reads the same otherwise.
     ///
-    /// This is the last gate before old journal text is rewritten: a link that would move a block, change
+    /// This is the last gate before old diary text is rewritten: a link that would move a block, change
     /// a clock, a task field or an identifier, touch any byte outside the mention, point at another
     /// target or show anything but the source spelling, is never written.
     static func isSingleLink(

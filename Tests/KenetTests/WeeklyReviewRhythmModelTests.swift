@@ -10,12 +10,12 @@ import VaultFormat
 @MainActor
 struct WeeklyReviewRhythmModelTests {
     private static let files: [String: String] = [
-        "journal/2026-09-20.md": "## Events\n- 08:00 koşu ^e1\n",
-        "journal/2026-09-27.md": "## Events\n- 11:00 pazar kahvaltısı ^e2\n",
-        "journal/2026-09-28.md": "## Events\n- 09:00 toplantı ^e3\n- 13:00 öğle yemeği ^e4\n",
-        "journal/2026-09-30.md": "## Journal\nSakin bir gün.\n",
-        "journal/2026-10-03.md": "## Events\n- 09:00 yürüyüş ^e5\n",
-        "journal/2026-10-04.md": "## Events\n- 10:00 gelecek gün ^e6\n- 12:00 gelecek öğle ^e7\n",
+        "diary/2026-09-20.md": "## Events\n- 08:00 koşu ^e1\n",
+        "diary/2026-09-27.md": "## Events\n- 11:00 pazar kahvaltısı ^e2\n",
+        "diary/2026-09-28.md": "## Events\n- 09:00 toplantı ^e3\n- 13:00 öğle yemeği ^e4\n",
+        "diary/2026-09-30.md": "## Diary\nSakin bir gün.\n",
+        "diary/2026-10-03.md": "## Events\n- 09:00 yürüyüş ^e5\n",
+        "diary/2026-10-04.md": "## Events\n- 10:00 gelecek gün ^e6\n- 12:00 gelecek öğle ^e7\n",
     ]
 
     private static let turkish = Locale(identifier: "tr_TR")

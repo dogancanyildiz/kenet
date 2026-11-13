@@ -17,7 +17,7 @@ struct NotificationVaultDays: Sendable {
     var openTaskCounts: [CalendarDate: Int] = [:]
     /// Open tasks due on a planned day: the ones a morning names.
     var dueTasks: [TaskRow] = []
-    /// Planned days whose day file has events or Journal paragraphs and headings.
+    /// Planned days whose day file has events or Diary paragraphs and headings.
     var writtenDays: Set<CalendarDate> = []
 }
 
@@ -36,7 +36,7 @@ enum NotificationPlanner {
 
     /// `lastNotified` holds only days whose reminder has already fired. `days` and `goals` cover
     /// today and the six days after it; nil `days` (the index could not be read) plans no task or
-    /// journal reminder, nil `goals` no goal reminder.
+    /// diary reminder, nil `goals` no goal reminder.
     static func schedule(
         goals: NotificationGoals?, days: NotificationVaultDays?,
         preferences: NotificationPreferences, now: Date, timeZone: TimeZone = .current,
@@ -75,14 +75,14 @@ enum NotificationPlanner {
                             body: body, destination: .goals))
                 }
             }
-            if preferences.journalEnabled, let days,
-                let date = fireDate(day, time: preferences.journalTime, timeZone: timeZone), date > now
+            if preferences.diaryEnabled, let days,
+                let date = fireDate(day, time: preferences.diaryTime, timeZone: timeZone), date > now
             {
                 if !days.writtenDays.contains(day) {
                     result.append(
                         NotificationRequest(
-                            id: "journal-\(day)", date: date, title: String(localized: "Gününden bir an"),
-                            body: String(localized: "Bugünden bir an yazmak ister misin?"), destination: .journal))
+                            id: "diary-\(day)", date: date, title: String(localized: "Gününden bir an"),
+                            body: String(localized: "Bugünden bir an yazmak ister misin?"), destination: .diary))
                 }
             }
             if preferences.peopleEnabled, let date = fireDate(day, time: preferences.peopleTime, timeZone: timeZone),
@@ -111,10 +111,10 @@ enum NotificationPlanner {
             assignments: assignments)
     }
 
-    /// Task, goal and journal ids. People ids stay separate so this list keeps its previous length.
+    /// Task, goal and diary ids. People ids stay separate so this list keeps its previous length.
     static func identifiers(on day: CalendarDate) -> [String] {
         (0..<7).compactMap { day.addingDays($0) }.flatMap { day in
-            ["task-\(day)", "goals-\(day)", "journal-\(day)"]
+            ["task-\(day)", "goals-\(day)", "diary-\(day)"]
         }
     }
 

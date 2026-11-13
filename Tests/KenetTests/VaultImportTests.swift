@@ -12,7 +12,7 @@ import VaultStore
         let report = try VaultImportScanner.inspect(root)
         #expect(report.markdownCount == 8)
         #expect(report.externalDays == ["2026-09-22.md", "daily/2026-09-21.md"])
-        #expect(report.journalDays == ["journal/2026-09-20.md"])
+        #expect(report.diaryDays == ["diary/2026-09-20.md"])
         #expect(report.typed == ["person": 1, "goal": 1])
         #expect(report.candidates.map(\.path) == ["people/Deniz.md", "places/Ev.md"])
         #expect(report.skipped == ["people/Broken.md"])
@@ -32,15 +32,15 @@ import VaultStore
         #expect(result.failures == ["places/Ev.md"])
     }
 
-    @Test func reportsJournalCaseVariantAndDoesNotTreatItAsMissing() throws {
+    @Test func reportsDiaryCaseVariantAndDoesNotTreatItAsMissing() throws {
         let root = try testDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
-        try write("## Events\n- Eski\n", "Journal/2026-10-04.md", root)
+        try write("## Events\n- Eski\n", "Diary/2026-10-04.md", root)
         try write("---\ntype: person\nname: Selin Korkmaz\n---\n", "people/Selin.md", root)
         let report = try VaultImportScanner.inspect(root)
-        #expect(report.caseVariantFolders == ["Journal"])
-        #expect(!report.missingFolders.contains("journal"))
-        #expect(report.journalDays.isEmpty)
+        #expect(report.caseVariantFolders == ["Diary"])
+        #expect(!report.missingFolders.contains("diary"))
+        #expect(report.diaryDays.isEmpty)
         #expect(report.needsPreparation)
     }
 
@@ -73,7 +73,7 @@ import VaultStore
             #expect(try Data(contentsOf: root.appendingPathComponent(path)) == data)
         }
         #expect(FileManager.default.fileExists(atPath: root.appendingPathComponent("templates/person.md").path))
-        #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent("journal/2026-09-21.md").path))
+        #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent("diary/2026-09-21.md").path))
         let second = try VaultImportScanner.inspect(root)
         #expect(!second.needsPreparation && second.candidates.isEmpty)
     }
@@ -201,7 +201,7 @@ import VaultStore
         try write("---\nname: [broken\n---\nBody\n", "people/Broken.md", root)
         try write("---\ntype: person\nname: Selin Korkmaz\n---\n", "people/Selin.md", root)
         try write("---\ntype: goal\nkey: spor\n---\n", "goals/Spor.md", root)
-        try write("## Events\n- A note\n", "journal/2026-09-20.md", root)
+        try write("## Events\n- A note\n", "diary/2026-09-20.md", root)
         try write("Daily note\n", "daily/2026-09-21.md", root)
         try write("Root day\n", "2026-09-22.md", root)
         try write("Private settings\n", ".obsidian/config.json", root)

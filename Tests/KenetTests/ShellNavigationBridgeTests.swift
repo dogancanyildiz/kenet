@@ -120,9 +120,9 @@ import VaultFormat
         #expect(bridge.quickEntryDraft(for: day, store: context.store, make: make) !== kept, "released: a new one")
     }
 
-    /// The journal editor model is kept per day, made once by the editor on screen, and let go
+    /// The diary editor model is kept per day, made once by the editor on screen, and let go
     /// when its editor closes.
-    @Test func journalDraftIsKeptPerDayUntilReleased() throws {
+    @Test func diaryDraftIsKeptPerDayUntilReleased() throws {
         let context = try TaskTestContext()
         defer { context.clean() }
         let bridge = ShellNavigationState()
@@ -130,25 +130,25 @@ import VaultFormat
         var made = 0
         let make = {
             made += 1
-            return JournalEditorModel(store: context.store, day: day)
+            return DiaryEditorModel(store: context.store, day: day)
         }
-        let draft = bridge.journalDraft(for: day, store: context.store, make: make)
+        let draft = bridge.diaryDraft(for: day, store: context.store, make: make)
         draft.text = "Köprü taslağı"
-        #expect(bridge.journalDraft(for: day, store: context.store, make: make) === draft)
-        #expect(bridge.journalDraft(for: day, store: context.store, make: make).text == "Köprü taslağı")
+        #expect(bridge.diaryDraft(for: day, store: context.store, make: make) === draft)
+        #expect(bridge.diaryDraft(for: day, store: context.store, make: make).text == "Köprü taslağı")
         #expect(made == 1, "the model is made once")
         let other = CalendarDate("2026-10-02")!
         #expect(
-            bridge.journalDraft(for: other, store: context.store) {
-                JournalEditorModel(store: context.store, day: other)
+            bridge.diaryDraft(for: other, store: context.store) {
+                DiaryEditorModel(store: context.store, day: other)
             }
                 !== draft)
-        bridge.releaseJournalDraft(JournalEditorModel(store: context.store, day: day))
-        #expect(bridge.journalDraft(for: day, store: context.store, make: make) === draft, "a stranger changes nothing")
-        #expect(bridge.holdsJournalDraft(for: day, store: context.store))
-        bridge.releaseJournalDraft(draft)
-        #expect(!bridge.holdsJournalDraft(for: day, store: context.store))
-        #expect(bridge.journalDraft(for: day, store: context.store, make: make) !== draft)
+        bridge.releaseDiaryDraft(DiaryEditorModel(store: context.store, day: day))
+        #expect(bridge.diaryDraft(for: day, store: context.store, make: make) === draft, "a stranger changes nothing")
+        #expect(bridge.holdsDiaryDraft(for: day, store: context.store))
+        bridge.releaseDiaryDraft(draft)
+        #expect(!bridge.holdsDiaryDraft(for: day, store: context.store))
+        #expect(bridge.diaryDraft(for: day, store: context.store, make: make) !== draft)
     }
 
     /// Closing the editor's route lets the day's model go with it; another page's route, or a
@@ -158,23 +158,23 @@ import VaultFormat
         defer { context.clean() }
         let bridge = ShellNavigationState()
         let day = CalendarDate("2026-10-01")!
-        let route = JournalEditorRoute(day: day, isToday: false)
-        bridge.journalEditor = route
-        let draft = bridge.journalDraft(for: day, store: context.store) {
-            JournalEditorModel(store: context.store, day: day)
+        let route = DiaryEditorRoute(day: day, isToday: false)
+        bridge.diaryEditor = route
+        let draft = bridge.diaryDraft(for: day, store: context.store) {
+            DiaryEditorModel(store: context.store, day: day)
         }
         draft.text = "Kirli"
-        bridge.closeJournalEditor(JournalEditorRoute(day: day, isToday: true))
-        #expect(bridge.journalEditor == route, "another page's route is not this one")
-        #expect(bridge.holdsJournalDraft(for: day, store: context.store))
-        bridge.closeJournalEditor(route)
-        #expect(bridge.journalEditor == nil)
-        #expect(!bridge.holdsJournalDraft(for: day, store: context.store), "the model went with the route")
-        bridge.closeJournalEditor(route)
-        #expect(bridge.journalEditor == nil)
+        bridge.closeDiaryEditor(DiaryEditorRoute(day: day, isToday: true))
+        #expect(bridge.diaryEditor == route, "another page's route is not this one")
+        #expect(bridge.holdsDiaryDraft(for: day, store: context.store))
+        bridge.closeDiaryEditor(route)
+        #expect(bridge.diaryEditor == nil)
+        #expect(!bridge.holdsDiaryDraft(for: day, store: context.store), "the model went with the route")
+        bridge.closeDiaryEditor(route)
+        #expect(bridge.diaryEditor == nil)
     }
 
-    /// Drafts belong to the vault they were typed for: a journal left dirty and Today's quick
+    /// Drafts belong to the vault they were typed for: a diary left dirty and Today's quick
     /// entry text in vault A are not what vault B's pages get. The vault opening (none before,
     /// one now) is the same session and keeps what was typed while it opened.
     @Test func anotherVaultDropsTheDrafts() async throws {
@@ -191,39 +191,39 @@ import VaultFormat
             "the vault opening keeps the draft")
 
         let day = context.today
-        let journal = bridge.journalDraft(for: day, store: context.store) {
-            JournalEditorModel(store: context.store, day: day)
+        let diary = bridge.diaryDraft(for: day, store: context.store) {
+            DiaryEditorModel(store: context.store, day: day)
         }
-        await journal.load()
-        #expect(journal.isLoaded)
-        journal.text = "A metni"
-        #expect(journal.isDirty)
+        await diary.load()
+        #expect(diary.isLoaded)
+        diary.text = "A metni"
+        #expect(diary.isDirty)
 
         let other = context.directory.appendingPathComponent("Other")
         try FileManager.default.copyItem(at: context.root, to: other)
         await context.store.select(other)
         #expect(context.store.vaultURL?.standardizedFileURL.path == other.standardizedFileURL.path)
 
-        #expect(!bridge.holdsJournalDraft(for: day, store: context.store), "vault A's journal draft is gone")
+        #expect(!bridge.holdsDiaryDraft(for: day, store: context.store), "vault A's diary draft is gone")
         #expect(!bridge.holdsQuickEntryDraft(for: nil, store: context.store), "vault A's quick entry draft is gone")
-        let journalB = bridge.journalDraft(for: day, store: context.store) {
-            JournalEditorModel(store: context.store, day: day)
+        let diaryB = bridge.diaryDraft(for: day, store: context.store) {
+            DiaryEditorModel(store: context.store, day: day)
         }
-        #expect(journalB !== journal)
-        #expect(!journalB.isLoaded && journalB.text.isEmpty, "a fresh model reads vault B")
+        #expect(diaryB !== diary)
+        #expect(!diaryB.isLoaded && diaryB.text.isEmpty, "a fresh model reads vault B")
         let quickB = bridge.quickEntryDraft(for: nil, store: context.store) { QuickEntryModel(store: context.store) }
         #expect(quickB !== quick)
         #expect(quickB.text.isEmpty, "vault A's text is not typed into vault B")
         #expect(
-            bridge.journalDraft(for: day, store: context.store) { JournalEditorModel(store: context.store, day: day) }
-                === journalB, "the same vault keeps its drafts")
+            bridge.diaryDraft(for: day, store: context.store) { DiaryEditorModel(store: context.store, day: day) }
+                === diaryB, "the same vault keeps its drafts")
     }
 
     /// Today's page and a pushed page of the same date present their own editor.
-    @Test func journalEditorRouteTellsTodayFromAPushedPage() {
+    @Test func diaryEditorRouteTellsTodayFromAPushedPage() {
         let day = CalendarDate("2026-10-01")!
-        #expect(JournalEditorRoute(day: day, isToday: true) != JournalEditorRoute(day: day, isToday: false))
-        #expect(JournalEditorRoute(day: day, isToday: true) == JournalEditorRoute(day: day, isToday: true))
+        #expect(DiaryEditorRoute(day: day, isToday: true) != DiaryEditorRoute(day: day, isToday: false))
+        #expect(DiaryEditorRoute(day: day, isToday: true) == DiaryEditorRoute(day: day, isToday: true))
     }
 
     // MARK: - Deleted entity

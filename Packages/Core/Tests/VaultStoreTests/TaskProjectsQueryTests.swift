@@ -37,7 +37,7 @@ struct TaskProjectsQueryTests {
         #expect(Array(names[1].unicodeScalars) == Array("Caf\u{E9}".unicodeScalars))
 
         // The only open task of a project completed: the project stays.
-        let path = "journal/2026-03-01.md"
+        let path = "diary/2026-03-01.md"
         let open = try #require(
             RawDocument(bytes: try vault.bytes(path)).bodyLines.tasks.first { $0.text.hasPrefix("açık") })
         try await vault.store.changingStatus(
@@ -61,12 +61,12 @@ struct TaskProjectsQueryTests {
 
     static func writeEdgeCases(_ vault: StoreVault) throws {
         try vault.write(
-            "journal/2026-03-01.md",
+            "diary/2026-03-01.md",
             "## Tasks\n- [x] bitti #project/Bitmiş\n- [-] iptal #project/İptal\n- [ ] açık #project/Caf\u{E9}\n")
         try vault.write(
             "notes/Ev.md",
             "- [ ] ayrışık #project/Cafe\u{301}\n- [ ] küçük #project/ev\n- [ ] büyük #project/Ev\n- [ ] projesiz\n")
-        try vault.write("journal/2026-03-02.md", "## Tasks\n- [ ] yine #project/Ev\n")
+        try vault.write("diary/2026-03-02.md", "## Tasks\n- [ ] yine #project/Ev\n")
     }
 
     /// The old construction over a fresh snapshot equals the query, scalar for scalar.

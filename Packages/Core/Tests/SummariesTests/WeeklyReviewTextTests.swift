@@ -14,7 +14,7 @@ struct WeeklyReviewTextTests {
                 title: title, summaryLines: fixture["summaryLines"] as? [String] ?? [],
                 selectedLines: fixture["selectedLines"] as? [String] ?? [], note: fixture["note"] as? String)
             #expect(result == expected, Comment(rawValue: fixture["id"] as? String ?? ""))
-            let generated = RawDocument(bytes: Array(("## Journal\n" + result.joined(separator: "\n") + "\n").utf8))
+            let generated = RawDocument(bytes: Array(("## Diary\n" + result.joined(separator: "\n") + "\n").utf8))
             #expect(generated.bodyLines.tasks.isEmpty)
             #expect(generated.bodyLines.events.isEmpty)
             #expect(generated.frontmatter == .absent)
@@ -25,8 +25,8 @@ struct WeeklyReviewTextTests {
                         title: title, summaryLines: fixture["summaryLines"] as? [String] ?? [],
                         selectedLines: fixture["selectedLines"] as? [String] ?? [], note: fixture["note"] as? String))
             // The writer takes the generated lines as they are: nothing left for it to split, trim or mark.
-            let before = RawDocument(bytes: Array("## Journal\n- [ ] Kitap\n".utf8))
-            let after = try before.appendingJournalLines(result)
+            let before = RawDocument(bytes: Array("## Diary\n- [ ] Kitap\n".utf8))
+            let after = try before.appendingDiaryLines(result)
             let block = result.isEmpty ? "" : "\n" + result.joined(separator: "\n") + "\n"
             #expect(after.serialized() == before.serialized() + Array(block.utf8))
             #expect(after.bodyLines == before.bodyLines)
@@ -35,7 +35,7 @@ struct WeeklyReviewTextTests {
             #expect(reread.bodyLines.events.isEmpty)
             #expect(reread.frontmatter == .absent)
             #expect(reread.daySections.sections.count == 1)
-            #expect(reread.daySections.section(.journal)?.lineRange.upperBound == reread.lines.count)
+            #expect(reread.daySections.section(.diary)?.lineRange.upperBound == reread.lines.count)
             #expect(reread.serialized() == after.serialized())
             for line in result {
                 #expect(reread.lines.contains { $0.text == line })

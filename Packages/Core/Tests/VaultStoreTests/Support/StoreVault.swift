@@ -6,7 +6,7 @@ import VaultIndex
 @testable import VaultStore
 
 let storeDate = CalendarDate("2026-09-27")!
-let storePath = "journal/2026-09-27.md"
+let storePath = "diary/2026-09-27.md"
 
 struct StoreVault: Sendable {
     let root: URL

@@ -6,7 +6,7 @@ struct QuickEntryBar: View {
     @Environment(\.clockNow) private var clockNow
     @Environment(LocationService.self) private var location
     @Environment(IntentNavigation.self) private var navigation: IntentNavigation?
-    @Environment(\.journalingSuggestionsAvailable) private var suggestionsAvailable
+    @Environment(\.diarySuggestionsAvailable) private var suggestionsAvailable
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     #if os(iOS)
         @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -100,7 +100,7 @@ struct QuickEntryBar: View {
             model.mode = model.mode == .task ? .event : .task
             isFocused = true
         }
-        .keyboardShortcut(JournalShortcut.switchMode.key, modifiers: JournalShortcut.switchMode.modifiers)
+        .keyboardShortcut(KenetShortcut.switchMode.key, modifiers: KenetShortcut.switchMode.modifiers)
         .opacity(0)
         .frame(width: 0, height: 0)
         .accessibilityHidden(true)
@@ -202,7 +202,7 @@ struct QuickEntryBar: View {
             ) {
                 HStack(alignment: .center, spacing: 4) {
                     textField
-                    if suggestionsAvailable ?? JournalingSuggestionsAvailability.current(), model.mode == .event,
+                    if suggestionsAvailable ?? DiarySuggestionsAvailability.current(), model.mode == .event,
                         model.text.isEmpty
                     {
                         SuggestionsButton(isEnabled: isEnabled && !store.isWriting) { showsSuggestions = true }

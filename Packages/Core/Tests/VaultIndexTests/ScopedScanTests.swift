@@ -33,13 +33,13 @@ import Testing
         try write(root, "notes/Su.md", "Su")
         try write(root, "notes/Kitap.md", "Kitap")
         try write(root, "notes/deep/Spor.md", "Spor")
-        try write(root, "journal/2026-10-01.md", "Gun")
+        try write(root, "diary/2026-10-01.md", "Gun")
         let index = try VaultIndex()
         try index.rebuild(vaultRoot: root)
         try FileManager.default.removeItem(at: root.appendingPathComponent("notes"))
         let result = try index.update(paths: ["notes/Su.md"], vaultRoot: root)
         #expect(Set(result.deletedPaths) == ["notes/Su.md", "notes/Kitap.md", "notes/deep/Spor.md"])
-        #expect(try index.files().map(\.path) == ["journal/2026-10-01.md"])
+        #expect(try index.files().map(\.path) == ["diary/2026-10-01.md"])
         try equivalent(index, root)
     }
 }

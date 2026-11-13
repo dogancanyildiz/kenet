@@ -16,8 +16,8 @@ struct UnsavedDraftDecisionTests {
         #expect(!UnsavedDraftDecision.requiresPrompt(isDirty: false, isSaving: true))
     }
 
-    @Test func journalEditorDirtyMatchesByteDifference() {
-        // Mirrors JournalEditorModel.isDirty without a vault: leave must ask when bytes differ.
+    @Test func diaryEditorDirtyMatchesByteDifference() {
+        // Mirrors DiaryEditorModel.isDirty without a vault: leave must ask when bytes differ.
         let original = "Deniz eski satır.\n"
         let draft = "Deniz yeni satır.\n"
         let isDirty = !draft.utf8.elementsEqual(original.utf8)

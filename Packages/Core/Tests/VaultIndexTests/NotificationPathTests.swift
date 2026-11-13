@@ -28,7 +28,7 @@ func deletedNotificationsUseTheSameRootIdentity(_ directory: String) throws {
         try write(root, "notes/Kitap.md", "Kitap")
         try write(root, "notes/deep/inner/Spor.md", "Spor")
         try write(root, "notes/deep/Kitap.md", "Kitap")
-        try write(root, "journal/2026-10-01.md", "## Events\n- [[Su]] [[Kitap]] [[Spor]] [[Ev]]")
+        try write(root, "diary/2026-10-01.md", "## Events\n- [[Su]] [[Kitap]] [[Spor]] [[Ev]]")
         let index = try VaultIndex()
         let counterpart = try VaultIndex()
         try index.rebuild(vaultRoot: root)

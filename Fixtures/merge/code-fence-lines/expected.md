@@ -1,7 +1,7 @@
 ## Tasks
 - [ ] Su ^f4a001
 
-## Journal
+## Diary
 ```
 - [ ] sahte görev ^f4x001
 ## Events

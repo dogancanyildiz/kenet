@@ -35,10 +35,10 @@ extension VaultStore {
         guard let value else { return }
         guard try isMilestoneGoal(key: key) else { return }
         guard value == .boolean(true) else { throw EditError.invalidValue }
-        for path in try markdownPaths(under: "journal") {
-            guard path.hasSuffix(".md"),
-                let other = CalendarDate(String(path.dropFirst("journal/".count).dropLast(3))),
-                other.year == day.year, other != day
+        // Day files of a vault not yet migrated still count (`LegacyVaultNames.dayFolder`).
+        let paths = try markdownPaths(under: VaultLayout.dayFolder) + markdownPaths(under: LegacyVaultNames.dayFolder)
+        for path in paths {
+            guard let other = VaultLayout.day(ofDayPath: path), other.year == day.year, other != day
             else { continue }
             let document = RawDocument(bytes: try readFile(checkedURL(path)))
             guard case .parsed(let fields) = document.frontmatter,

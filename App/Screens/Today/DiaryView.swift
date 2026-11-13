@@ -1,0 +1,162 @@
+import SwiftUI
+import VaultFormat
+
+/// Opens raw Diary content in the shared phone/Mac editor.
+struct DiaryView: View {
+    @State private var isClosing = false
+    @State private var leavePrompt = false
+    @State private var model: DiaryEditorModel
+    @State private var selection: TextSelection?
+    @FocusState private var isFocused: Bool
+    @Environment(\.dismiss) private var dismiss
+    @Environment(ShellNavigationState.self) private var navigation: ShellNavigationState?
+
+    private let focusesOnLoad: Bool
+
+    /// - Parameter focusesOnLoad: `false` keeps the caret out of snapshot references.
+    init(store: IndexStore, date: CalendarDate, focusesOnLoad: Bool = true) {
+        _model = State(initialValue: DiaryEditorModel(store: store, day: date))
+        self.focusesOnLoad = focusesOnLoad
+    }
+
+    private var blocksLeave: Bool {
+        UnsavedDraftDecision.requiresPrompt(isDirty: model.isDirty, isSaving: model.isSaving)
+    }
+
+    private var insertionOffset: Int? {
+        if let selection, case .selection(let range) = selection.indices {
+            guard range.lowerBound >= model.text.startIndex, range.lowerBound <= model.text.endIndex
+            else { return nil }
+            return model.text[..<range.lowerBound].utf8.count
+        }
+        return nil
+    }
+
+    var body: some View {
+        @Bindable var model = model
+        VStack(alignment: .leading, spacing: 0) {
+            InkPageTitle("Günlük yazısı")
+            editor(text: $model.text)
+                .padding(.horizontal, InkSpacing.margin)
+                .padding(.bottom, InkSpacing.margin)
+        }
+        .inkPageColumn()
+        .navigationBarBackButtonHidden(blocksLeave)
+        .interactiveDismissDisabled(blocksLeave || model.isSaving)
+        .inkSheet(
+            "Günlük yazısı", isConfirmEnabled: model.canSave, isBusy: model.isSaving,
+            // "Vazgeç" stays inert while a write is in flight, as before.
+            onCancel: { if !model.isSaving { requestLeave() } },
+            onConfirm: saveAndClose
+        )
+        .confirmationDialog("Kaydedilmemiş değişiklikler", isPresented: $leavePrompt) {
+            Button("Kaydet", action: saveAndClose)
+                .disabled(!model.canSave)
+            Button("At", role: .destructive) { close() }
+            Button("Vazgeç", role: .cancel) {}
+        } message: {
+            Text("Kaydedilmemiş günlük metni var.")
+        }
+        .onChange(of: model.store.vaultURL) { _, _ in
+            if UnsavedDraftDecision.requiresPrompt(isDirty: model.isDirty, isSaving: model.isSaving) {
+                leavePrompt = true
+            }
+        }
+        .task {
+            // `self.model`: the state, not the `@Bindable` copy above.
+            takeBridgeDraft()
+            await self.model.load()
+            isFocused = focusesOnLoad && self.model.isLoaded
+        }
+        // A pushed editor (the Mac) left clean lets its model go, so the next one reads the file
+        // again; left with unsaved text it keeps the model for the next editor of the day. A
+        // sheet's model belongs to its route and goes when the route closes (`DayView`), not
+        // when a shell swap takes the sheet down.
+        .onDisappear {
+            guard let navigation, navigation.diaryEditor == nil, !model.isDirty, !model.isSaving else { return }
+            navigation.releaseDiaryDraft(model)
+        }
+    }
+
+    /// On screen, the editor takes the day's model the bridge keeps (the text typed before the
+    /// shell was rebuilt) or hands it its own. Here and not in `init`: a pushed editor (the
+    /// Mac's `NavigationLink`) is made with every draw of the day page, long before it opens.
+    private func takeBridgeDraft() {
+        guard let navigation else { return }
+        model = navigation.diaryDraft(for: model.day, store: model.store) { model }
+    }
+
+    private func close() {
+        isClosing = true
+        navigation?.releaseDiaryDraft(model)
+        dismiss()
+    }
+
+    private func editor(text: Binding<String>) -> some View {
+        VStack(alignment: .leading) {
+            if let error = model.errorText {
+                Text(verbatim: error).font(.ink.meta).foregroundStyle(.ink.danger)
+                    .accessibilityAddTraits(.updatesFrequently)
+            }
+            if !model.isLoaded {
+                if model.errorText == nil {
+                    ProgressView("Günlük yazısı yükleniyor…")
+                } else {
+                    Button("Yeniden dene") { Task { await model.load() } }
+                        .buttonStyle(InkTextButtonStyle())
+                }
+            }
+            TextEditor(text: text, selection: $selection)
+                .font(.ink.content)
+                .inkDiaryParagraph()
+                .foregroundStyle(.ink.text)
+                .scrollContentBackground(.hidden)
+                .accessibilityLabel("Günlük yazısı")
+                .focused($isFocused)
+                .disabled(!model.isLoaded || model.isSaving)
+                .onChange(of: isFocused) { _, focused in
+                    if !focused && !isClosing && !model.isSaving && model.isDirty {
+                        Task {
+                            guard !isClosing else { return }
+                            await model.save()
+                        }
+                    }
+                }
+            // Assist below the field so chips do not push the caret off-screen.
+            MentionAssistStrip(
+                composer: model.composer, store: model.store, insertionOffset: insertionOffset,
+                isEnabled: model.isLoaded && !model.isSaving,
+                onDidChangeText: { caret in
+                    if let caret,
+                        let next = MentionComposer.textSelection(atByteOffset: caret, in: model.text)
+                    {
+                        selection = next
+                    }
+                    isFocused = true
+                },
+                onResolved: {
+                    Task { await model.save() }
+                }
+            )
+        }
+    }
+
+    private func saveAndClose() {
+        isClosing = true
+        Task {
+            if await model.save(), !model.isDirty && model.errorText == nil {
+                close()
+            } else {
+                isClosing = false
+            }
+        }
+    }
+
+    private func requestLeave() {
+        if UnsavedDraftDecision.canLeaveImmediately(isDirty: model.isDirty, isSaving: model.isSaving) {
+            close()
+        } else {
+            leavePrompt = true
+        }
+    }
+}

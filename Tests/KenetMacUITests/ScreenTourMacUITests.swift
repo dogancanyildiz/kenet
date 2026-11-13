@@ -578,7 +578,7 @@ final class ScreenTourMacUITests: XCTestCase {
             try clickKanbanThenDownArrow(shot: "35-mac-kenar-cubugu-fare-sonra-ok")
         }
         tour.step("36-mac-etkin-olmayan-pencere") {
-            // With Settings in front the journal window is not key: its sidebar selection fades.
+            // With Settings in front the diary window is not key: its sidebar selection fades.
             try tour.sidebar("Görevler")
             try openSettings()
             tour.captureMainWindow()
@@ -586,7 +586,7 @@ final class ScreenTourMacUITests: XCTestCase {
             tour.closeOverlays()
         }
         tour.step("33-mac-menu-cubugu") {
-            // The journal window shows no quick entry here, so the panel's field is the only one.
+            // The diary window shows no quick entry here, so the panel's field is the only one.
             try tour.sidebar("Özetler")
             let item = tour.app.menuBars.statusItems.firstMatch
             guard item.waitForExistence(timeout: 5) else { throw ScreenTourError("menü çubuğu simgesi yok") }

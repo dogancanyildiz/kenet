@@ -2,7 +2,7 @@ import EntityRecognition
 import VaultFormat
 import VaultIndex
 
-/// Entity usage (incoming link count, last source date, shared journal days) counted from the
+/// Entity usage (incoming link count, last source date, shared diary days) counted from the
 /// files already in the read model. It gives the same rows as `VaultIndex.entityUsage()` without a
 /// database read: the self-join that query runs grows faster than the vault and held the index
 /// connection for the whole publish.
@@ -24,7 +24,7 @@ enum EntityUsageCalculator {
         }
         var totals = [Int](repeating: 0, count: paths.count)
         var lastDates = [String?](repeating: nil, count: paths.count)
-        // Distinct entities per journal date; two day files with one date count as one day.
+        // Distinct entities per diary date; two day files with one date count as one day.
         var days: [String: Set<Int>] = [:]
         for (file, links) in linked {
             let dayDate = file.kind == "day" ? file.date : nil

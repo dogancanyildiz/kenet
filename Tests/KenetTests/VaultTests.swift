@@ -14,11 +14,11 @@ struct VaultLocationTests {
         let root = try location.createDefaultVault()
         #expect(
             Set(try FileManager.default.contentsOfDirectory(atPath: root.path))
-                == Set([".app", "journal", "people", "places", "goals", "notes", "templates"]))
+                == Set([".app", "diary", "people", "places", "goals", "notes", "templates"]))
         let data = try Data(contentsOf: root.appendingPathComponent(".app/vault.json"))
         let json = try #require(JSONSerialization.jsonObject(with: data) as? [String: Int])
         #expect(json == ["formatVersion": 1])
-        for name in ["journal", "people", "places", "goals", "notes"] {
+        for name in ["diary", "people", "places", "goals", "notes"] {
             #expect(try FileManager.default.contentsOfDirectory(atPath: root.appendingPathComponent(name).path).isEmpty)
         }
         try Data("custom settings".utf8).write(to: root.appendingPathComponent(".app/vault.json"))

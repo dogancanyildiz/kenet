@@ -4,8 +4,19 @@ public enum DaySectionKind: String, CaseIterable, Hashable, Sendable {
     case tasks = "Tasks"
     /// Events recorded for the day.
     case events = "Events"
-    /// Free journal text.
-    case journal = "Journal"
+    /// Free diary text.
+    case diary = "Diary"
+
+    /// The heading names that open this section: the current name first, then the name older
+    /// vaults wrote (`LegacyVaultNames.diaryHeading`), read until the vault is migrated.
+    public var headingNames: [String] {
+        self == .diary ? [rawValue, LegacyVaultNames.diaryHeading] : [rawValue]
+    }
+
+    /// The section a trimmed `## Name` heading line opens, or `nil` for any other heading.
+    static func recognizing(trimmedHeading bytes: [UInt8]) -> DaySectionKind? {
+        allCases.first { kind in kind.headingNames.contains { bytes.elementsEqual(("## " + $0).utf8) } }
+    }
 }
 
 /// A heading and the lines it owns, including its heading (zero-based, half-open).

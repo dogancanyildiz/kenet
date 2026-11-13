@@ -64,7 +64,7 @@ struct VaultWriteGateTests {
         }
         _ = try await store.addingEvent(on: date, text: "Kitap")
         #expect(reads.value == 2)
-        #expect(try vault.bytes("journal/2026-10-04.md").count > 0)
+        #expect(try vault.bytes("diary/2026-10-04.md").count > 0)
     }
 
     @Test func missingVaultJSONAllowsWriteAsVersionOne() async throws {
@@ -72,22 +72,22 @@ struct VaultWriteGateTests {
         defer { vault.remove() }
         let date = CalendarDate("2026-10-04")!
         _ = try await vault.store.addingEvent(on: date, text: "Su")
-        #expect(try vault.bytes("journal/2026-10-04.md").count > 0)
+        #expect(try vault.bytes("diary/2026-10-04.md").count > 0)
     }
 
-    @Test func journalCaseVariantBlocksWrite() async throws {
+    @Test func diaryCaseVariantBlocksWrite() async throws {
         let vault = try StoreVault()
         defer { vault.remove() }
-        try vault.write("Journal/2026-10-04.md", "## Events\n- Eski\n")
+        try vault.write("Diary/2026-10-04.md", "## Events\n- Eski\n")
         try vault.index.refresh(vaultRoot: vault.root)
         let date = CalendarDate("2026-10-04")!
-        await #expect(throws: VaultStoreError.reservedFolderCaseMismatch(found: "Journal", expected: "journal")) {
+        await #expect(throws: VaultStoreError.reservedFolderCaseMismatch(found: "Diary", expected: "diary")) {
             try await vault.store.addingEvent(on: date, text: "Yeni")
         }
-        #expect(try vault.bytes("Journal/2026-10-04.md") == Data("## Events\n- Eski\n".utf8))
+        #expect(try vault.bytes("Diary/2026-10-04.md") == Data("## Events\n- Eski\n".utf8))
     }
 
-    @Test func peopleCaseVariantAllowsJournalWrite() async throws {
+    @Test func peopleCaseVariantAllowsDiaryWrite() async throws {
         let vault = try StoreVault()
         defer { vault.remove() }
         try vault.write(
@@ -101,7 +101,7 @@ struct VaultWriteGateTests {
         try vault.index.refresh(vaultRoot: vault.root)
         let date = CalendarDate("2026-10-04")!
         _ = try await vault.store.addingEvent(on: date, text: "Su")
-        #expect(try vault.bytes("journal/2026-10-04.md").count > 0)
+        #expect(try vault.bytes("diary/2026-10-04.md").count > 0)
     }
 
     @Test func peopleCaseVariantBlocksPersonCreation() async throws {

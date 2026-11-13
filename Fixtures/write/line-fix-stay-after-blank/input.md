@@ -3,4 +3,4 @@
 
 - 09:00 Kitap
 
-## Journal
+## Diary

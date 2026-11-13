@@ -1,5 +1,0 @@
-## Journal
-Eski
-
-## Other
-Sakla

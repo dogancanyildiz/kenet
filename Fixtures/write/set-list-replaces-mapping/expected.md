@@ -1,4 +1,4 @@
 ---
 goals: [spor]
-type: journal
+type: diary
 ---

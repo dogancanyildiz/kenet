@@ -5,13 +5,13 @@ import SwiftUI
 import VaultFormat
 import VaultStore
 
-/// Shared @-mention draft state used by quick entry, event editing, and journal writing.
+/// Shared @-mention draft state used by quick entry, event editing, and diary writing.
 @MainActor @Observable
 final class MentionComposer {
     struct CreationRequest {
         let position: MentionPosition
         let spelling: String
-        /// A name offered beside the text (a journaling suggestion's chip): it enters the text,
+        /// A name offered beside the text (a diary suggestion's chip): it enters the text,
         /// pinned, only once its entity exists; `position` points nowhere.
         var isOutsideText = false
     }
@@ -68,7 +68,7 @@ final class MentionComposer {
     /// Bare names the user turned back into plain words, as UTF-8 ranges of `text`: they are
     /// neither linked nor asked about. Whoever sets them keeps them on their bytes as the text changes.
     var suppressed: [Range<Int>] = []
-    /// Journal: only explicit (`@`) ambiguous mentions participate in save-time resolution.
+    /// Diary: only explicit (`@`) ambiguous mentions participate in save-time resolution.
     var resolvesExplicitAmbiguityOnly = false
     /// When set, pending checks and unbound-`@` removal consider only these 0-based line indices.
     var resolutionLines: Set<Int>?

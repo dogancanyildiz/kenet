@@ -21,7 +21,7 @@ struct GoalAmountEditorTests {
     }
 
     private func file(_ context: TaskTestContext, _ day: CalendarDate) -> URL {
-        context.root.appendingPathComponent("journal/\(day).md")
+        context.root.appendingPathComponent("diary/\(day).md")
     }
 
     // MARK: - Y1: a shown value is never written back

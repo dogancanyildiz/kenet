@@ -59,7 +59,7 @@
             let entity = try context.elif()
             let model = context.model()
             await model.load(entity)
-            let mention = try #require(model.mentions.first { $0.file == "journal/2026-10-09.md" })
+            let mention = try #require(model.mentions.first { $0.file == "diary/2026-10-09.md" })
             let url = context.root.appendingPathComponent(mention.file)
             try Data("## Events\n- Elif gelmedi. ^older1\n".utf8).write(to: url)
             #expect(await model.link(mention, to: entity) == .stale)

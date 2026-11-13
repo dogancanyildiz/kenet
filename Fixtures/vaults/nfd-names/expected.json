@@ -1,6 +1,6 @@
 {
   "files": [
-    "journal/2026-10-01.md",
+    "diary/2026-10-01.md",
     "people/Baran Tunç.md",
     "places/Çınaraltı Kafe.md"
   ],
@@ -22,19 +22,19 @@
   ],
   "links": [
     {
-      "file": "journal/2026-10-01.md",
+      "file": "diary/2026-10-01.md",
       "line": 7,
       "targetKey": "baran tunç",
       "resolvedFile": "people/Baran Tunç.md"
     },
     {
-      "file": "journal/2026-10-01.md",
+      "file": "diary/2026-10-01.md",
       "line": 8,
       "targetKey": "places/çınaraltı kafe",
       "resolvedFile": "places/Çınaraltı Kafe.md"
     },
     {
-      "file": "journal/2026-10-01.md",
+      "file": "diary/2026-10-01.md",
       "line": 9,
       "targetKey": "baran tunç",
       "resolvedFile": "people/Baran Tunç.md"

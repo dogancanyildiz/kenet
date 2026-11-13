@@ -15,7 +15,7 @@ struct InkLinkSegment: Equatable, Sendable, Identifiable {
     let id: String
     let text: String
     let kind: Kind
-    /// Wiki / entity target name used in the `journal-entity` URL.
+    /// Wiki / entity target name used in the `kenet-entity` URL.
     var target: String? = nil
     /// Resolved vault-relative path when known.
     var path: String? = nil
@@ -55,7 +55,7 @@ struct InkLinkedText: View {
             .environment(
                 \.openURL,
                 OpenURLAction { url in
-                    guard url.scheme == "journal-entity" else { return .systemAction }
+                    guard url.scheme == "kenet-entity" else { return .systemAction }
                     if let openURL {
                         openURL(url)
                         return .handled
@@ -105,7 +105,7 @@ enum InkLinkTextBuilder {
         _ value: inout AttributedString, target: String, path: String?
     ) {
         var components = URLComponents()
-        components.scheme = "journal-entity"
+        components.scheme = "kenet-entity"
         components.host = "open"
         var items = [URLQueryItem(name: "name", value: target)]
         if let path { items.append(URLQueryItem(name: "path", value: path)) }

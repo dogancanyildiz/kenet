@@ -60,7 +60,7 @@ struct SummaryMetric: View {
     }
 }
 
-/// Month summary 30-day square grid: full (events), partial (journal only), empty (`well`),
+/// Month summary 30-day square grid: full (events), partial (diary only), empty (`well`),
 /// or future (no square, only dimmed day numeral).
 struct MonthWritingRhythmView: View {
     let rhythm: MonthWritingRhythm
@@ -101,7 +101,7 @@ struct MonthWritingRhythmView: View {
         )
     }
 
-    /// A rounded day square: filled (events), accent-framed with a low fill (journal only),
+    /// A rounded day square: filled (events), accent-framed with a low fill (diary only),
     /// framed (not written) or bare (future). Today carries an ink ring outside the square.
     @ViewBuilder
     private func dayCell(_ day: MonthRhythmDay) -> some View {

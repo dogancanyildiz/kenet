@@ -12,8 +12,8 @@
     "needsSettings": true,
     "canPrepare": true,
     "markdownCount": 6,
-    "journalDays": [
-      "journal/2026-09-20.md"
+    "diaryDays": [
+      "diary/2026-09-20.md"
     ],
     "externalDays": [],
     "typed": {
@@ -46,7 +46,7 @@
   "expectedDirectories": [
     ".app",
     "goals",
-    "journal",
+    "diary",
     "notes",
     "people",
     "places",

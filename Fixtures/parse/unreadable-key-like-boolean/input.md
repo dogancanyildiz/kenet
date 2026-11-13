@@ -1,4 +1,4 @@
 ---
-type: journal
+type: diary
 true: evet
 ---

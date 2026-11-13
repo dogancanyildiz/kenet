@@ -22,7 +22,7 @@ struct EntityNavigationTests {
         #expect(timeline.last?.rows.count == 2)
         let last = try #require(timeline.last)
         #expect(last.rows.first?.ordinal ?? 0 > last.rows.last?.ordinal ?? 0)
-        #expect(timeline.allSatisfy { $0.rows.allSatisfy { $0.file.hasPrefix("journal/") } })
+        #expect(timeline.allSatisfy { $0.rows.allSatisfy { $0.file.hasPrefix("diary/") } })
     }
 
     @Test func repeatedLinksInOneBlockProduceOneTimelineRowAfterUpdate() async throws {
@@ -86,7 +86,7 @@ struct EntityNavigationTests {
         let context = try EntityPageTestContext()
         defer { context.clean() }
         await context.start()
-        let september = JournalCalendar(
+        let september = DiaryCalendar(
             month: CalendarDate("2026-09-15")!, days: try await context.store.computeDaySummaries())
         #expect(september.markedDays.count == 14)
         #expect(september.markedDays.contains(CalendarDate("2026-09-14")!))
@@ -94,10 +94,10 @@ struct EntityNavigationTests {
         let cells = september.cells(firstWeekday: 2)
         #expect(cells.first! == nil)
         #expect(cells.compactMap { $0 }.count == 30)
-        let leap = JournalCalendar(month: CalendarDate("2024-02-10")!, days: [])
+        let leap = DiaryCalendar(month: CalendarDate("2024-02-10")!, days: [])
         #expect(leap.cells(firstWeekday: 1).compactMap { $0 }.last?.description == "2024-02-29")
         #expect(
-            JournalCalendar(month: CalendarDate("2026-12-10")!, days: []).adjacentMonth(1).description == "2027-01-01")
+            DiaryCalendar(month: CalendarDate("2026-12-10")!, days: []).adjacentMonth(1).description == "2027-01-01")
     }
 
     @Test func selectingUnmarkedDayAndWritingCreatesMarkedDay() async throws {
@@ -106,9 +106,9 @@ struct EntityNavigationTests {
         await context.start()
         let day = CalendarDate("2026-09-13")!
         #expect(try await context.store.computeDay(on: day).events.isEmpty)
-        let month = JournalCalendar.range(of: day)
-        func calendar() async throws -> JournalCalendar {
-            JournalCalendar(
+        let month = DiaryCalendar.range(of: day)
+        func calendar() async throws -> DiaryCalendar {
+            DiaryCalendar(
                 month: day,
                 days: try await context.store.computeDaySummaries(from: month.lowerBound, to: month.upperBound))
         }

@@ -106,7 +106,7 @@ struct GoalDefinitionTests {
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
         await context.start()
-        let day = context.root.appendingPathComponent("journal/2026-09-14.md")
+        let day = context.root.appendingPathComponent("diary/2026-09-14.md")
         #expect(try String(contentsOf: day, encoding: .utf8).contains("  spor: true\n"))
         let taken = GoalCreationModel(store: context.store)
         await taken.load()

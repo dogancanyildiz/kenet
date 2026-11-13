@@ -74,7 +74,7 @@ extension View {
     }
 
     #if os(macOS)
-        /// Smallest size of the journal window: sidebar, list column and a readable detail.
+        /// Smallest size of the diary window: sidebar, list column and a readable detail.
         func macMainWindowMinimumSize() -> some View {
             frame(minWidth: InkSpacing.macWindowMinWidth, minHeight: InkSpacing.macWindowMinHeight)
         }

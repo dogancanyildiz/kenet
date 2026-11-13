@@ -7,7 +7,7 @@ import VaultIndex
 
 struct DefinitionDeletionTests {
     @Test(arguments: [VaultEntityKind.person, .place, .custom("book")])
-    func entityDeletionPreservesJournalAndConflictAndReleasesName(_ kind: VaultEntityKind) async throws {
+    func entityDeletionPreservesDiaryAndConflictAndReleasesName(_ kind: VaultEntityKind) async throws {
         let vault = try StoreVault(sample: true)
         defer { vault.remove() }
         if case .custom = kind {
@@ -39,7 +39,7 @@ struct DefinitionDeletionTests {
         defer { vault.remove() }
         let path = "goals/Spor.md"
         let days = try Dictionary(
-            uniqueKeysWithValues: vault.index.files().filter { $0.path.hasPrefix("journal/") }.map {
+            uniqueKeysWithValues: vault.index.files().filter { $0.path.hasPrefix("diary/") }.map {
                 ($0.path, try vault.bytes($0.path))
             })
         let logs = try vault.index.goalLogs()

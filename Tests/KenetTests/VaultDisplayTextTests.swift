@@ -257,7 +257,7 @@ struct VaultDisplayTextTests {
         let payload = """
             [
               {
-                "file": "journal/2026-09-14.md",
+                "file": "diary/2026-09-14.md",
                 "block": 0,
                 "text": "[[Ada|Ada]] ile yemek ^a1b2c3",
                 "fileKind": "day",

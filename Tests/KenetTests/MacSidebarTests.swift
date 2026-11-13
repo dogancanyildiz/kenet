@@ -350,7 +350,7 @@
             #expect(model.restoresFocus == false, "the request is spent once")
         }
 
-        /// The app's own check (no closure handed in). A field of the journal window holds the
+        /// The app's own check (no closure handed in). A field of the diary window holds the
         /// keyboard while that window is not the key one; judged by the key window the focus
         /// looked free and the sidebar took it from the field.
         @Test func focusIsJudgedInTheSidebarsWindowNotTheKeyWindow() async throws {
@@ -358,7 +358,7 @@
             model.shell = MacShellSelection(section: .tasks)
             model.judgesItsOwnWindow = true
             let mount = await mount(model)
-            let release = await HostedJournalWindow.claim(mount.window)
+            let release = await HostedKenetWindow.claim(mount.window)
             defer {
                 release()
                 mount.close()
@@ -386,7 +386,7 @@
             model.shell = MacShellSelection(section: .tasks)
             model.judgesItsOwnWindow = true
             let mount = await mount(model)
-            let release = await HostedJournalWindow.claim(mount.window)
+            let release = await HostedKenetWindow.claim(mount.window)
             defer {
                 release()
                 mount.close()
@@ -409,14 +409,14 @@
                 "focus: \(String(describing: mount.window.firstResponder))")
         }
 
-        /// Which window the sidebar's focus is judged in: a journal window, the key one of them.
-        @Test func sidebarWindowIsAJournalWindowAndTheKeyOneWhenSeveralAreOpen() {
+        /// Which window the sidebar's focus is judged in: a diary window, the key one of them.
+        @Test func sidebarWindowIsADiaryWindowAndTheKeyOneWhenSeveralAreOpen() {
             let settings = Self.window(marked: nil)
-            let journal = Self.window(marked: MainWindowMarker.identifier)
+            let diary = Self.window(marked: MainWindowMarker.identifier)
             let second = Self.window(marked: MainWindowMarker.identifier)
-            let all = [settings, journal, second]
-            #expect(MacSidebarFocus.sidebarWindow(among: all, key: settings) === journal)
-            #expect(MacSidebarFocus.sidebarWindow(among: all, key: nil) === journal)
+            let all = [settings, diary, second]
+            #expect(MacSidebarFocus.sidebarWindow(among: all, key: settings) === diary)
+            #expect(MacSidebarFocus.sidebarWindow(among: all, key: nil) === diary)
             #expect(MacSidebarFocus.sidebarWindow(among: all, key: second) === second)
             #expect(MacSidebarFocus.sidebarWindow(among: [settings], key: settings) == nil)
         }
@@ -543,7 +543,7 @@
             sequence(first: view, next: { $0.superview }).contains { $0 is NSSplitView }
         }
 
-        /// An offscreen window that is never shown, with or without the journal mark.
+        /// An offscreen window that is never shown, with or without the diary mark.
         private static func window(marked identifier: NSUserInterfaceItemIdentifier?) -> NSWindow {
             let window = NSWindow(
                 contentRect: NSRect(x: -20_000, y: -21_000, width: 240, height: 80),

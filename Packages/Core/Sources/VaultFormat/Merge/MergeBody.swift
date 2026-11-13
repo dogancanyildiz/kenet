@@ -6,7 +6,7 @@ struct MergeRegion: Sendable {
     /// The lines of the region in its document, heading included.
     let range: Range<Int>
     /// The recognized section this heading opens, when it is the first `## Tasks`, `## Events`
-    /// or `## Journal` of the document.
+    /// or `## Diary` of the document.
     let kind: DaySectionKind?
     /// The indices (into `MergeBody.blocks`) of the blocks that start in this region, in order.
     var blocks: [Int] = []
@@ -80,9 +80,11 @@ struct MergeBody: Sendable {
             if fence.consumes(bytes) { continue }
             guard let level = SectionParser.headingLevel(bytes), level <= 2 else { continue }
             let key = SectionParser.trimmedHeading(bytes)
-            let candidate = DaySectionKind.allCases.first { key.elementsEqual(("## " + $0.rawValue).utf8) }
+            let candidate = DaySectionKind.recognizing(trimmedHeading: key)
             let kind = candidate.flatMap { seen.insert($0).inserted ? $0 : nil }
-            headings.append((index, key, kind))
+            // A recognized section matches under its current name, so the old heading of a version
+            // not yet migrated pairs with `## Diary` of the other (`LegacyVaultNames`).
+            headings.append((index, kind.map { Array(("## " + $0.rawValue).utf8) } ?? key, kind))
         }
         var regions = [MergeRegion(key: nil, range: start..<(headings.first?.line ?? lines.count), kind: nil)]
         for (offset, heading) in headings.enumerated() {

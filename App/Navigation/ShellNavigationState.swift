@@ -89,7 +89,7 @@ final class ShellNavigationState {
     // vault: another vault selected (``prune(for:)``) drops them, so a draft typed for vault A
     // never shows on vault B's day page.
     @ObservationIgnored private var quickEntryDrafts: [CalendarDate?: QuickEntryModel] = [:]
-    @ObservationIgnored private var journalDrafts: [CalendarDate: JournalEditorModel] = [:]
+    @ObservationIgnored private var diaryDrafts: [CalendarDate: DiaryEditorModel] = [:]
     @ObservationIgnored private var draftsVault: URL?
 
     /// The quick entry model of a day page (`nil` is Today), made once per day and vault and
@@ -115,40 +115,40 @@ final class ShellNavigationState {
         return quickEntryDrafts[day] != nil
     }
 
-    /// The journal editor that is open: the day page that matches and is on screen presents it,
+    /// The diary editor that is open: the day page that matches and is on screen presents it,
     /// and presents it again when a new shell rebuilds that page.
-    var journalEditor: JournalEditorRoute?
+    var diaryEditor: DiaryEditorRoute?
 
-    /// The journal editor model of a day, made once per day and vault and kept while the shell
+    /// The diary editor model of a day, made once per day and vault and kept while the shell
     /// swaps. `make` builds the first one (the editor's own, once it is on screen).
-    func journalDraft(for day: CalendarDate, store: IndexStore, make: () -> JournalEditorModel)
-        -> JournalEditorModel
+    func diaryDraft(for day: CalendarDate, store: IndexStore, make: () -> DiaryEditorModel)
+        -> DiaryEditorModel
     {
         prune(for: store)
-        if let model = journalDrafts[day] { return model }
+        if let model = diaryDrafts[day] { return model }
         let model = make()
-        journalDrafts[day] = model
+        diaryDrafts[day] = model
         return model
     }
 
-    /// Lets go of a day's journal editor model, if it is still the one kept.
-    func releaseJournalDraft(_ model: JournalEditorModel) {
-        guard journalDrafts[model.day] === model else { return }
-        journalDrafts[model.day] = nil
+    /// Lets go of a day's diary editor model, if it is still the one kept.
+    func releaseDiaryDraft(_ model: DiaryEditorModel) {
+        guard diaryDrafts[model.day] === model else { return }
+        diaryDrafts[model.day] = nil
     }
 
     /// The editor of `route` closed (saved, discarded, dismissed): the route and the day's model
     /// go together. A shell swap takes the sheet down without closing the route, and the model
     /// stays for the sheet the next shell opens.
-    func closeJournalEditor(_ route: JournalEditorRoute) {
-        guard journalEditor == route else { return }
-        journalEditor = nil
-        journalDrafts[route.day] = nil
+    func closeDiaryEditor(_ route: DiaryEditorRoute) {
+        guard diaryEditor == route else { return }
+        diaryEditor = nil
+        diaryDrafts[route.day] = nil
     }
 
-    func holdsJournalDraft(for day: CalendarDate, store: IndexStore) -> Bool {
+    func holdsDiaryDraft(for day: CalendarDate, store: IndexStore) -> Bool {
         prune(for: store)
-        return journalDrafts[day] != nil
+        return diaryDrafts[day] != nil
     }
 
     /// Drops both registries when the store has moved to another vault. The vault opening
@@ -157,15 +157,15 @@ final class ShellNavigationState {
         guard let vault = store.vaultURL else { return }
         if let previous = draftsVault, previous != vault {
             quickEntryDrafts = [:]
-            journalDrafts = [:]
+            diaryDrafts = [:]
         }
         draftsVault = vault
     }
 }
 
-/// The day page whose journal editor is open. Today's page and a pushed page of the same date
+/// The day page whose diary editor is open. Today's page and a pushed page of the same date
 /// are different pages.
-struct JournalEditorRoute: Hashable, Sendable {
+struct DiaryEditorRoute: Hashable, Sendable {
     let day: CalendarDate
     let isToday: Bool
 }

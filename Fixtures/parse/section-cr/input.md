@@ -1,1 +1,1 @@
-## Eventsnot## Journalyazı
+## Eventsnot## Diaryyazı

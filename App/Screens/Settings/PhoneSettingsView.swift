@@ -143,9 +143,9 @@ struct PhoneSettingsView: View {
         case .notifications:
             guard let notifications else { return Text(section.summary) }
             let preferences = notifications.preferences
-            guard preferences.journalEnabled else { return Text("Günlük hatırlatması kapalı") }
+            guard preferences.diaryEnabled else { return Text("Günlük hatırlatması kapalı") }
             let time = preferences.fieldDate(
-                \.journalTime, on: LocalDay.today(at: clockNow(), timeZone: timeZone), timeZone: timeZone)
+                \.diaryTime, on: LocalDay.today(at: clockNow(), timeZone: timeZone), timeZone: timeZone)
             return Text("Günlük hatırlatması \(Text(time, format: .dateTime.hour().minute()))")
         case .calendarAndLocation:
             guard let calendar else { return Text(section.summary) }

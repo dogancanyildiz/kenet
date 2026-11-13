@@ -49,7 +49,7 @@ struct DeviceIdiomCopyTests {
 
     /// The menu bar and the quick-entry box read this table: a change here moves both.
     @Test func shortcutTableIsTheDocumentedOne() {
-        let table = JournalShortcut.allCases.map { shortcut -> String in
+        let table = KenetShortcut.allCases.map { shortcut -> String in
             let flags = shortcut.modifiers
             let shift = flags.contains(.shift) ? "⇧" : ""
             let command = flags.contains(.command) ? "⌘" : ""

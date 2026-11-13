@@ -7,7 +7,7 @@ import VaultIndex
 ///
 /// Pass `@Environment(\.locale)` from the view; do not hand-build a `Locale` for presentation.
 struct TodayPresentation: Sendable {
-    enum Section: Sendable { case goals, tasks, events, calendar, journal }
+    enum Section: Sendable { case goals, tasks, events, calendar, diary }
 
     /// Single ordered list for the tasks section (disclosures sit between groups).
     enum Row: Identifiable, Sendable {
@@ -245,7 +245,7 @@ struct TodayPresentation: Sendable {
         case .goals: "\(completedGoalCount)/\(goalCount)"
         case .tasks: remainingTaskCount.formatted(.number.locale(locale))
         case .events: eventCount.formatted(.number.locale(locale))
-        case .calendar, .journal: nil
+        case .calendar, .diary: nil
         }
     }
 

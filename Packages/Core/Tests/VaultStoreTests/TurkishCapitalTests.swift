@@ -224,7 +224,7 @@ import VaultStore
         }
         let reopened = try VaultIndex(databaseURL: url)
         #expect(try reopened.files().isEmpty)
-        #expect(try reopened.database.read { try Int.fetchOne($0, sql: "PRAGMA user_version") } == 9)
+        #expect(try reopened.database.read { try Int.fetchOne($0, sql: "PRAGMA user_version") } == IndexSchema.version)
         try reopened.refresh(vaultRoot: scratch.root)
         #expect(try reopened.entities(named: "IŞIK").map(\.file) == ["people/Işık.md"])
         #expect(try reopened.entities(named: "işık").isEmpty)

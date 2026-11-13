@@ -290,7 +290,7 @@ enum AccessibilityAuditPolicy {
             guard frame.width < minimumTarget - 0.5 || frame.height < minimumTarget - 0.5 else { continue }
             let described = "\(node.elementType.rawValue) '\(node.identifier)' '\(node.label)' \(frame)"
             let reason: String?
-            if node.elementType == .link, node.identifier.hasPrefix("journal-entity://") {
+            if node.elementType == .link, node.identifier.hasPrefix("kenet-entity://") {
                 reason = "text link inside running text"
             } else if node.elementType == .switch, parent == .switch {
                 reason = "the system switch inside its toggle row; the row is measured"

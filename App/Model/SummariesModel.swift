@@ -406,7 +406,7 @@ struct MonthWritingRhythm: Sendable, Equatable {
     init(month: CalendarDate, calendar: YearWritingCalendar, today: CalendarDate) {
         let first = CalendarDate(year: month.year, month: month.month, day: 1) ?? month
         self.month = first
-        let range = JournalCalendar.range(of: first)
+        let range = DiaryCalendar.range(of: first)
         var built: [MonthRhythmDay] = []
         var cursor: CalendarDate? = range.lowerBound
         while let current = cursor, current <= range.upperBound {
@@ -419,7 +419,7 @@ struct MonthWritingRhythm: Sendable, Equatable {
                     state = .future
                 case .unwritten?:
                     state = .empty
-                case .journal?:
+                case .diary?:
                     state = .partial
                 case .events?:
                     state = .full
@@ -440,7 +440,7 @@ struct MonthWritingRhythm: Sendable, Equatable {
     ) {
         let first = CalendarDate(year: month.year, month: month.month, day: 1) ?? month
         self.month = first
-        let range = JournalCalendar.range(of: first)
+        let range = DiaryCalendar.range(of: first)
         var built: [MonthRhythmDay] = []
         var cursor: CalendarDate? = range.lowerBound
         while let current = cursor, current <= range.upperBound {
@@ -451,7 +451,7 @@ struct MonthWritingRhythm: Sendable, Equatable {
                 switch statesByDay[current] ?? .unwritten {
                 case .unwritten:
                     state = .empty
-                case .journal:
+                case .diary:
                     state = .partial
                 case .events:
                     state = .full

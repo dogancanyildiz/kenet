@@ -1,4 +1,4 @@
-## Journal
+## Diary
 Metin.
 
 Devam.

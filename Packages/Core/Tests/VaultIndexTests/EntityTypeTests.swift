@@ -81,14 +81,14 @@ struct EntityTypeTests {
     @Test func idsPathsReservedFieldsAndInvalidKindsAreRejected() throws {
         let valid = try #require(
             EntityTypeReader.read(vaultRoot: Fixtures.root().appendingPathComponent("vaults/typed")).types.first)
-        for id in ["person", "place", "goal", "journal", "day", "note", "Book", "kitap türü", "1book", ""] {
+        for id in ["person", "place", "goal", "diary", "day", "note", "Book", "kitap türü", "1book", ""] {
             let value = EntityTypeDefinition(
                 id: id, folder: valid.folder, name: valid.name, plural: valid.plural, icon: valid.icon)
             #expect(throws: EntityTypeError.self) { try value.validate() }
         }
         for path in [
             "../books", "/books", "books//sub", "books/.hidden", "books/../outside", "templates", "conflicts/other",
-            "journal", "books\\outside",
+            "diary", "books\\outside",
         ] {
             var value = valid
             value.folder = path

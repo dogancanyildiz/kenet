@@ -90,11 +90,11 @@
   {
     "id": "rows-of-one-date-add-up-without-today",
     "days": [
-      { "date": "2026-02-23", "events": -1, "hasJournal": true },
-      { "date": "2026-03-01", "events": 2, "hasJournal": false },
-      { "date": "2026-03-02", "events": 1, "hasJournal": false },
-      { "date": "2026-03-02", "events": 2, "hasJournal": false },
-      { "date": "2026-03-08", "events": 0, "hasJournal": true }
+      { "date": "2026-02-23", "events": -1, "hasDiary": true },
+      { "date": "2026-03-01", "events": 2, "hasDiary": false },
+      { "date": "2026-03-02", "events": 1, "hasDiary": false },
+      { "date": "2026-03-02", "events": 2, "hasDiary": false },
+      { "date": "2026-03-08", "events": 0, "hasDiary": true }
     ],
     "range": ["2026-03-02", "2026-03-08"],
     "previousRange": ["2026-02-23", "2026-03-01"],

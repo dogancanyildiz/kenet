@@ -207,7 +207,7 @@
         @Test func carriedOverDisclosureIsALabeledRowThatOpensTheRest() async throws {
             let context = try TaskTestContext()
             defer { context.clean() }
-            let earlier = context.root.appendingPathComponent("journal/2026-09-28.md")
+            let earlier = context.root.appendingPathComponent("diary/2026-09-28.md")
             try FileManager.default.createDirectory(
                 at: earlier.deletingLastPathComponent(), withIntermediateDirectories: true)
             let tasks = (1...5).map { "- [ ] devreden \($0) 📅 2026-09-2\($0)" }

@@ -47,27 +47,27 @@ struct GoalStatusReadPathTests {
         try vault.index.rebuild(vaultRoot: vault.root)
         let today = try #require(CalendarDate("2026-10-12"))
         let rows: [(String, String, String, String, String)] = [
-            ("journal/2026-10-01.md", "su", "2026-10-01", "number", "8"),
-            ("journal/2026-10-01.md", "kosu", "2026-10-01", "boolean", "true"),
-            ("journal/2026-10-02.md", "su", "2026-10-02", "number", "-2"),
-            ("journal/2026-10-02.md", "kosu", "2026-10-02", "raw", "evet"),
-            ("journal/2026-10-03.md", "su", "2026-10-03", "number", "nan"),
-            ("journal/2026-10-03.md", "kosu", "2026-10-03", "boolean", "TRUE"),
-            ("journal/2026-10-04.md", "su", "2026-10-04", "number", "1e400"),
-            ("journal/2026-10-04.md", "kosu", "2026-10-04", "boolean", "true"),
-            ("journal/2026-10-04b.md", "kosu", "2026-10-04", "boolean", "false"),
-            ("journal/2026-10-05.md", "su", "2026-10-05", "raw", "8"),
-            ("journal/2026-10-06.md", "su", "2026-02-30", "number", "8"),
-            ("journal/2026-10-07.md", "su", "2026-10-07", "number", "9.5"),
-            ("journal/2026-10-07.md", "kosu", "2026-10-07", "boolean", "true"),
-            ("journal/2026-10-13.md", "su", "2026-10-13", "number", "8"),
+            ("diary/2026-10-01.md", "su", "2026-10-01", "number", "8"),
+            ("diary/2026-10-01.md", "kosu", "2026-10-01", "boolean", "true"),
+            ("diary/2026-10-02.md", "su", "2026-10-02", "number", "-2"),
+            ("diary/2026-10-02.md", "kosu", "2026-10-02", "raw", "evet"),
+            ("diary/2026-10-03.md", "su", "2026-10-03", "number", "nan"),
+            ("diary/2026-10-03.md", "kosu", "2026-10-03", "boolean", "TRUE"),
+            ("diary/2026-10-04.md", "su", "2026-10-04", "number", "1e400"),
+            ("diary/2026-10-04.md", "kosu", "2026-10-04", "boolean", "true"),
+            ("diary/2026-10-04b.md", "kosu", "2026-10-04", "boolean", "false"),
+            ("diary/2026-10-05.md", "su", "2026-10-05", "raw", "8"),
+            ("diary/2026-10-06.md", "su", "2026-02-30", "number", "8"),
+            ("diary/2026-10-07.md", "su", "2026-10-07", "number", "9.5"),
+            ("diary/2026-10-07.md", "kosu", "2026-10-07", "boolean", "true"),
+            ("diary/2026-10-13.md", "su", "2026-10-13", "number", "8"),
         ]
         // Inserted last file first: the table's own row order is not file order.
         try vault.index.database.write { db in
             for (file, key, date, kind, value) in rows.reversed() {
                 try db.execute(
                     sql: "INSERT OR IGNORE INTO files VALUES (?,?,?,?,?,?,?,?,?,?)",
-                    arguments: [file, "journal", date, 0.0, 0, "00", true, 0.0, 0, 0.0])
+                    arguments: [file, "diary", date, 0.0, 0, "00", true, 0.0, 0, 0.0])
                 try db.execute(
                     sql: "INSERT INTO goal_logs VALUES (?,?,?,?,?)", arguments: [file, key, date, kind, value])
             }
@@ -182,8 +182,8 @@ private struct GoalHistoryVault {
                 }
                 guard !lines.isEmpty else { continue }
                 try Self.write(
-                    root, "journal/\(day).md",
-                    "---\ntype: journal\ndate: \(day)\ngoals:\n" + lines.joined(separator: "\n") + "\n---\n")
+                    root, "diary/\(day).md",
+                    "---\ntype: diary\ndate: \(day)\ngoals:\n" + lines.joined(separator: "\n") + "\n---\n")
             }
         }
         index = try VaultIndex()

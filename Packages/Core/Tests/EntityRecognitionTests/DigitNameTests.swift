@@ -21,7 +21,7 @@ private func linked(_ text: String, _ entities: [KnownEntity] = digitNames) thro
     "12’de", "2026’da", "(12)", "Bugün 12 kişi geldi", "Hedef yıl 2026.", "12", "12.", "12...", "12 ve 7", "12:",
     ":12", "-12", "12 :30", "12: 30", "12 - 14", "12.\n30", "12. madde", "12.madde", "12:a", "%12", "12%", "12°",
     "№12", "No:12", "12/A", "A-12", "saat 12'yi 5 geçe", "12 500", "\"12\"", "12!", "12?", "| 12 | 2026 |", "x@12",
-    "## Journal\n- 12 kişi\n1. Elma\n", "## Tasks\n- [ ] 12 kişi 📅 2026-10-12 ^t1\n",
+    "## Diary\n- 12 kişi\n1. Elma\n", "## Tasks\n- [ ] 12 kişi 📅 2026-10-12 ^t1\n",
     "## Events\n- 9:05 12 kişi ^12\n- 12 kişi saatsiz\n",
     // Times, dates, decimals and ranges.
     "saat 12:30'da", "12.10.2026", "12,5 km", "12:30", "1.250,75", "2026-10-12", "10/12/2026", "12-14", "12–14",
@@ -143,19 +143,19 @@ private let fieldNames = [
 ])
 func taskFieldsAreNeverMentionsInAnySection(_ line: String) throws {
     for text in [
-        line, "## Journal\n\(line)\n", "## Tasks\n\(line)\r\nson", "## Events\n- 12:30 olay\n\(line)", "x\n\n\(line)",
+        line, "## Diary\n\(line)\n", "## Tasks\n\(line)\r\nson", "## Events\n- 12:30 olay\n\(line)", "x\n\n\(line)",
     ] {
         #expect(try linked(text, fieldNames) == text)
         #expect(EntityRecognizer.recognize(text, entities: fieldNames).isEmpty)
     }
 }
 
-@Test func journalSectionTaskKeepsItsDueDateWhileItsTextIsLinked() throws {
-    let text = "## Journal\n- [ ] Deniz ile @12 kişi 📅 2026-10-12 ⏳ 2026-10-11 🔁 every week ⏫ ^t1\n"
+@Test func diarySectionTaskKeepsItsDueDateWhileItsTextIsLinked() throws {
+    let text = "## Diary\n- [ ] Deniz ile @12 kişi 📅 2026-10-12 ⏳ 2026-10-11 🔁 every week ⏫ ^t1\n"
     let result = try linked(text, fieldNames)
     #expect(
         result
-            == "## Journal\n- [ ] [[Deniz Arıkan|Deniz]] ile [[12]] kişi 📅 2026-10-12 ⏳ 2026-10-11 🔁 every week ⏫ ^t1\n"
+            == "## Diary\n- [ ] [[Deniz Arıkan|Deniz]] ile [[12]] kişi 📅 2026-10-12 ⏳ 2026-10-11 🔁 every week ⏫ ^t1\n"
     )
     let before = try #require(RawDocument(bytes: text.utf8).bodyLines.tasks.first)
     let after = try #require(RawDocument(bytes: result.utf8).bodyLines.tasks.first)
@@ -179,8 +179,8 @@ func taskFieldsAreNeverMentionsInAnySection(_ line: String) throws {
         try linked(text, fieldNames) == "## Events\n- 12:30 Vapuru kalktı\n- 9:05 [[12]] kişi ^12\n- 12:30 Vapuru\n")
     // Outside the Events section the same line is no event and reads as before.
     #expect(
-        try linked("## Journal\n- 12:30 Vapuru kalktı\n", fieldNames)
-            == "## Journal\n- [[2026-10-12|12:30 Vapuru]] kalktı\n")
+        try linked("## Diary\n- 12:30 Vapuru kalktı\n", fieldNames)
+            == "## Diary\n- [[2026-10-12|12:30 Vapuru]] kalktı\n")
 }
 
 private struct DigitRandom: RandomNumberGenerator {
@@ -198,7 +198,7 @@ private let randomPieces = [
     ".10.2026", ",5", "-14", "/12", "'de", "’da", "'30", ".", "...", "(", ")", ":", ",", "-", "/", "saat", "x", "–14",
     "١٢", "１２", "：３０", "[[Daire 12]]", "[[12]]", "`12:30`", "- [ ] ", "- ", "📅 2026-10-12", "⏳ 2026-10-11",
     "🔁 every week",
-    "⏫", "^t1", "\n", "\n", "\r\n", "## Events\n", "## Journal\n", "\t", "\u{00a0}",
+    "⏫", "^t1", "\n", "\n", "\r\n", "## Events\n", "## Diary\n", "\t", "\u{00a0}",
 ]
 
 private func randomText(_ random: inout DigitRandom) -> String {

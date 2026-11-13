@@ -50,6 +50,10 @@ final class SystemLocationSource: NSObject, LocationSource, CLLocationManagerDel
     }
     func replaceRegions(_ regions: [GeofenceRegion]) {
         #if os(iOS)
+            // Regions of a build before 2026-11-13 carry the old prefix; the new ones replace them.
+            for region in manager.monitoredRegions where region.identifier.hasPrefix(GeofenceRegion.legacyPrefix) {
+                manager.stopMonitoring(for: region)
+            }
             let existing = manager.monitoredRegions.filter { $0.identifier.hasPrefix(GeofenceRegion.prefix) }
             let identifiers = Set(regions.map(\.id))
             for region in existing where !identifiers.contains(region.identifier) {

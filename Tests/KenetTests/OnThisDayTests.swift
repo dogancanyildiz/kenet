@@ -7,9 +7,9 @@ import VaultFormat
 
 @MainActor struct OnThisDayTests {
     private static func writeDay(_ date: String, events: String, in root: URL) throws {
-        let text = "---\ntype: journal\ndate: \(date)\n---\n\n## Tasks\n\n## Events\n\(events)\n## Journal\n"
+        let text = "---\ntype: diary\ndate: \(date)\n---\n\n## Tasks\n\n## Events\n\(events)\n## Diary\n"
         try text.write(
-            to: root.appendingPathComponent("journal/\(date).md"), atomically: true, encoding: .utf8)
+            to: root.appendingPathComponent("diary/\(date).md"), atomically: true, encoding: .utf8)
     }
 
     @Test func lineComesFromTheIndexAndOnlyForALinkedPastYear() async throws {

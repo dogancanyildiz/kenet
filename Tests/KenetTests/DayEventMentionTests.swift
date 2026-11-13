@@ -37,7 +37,7 @@ struct DayEventMentionTests {
         let after = try String(contentsOf: context.file, encoding: .utf8)
         #expect(after.contains("[[Mert Aksu (iş)|Mert Aksu]] ile"))
         #expect(after.contains("Untouched continuation"))
-        #expect(after.contains("## Journal"))
+        #expect(after.contains("## Diary"))
         #expect(after.contains("Untouched section"))
         #expect(!after.contains("@Mert"))
         let expected = before.replacingOccurrences(

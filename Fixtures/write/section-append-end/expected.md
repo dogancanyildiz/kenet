@@ -2,5 +2,5 @@
 ## Tasks
 not
 
-## Journal
+## Diary
 yeni

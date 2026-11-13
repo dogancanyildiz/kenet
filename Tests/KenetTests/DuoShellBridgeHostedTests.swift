@@ -61,40 +61,40 @@
             }
         }
 
-        /// (c) The journal editor open on Today with unsaved text: the inner screen's Today page
+        /// (c) The diary editor open on Today with unsaved text: the inner screen's Today page
         /// opens it again with the same text, and the cover screen's after that. Nothing reaches
         /// the disk on the way.
-        @Test func journalDraftSurvivesTheFold() async throws {
+        @Test func diaryDraftSurvivesTheFold() async throws {
             try await DuoShell.hosted { shell in
                 let today = LocalDay.today()
-                shell.navigation.journalEditor = JournalEditorRoute(day: today, isToday: true)
+                shell.navigation.diaryEditor = DiaryEditorRoute(day: today, isToday: true)
                 await shell.settleUntilEditor(for: today)
                 let draft = shell.editorDraft(for: today)
                 await shell.settle(until: { draft.isLoaded })
                 #expect(draft.isLoaded, "the editor loaded the day")
                 draft.text = "Köprü taslağı"
                 await shell.settle()
-                #expect(shell.journalText == "Köprü taslağı", "the editor shows the draft")
+                #expect(shell.diaryText == "Köprü taslağı", "the editor shows the draft")
 
                 await shell.fold(to: .duoInner())
-                await shell.settle(until: { shell.journalText == "Köprü taslağı" })
-                #expect(shell.journalText == "Köprü taslağı", "the inner screen reopened the editor with the draft")
+                await shell.settle(until: { shell.diaryText == "Köprü taslağı" })
+                #expect(shell.diaryText == "Köprü taslağı", "the inner screen reopened the editor with the draft")
                 #expect(shell.editorDraft(for: today) === draft, "one model")
 
                 await shell.fold(to: .duoOuter)
-                await shell.settle(until: { shell.journalText == "Köprü taslağı" })
-                #expect(shell.journalText == "Köprü taslağı", "the cover screen reopened the editor with the draft")
+                await shell.settle(until: { shell.diaryText == "Köprü taslağı" })
+                #expect(shell.diaryText == "Köprü taslağı", "the cover screen reopened the editor with the draft")
                 #expect(draft.isDirty, "the fold wrote the draft to the disk")
-                let file = shell.store.vaultURL?.appendingPathComponent("journal/\(today).md")
+                let file = shell.store.vaultURL?.appendingPathComponent("diary/\(today).md")
                 let written = file.flatMap { try? String(contentsOf: $0, encoding: .utf8) } ?? ""
                 #expect(!written.contains("Köprü taslağı"), "the draft stays in memory")
 
                 // The sheet going away is the page closing its route: the model goes with it.
                 shell.presenter?.presentedViewController?.dismiss(animated: false)
-                await shell.settle(until: { shell.navigation.journalEditor == nil })
-                #expect(shell.navigation.journalEditor == nil, "the dismissed sheet closed the route")
+                await shell.settle(until: { shell.navigation.diaryEditor == nil })
+                #expect(shell.navigation.diaryEditor == nil, "the dismissed sheet closed the route")
                 #expect(
-                    !shell.navigation.holdsJournalDraft(for: today, store: shell.store),
+                    !shell.navigation.holdsDiaryDraft(for: today, store: shell.store),
                     "the route closing let the model go")
             }
         }
@@ -102,10 +102,10 @@
         /// (c') The editor open and still clean when the Duo opens: what is typed on the inner
         /// screen is in the cover screen's editor after the next fold. The old editor going away
         /// must not take the model the new one already holds out of the bridge.
-        @Test func journalTypedAfterTheFoldSurvivesTheNextFold() async throws {
+        @Test func diaryTypedAfterTheFoldSurvivesTheNextFold() async throws {
             try await DuoShell.hosted { shell in
                 let today = LocalDay.today()
-                shell.navigation.journalEditor = JournalEditorRoute(day: today, isToday: true)
+                shell.navigation.diaryEditor = DiaryEditorRoute(day: today, isToday: true)
                 await shell.settleUntilEditor(for: today)
                 let opened = shell.editorDraft(for: today)
                 await shell.settle(until: { opened.isLoaded })
@@ -116,13 +116,13 @@
                 let draft = shell.editorDraft(for: today)
                 #expect(draft === opened, "the inner screen's editor took the model that was open")
                 draft.text = "İç ekranda yazıldı"
-                await shell.settle(until: { shell.journalText == "İç ekranda yazıldı" })
-                #expect(shell.journalText == "İç ekranda yazıldı", "the inner screen's editor shows the model")
-                #expect(shell.navigation.holdsJournalDraft(for: today, store: shell.store), "the bridge lost the model")
+                await shell.settle(until: { shell.diaryText == "İç ekranda yazıldı" })
+                #expect(shell.diaryText == "İç ekranda yazıldı", "the inner screen's editor shows the model")
+                #expect(shell.navigation.holdsDiaryDraft(for: today, store: shell.store), "the bridge lost the model")
 
                 await shell.fold(to: .duoOuter)
-                await shell.settle(until: { shell.journalText == "İç ekranda yazıldı" })
-                #expect(shell.journalText == "İç ekranda yazıldı", "the cover screen's editor lost the text")
+                await shell.settle(until: { shell.diaryText == "İç ekranda yazıldı" })
+                #expect(shell.diaryText == "İç ekranda yazıldı", "the cover screen's editor lost the text")
                 #expect(shell.editorDraft(for: today) === draft)
             }
         }
@@ -135,30 +135,30 @@
             try await DuoShell.hosted(
                 root: { navigation, store in AnyView(TwoTabsOfOneDay(store: store, day: day, tabs: tabs)) },
                 { shell in
-                    let route = JournalEditorRoute(day: day, isToday: false)
+                    let route = DiaryEditorRoute(day: day, isToday: false)
                     let bar = try #require(shell.tabBar)
-                    shell.navigation.journalEditor = route
-                    await shell.settle(until: { shell.journalText != nil })
-                    #expect(shell.journalText != nil, "the first tab's page opened the editor")
+                    shell.navigation.diaryEditor = route
+                    await shell.settle(until: { shell.diaryText != nil })
+                    #expect(shell.diaryText != nil, "the first tab's page opened the editor")
 
-                    shell.navigation.closeJournalEditor(route)
-                    await shell.settle(until: { shell.journalText == nil })
-                    #expect(shell.journalText == nil, "the editor closed")
+                    shell.navigation.closeDiaryEditor(route)
+                    await shell.settle(until: { shell.diaryText == nil })
+                    #expect(shell.diaryText == nil, "the editor closed")
 
                     tabs.selected = 1
                     await shell.settle()
                     #expect(bar.selectedIndex == 1)
-                    shell.navigation.journalEditor = route
-                    await shell.settle(until: { shell.journalText != nil })
-                    #expect(shell.journalText != nil, "the second tab's page did not open the editor")
+                    shell.navigation.diaryEditor = route
+                    await shell.settle(until: { shell.diaryText != nil })
+                    #expect(shell.diaryText != nil, "the second tab's page did not open the editor")
 
-                    shell.navigation.closeJournalEditor(route)
-                    await shell.settle(until: { shell.journalText == nil })
+                    shell.navigation.closeDiaryEditor(route)
+                    await shell.settle(until: { shell.diaryText == nil })
                     tabs.selected = 0
                     await shell.settle()
-                    shell.navigation.journalEditor = route
-                    await shell.settle(until: { shell.journalText != nil })
-                    #expect(shell.journalText != nil, "back on the first tab, its page did not open the editor")
+                    shell.navigation.diaryEditor = route
+                    await shell.settle(until: { shell.diaryText != nil })
+                    #expect(shell.diaryText != nil, "back on the first tab, its page did not open the editor")
                 })
         }
 
@@ -233,7 +233,7 @@
             }
 
             /// The text of the editor in the sheet the shell presents, or nil without one.
-            var journalText: String? {
+            var diaryText: String? {
                 guard let presented = presenter?.presentedViewController else { return nil }
                 return views(of: UITextView.self, under: presented.view).first?.text
             }
@@ -246,14 +246,14 @@
             /// Waits for the sheet's editor and for the model it puts into the bridge: the text view
             /// can be on screen a pass before the editor registers its model.
             func settleUntilEditor(for day: CalendarDate) async {
-                await settle(until: { journalText != nil && navigation.holdsJournalDraft(for: day, store: store) })
+                await settle(until: { diaryText != nil && navigation.holdsDiaryDraft(for: day, store: store) })
             }
 
             /// The day's editor model, which the editor on screen put into the bridge.
-            func editorDraft(for day: CalendarDate) -> JournalEditorModel {
-                navigation.journalDraft(for: day, store: store) {
+            func editorDraft(for day: CalendarDate) -> DiaryEditorModel {
+                navigation.diaryDraft(for: day, store: store) {
                     Issue.record("no editor registered its model for \(day)")
-                    return JournalEditorModel(store: store, day: day)
+                    return DiaryEditorModel(store: store, day: day)
                 }
             }
 

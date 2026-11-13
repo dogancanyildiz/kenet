@@ -67,6 +67,7 @@ extension VaultIndex {
                     JOIN entities e ON e.file = l.resolvedFile
                     LEFT JOIN files f ON f.path = l.file
                     WHERE e.kind IN (\(placeholders)) \(oneDay)
+                        AND (f.path IS NULL OR \(Self.countsForItsDate("f")))
                     GROUP BY l.resolvedFile, l.file
                     """, arguments: StatementArguments(arguments))
             while let row = try cursor.next() {

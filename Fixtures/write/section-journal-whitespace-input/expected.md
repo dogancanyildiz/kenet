@@ -1,4 +1,0 @@
-## Journal
-
-## Other
-Deniz

@@ -1,5 +1,5 @@
 ## Tasks
 - [ ] Su ^b8x001
 
-## Journal
+## Diary
 Gün.

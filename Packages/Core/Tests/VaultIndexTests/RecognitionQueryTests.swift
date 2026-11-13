@@ -42,7 +42,7 @@ private final class RecognitionQueryLog: @unchecked Sendable {
     for (offset, count) in expectedCounts.enumerated() {
         let date = CalendarDate(year: 2026, month: 9, day: 14 + offset)!
         let document = RawDocument(
-            bytes: try Data(contentsOf: root.appendingPathComponent("journal/" + date.description + ".md")))
+            bytes: try Data(contentsOf: root.appendingPathComponent("diary/" + date.description + ".md")))
         let mentions = EntityRecognizer.recognize(
             String(decoding: document.serialized(), as: UTF8.self), entities: entities, usage: usage)
         #expect(mentions.count == count)
@@ -67,10 +67,10 @@ private final class RecognitionQueryLog: @unchecked Sendable {
         try write(root, "people/Selin Korkmaz.md", "---\ntype: person\n---\n")
         try write(root, "places/Liman Ofis.md", "---\ntype: place\n---\n")
         try write(
-            root, "journal/2026-09-14.md",
+            root, "diary/2026-09-14.md",
             "[[Deniz Arıkan]] [[Deniz Arıkan]] [[Liman Ofis]] [[Liman Ofis]] [[Selin Korkmaz]] [[Henüz Yazılmamış Not]]"
         )
-        try write(root, "journal/2026-09-15.md", "[[Deniz Arıkan]] [[Liman Ofis]]")
+        try write(root, "diary/2026-09-15.md", "[[Deniz Arıkan]] [[Liman Ofis]]")
         try write(root, "notes/Proje Fikirleri.md", "[[Deniz Arıkan]] [[Selin Korkmaz]]")
         let index = try VaultIndex()
         try index.rebuild(vaultRoot: root)
@@ -83,8 +83,8 @@ private final class RecognitionQueryLog: @unchecked Sendable {
         #expect(selin.totalCount == 3)
         #expect(selin.lastDate == CalendarDate("2026-09-14"))
         #expect(selin.cooccurrences == ["people/Deniz Arıkan.md": 1, "places/Liman Ofis.md": 1])
-        try write(root, "journal/2026-09-15.md", "Su")
-        try index.update(paths: ["journal/2026-09-15.md"], vaultRoot: root)
+        try write(root, "diary/2026-09-15.md", "Su")
+        try index.update(paths: ["diary/2026-09-15.md"], vaultRoot: root)
         let refreshed = try index.entityUsage()
         let full = try VaultIndex()
         try full.rebuild(vaultRoot: root)
@@ -121,7 +121,7 @@ private final class RecognitionQueryLog: @unchecked Sendable {
         #expect(mentions.count == 1 && mentions[0].isCertain)
         let linked = try EntityRecognizer.linking(text, mentions: mentions)
         #expect(linked == "[[people/Baran|Baran]] ile kahve")
-        try write(root, "journal/2026-09-14.md", linked + "\n")
+        try write(root, "diary/2026-09-14.md", linked + "\n")
         try index.rebuild(vaultRoot: root)
         #expect(try index.links(to: "people/Baran.md").count == 1)
         #expect(try index.links(to: "Archive/Baran.md").isEmpty)
@@ -146,7 +146,7 @@ private final class RecognitionQueryLog: @unchecked Sendable {
         #expect(mentions.count == 1 && mentions[0].isCertain)
         let linked = try EntityRecognizer.linking(text, mentions: mentions)
         #expect(linked == "[[/Baran|Baran]] ile kahve")
-        try write(root, "journal/2026-09-14.md", linked + "\n")
+        try write(root, "diary/2026-09-14.md", linked + "\n")
         try index.rebuild(vaultRoot: root)
         #expect(try index.links(to: "Baran.md").count == 1)
         #expect(try index.links(to: "Archive/Baran.md").isEmpty)
@@ -167,7 +167,7 @@ private final class RecognitionQueryLog: @unchecked Sendable {
         #expect(mentions.count == 1 && mentions[0].isCertain)
         let linked = try EntityRecognizer.linking(text, mentions: mentions)
         #expect(linked == "[[Baran]] ile kahve")
-        try write(root, "journal/2026-09-14.md", linked + "\n")
+        try write(root, "diary/2026-09-14.md", linked + "\n")
         try index.rebuild(vaultRoot: root)
         #expect(try index.links(to: "people/Baran.md").count == 1)
         #expect(try index.links(to: "zz/Baran.md").isEmpty)
@@ -188,7 +188,7 @@ private final class RecognitionQueryLog: @unchecked Sendable {
         #expect(mentions.count == 1 && mentions[0].isCertain)
         let linked = try EntityRecognizer.linking(text, mentions: mentions)
         #expect(linked == "[[people/Baran|Baran]] ile kahve")
-        try write(root, "journal/2026-09-14.md", linked + "\n")
+        try write(root, "diary/2026-09-14.md", linked + "\n")
         try index.rebuild(vaultRoot: root)
         #expect(try index.links(to: "people/Baran.md").count == 1)
         #expect(try index.links(to: "Archive/baran.md").isEmpty)
@@ -212,7 +212,7 @@ private final class RecognitionQueryLog: @unchecked Sendable {
         #expect(mentions.count == 2)
         let linked = try EntityRecognizer.linking(text, mentions: mentions)
         #expect(linked == "Baran ile kahve. [[Ece Yalın]] geldi.")
-        try write(root, "journal/2026-09-14.md", linked + "\n")
+        try write(root, "diary/2026-09-14.md", linked + "\n")
         try index.rebuild(vaultRoot: root)
         #expect(try index.links(to: "C# Kişiler/Baran.md").isEmpty)
         #expect(try index.links(to: "people/Ece Yalın.md").count == 1)

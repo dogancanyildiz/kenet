@@ -32,17 +32,17 @@ import VaultStore
         try IncrementalReadModelVault.write(
             context.root, "people/Ada Test.md", "---\ntype: person\nname: Ada Test\n---\n")
         try IncrementalReadModelVault.write(
-            context.root, "journal/2026-03-01.md",
-            "## Journal\n### Sabah\nİlk [[Ada Test|Ada]] ve [[Yok]].\nikinci satır\n\n## Events\n- 09:00 Bir\n- 10:00 İki\n"
+            context.root, "diary/2026-03-01.md",
+            "## Diary\n### Sabah\nİlk [[Ada Test|Ada]] ve [[Yok]].\nikinci satır\n\n## Events\n- 09:00 Bir\n- 10:00 İki\n"
         )
         try IncrementalReadModelVault.write(
-            context.root, "journal/2026-03-02.md", "## Journal\nYalnız günlük.\nikinci satır\n\nİkinci paragraf.\n")
-        try IncrementalReadModelVault.write(context.root, "journal/2026-03-03.md", "## Tasks\n- [ ] yalnız görev\n")
+            context.root, "diary/2026-03-02.md", "## Diary\nYalnız günlük.\nikinci satır\n\nİkinci paragraf.\n")
+        try IncrementalReadModelVault.write(context.root, "diary/2026-03-03.md", "## Tasks\n- [ ] yalnız görev\n")
         try IncrementalReadModelVault.write(
-            context.root, "journal/2026-03-04.md",
-            "\u{FEFF}---\r\ntype: journal\r\ngoals:\r\n  kitap: 5\r\n---\r\n\r\n## Events\r\n- 08:00 Sabah\r\n\r\n## Journal\r\nCRLF paragrafı.\r\n"
+            context.root, "diary/2026-03-04.md",
+            "\u{FEFF}---\r\ntype: diary\r\ngoals:\r\n  kitap: 5\r\n---\r\n\r\n## Events\r\n- 08:00 Sabah\r\n\r\n## Diary\r\nCRLF paragrafı.\r\n"
         )
-        try IncrementalReadModelVault.write(context.root, "journal/2026-03-09.md", "## Journal\n### Yalnız başlık\n")
+        try IncrementalReadModelVault.write(context.root, "diary/2026-03-09.md", "## Diary\n### Yalnız başlık\n")
         try IncrementalReadModelVault.write(context.root, "notes/Plan.md", "## Events\n- 09:00 [[2026-03-01]] planı\n")
         await context.start()
         try await expectSnapshotConstruction(context, months: ["2026-03-01", "2026-02-01"])
@@ -51,10 +51,10 @@ import VaultStore
         #expect(days.map(\.date.description) == ["2026-03-09", "2026-03-04", "2026-03-03", "2026-03-02", "2026-03-01"])
         #expect(days.map(\.preview) == [nil, "CRLF paragrafı.", nil, "Yalnız günlük.", "İlk Ada ve Yok."])
         #expect(days.map(\.eventCount) == [0, 1, 0, 0, 2])
-        #expect(days.map(\.journalCount) == [1, 1, 0, 2, 2])
+        #expect(days.map(\.diaryCount) == [1, 1, 0, 2, 2])
         #expect(days.map(\.hasGoalRecords) == [false, true, false, false, false])
-        // One mark for any Journal, however many paragraphs: 03-02 has two and no event.
-        let march = JournalCalendar(month: CalendarDate("2026-03-01")!, days: days)
+        // One mark for any Diary, however many paragraphs: 03-02 has two and no event.
+        let march = DiaryCalendar(month: CalendarDate("2026-03-01")!, days: days)
         #expect(
             march.levels == [
                 CalendarDate("2026-03-01")!: 1, CalendarDate("2026-03-02")!: 1, CalendarDate("2026-03-04")!: 1,
@@ -64,10 +64,10 @@ import VaultStore
         let first = try await context.store.computeDay(on: CalendarDate("2026-03-01")!)
         #expect(first.events.map(\.text.plainText) == ["Bir", "İki"])
         #expect(first.events.map { $0.time?.raw } == ["09:00", "10:00"])
-        #expect(first.journal.map(\.headingLevel) == [3, nil])
+        #expect(first.diary.map(\.headingLevel) == [3, nil])
         #expect(first.preview == "İlk Ada ve Yok.")
-        #expect(first.journal.last?.text.spans.compactMap(\.destination) == ["people/Ada Test.md"])
-        #expect(!CloseDayEntry.hasJournal(try await context.store.computeDay(on: CalendarDate("2026-03-09")!)))
+        #expect(first.diary.last?.text.spans.compactMap(\.destination) == ["people/Ada Test.md"])
+        #expect(!CloseDayEntry.hasDiary(try await context.store.computeDay(on: CalendarDate("2026-03-09")!)))
     }
 
     /// The list skips the Markdown parse for a preview paragraph without links and takes its first
@@ -104,17 +104,17 @@ import VaultStore
         for (offset, paragraph) in paragraphs.enumerated() {
             let date = try #require(CalendarDate("2026-04-01")?.addingDays(offset))
             dates.append(date)
-            try IncrementalReadModelVault.write(context.root, "journal/\(date).md", "## Journal\n\(paragraph)\n")
+            try IncrementalReadModelVault.write(context.root, "diary/\(date).md", "## Diary\n\(paragraph)\n")
         }
         // Line endings and a byte order mark around the paragraph.
         let endings = [
-            "## Journal\r\nCRLF ilk\r\nikinci\r\n", "## Journal\rCR ilk\rikinci\r", "\u{FEFF}## Journal\nBOM ile\n",
-            "\u{FEFF}---\r\ntype: journal\r\n---\r\n## Journal\r\n  CRLF girintili  \r\n\r\nikinci paragraf\r\n",
+            "## Diary\r\nCRLF ilk\r\nikinci\r\n", "## Diary\rCR ilk\rikinci\r", "\u{FEFF}## Diary\nBOM ile\n",
+            "\u{FEFF}---\r\ntype: diary\r\n---\r\n## Diary\r\n  CRLF girintili  \r\n\r\nikinci paragraf\r\n",
         ]
         for (offset, text) in endings.enumerated() {
             let date = try #require(CalendarDate("2026-05-01")?.addingDays(offset))
             dates.append(date)
-            try IncrementalReadModelVault.write(context.root, "journal/\(date).md", text)
+            try IncrementalReadModelVault.write(context.root, "diary/\(date).md", text)
         }
         await context.start()
         let days = try await expectSnapshotConstruction(context, months: ["2026-04-01", "2026-05-01"])
@@ -203,12 +203,12 @@ import VaultStore
         let days = try await context.store.computeDaySummaries()
         #expect(days == expected.map(\.overview))
         for month in months.compactMap(CalendarDate.init) {
-            let range = JournalCalendar.range(of: month)
+            let range = DiaryCalendar.range(of: month)
             let listed = try await context.store.computeDaySummaries(from: range.lowerBound, to: range.upperBound)
             #expect(listed == expected.filter { range.contains($0.date) }.map(\.overview), "\(month)")
             #expect(
-                JournalCalendar(month: month, days: listed).levels
-                    == JournalCalendar(month: month, days: expected.map(\.overview)).levels, "\(month)")
+                DiaryCalendar(month: month, days: listed).levels
+                    == DiaryCalendar(month: month, days: expected.map(\.overview)).levels, "\(month)")
         }
         let absent = try #require(expected.first?.date.addingDays(1))
         for date in expected.map(\.date) + [absent] {

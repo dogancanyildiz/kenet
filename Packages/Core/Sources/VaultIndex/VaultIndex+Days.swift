@@ -9,9 +9,9 @@ public struct DaySummaryEntry: Sendable, Equatable {
     public let date: CalendarDate
     /// Event blocks of the file.
     public let eventCount: Int
-    /// Paragraphs and headings of the `Journal` section.
-    public let journalCount: Int
-    /// The first `Journal` paragraph, the day's preview.
+    /// Paragraphs and headings of the `Diary` section.
+    public let diaryCount: Int
+    /// The first `Diary` paragraph, the day's preview.
     public let firstParagraph: IndexedBlock?
     /// Every link of `firstParagraph` in source order, resolved or not, so its text can be drawn whole.
     public let firstParagraphLinks: [IndexedLink]
@@ -19,13 +19,13 @@ public struct DaySummaryEntry: Sendable, Equatable {
     public let hasGoalRecords: Bool
 
     public init(
-        file: String, date: CalendarDate, eventCount: Int, journalCount: Int, firstParagraph: IndexedBlock?,
+        file: String, date: CalendarDate, eventCount: Int, diaryCount: Int, firstParagraph: IndexedBlock?,
         firstParagraphLinks: [IndexedLink], hasGoalRecords: Bool
     ) {
         self.file = file
         self.date = date
         self.eventCount = eventCount
-        self.journalCount = journalCount
+        self.diaryCount = diaryCount
         self.firstParagraph = firstParagraph
         self.firstParagraphLinks = firstParagraphLinks
         self.hasGoalRecords = hasGoalRecords
@@ -34,10 +34,10 @@ public struct DaySummaryEntry: Sendable, Equatable {
 
 extension VaultIndex {
     /// Day files dated `from` through `to`, both included and either end open when `nil`, newest
-    /// first. A day file is `journal/<date>.md` with valid UTF-8; every other file is absent.
+    /// first. A day file is `diary/<date>.md` with valid UTF-8; every other file is absent.
     public func daySummaries(from: CalendarDate? = nil, to: CalendarDate? = nil) throws -> [DaySummaryEntry] {
         // Stored dates are written as `YYYY-MM-DD`, so text order is date order.
-        var range = "f.kind = 'day' AND f.date IS NOT NULL"
+        var range = "f.kind = 'day' AND f.date IS NOT NULL AND \(Self.countsForItsDate("f"))"
         var bounds: [String] = []
         if let from {
             range += " AND f.date >= ?"
@@ -51,7 +51,7 @@ extension VaultIndex {
             WITH firsts AS (
                 SELECT b.file, MIN(b.ordinal) AS ordinal
                 FROM blocks b JOIN files f ON f.path = b.file
-                WHERE \(range) AND b.section = 'Journal' AND b.kind = 'paragraph'
+                WHERE \(range) AND b.section = 'Diary' AND b.kind = 'paragraph'
                 GROUP BY b.file)
             """
         return try database.read { db in
@@ -60,8 +60,8 @@ extension VaultIndex {
                 sql: """
                     SELECT f.path, f.date,
                         COUNT(CASE WHEN b.kind = 'event' THEN 1 END) AS events,
-                        COUNT(CASE WHEN b.section = 'Journal' AND b.kind IN ('paragraph', 'heading') THEN 1 END)
-                            AS journal,
+                        COUNT(CASE WHEN b.section = 'Diary' AND b.kind IN ('paragraph', 'heading') THEN 1 END)
+                            AS diary,
                         EXISTS (SELECT 1 FROM goal_logs g WHERE g.file = f.path) AS goals
                     FROM files f LEFT JOIN blocks b ON b.file = f.path
                     WHERE \(range)
@@ -85,7 +85,7 @@ extension VaultIndex {
                 let file: String = row["path"]
                 guard let date = CalendarDate(row["date"] as String) else { return nil }
                 return DaySummaryEntry(
-                    file: file, date: date, eventCount: row["events"], journalCount: row["journal"],
+                    file: file, date: date, eventCount: row["events"], diaryCount: row["diary"],
                     firstParagraph: paragraphByFile[file], firstParagraphLinks: linksByFile[file] ?? [],
                     hasGoalRecords: row["goals"])
             }
@@ -93,12 +93,13 @@ extension VaultIndex {
     }
 
     /// Every row of the day file of `date`, or `nil` when the vault has none. The index gives a day
-    /// file only to `journal/<date>.md` with valid UTF-8 (`IndexBuilder`), so this is that path's
-    /// `contents(ofFile:)`.
+    /// file only to `diary/<date>.md` with valid UTF-8 (`IndexBuilder`), so this is that path's
+    /// `contents(ofFile:)`. A vault not yet migrated may hold the day under the legacy day folder
+    /// only; that file answers when `diary/` has none.
     public func day(on date: CalendarDate) throws -> IndexedFileContents? {
-        guard let contents = try contents(ofFile: "journal/\(date).md"), contents.file.kind == "day" else {
-            return nil
+        for path in [VaultLayout.dayPath(date), VaultLayout.legacyDayPath(date)] {
+            if let contents = try contents(ofFile: path), contents.file.kind == "day" { return contents }
         }
-        return contents
+        return nil
     }
 }

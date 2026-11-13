@@ -66,7 +66,7 @@ struct ShareWritingContext {
     }
 
     var root: URL { ShareVault.cloudRoot(in: container) }
-    var dayFile: URL { root.appendingPathComponent("journal/\(Self.day).md") }
+    var dayFile: URL { root.appendingPathComponent("diary/\(Self.day).md") }
     var pending: ShareListFile { ShareListFile(url: ShareFiles.pending(in: group)) }
     var written: ShareListFile { ShareListFile(url: ShareFiles.written(in: group)) }
 
@@ -476,7 +476,7 @@ struct ShareEntryWritingTests {
         let context = try ShareWritingContext()
         defer { context.clean() }
         try context.publish(.icloud)
-        for path in ["journal/2026-10-01.md", "notes/Kitap.md", "people/Deniz Arıkan.md"] {
+        for path in ["diary/2026-10-01.md", "notes/Kitap.md", "people/Deniz Arıkan.md"] {
             let url = context.root.appendingPathComponent(path)
             try FileManager.default.createDirectory(
                 at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
@@ -512,7 +512,7 @@ struct ShareEntryWritingTests {
         let outcome = try? await context.writer().add(entry)
 
         var after = try context.vaultFiles()
-        let day = "journal/\(ShareWritingContext.day).md"
+        let day = "diary/\(ShareWritingContext.day).md"
         if let expected = fixture.expected {
             #expect(outcome == .written)
             #expect(after[day] == expected)
@@ -544,7 +544,7 @@ struct ShareEntryWritingTests {
             guard case .modify(let url) = operation else { return nil }
             return url.path
         }
-        #expect(modified.contains { $0.hasSuffix("/Documents/Kenet/journal/\(ShareWritingContext.day).md") })
+        #expect(modified.contains { $0.hasSuffix("/Documents/Kenet/diary/\(ShareWritingContext.day).md") })
         // A new day file starts with the vault's frontmatter, as the app writes it.
         let document = RawDocument(bytes: try Data(contentsOf: context.dayFile))
         #expect(document.bodyLines.events.map(\.block.text) == ["Kahve"])
@@ -611,13 +611,13 @@ struct ShareEntryWritingTests {
         let context = try ShareWritingContext()
         defer { context.clean() }
         try context.publish(.icloud)
-        let journal = context.dayFile.deletingLastPathComponent()
-        try FileManager.default.createDirectory(at: journal, withIntermediateDirectories: true)
-        let placeholder = journal.appendingPathComponent(".\(ShareWritingContext.day).md.icloud")
+        let diary = context.dayFile.deletingLastPathComponent()
+        try FileManager.default.createDirectory(at: diary, withIntermediateDirectories: true)
+        let placeholder = diary.appendingPathComponent(".\(ShareWritingContext.day).md.icloud")
         try Data().write(to: placeholder)
         #expect(try await context.writer().add(context.entry("Bekler")) == .queued)
         #expect(!FileManager.default.fileExists(atPath: context.dayFile.path))
-        #expect(try FileManager.default.contentsOfDirectory(atPath: journal.path) == [placeholder.lastPathComponent])
+        #expect(try FileManager.default.contentsOfDirectory(atPath: diary.path) == [placeholder.lastPathComponent])
     }
 
     @Test func noGroupIsAFailureTheFormShows() async throws {
@@ -654,7 +654,7 @@ struct ShareEntryWritingTests {
         let outcome = try? await context.writer().add(entry)
 
         var after = try context.vaultFiles()
-        let day = "journal/\(ShareWritingContext.day).md"
+        let day = "diary/\(ShareWritingContext.day).md"
         if let expected = fixture.expected {
             #expect(outcome == .written)
             #expect(after[day] == expected)

@@ -118,9 +118,9 @@ private func fields(_ index: VaultIndex, _ file: String) throws -> [String] {
         try step([path, renamed], renamed, rows)
         #expect(try fields(index, path).isEmpty)
         // A day path is a day whatever its `type` says.
-        let day = "journal/2026-01-02.md"
+        let day = "diary/2026-01-02.md"
         try FileManager.default.createDirectory(
-            at: root.appendingPathComponent("journal"), withIntermediateDirectories: true)
+            at: root.appendingPathComponent("diary"), withIntermediateDirectories: true)
         try FileManager.default.moveItem(at: root.appendingPathComponent(renamed), to: root.appendingPathComponent(day))
         try step(nil, day, [])
         try FileManager.default.moveItem(at: root.appendingPathComponent(day), to: root.appendingPathComponent(path))
@@ -167,7 +167,7 @@ private func fields(_ index: VaultIndex, _ file: String) throws -> [String] {
         let index = try VaultIndex(databaseURL: url)
         #expect(try index.files().isEmpty)
         #expect(try index.entityFields().isEmpty)
-        #expect(try index.database.read { try Int.fetchOne($0, sql: "PRAGMA user_version") } == 9)
+        #expect(try index.database.read { try Int.fetchOne($0, sql: "PRAGMA user_version") } == IndexSchema.version)
         #expect(try index.database.read { try $0.tableExists("obsolete") } == false)
         try index.refresh(vaultRoot: root)
         #expect(try index.entityFields() == expected)

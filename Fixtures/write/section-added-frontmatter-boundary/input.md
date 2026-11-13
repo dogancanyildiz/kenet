@@ -1,4 +1,4 @@
 ---
 hello
-## Journal
+## Diary
 j

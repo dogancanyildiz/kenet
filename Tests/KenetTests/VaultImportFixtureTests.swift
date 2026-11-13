@@ -23,7 +23,7 @@ import Testing
             var needsSettings: Bool
             var canPrepare: Bool
             var markdownCount: Int
-            var journalDays: [String]
+            var diaryDays: [String]
             var externalDays: [String]
             var typed: [String: Int]
             var candidates: [Candidate]
@@ -50,7 +50,7 @@ import Testing
         "obsidian-days-only",
         "untyped-entities",
         "already-prepared",
-        "case-variant-journal",
+        "case-variant-diary",
         "unreadable-frontmatter",
         "newer-format-version",
     ])
@@ -80,7 +80,7 @@ import Testing
         #expect(report.needsSettings == spec.report.needsSettings)
         #expect(report.canPrepare == spec.report.canPrepare)
         #expect(report.markdownCount == spec.report.markdownCount)
-        #expect(report.journalDays == spec.report.journalDays)
+        #expect(report.diaryDays == spec.report.diaryDays)
         #expect(report.externalDays == spec.report.externalDays)
         #expect(report.typed == spec.report.typed)
         #expect(

@@ -2,7 +2,7 @@
 - [ ] dış
     ```markdown
     - [ ] kod
-    ## Journal
+    ## Diary
     - 10:00 kod
 	```
 - olay

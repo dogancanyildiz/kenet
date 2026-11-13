@@ -9,9 +9,9 @@ struct DayOverview: Identifiable, Sendable, Equatable {
     let id: String
     let date: CalendarDate
     let eventCount: Int
-    /// Paragraphs and headings of the `Journal` section.
-    let journalCount: Int
-    /// First line of the first Journal paragraph, as `DaySummary.preview` gives it.
+    /// Paragraphs and headings of the `Diary` section.
+    let diaryCount: Int
+    /// First line of the first Diary paragraph, as `DaySummary.preview` gives it.
     let preview: String?
     let hasGoalRecords: Bool
     let taskCount: Int
@@ -20,14 +20,14 @@ struct DayOverview: Identifiable, Sendable, Equatable {
     let firstEventSpans: [DayPreviewSpan]?
 
     init(
-        id: String, date: CalendarDate, eventCount: Int, journalCount: Int, preview: String?,
+        id: String, date: CalendarDate, eventCount: Int, diaryCount: Int, preview: String?,
         hasGoalRecords: Bool = false, taskCount: Int = 0, firstEventPreview: String? = nil,
         firstEventSpans: [DayPreviewSpan]? = nil
     ) {
         self.id = id
         self.date = date
         self.eventCount = eventCount
-        self.journalCount = journalCount
+        self.diaryCount = diaryCount
         self.preview = preview
         self.hasGoalRecords = hasGoalRecords
         self.taskCount = taskCount
@@ -37,7 +37,7 @@ struct DayOverview: Identifiable, Sendable, Equatable {
 
     init(entry: DaySummaryEntry) {
         self.init(
-            id: entry.file, date: entry.date, eventCount: entry.eventCount, journalCount: entry.journalCount,
+            id: entry.file, date: entry.date, eventCount: entry.eventCount, diaryCount: entry.diaryCount,
             preview: entry.firstParagraph.flatMap { paragraph in
                 // A block's text is its lines joined by "\n"; without links that is already its plain
                 // text, and the Markdown parse a whole list of previews would repeat is skipped.
@@ -50,7 +50,7 @@ struct DayOverview: Identifiable, Sendable, Equatable {
     }
 
     var hasActivity: Bool {
-        eventCount > 0 || taskCount > 0 || journalCount > 0 || hasGoalRecords
+        eventCount > 0 || taskCount > 0 || diaryCount > 0 || hasGoalRecords
     }
 
     /// Linked spans of ``displayPreview`` when it is the first event's line and holds a link.
@@ -75,7 +75,7 @@ struct DayOverview: Identifiable, Sendable, Equatable {
     func enriched(with fragment: VaultFileFragment?) -> DayOverview {
         guard let fragment else { return self }
         return DayOverview(
-            id: id, date: date, eventCount: eventCount, journalCount: journalCount,
+            id: id, date: date, eventCount: eventCount, diaryCount: diaryCount,
             preview: preview, hasGoalRecords: hasGoalRecords,
             taskCount: fragment.taskCount, firstEventPreview: fragment.firstEventPreview,
             firstEventSpans: fragment.firstEventSpans)
@@ -95,13 +95,13 @@ struct DayRequest: Hashable {
     let updated: Date?
 
     init(date: CalendarDate, updated: Date?) {
-        path = "journal/\(date).md"
+        path = VaultLayout.dayPath(date)
         self.updated = updated
     }
 }
 
 extension DaySummary {
-    /// A day file's events and Journal paragraphs and headings, in source order.
+    /// A day file's events and Diary paragraphs and headings, in source order.
     init(path: String, date: CalendarDate, blocks: [IndexedBlock], links: [IndexedLink], hasGoalRecords: Bool) {
         let rows = blocks.sorted { $0.ordinal < $1.ordinal }
         let events = rows.filter { $0.kind == "event" }.map { row in
@@ -114,11 +114,11 @@ extension DaySummary {
                 sourceLine: row.firstLine - 1, sourceEnd: row.lastLine,
                 sourceText: row.text, sourceIdentifier: row.identifier)
         }
-        let journal = rows.filter { $0.section == "Journal" && ["paragraph", "heading"].contains($0.kind) }
+        let diary = rows.filter { $0.section == "Diary" && ["paragraph", "heading"].contains($0.kind) }
             .map { row in
-                JournalRow(id: row.ordinal, headingLevel: row.headingLevel, text: LinkedText(row: row, links: links))
+                DiaryRow(id: row.ordinal, headingLevel: row.headingLevel, text: LinkedText(row: row, links: links))
             }
-        self.init(id: path, date: date, events: events, journal: journal, hasGoalRecords: hasGoalRecords)
+        self.init(id: path, date: date, events: events, diary: diary, hasGoalRecords: hasGoalRecords)
     }
 
     /// The day page's content from `VaultIndex.day(on:)`; a date without a day file is empty.
@@ -134,6 +134,6 @@ extension DaySummary {
 
     /// A date without a day file.
     init(empty date: CalendarDate) {
-        self.init(id: "journal/\(date).md", date: date, events: [], journal: [])
+        self.init(id: VaultLayout.dayPath(date), date: date, events: [], diary: [])
     }
 }

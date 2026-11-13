@@ -32,7 +32,7 @@ struct BodyWriterTests {
     @Test func sampleEventsKeepTheirBytesAndOrder() throws {
         let appendExceptions: Set<String> = ["ogyr3x", "5fdhjk", "tgiqhg", "9ahej8"]
         var observed: Set<String> = []
-        for path in try Fixtures.markdownPaths(in: "vaults/sample/journal") {
+        for path in try Fixtures.markdownPaths(in: "vaults/sample/diary") {
             let before = RawDocument(bytes: try Fixtures.bytes(at: path))
             for event in before.bodyLines.events {
                 #expect(

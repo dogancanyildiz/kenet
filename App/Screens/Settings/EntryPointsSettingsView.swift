@@ -29,7 +29,7 @@ enum EntryPointsTipPreference {
     }
 }
 
-/// Siri phrases registered by `JournalShortcuts`, shown with the app's display name filled in.
+/// Siri phrases registered by `KenetShortcuts`, shown with the app's display name filled in.
 enum EntryPointPhrases {
     static let applicationNameToken = "${applicationName}"
 
@@ -44,7 +44,7 @@ enum EntryPointPhrases {
     }
 
     /// Templates in provider order. `AppShortcut` takes its phrases as literals and keeps them
-    /// internal, so the page holds its own list; a test checks it against `JournalShortcuts`.
+    /// internal, so the page holds its own list; a test checks it against `KenetShortcuts`.
     static let templates = [
         "${applicationName} ile günlüğe olay ekle",
         "${applicationName} ile görev ekle",

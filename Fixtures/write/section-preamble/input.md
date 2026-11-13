@@ -1,4 +1,4 @@
 ön
 
-## Journal
+## Diary
 yazı

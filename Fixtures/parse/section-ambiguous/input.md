@@ -1,5 +1,5 @@
 --- 
 ## Tasks
 ---	
-## Journal
+## Diary
 yazı

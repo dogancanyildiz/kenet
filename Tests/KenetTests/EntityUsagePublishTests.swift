@@ -47,12 +47,12 @@ struct EntityUsagePublishTests {
         let people = ["Ada Lin", "Bora Taş", "Cem Ulu", "Mavi Han", "Su", "Fikir", "Yok Biri"]
         for day in 1...40 {
             let date = String(format: "2026-03-%02d", (day - 1) % 28 + 1)
-            let path = day <= 28 ? "journal/\(date).md" : "journal/\(date) kopya.md"
+            let path = day <= 28 ? "diary/\(date).md" : "diary/\(date) kopya.md"
             let first = people[day % people.count]
             let second = people[(day * 3) % people.count]
             files[path] =
-                "---\ntype: journal\ndate: \(date)\n---\n\n## Events\n- 09:00 [[\(first)]] ve [[\(second)]] ^e\(day)\n"
-                + (day % 4 == 0 ? "\n## Journal\n[[Ada Lin|Ada]] uğradı.\n" : "")
+                "---\ntype: diary\ndate: \(date)\n---\n\n## Events\n- 09:00 [[\(first)]] ve [[\(second)]] ^e\(day)\n"
+                + (day % 4 == 0 ? "\n## Diary\n[[Ada Lin|Ada]] uğradı.\n" : "")
         }
         for (path, text) in files {
             let url = root.appendingPathComponent(path)
@@ -117,14 +117,14 @@ struct EntityUsagePublishTests {
         await context.start()
         let store = context.store
         let before = try #require(store.lastUpdated)
-        let day = context.root.appendingPathComponent("journal/2026-09-20.md")
+        let day = context.root.appendingPathComponent("diary/2026-09-20.md")
         try (try String(contentsOf: day, encoding: .utf8) + "\nDışarıdan eklenen satır.\n")
             .write(to: day, atomically: true, encoding: .utf8)
         store.testingRecognitionReloadDidLoad = {
             store.testingRecognitionReloadDidLoad = nil
             throw CocoaError(.fileReadUnknown)
         }
-        await store.refresh(directories: ["journal"])
+        await store.refresh(directories: ["diary"])
         let after = try #require(store.lastUpdated)
         #expect(after > before)
         #expect(store.errorText != nil)
@@ -141,12 +141,12 @@ struct EntityUsagePublishTests {
         defer { context.clean() }
         await context.start()
         let store = context.store
-        let day = context.root.appendingPathComponent("journal/2026-09-21.md")
+        let day = context.root.appendingPathComponent("diary/2026-09-21.md")
         try (try String(contentsOf: day, encoding: .utf8) + "\nBir satır daha.\n")
             .write(to: day, atomically: true, encoding: .utf8)
         let gate = FirstArrivalGate()
         store.testingRecognitionReloadDidLoad = { await gate.pass() }
-        let refresh = Task { await store.refresh(directories: ["journal"]) }
+        let refresh = Task { await store.refresh(directories: ["diary"]) }
         await gate.waitUntilHeld()
 
         var waited = false

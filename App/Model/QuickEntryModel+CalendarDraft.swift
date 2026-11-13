@@ -10,7 +10,7 @@ extension QuickEntryModel {
         /// The event's start; nil for an all-day event or one that began on another day.
         var time: Date?
         var unknownAttendees: [String]
-        /// Set when the field holds a journaling suggestion's line (``SuggestionFill``).
+        /// Set when the field holds a diary suggestion's line (``SuggestionFill``).
         var suggestion: SuggestionFill? = nil
     }
 

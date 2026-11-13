@@ -71,7 +71,7 @@ struct FixtureModelTests {
         #expect(document.isReadOnly)
         #expect(
             document.lines.map(\.text) == [
-                "## Journal", "Geçerli satır: ş 🛫", nil, nil, "Sonraki satır geçerli",
+                "## Diary", "Geçerli satır: ş 🛫", nil, nil, "Sonraki satır geçerli",
             ]
         )
     }

@@ -207,9 +207,9 @@ final class NotificationService {
             var schedule = NotificationSchedule(requests: [], assignments: [])
             if authorization.canSchedule, case .open = source {
                 if preferences.peopleEnabled { people = await cadencePeople(anchor) }
-                // Nil when the week could not be read: no task or journal reminder is planned.
+                // Nil when the week could not be read: no task or diary reminder is planned.
                 var days: NotificationVaultDays? = NotificationVaultDays()
-                if preferences.tasksEnabled || preferences.journalEnabled {
+                if preferences.tasksEnabled || preferences.diaryEnabled {
                     days = await vaultDays(anchor, anchor.addingDays(6) ?? anchor)
                 }
                 // Nil when the goals could not be read: no goal reminder is planned.

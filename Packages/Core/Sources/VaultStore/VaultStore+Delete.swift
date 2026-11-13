@@ -2,7 +2,7 @@ import Foundation
 import VaultFormat
 
 extension VaultStore {
-    /// Deletes only a definition; incoming links and journal bytes remain in the vault.
+    /// Deletes only a definition; incoming links and diary bytes remain in the vault.
     public func deletingEntity(path: String) async throws {
         try await perform { try self.deleteDefinition(path: path, goal: false) }
     }

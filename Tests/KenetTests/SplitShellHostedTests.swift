@@ -170,7 +170,7 @@
         @Test func widthChangeReflowsAndKeepsTheSelection() async throws {
             try await Shell.hosted(size: CGSize(width: 834, height: 1210), horizontal: .regular, vertical: .regular) {
                 shell in
-                let day = "journal/2026-09-20.md"
+                let day = "diary/2026-09-20.md"
                 shell.navigation.selectedDay = day
                 let draft = shell.navigation.quickEntryDraft(for: nil, store: shell.store) {
                     QuickEntryModel(store: shell.store)

@@ -11,20 +11,20 @@ struct NotificationTime: Codable, Equatable, Sendable {
 struct NotificationPreferences: Codable, Equatable, Sendable {
     var tasksEnabled = true
     var goalsEnabled = true
-    var journalEnabled = true
+    var diaryEnabled = true
     /// Optional meeting-cadence reminder. Off until the user turns it on; nothing is written to the vault.
     var peopleEnabled = false
     var taskTime = NotificationTime(hour: 9)
     var goalTime = NotificationTime(hour: 20)
-    var journalTime = NotificationTime(hour: 21)
+    var diaryTime = NotificationTime(hour: 21)
     var peopleTime = NotificationTime(hour: 10)
     /// When true, planned notifications omit task text, goal names and people names. On until the
     /// user turns content on; a stored choice is kept, and a record written before the field
     /// existed reads as hidden.
     var hideContent = true
-    var isValid: Bool { taskTime.isValid && goalTime.isValid && journalTime.isValid && peopleTime.isValid }
+    var isValid: Bool { taskTime.isValid && goalTime.isValid && diaryTime.isValid && peopleTime.isValid }
 
-    static let storageKey = "journal.notifications.v1"
+    static let storageKey = "kenet.notifications.v1"
     static func read(from defaults: UserDefaults) -> Self {
         guard let data = defaults.data(forKey: storageKey),
             let result = try? JSONDecoder().decode(Self.self, from: data), result.isValid
@@ -37,8 +37,19 @@ struct NotificationPreferences: Codable, Equatable, Sendable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case tasksEnabled, goalsEnabled, journalEnabled, peopleEnabled, taskTime, goalTime, journalTime, peopleTime,
+        case tasksEnabled, goalsEnabled, diaryEnabled, peopleEnabled, taskTime, goalTime, diaryTime, peopleTime,
             hideContent
+    }
+
+    /// The diary reminder's field names in a record written before 2026-11-13; read when the
+    /// current name is absent, never written (`LegacyDefaults`).
+    private struct LegacyKey: CodingKey {
+        let stringValue: String
+        var intValue: Int? { nil }
+        init(stringValue: String) { self.stringValue = stringValue }
+        init?(intValue: Int) { nil }
+        static let diaryEnabled = Self(stringValue: LegacyDefaults.codeName + "Enabled")
+        static let diaryTime = Self(stringValue: LegacyDefaults.codeName + "Time")
     }
 
     init() {}
@@ -47,12 +58,16 @@ struct NotificationPreferences: Codable, Equatable, Sendable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         tasksEnabled = try container.decodeIfPresent(Bool.self, forKey: .tasksEnabled) ?? true
         goalsEnabled = try container.decodeIfPresent(Bool.self, forKey: .goalsEnabled) ?? true
-        journalEnabled = try container.decodeIfPresent(Bool.self, forKey: .journalEnabled) ?? true
+        let legacy = try decoder.container(keyedBy: LegacyKey.self)
+        diaryEnabled =
+            try container.decodeIfPresent(Bool.self, forKey: .diaryEnabled)
+            ?? legacy.decodeIfPresent(Bool.self, forKey: .diaryEnabled) ?? true
         peopleEnabled = try container.decodeIfPresent(Bool.self, forKey: .peopleEnabled) ?? false
         taskTime = try container.decodeIfPresent(NotificationTime.self, forKey: .taskTime) ?? NotificationTime(hour: 9)
         goalTime = try container.decodeIfPresent(NotificationTime.self, forKey: .goalTime) ?? NotificationTime(hour: 20)
-        journalTime =
-            try container.decodeIfPresent(NotificationTime.self, forKey: .journalTime) ?? NotificationTime(hour: 21)
+        diaryTime =
+            try container.decodeIfPresent(NotificationTime.self, forKey: .diaryTime)
+            ?? legacy.decodeIfPresent(NotificationTime.self, forKey: .diaryTime) ?? NotificationTime(hour: 21)
         peopleTime =
             try container.decodeIfPresent(NotificationTime.self, forKey: .peopleTime) ?? NotificationTime(hour: 10)
         hideContent = try container.decodeIfPresent(Bool.self, forKey: .hideContent) ?? true

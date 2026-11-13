@@ -20,7 +20,7 @@ struct DigitNameWritePathTests {
     }
 
     private func document(_ context: TaskTestContext, on day: CalendarDate) throws -> RawDocument {
-        RawDocument(bytes: try Data(contentsOf: context.root.appendingPathComponent("journal/\(day).md")))
+        RawDocument(bytes: try Data(contentsOf: context.root.appendingPathComponent("diary/\(day).md")))
     }
 
     @Test func quickEntryEventLinksADigitNameOnlyAfterAnAtSign() async throws {

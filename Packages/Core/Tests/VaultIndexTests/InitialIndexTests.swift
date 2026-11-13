@@ -66,7 +66,7 @@ struct InitialIndexTests {
             }
             let index = try VaultIndex(databaseURL: url)
             #expect(try index.files().isEmpty)
-            #expect(try index.database.read { try Int.fetchOne($0, sql: "PRAGMA user_version") } == 9)
+            #expect(try index.database.read { try Int.fetchOne($0, sql: "PRAGMA user_version") } == IndexSchema.version)
             try index.refresh(vaultRoot: root)
             try equivalent(index, root)
         }

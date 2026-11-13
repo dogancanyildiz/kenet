@@ -42,7 +42,7 @@ struct DayTaskTests {
             "## Tasks\n- [ ] yesterday later 📅 2026-10-10 ^ylater\n- [x] yesterday done 📅 2026-10-10 ✅ 2026-10-03 ^ydone\n"
                 .utf8
         ).write(
-            to: context.root.appendingPathComponent("journal/2026-10-02.md"))
+            to: context.root.appendingPathComponent("diary/2026-10-02.md"))
         await context.store.refresh()
         let groups = await DayTasksModel.loaded(store: context.store, day: context.today, isToday: true).groups
         #expect(groups.overdue.map(\.sourceText) == ["late"])

@@ -12,7 +12,7 @@ items:
 - 10:00 dış ^ok
    ~~~~
 - [X] kod
-## Journal
+## Diary
 ~~~~~
 + [/] görev
 ```

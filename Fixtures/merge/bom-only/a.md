@@ -1,5 +1,5 @@
 ﻿---
-type: journal
+type: diary
 date: 2026-09-21
 ---
 
@@ -9,5 +9,5 @@ date: 2026-09-21
 ## Events
 - 09:00 [[Liman Ofis]]'te çalışma ^m1a002
 
-## Journal
+## Diary
 Sakin bir gün.

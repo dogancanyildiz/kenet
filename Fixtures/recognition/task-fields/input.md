@@ -18,7 +18,7 @@
 - 24:00 12 kişi
 - 12 kişi saatsiz
 
-## Journal
+## Diary
 - [ ] ara 📅 2026-10-12
 - [ ] Deniz ⏳ 2026-10-11 2026 yılı ^j1
 Serbest yazı 📅 2026-10-12 ve 2026.

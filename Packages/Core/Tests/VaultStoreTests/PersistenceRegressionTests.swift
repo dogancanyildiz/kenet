@@ -23,9 +23,9 @@ struct PersistenceRegressionTests {
             defer { vault.remove() }
             try vault.write(storePath, "## Events\n- Kitap ^keepme\n")
             let url = vault.root.appendingPathComponent(storePath)
-            try await xattr(["-w", "com.dravcore.journal.test", "Su", url.path])
+            try await xattr(["-w", "com.dravcore.diary.test", "Su", url.path])
             try await vault.store.addingEvent(on: storeDate, text: "Deniz")
-            #expect(try await xattr(["-p", "com.dravcore.journal.test", url.path]) == "Su\n")
+            #expect(try await xattr(["-p", "com.dravcore.diary.test", url.path]) == "Su\n")
             try vault.check()
         }
 

@@ -6,9 +6,9 @@ public struct EntityUsage: Equatable, Sendable {
     public let file: String
     /// All resolved incoming link occurrences.
     public let totalCount: Int
-    /// The most recent source journal date, if any.
+    /// The most recent source diary date, if any.
     public let lastDate: CalendarDate?
-    /// Other entity paths mapped to the number of shared journal days.
+    /// Other entity paths mapped to the number of shared diary days.
     public let cooccurrences: [String: Int]
 
     /// Creates immutable ranking data; missing usage is treated as zero.

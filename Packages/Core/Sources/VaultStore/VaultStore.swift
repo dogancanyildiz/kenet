@@ -67,9 +67,30 @@ public actor VaultStore {
         writeGate = WriteGate()
     }
 
-    /// Returns the canonical vault-relative path of a day.
+    /// Returns the vault-relative path of a day's file: `diary/<date>.md`, unless the vault is not
+    /// migrated and only the legacy day folder holds that day (`LegacyVaultNames`). Then reads and
+    /// writes go to the legacy file, so a day never gets a second file (`vault-format.md`, "Eski
+    /// adlar ve geçiş"). A file waiting for download counts as there. The legacy folder counts only
+    /// in its exact spelling.
     public nonisolated func dayFilePath(for date: CalendarDate) -> String {
-        "journal/" + date.description + ".md"
+        let current = VaultLayout.dayPath(date)
+        guard !Self.dayFileIsThere(current, in: root) else { return current }
+        let legacy = VaultLayout.legacyDayPath(date)
+        guard
+            (try? FileManager.default.contentsOfDirectory(atPath: root.path))?.contains(LegacyVaultNames.dayFolder)
+                == true,
+            Self.dayFileIsThere(legacy, in: root)
+        else { return current }
+        return legacy
+    }
+
+    /// Whether the file or its download placeholder is there.
+    private nonisolated static func dayFileIsThere(_ path: String, in root: URL) -> Bool {
+        let url = root.appendingPathComponent(path)
+        if FileManager.default.fileExists(atPath: url.path) { return true }
+        let placeholder = url.deletingLastPathComponent()
+            .appendingPathComponent(PlaceholderName.placeholderName(for: url.lastPathComponent))
+        return FileManager.default.fileExists(atPath: placeholder.path)
     }
 
     /// Reads the current disk bytes without querying the index.
@@ -185,23 +206,23 @@ public actor VaultStore {
         }
     }
 
-    /// Replaces Journal content, preserving trailing blanks and leaving a missing section untouched for empty text.
+    /// Replaces Diary content, preserving trailing blanks and leaving a missing section untouched for empty text.
     ///
-    /// With `expectedBody`, the section on disk (`RawDocument.journalText`, a missing day reads as
+    /// With `expectedBody`, the section on disk (`RawDocument.diaryText`, a missing day reads as
     /// empty) must still be what the caller read. The comparison runs inside the coordinated write,
     /// so a change another process or an earlier queued write made meanwhile is never replaced:
     /// `staleTarget`, and nothing is written.
     @discardableResult
-    public func changingJournal(
+    public func changingDiary(
         on date: CalendarDate, to text: String, expectedBody: String? = nil
     ) async throws -> RawDocument {
         try await perform {
             try self.edit(self.dayFilePath(for: date), date: date, createDay: !text.allSatisfy(\.isWhitespace)) {
                 document in
-                if let expectedBody, !(try document.journalText()).utf8.elementsEqual(expectedBody.utf8) {
+                if let expectedBody, !(try document.diaryText()).utf8.elementsEqual(expectedBody.utf8) {
                     throw VaultStoreError.staleTarget
                 }
-                return try document.replacingJournal(with: text)
+                return try document.replacingDiary(with: text)
             }
         }
     }
@@ -287,12 +308,25 @@ public actor VaultStore {
     ) throws -> RawDocument {
         for attempt in 0..<2 {
             do {
-                return try editOnce(path, date: date, createDay: createDay, transform: transform)
+                return try editOnce(
+                    resolvingMovedLegacyDay(path), date: date, createDay: createDay, transform: transform)
             } catch VaultStoreError.nameTaken where date != nil {
+                guard attempt == 0 else { throw VaultStoreError.staleTarget }
+            } catch is LegacyDayMoved {
+                // The folder migration moved the day after the path was chosen: choose again.
                 guard attempt == 0 else { throw VaultStoreError.staleTarget }
             }
         }
         throw VaultStoreError.staleTarget
+    }
+
+    /// A path of the legacy day folder whose file is gone, moved by the folder migration perhaps in
+    /// another process, becomes the day's current file (`dayFilePath(for:)`). Any other path stays.
+    nonisolated func resolvingMovedLegacyDay(_ path: String) -> String {
+        guard VaultLayout.isLegacyDayPath(path), let day = VaultLayout.day(ofDayPath: path),
+            !Self.dayFileIsThere(path, in: root)
+        else { return path }
+        return dayFilePath(for: day)
     }
 
     private nonisolated func editOnce(
@@ -306,12 +340,18 @@ public actor VaultStore {
             do {
                 original = RawDocument(bytes: try readFile(url))
                 wasMissing = false
+            } catch CocoaError.fileReadNoSuchFile where VaultLayout.isLegacyDayPath(path) {
+                // Never a new file under the legacy day folder: the day moved since the path was chosen.
+                try rejectPendingDownload(at: url, path: path)
+                throw LegacyDayMoved()
             } catch CocoaError.fileReadNoSuchFile where date != nil {
                 try rejectPendingDownload(at: url, path: path)
                 guard createDay else { return RawDocument(bytes: []) }
                 wasMissing = true
-                original = try RawDocument(bytes: []).settingFrontmatterValue(.text("journal"), forKey: "type")
-                    .settingFrontmatterValue(.date(date!), forKey: "date")
+                original = try RawDocument(bytes: []).settingFrontmatterValue(
+                    .text(VaultLayout.dayType), forKey: "type"
+                )
+                .settingFrontmatterValue(.date(date!), forKey: "date")
             }
             let changed: RawDocument
             do { changed = try transform(original) } catch EditError.targetNotFound {
@@ -351,3 +391,6 @@ public actor VaultStore {
         return try freshID(in: document)
     }
 }
+
+/// The legacy day file an edit chose was gone inside the coordinated read; `edit` chooses again.
+struct LegacyDayMoved: Error {}

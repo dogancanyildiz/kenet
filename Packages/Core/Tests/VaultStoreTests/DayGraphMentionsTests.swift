@@ -48,9 +48,9 @@ struct DayGraphMentionsTests {
         try vault.write("books/Uzun Yol.md", "---\ntype: book\nname: Uzun Yol\n---\n")
         try vault.write("notes/Plan.md", "[[Ada Test]] ve [[Uzun Yol]]\n")
         try vault.write(
-            "journal/2026-03-01.md",
-            "## Events\n- 09:00 [[Ada Test]] ile [[Uzun Yol]] okundu.\n\n## Journal\n[[Uzun Yol]] bitti. [[Yok]]\n")
-        try vault.write("journal/2026-03-02.md", "## Events\n- 09:00 [[Ada Test]] ile [[Uzun Yol]]\n")
+            "diary/2026-03-01.md",
+            "## Events\n- 09:00 [[Ada Test]] ile [[Uzun Yol]] okundu.\n\n## Diary\n[[Uzun Yol]] bitti. [[Yok]]\n")
+        try vault.write("diary/2026-03-02.md", "## Events\n- 09:00 [[Ada Test]] ile [[Uzun Yol]]\n")
         try vault.index.rebuild(vaultRoot: vault.root)
 
         let date = try #require(CalendarDate("2026-03-01"))

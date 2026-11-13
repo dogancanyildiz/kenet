@@ -266,7 +266,7 @@ struct EntryPointSettingsTests {
     /// Displayed sentences come from the `AppShortcuts` catalog with the app name filled in.
     /// Read from the Turkish table directly: the process language is English on CI. A catalog
     /// translation that drifts from the templates fails this.
-    @Test func shownPhrasesMatchJournalShortcuts() throws {
+    @Test func shownPhrasesMatchKenetShortcuts() throws {
         let name = "Uygulama"
         let path = try #require(Bundle.main.path(forResource: "tr", ofType: "lproj"))
         let turkish = try #require(Bundle(path: path))
@@ -275,14 +275,14 @@ struct EntryPointSettingsTests {
         let expected = EntryPointPhrases.templates.map {
             $0.replacingOccurrences(of: EntryPointPhrases.applicationNameToken, with: name)
         }
-        #expect(shown.count == JournalShortcuts.appShortcuts.count)
+        #expect(shown.count == KenetShortcuts.appShortcuts.count)
         #expect(shown == expected)
     }
 
-    /// The page's own list is the one `JournalShortcuts` registers. `AppShortcut` keeps its
+    /// The page's own list is the one `KenetShortcuts` registers. `AppShortcut` keeps its
     /// phrases internal, so the test reads them by reflection; the app itself does not.
     @Test func phraseTemplatesAreTheRegisteredOnes() throws {
-        let registered = JournalShortcuts.appShortcuts.flatMap { shortcut -> [String] in
+        let registered = KenetShortcuts.appShortcuts.flatMap { shortcut -> [String] in
             for child in Mirror(reflecting: shortcut).children where child.label == "basePhraseTemplates" {
                 if let templates = child.value as? [String] { return templates }
             }

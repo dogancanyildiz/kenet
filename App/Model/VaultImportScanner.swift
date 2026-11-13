@@ -83,8 +83,9 @@ enum VaultImportScanner {
             report.markdownCount += 1
             let parts = path.split(separator: "/")
             if let file = parts.last, CalendarDate(String(file.dropLast(3))) != nil {
-                if parts.count == 2 && parts[0] == "journal" {
-                    report.journalDays.append(path)
+                // A vault not yet migrated keeps its days in the legacy day folder (`LegacyVaultNames`).
+                if parts.count == 2 && [VaultLayout.dayFolder, LegacyVaultNames.dayFolder].contains(String(parts[0])) {
+                    report.diaryDays.append(path)
                 } else if parts.count == 1 || (parts.count == 2 && parts[0] == "daily") {
                     report.externalDays.append(path)
                 }

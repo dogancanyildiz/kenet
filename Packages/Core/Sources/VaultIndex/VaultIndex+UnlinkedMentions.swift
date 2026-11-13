@@ -55,7 +55,7 @@ extension VaultIndex {
     /// Full-text search narrows the day files; the recognizer then reads their current bytes with its
     /// usual name rules, so code, existing links, addresses and suffixes behave as in every app write;
     /// a digit-only name or alias is listed only where it follows an at sign, as it is linked only there.
-    /// Task continuation lines, Journal paragraphs, notes, an event's clock and task fields are not listed,
+    /// Task continuation lines, Diary paragraphs, notes, an event's clock and task fields are not listed,
     /// and neither is a spelling whose link the writer would refuse: one that cannot stand inside a
     /// wikilink, or one inside a recurrence rule the app cannot read.
     public func unlinkedMentions(of entity: KnownEntity, vaultRoot: URL) throws -> [UnlinkedMention] {
@@ -110,13 +110,17 @@ extension VaultIndex {
                             SELECT DISTINCT f.path, f.date FROM search
                             JOIN files f ON f.path = search.file
                             JOIN blocks b ON b.file = search.file AND b.ordinal = search.block
-                            WHERE search MATCH ? AND f.kind = 'day' AND f.date IS NOT NULL
+                            WHERE search MATCH ? AND f.kind = 'day' AND f.date IS NOT NULL AND \(Self.countsForItsDate("f"))
                                 AND b.kind IN ('event', 'task')
                             """, arguments: [expression])
                 }
             } else {
                 rows = try Row.fetchAll(
-                    db, sql: "SELECT path, date FROM files WHERE kind = 'day' AND date IS NOT NULL")
+                    db,
+                    sql: """
+                        SELECT f.path, f.date FROM files f
+                        WHERE f.kind = 'day' AND f.date IS NOT NULL AND \(Self.countsForItsDate("f"))
+                        """)
             }
             var seen: Set<String> = []
             return rows.map { (path: $0["path"] as String, date: $0["date"] as String) }

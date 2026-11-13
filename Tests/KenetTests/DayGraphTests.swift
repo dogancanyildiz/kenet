@@ -23,7 +23,7 @@ import VaultFormat
             .deletingLastPathComponent().appendingPathComponent("Fixtures/vaults/graph")
         try FileManager.default.copyItem(at: root, to: context.root)
         try "## Events\n- 09:00 [[Olmayan Kayıt]] aradı.\n".write(
-            to: context.root.appendingPathComponent("journal/2026-10-05.md"), atomically: true, encoding: .utf8)
+            to: context.root.appendingPathComponent("diary/2026-10-05.md"), atomically: true, encoding: .utf8)
         await context.start()
         return context
     }

@@ -51,7 +51,7 @@
   ],
   "blocks": [
     {
-      "file": "journal/2026-09-14.md",
+      "file": "diary/2026-09-14.md",
       "firstLine": 11,
       "identifier": "g8f1cb",
       "kind": "task",
@@ -67,7 +67,7 @@
       "project": "mobil"
     },
     {
-      "file": "journal/2026-09-14.md",
+      "file": "diary/2026-09-14.md",
       "firstLine": 12,
       "identifier": "fno6b9",
       "kind": "task",
@@ -81,7 +81,7 @@
       "doneDate": "2026-09-14"
     },
     {
-      "file": "journal/2026-09-14.md",
+      "file": "diary/2026-09-14.md",
       "firstLine": 15,
       "identifier": "m80o2r",
       "kind": "event",
@@ -93,7 +93,7 @@
       "time": "09:30"
     },
     {
-      "file": "journal/2026-09-14.md",
+      "file": "diary/2026-09-14.md",
       "firstLine": 16,
       "identifier": "ak1vrj",
       "kind": "event",
@@ -105,7 +105,7 @@
       "time": "12:45"
     },
     {
-      "file": "journal/2026-09-14.md",
+      "file": "diary/2026-09-14.md",
       "firstLine": 17,
       "identifier": "nvgfyg",
       "kind": "event",
@@ -117,17 +117,17 @@
       "time": "18:30"
     },
     {
-      "file": "journal/2026-09-14.md",
+      "file": "diary/2026-09-14.md",
       "firstLine": 20,
       "kind": "paragraph",
       "lastLine": 20,
       "ordinal": 5,
       "ownsIdentifier": false,
-      "section": "Journal",
+      "section": "Diary",
       "text": "Yeni haftaya planlama toplantısıyla başladık. [[Deniz Arıkan|Deniz abi]] yeni mimari önerilerini sundu. Akşam [[Tepe Spor Salonu]] antrenmanı oldukça tempoluydu."
     },
     {
-      "file": "journal/2026-09-15.md",
+      "file": "diary/2026-09-15.md",
       "firstLine": 10,
       "identifier": "wwqc38",
       "kind": "task",
@@ -144,7 +144,7 @@
       "project": "altyapi"
     },
     {
-      "file": "journal/2026-09-15.md",
+      "file": "diary/2026-09-15.md",
       "firstLine": 11,
       "identifier": "hyf9sx",
       "kind": "task",
@@ -158,7 +158,7 @@
       "doneDate": "2026-09-15"
     },
     {
-      "file": "journal/2026-09-15.md",
+      "file": "diary/2026-09-15.md",
       "firstLine": 14,
       "identifier": "mecosf",
       "kind": "event",
@@ -170,7 +170,7 @@
       "time": "10:15"
     },
     {
-      "file": "journal/2026-09-15.md",
+      "file": "diary/2026-09-15.md",
       "firstLine": 15,
       "identifier": "ogyr3x",
       "kind": "event",
@@ -182,7 +182,7 @@
       "time": "14:00"
     },
     {
-      "file": "journal/2026-09-15.md",
+      "file": "diary/2026-09-15.md",
       "firstLine": 16,
       "identifier": "kxwnre",
       "kind": "event",
@@ -193,17 +193,17 @@
       "text": "Market alışverişi yapıldı"
     },
     {
-      "file": "journal/2026-09-15.md",
+      "file": "diary/2026-09-15.md",
       "firstLine": 19,
       "kind": "paragraph",
       "lastLine": 19,
       "ordinal": 5,
       "ownsIdentifier": false,
-      "section": "Journal",
+      "section": "Diary",
       "text": "Günün büyük bölümü veri tabanı optimizasyonlarıyla geçti. [[Mert Aksu (iş)|Mert]] ile bütçe rakamlarını gözden geçirdik. Akşam evde biraz kitap okudum."
     },
     {
-      "file": "journal/2026-09-16.md",
+      "file": "diary/2026-09-16.md",
       "firstLine": 11,
       "identifier": "k8pk3y",
       "kind": "task",
@@ -217,7 +217,7 @@
       "dueDate": "2026-09-17"
     },
     {
-      "file": "journal/2026-09-16.md",
+      "file": "diary/2026-09-16.md",
       "firstLine": 14,
       "identifier": "r9oudo",
       "kind": "event",
@@ -229,7 +229,7 @@
       "time": "08:30"
     },
     {
-      "file": "journal/2026-09-16.md",
+      "file": "diary/2026-09-16.md",
       "firstLine": 15,
       "identifier": "cuzren",
       "kind": "event",
@@ -241,7 +241,7 @@
       "time": "11:00"
     },
     {
-      "file": "journal/2026-09-16.md",
+      "file": "diary/2026-09-16.md",
       "firstLine": 16,
       "identifier": "un5z3j",
       "kind": "event",
@@ -253,17 +253,17 @@
       "time": "15:30"
     },
     {
-      "file": "journal/2026-09-16.md",
+      "file": "diary/2026-09-16.md",
       "firstLine": 19,
       "kind": "paragraph",
       "lastLine": 19,
       "ordinal": 4,
       "ownsIdentifier": false,
-      "section": "Journal",
+      "section": "Diary",
       "text": "Sabah erken saatte [[Tepe Spor Salonu|salon]] sakindi. Öğleden sonra [[Çınaraltı Kafe]]'de kısa bir mola verip notlarımı toparladım."
     },
     {
-      "file": "journal/2026-09-17.md",
+      "file": "diary/2026-09-17.md",
       "firstLine": 10,
       "identifier": "qip98q",
       "kind": "event",
@@ -275,7 +275,7 @@
       "time": "10:00"
     },
     {
-      "file": "journal/2026-09-17.md",
+      "file": "diary/2026-09-17.md",
       "firstLine": 11,
       "identifier": "1zxoi6",
       "kind": "event",
@@ -287,7 +287,7 @@
       "time": "13:00"
     },
     {
-      "file": "journal/2026-09-17.md",
+      "file": "diary/2026-09-17.md",
       "firstLine": 12,
       "identifier": "5fdhjk",
       "kind": "event",
@@ -299,7 +299,7 @@
       "time": "16:45"
     },
     {
-      "file": "journal/2026-09-17.md",
+      "file": "diary/2026-09-17.md",
       "firstLine": 13,
       "identifier": "1eyy37",
       "kind": "event",
@@ -310,7 +310,7 @@
       "text": "Akşam yürüyüşü"
     },
     {
-      "file": "journal/2026-09-18.md",
+      "file": "diary/2026-09-18.md",
       "firstLine": 10,
       "identifier": "q9ah8r",
       "kind": "task",
@@ -325,7 +325,7 @@
       "project": "yonetim"
     },
     {
-      "file": "journal/2026-09-18.md",
+      "file": "diary/2026-09-18.md",
       "firstLine": 11,
       "identifier": "vhs1k3",
       "kind": "task",
@@ -340,7 +340,7 @@
       "priority": "🔽"
     },
     {
-      "file": "journal/2026-09-18.md",
+      "file": "diary/2026-09-18.md",
       "firstLine": 12,
       "identifier": "aq6l6g",
       "kind": "task",
@@ -353,7 +353,7 @@
       "text": "Sunucu yedekleme betiğini güncelle"
     },
     {
-      "file": "journal/2026-09-18.md",
+      "file": "diary/2026-09-18.md",
       "firstLine": 15,
       "identifier": "t6mjxk",
       "kind": "event",
@@ -365,7 +365,7 @@
       "time": "11:30"
     },
     {
-      "file": "journal/2026-09-18.md",
+      "file": "diary/2026-09-18.md",
       "firstLine": 16,
       "identifier": "87au5b",
       "kind": "event",
@@ -377,17 +377,17 @@
       "time": "17:00"
     },
     {
-      "file": "journal/2026-09-18.md",
+      "file": "diary/2026-09-18.md",
       "firstLine": 19,
       "kind": "paragraph",
       "lastLine": 19,
       "ordinal": 5,
       "ownsIdentifier": false,
-      "section": "Journal",
+      "section": "Diary",
       "text": "Haftanın son iş gününü retrospektif ile kapattık. [[Deniz Arıkan]] ile bir sonraki çeyreğin planları üzerine konuştuk."
     },
     {
-      "file": "journal/2026-09-19.md",
+      "file": "diary/2026-09-19.md",
       "firstLine": 10,
       "identifier": "hxtpdp",
       "kind": "task",
@@ -400,7 +400,7 @@
       "text": "Kitap kulübü notlarını çıkar"
     },
     {
-      "file": "journal/2026-09-19.md",
+      "file": "diary/2026-09-19.md",
       "firstLine": 11,
       "identifier": "ff5e8i",
       "kind": "task",
@@ -414,7 +414,7 @@
       "doneDate": "2026-09-19"
     },
     {
-      "file": "journal/2026-09-19.md",
+      "file": "diary/2026-09-19.md",
       "firstLine": 14,
       "identifier": "i49kq7",
       "kind": "event",
@@ -426,7 +426,7 @@
       "time": "10:30"
     },
     {
-      "file": "journal/2026-09-19.md",
+      "file": "diary/2026-09-19.md",
       "firstLine": 15,
       "identifier": "1n8mtz",
       "kind": "event",
@@ -438,17 +438,17 @@
       "time": "14:00"
     },
     {
-      "file": "journal/2026-09-19.md",
+      "file": "diary/2026-09-19.md",
       "firstLine": 18,
       "kind": "paragraph",
       "lastLine": 18,
       "ordinal": 4,
       "ownsIdentifier": false,
-      "section": "Journal",
+      "section": "Diary",
       "text": "Hafta sonu sakin başladı. [[Baran Tunç]] ile sahilde yürüyüp temiz hava aldık. Sonrasında [[Çınaraltı Kafe]]'de saatlerce kitap okudum."
     },
     {
-      "file": "journal/2026-09-20.md",
+      "file": "diary/2026-09-20.md",
       "firstLine": 10,
       "identifier": "x272hp",
       "kind": "task",
@@ -462,7 +462,7 @@
       "dueDate": "2026-09-20"
     },
     {
-      "file": "journal/2026-09-20.md",
+      "file": "diary/2026-09-20.md",
       "firstLine": 11,
       "identifier": "oevb9o",
       "kind": "task",
@@ -476,7 +476,7 @@
       "doneDate": "2026-09-20"
     },
     {
-      "file": "journal/2026-09-20.md",
+      "file": "diary/2026-09-20.md",
       "firstLine": 14,
       "identifier": "oaedoe",
       "kind": "event",
@@ -488,7 +488,7 @@
       "time": "11:00"
     },
     {
-      "file": "journal/2026-09-20.md",
+      "file": "diary/2026-09-20.md",
       "firstLine": 15,
       "identifier": "cve6pr",
       "kind": "event",
@@ -500,17 +500,17 @@
       "time": "16:00"
     },
     {
-      "file": "journal/2026-09-20.md",
+      "file": "diary/2026-09-20.md",
       "firstLine": 18,
       "kind": "paragraph",
       "lastLine": 18,
       "ordinal": 4,
       "ownsIdentifier": false,
-      "section": "Journal",
+      "section": "Diary",
       "text": "Pazar gününü evde toparlanarak geçirdim. Öğleden sonra [[Ece Yalın|Ece]] ile sergiyi gezdik."
     },
     {
-      "file": "journal/2026-09-21.md",
+      "file": "diary/2026-09-21.md",
       "firstLine": 11,
       "identifier": "5n8i4p",
       "kind": "task",
@@ -526,7 +526,7 @@
       "project": "tedarik"
     },
     {
-      "file": "journal/2026-09-21.md",
+      "file": "diary/2026-09-21.md",
       "firstLine": 12,
       "identifier": "40mgg1",
       "kind": "task",
@@ -542,7 +542,7 @@
       "project": "arsiv"
     },
     {
-      "file": "journal/2026-09-21.md",
+      "file": "diary/2026-09-21.md",
       "firstLine": 15,
       "identifier": "w103dg",
       "kind": "event",
@@ -554,7 +554,7 @@
       "time": "09:00"
     },
     {
-      "file": "journal/2026-09-21.md",
+      "file": "diary/2026-09-21.md",
       "firstLine": 16,
       "identifier": "dzvgpm",
       "kind": "event",
@@ -566,7 +566,7 @@
       "time": "13:15"
     },
     {
-      "file": "journal/2026-09-21.md",
+      "file": "diary/2026-09-21.md",
       "firstLine": 17,
       "identifier": "m82i1l",
       "kind": "event",
@@ -578,48 +578,48 @@
       "time": "18:30"
     },
     {
-      "file": "journal/2026-09-21.md",
+      "file": "diary/2026-09-21.md",
       "firstLine": 20,
       "kind": "paragraph",
       "lastLine": 20,
       "ordinal": 5,
       "ownsIdentifier": false,
-      "section": "Journal",
+      "section": "Diary",
       "text": "İkinci haftanın başlangıcı yoğun geçti. [[Liman Ofis]]'te yeni teslimat takvimini netleştirdik."
     },
     {
-      "file": "journal/2026-09-22.md",
+      "file": "diary/2026-09-22.md",
       "firstLine": 10,
       "kind": "paragraph",
       "lastLine": 10,
       "ordinal": 0,
       "ownsIdentifier": false,
-      "section": "Journal",
+      "section": "Diary",
       "text": "Bugün tüm gün odaklanarak çalıştım. Dışarı çıkmadan evde derinlemesine kod analizi ve refactoring yaptım. [[Deniz Arıkan]] ile uzaktan mesajlaşarak API tasarımı üzerinde uzlaştık."
     },
     {
-      "file": "journal/2026-09-22.md",
+      "file": "diary/2026-09-22.md",
       "firstLine": 12,
       "headingLevel": 3,
       "kind": "heading",
       "lastLine": 12,
       "ordinal": 1,
       "ownsIdentifier": false,
-      "section": "Journal",
+      "section": "Diary",
       "text": "Akşam"
     },
     {
-      "file": "journal/2026-09-22.md",
+      "file": "diary/2026-09-22.md",
       "firstLine": 13,
       "kind": "paragraph",
       "lastLine": 13,
       "ordinal": 2,
       "ownsIdentifier": false,
-      "section": "Journal",
+      "section": "Diary",
       "text": "Akşam saatlerinde [[Okuma Listesi]] içindeki mimari kitabına vakit ayırdım. Sessiz ve verimli bir gün oldu."
     },
     {
-      "file": "journal/2026-09-23.md",
+      "file": "diary/2026-09-23.md",
       "firstLine": 11,
       "identifier": "r3pe29",
       "kind": "task",
@@ -635,7 +635,7 @@
       "project": "performans"
     },
     {
-      "file": "journal/2026-09-23.md",
+      "file": "diary/2026-09-23.md",
       "firstLine": 12,
       "identifier": "gd8afp",
       "kind": "task",
@@ -649,7 +649,7 @@
       "doneDate": "2026-09-23"
     },
     {
-      "file": "journal/2026-09-23.md",
+      "file": "diary/2026-09-23.md",
       "firstLine": 15,
       "identifier": "k054nz",
       "kind": "event",
@@ -661,7 +661,7 @@
       "time": "08:30"
     },
     {
-      "file": "journal/2026-09-23.md",
+      "file": "diary/2026-09-23.md",
       "firstLine": 16,
       "identifier": "dkyayq",
       "kind": "event",
@@ -673,7 +673,7 @@
       "time": "11:30"
     },
     {
-      "file": "journal/2026-09-23.md",
+      "file": "diary/2026-09-23.md",
       "firstLine": 17,
       "identifier": "3s195j",
       "kind": "event",
@@ -685,7 +685,7 @@
       "time": "15:00"
     },
     {
-      "file": "journal/2026-09-23.md",
+      "file": "diary/2026-09-23.md",
       "firstLine": 18,
       "identifier": "msnd8d",
       "kind": "event",
@@ -697,17 +697,17 @@
       "time": "17:30"
     },
     {
-      "file": "journal/2026-09-23.md",
+      "file": "diary/2026-09-23.md",
       "firstLine": 21,
       "kind": "paragraph",
       "lastLine": 21,
       "ordinal": 6,
       "ownsIdentifier": false,
-      "section": "Journal",
+      "section": "Diary",
       "text": "Öğleden sonra [[Selin Korkmaz]] ile arayüz akışlarını yeniden çizdik. Akşamüstü eski arkadaşım [[Mert Aksu]] ile karşılaşıp ayaküstü sohbet ettik."
     },
     {
-      "file": "journal/2026-09-24.md",
+      "file": "diary/2026-09-24.md",
       "firstLine": 10,
       "identifier": "udd467",
       "kind": "task",
@@ -721,7 +721,7 @@
       "dueDate": "2026-09-24"
     },
     {
-      "file": "journal/2026-09-24.md",
+      "file": "diary/2026-09-24.md",
       "firstLine": 11,
       "identifier": "kd6fle",
       "kind": "task",
@@ -735,7 +735,7 @@
       "doneDate": "2026-09-24"
     },
     {
-      "file": "journal/2026-09-24.md",
+      "file": "diary/2026-09-24.md",
       "firstLine": 14,
       "identifier": "epzhpc",
       "kind": "event",
@@ -747,7 +747,7 @@
       "time": "10:00"
     },
     {
-      "file": "journal/2026-09-24.md",
+      "file": "diary/2026-09-24.md",
       "firstLine": 15,
       "identifier": "f07uqn",
       "kind": "event",
@@ -759,7 +759,7 @@
       "time": "14:00"
     },
     {
-      "file": "journal/2026-09-24.md",
+      "file": "diary/2026-09-24.md",
       "firstLine": 16,
       "identifier": "upqzit",
       "kind": "event",
@@ -771,7 +771,7 @@
       "time": "16:30"
     },
     {
-      "file": "journal/2026-09-25.md",
+      "file": "diary/2026-09-25.md",
       "firstLine": 11,
       "identifier": "3uea3g",
       "kind": "task",
@@ -786,7 +786,7 @@
       "project": "yayin"
     },
     {
-      "file": "journal/2026-09-25.md",
+      "file": "diary/2026-09-25.md",
       "firstLine": 12,
       "identifier": "e8n6qi",
       "kind": "task",
@@ -801,7 +801,7 @@
       "priority": "🔽"
     },
     {
-      "file": "journal/2026-09-25.md",
+      "file": "diary/2026-09-25.md",
       "firstLine": 15,
       "identifier": "wepxsk",
       "kind": "event",
@@ -813,7 +813,7 @@
       "time": "09:30"
     },
     {
-      "file": "journal/2026-09-25.md",
+      "file": "diary/2026-09-25.md",
       "firstLine": 16,
       "identifier": "28t7a9",
       "kind": "event",
@@ -825,7 +825,7 @@
       "time": "12:30"
     },
     {
-      "file": "journal/2026-09-25.md",
+      "file": "diary/2026-09-25.md",
       "firstLine": 17,
       "identifier": "tgiqhg",
       "kind": "event",
@@ -837,7 +837,7 @@
       "time": "18:00"
     },
     {
-      "file": "journal/2026-09-25.md",
+      "file": "diary/2026-09-25.md",
       "firstLine": 18,
       "identifier": "9jrsnv",
       "kind": "event",
@@ -848,17 +848,17 @@
       "text": "Akşam alışverişi"
     },
     {
-      "file": "journal/2026-09-25.md",
+      "file": "diary/2026-09-25.md",
       "firstLine": 21,
       "kind": "paragraph",
       "lastLine": 21,
       "ordinal": 6,
       "ownsIdentifier": false,
-      "section": "Journal",
+      "section": "Diary",
       "text": "Haftayı hedeflenen tüm görevleri tamamlayarak kapattık. [[Tepe Spor Salonu]] yüzme seansından sonra kendimi oldukça zinde hissediyorum."
     },
     {
-      "file": "journal/2026-09-26.md",
+      "file": "diary/2026-09-26.md",
       "firstLine": 10,
       "identifier": "nq65qd",
       "kind": "event",
@@ -870,7 +870,7 @@
       "time": "10:00"
     },
     {
-      "file": "journal/2026-09-26.md",
+      "file": "diary/2026-09-26.md",
       "firstLine": 11,
       "identifier": "f1rcav",
       "kind": "event",
@@ -882,7 +882,7 @@
       "time": "13:30"
     },
     {
-      "file": "journal/2026-09-26.md",
+      "file": "diary/2026-09-26.md",
       "firstLine": 12,
       "identifier": "iqk291",
       "kind": "event",
@@ -894,7 +894,7 @@
       "time": "16:00"
     },
     {
-      "file": "journal/2026-09-26.md",
+      "file": "diary/2026-09-26.md",
       "firstLine": 13,
       "identifier": "9ahej8",
       "kind": "event",
@@ -906,7 +906,7 @@
       "time": "19:30"
     },
     {
-      "file": "journal/2026-09-26.md",
+      "file": "diary/2026-09-26.md",
       "firstLine": 14,
       "identifier": "cx9j1i",
       "kind": "event",
@@ -917,17 +917,17 @@
       "text": "Gün sonu notları yazıldı"
     },
     {
-      "file": "journal/2026-09-26.md",
+      "file": "diary/2026-09-26.md",
       "firstLine": 17,
       "kind": "paragraph",
       "lastLine": 17,
       "ordinal": 5,
       "ownsIdentifier": false,
-      "section": "Journal",
+      "section": "Diary",
       "text": "Hafta sonu doğa yürüyüşü çok iyi geldi. [[Baran Tunç|Baran]] ile uzun bir rota yürüdük, ardından [[Çınaraltı Kafe]]'de yemek yedik."
     },
     {
-      "file": "journal/2026-09-27.md",
+      "file": "diary/2026-09-27.md",
       "firstLine": 7,
       "identifier": "ctxcwn",
       "kind": "task",
@@ -941,7 +941,7 @@
       "doneDate": "2026-09-27"
     },
     {
-      "file": "journal/2026-09-27.md",
+      "file": "diary/2026-09-27.md",
       "firstLine": 8,
       "identifier": "pgw90j",
       "kind": "task",
@@ -956,7 +956,7 @@
       "priority": "🔼"
     },
     {
-      "file": "journal/2026-09-27.md",
+      "file": "diary/2026-09-27.md",
       "firstLine": 11,
       "identifier": "pkl0bl",
       "kind": "event",
@@ -968,7 +968,7 @@
       "time": "11:30"
     },
     {
-      "file": "journal/2026-09-27.md",
+      "file": "diary/2026-09-27.md",
       "firstLine": 12,
       "identifier": "v0prkg",
       "kind": "event",
@@ -980,13 +980,13 @@
       "time": "15:00"
     },
     {
-      "file": "journal/2026-09-27.md",
+      "file": "diary/2026-09-27.md",
       "firstLine": 15,
       "kind": "paragraph",
       "lastLine": 15,
       "ordinal": 4,
       "ownsIdentifier": false,
-      "section": "Journal",
+      "section": "Diary",
       "text": "İki haftalık yoğun dönemin ardından pazar gününü sakin geçirdim. [[Ece Yalın]] ile kütüphanede buluşup araştırma konuları üzerine sohbet ettik."
     },
     {
@@ -1396,6 +1396,90 @@
   ],
   "files": [
     {
+      "date": "2026-09-14",
+      "kind": "day",
+      "path": "diary/2026-09-14.md",
+      "readable": true
+    },
+    {
+      "date": "2026-09-15",
+      "kind": "day",
+      "path": "diary/2026-09-15.md",
+      "readable": true
+    },
+    {
+      "date": "2026-09-16",
+      "kind": "day",
+      "path": "diary/2026-09-16.md",
+      "readable": true
+    },
+    {
+      "date": "2026-09-17",
+      "kind": "day",
+      "path": "diary/2026-09-17.md",
+      "readable": true
+    },
+    {
+      "date": "2026-09-18",
+      "kind": "day",
+      "path": "diary/2026-09-18.md",
+      "readable": true
+    },
+    {
+      "date": "2026-09-19",
+      "kind": "day",
+      "path": "diary/2026-09-19.md",
+      "readable": true
+    },
+    {
+      "date": "2026-09-20",
+      "kind": "day",
+      "path": "diary/2026-09-20.md",
+      "readable": true
+    },
+    {
+      "date": "2026-09-21",
+      "kind": "day",
+      "path": "diary/2026-09-21.md",
+      "readable": true
+    },
+    {
+      "date": "2026-09-22",
+      "kind": "day",
+      "path": "diary/2026-09-22.md",
+      "readable": true
+    },
+    {
+      "date": "2026-09-23",
+      "kind": "day",
+      "path": "diary/2026-09-23.md",
+      "readable": true
+    },
+    {
+      "date": "2026-09-24",
+      "kind": "day",
+      "path": "diary/2026-09-24.md",
+      "readable": true
+    },
+    {
+      "date": "2026-09-25",
+      "kind": "day",
+      "path": "diary/2026-09-25.md",
+      "readable": true
+    },
+    {
+      "date": "2026-09-26",
+      "kind": "day",
+      "path": "diary/2026-09-26.md",
+      "readable": true
+    },
+    {
+      "date": "2026-09-27",
+      "kind": "day",
+      "path": "diary/2026-09-27.md",
+      "readable": true
+    },
+    {
       "kind": "goal",
       "path": "goals/Kitap.md",
       "readable": true
@@ -1408,90 +1492,6 @@
     {
       "kind": "goal",
       "path": "goals/Su.md",
-      "readable": true
-    },
-    {
-      "date": "2026-09-14",
-      "kind": "day",
-      "path": "journal/2026-09-14.md",
-      "readable": true
-    },
-    {
-      "date": "2026-09-15",
-      "kind": "day",
-      "path": "journal/2026-09-15.md",
-      "readable": true
-    },
-    {
-      "date": "2026-09-16",
-      "kind": "day",
-      "path": "journal/2026-09-16.md",
-      "readable": true
-    },
-    {
-      "date": "2026-09-17",
-      "kind": "day",
-      "path": "journal/2026-09-17.md",
-      "readable": true
-    },
-    {
-      "date": "2026-09-18",
-      "kind": "day",
-      "path": "journal/2026-09-18.md",
-      "readable": true
-    },
-    {
-      "date": "2026-09-19",
-      "kind": "day",
-      "path": "journal/2026-09-19.md",
-      "readable": true
-    },
-    {
-      "date": "2026-09-20",
-      "kind": "day",
-      "path": "journal/2026-09-20.md",
-      "readable": true
-    },
-    {
-      "date": "2026-09-21",
-      "kind": "day",
-      "path": "journal/2026-09-21.md",
-      "readable": true
-    },
-    {
-      "date": "2026-09-22",
-      "kind": "day",
-      "path": "journal/2026-09-22.md",
-      "readable": true
-    },
-    {
-      "date": "2026-09-23",
-      "kind": "day",
-      "path": "journal/2026-09-23.md",
-      "readable": true
-    },
-    {
-      "date": "2026-09-24",
-      "kind": "day",
-      "path": "journal/2026-09-24.md",
-      "readable": true
-    },
-    {
-      "date": "2026-09-25",
-      "kind": "day",
-      "path": "journal/2026-09-25.md",
-      "readable": true
-    },
-    {
-      "date": "2026-09-26",
-      "kind": "day",
-      "path": "journal/2026-09-26.md",
-      "readable": true
-    },
-    {
-      "date": "2026-09-27",
-      "kind": "day",
-      "path": "journal/2026-09-27.md",
       "readable": true
     },
     {
@@ -1563,217 +1563,217 @@
   "goalLogs": [
     {
       "date": "2026-09-14",
-      "file": "journal/2026-09-14.md",
+      "file": "diary/2026-09-14.md",
       "key": "kitap",
       "kind": "number",
       "value": "20"
     },
     {
       "date": "2026-09-14",
-      "file": "journal/2026-09-14.md",
+      "file": "diary/2026-09-14.md",
       "key": "spor",
       "kind": "boolean",
       "value": "true"
     },
     {
       "date": "2026-09-14",
-      "file": "journal/2026-09-14.md",
+      "file": "diary/2026-09-14.md",
       "key": "su",
       "kind": "number",
       "value": "8"
     },
     {
       "date": "2026-09-15",
-      "file": "journal/2026-09-15.md",
+      "file": "diary/2026-09-15.md",
       "key": "kitap",
       "kind": "number",
       "value": "25"
     },
     {
       "date": "2026-09-15",
-      "file": "journal/2026-09-15.md",
+      "file": "diary/2026-09-15.md",
       "key": "su",
       "kind": "number",
       "value": "9"
     },
     {
       "date": "2026-09-16",
-      "file": "journal/2026-09-16.md",
+      "file": "diary/2026-09-16.md",
       "key": "kitap",
       "kind": "number",
       "value": "20"
     },
     {
       "date": "2026-09-16",
-      "file": "journal/2026-09-16.md",
+      "file": "diary/2026-09-16.md",
       "key": "spor",
       "kind": "boolean",
       "value": "true"
     },
     {
       "date": "2026-09-16",
-      "file": "journal/2026-09-16.md",
+      "file": "diary/2026-09-16.md",
       "key": "su",
       "kind": "number",
       "value": "8"
     },
     {
       "date": "2026-09-17",
-      "file": "journal/2026-09-17.md",
+      "file": "diary/2026-09-17.md",
       "key": "kitap",
       "kind": "number",
       "value": "15"
     },
     {
       "date": "2026-09-17",
-      "file": "journal/2026-09-17.md",
+      "file": "diary/2026-09-17.md",
       "key": "su",
       "kind": "number",
       "value": "7"
     },
     {
       "date": "2026-09-18",
-      "file": "journal/2026-09-18.md",
+      "file": "diary/2026-09-18.md",
       "key": "spor",
       "kind": "boolean",
       "value": "true"
     },
     {
       "date": "2026-09-18",
-      "file": "journal/2026-09-18.md",
+      "file": "diary/2026-09-18.md",
       "key": "su",
       "kind": "number",
       "value": "8"
     },
     {
       "date": "2026-09-19",
-      "file": "journal/2026-09-19.md",
+      "file": "diary/2026-09-19.md",
       "key": "kitap",
       "kind": "number",
       "value": "40"
     },
     {
       "date": "2026-09-19",
-      "file": "journal/2026-09-19.md",
+      "file": "diary/2026-09-19.md",
       "key": "su",
       "kind": "number",
       "value": "6"
     },
     {
       "date": "2026-09-20",
-      "file": "journal/2026-09-20.md",
+      "file": "diary/2026-09-20.md",
       "key": "kitap",
       "kind": "number",
       "value": "30"
     },
     {
       "date": "2026-09-20",
-      "file": "journal/2026-09-20.md",
+      "file": "diary/2026-09-20.md",
       "key": "su",
       "kind": "number",
       "value": "8"
     },
     {
       "date": "2026-09-21",
-      "file": "journal/2026-09-21.md",
+      "file": "diary/2026-09-21.md",
       "key": "kitap",
       "kind": "number",
       "value": "20"
     },
     {
       "date": "2026-09-21",
-      "file": "journal/2026-09-21.md",
+      "file": "diary/2026-09-21.md",
       "key": "spor",
       "kind": "boolean",
       "value": "true"
     },
     {
       "date": "2026-09-21",
-      "file": "journal/2026-09-21.md",
+      "file": "diary/2026-09-21.md",
       "key": "su",
       "kind": "number",
       "value": "8"
     },
     {
       "date": "2026-09-22",
-      "file": "journal/2026-09-22.md",
+      "file": "diary/2026-09-22.md",
       "key": "kitap",
       "kind": "number",
       "value": "35"
     },
     {
       "date": "2026-09-22",
-      "file": "journal/2026-09-22.md",
+      "file": "diary/2026-09-22.md",
       "key": "su",
       "kind": "number",
       "value": "9"
     },
     {
       "date": "2026-09-23",
-      "file": "journal/2026-09-23.md",
+      "file": "diary/2026-09-23.md",
       "key": "kitap",
       "kind": "number",
       "value": "20"
     },
     {
       "date": "2026-09-23",
-      "file": "journal/2026-09-23.md",
+      "file": "diary/2026-09-23.md",
       "key": "spor",
       "kind": "boolean",
       "value": "true"
     },
     {
       "date": "2026-09-23",
-      "file": "journal/2026-09-23.md",
+      "file": "diary/2026-09-23.md",
       "key": "su",
       "kind": "number",
       "value": "8"
     },
     {
       "date": "2026-09-24",
-      "file": "journal/2026-09-24.md",
+      "file": "diary/2026-09-24.md",
       "key": "kitap",
       "kind": "number",
       "value": "20"
     },
     {
       "date": "2026-09-24",
-      "file": "journal/2026-09-24.md",
+      "file": "diary/2026-09-24.md",
       "key": "su",
       "kind": "number",
       "value": "7"
     },
     {
       "date": "2026-09-25",
-      "file": "journal/2026-09-25.md",
+      "file": "diary/2026-09-25.md",
       "key": "kitap",
       "kind": "number",
       "value": "25"
     },
     {
       "date": "2026-09-25",
-      "file": "journal/2026-09-25.md",
+      "file": "diary/2026-09-25.md",
       "key": "spor",
       "kind": "boolean",
       "value": "true"
     },
     {
       "date": "2026-09-25",
-      "file": "journal/2026-09-25.md",
+      "file": "diary/2026-09-25.md",
       "key": "su",
       "kind": "number",
       "value": "10"
     },
     {
       "date": "2026-09-26",
-      "file": "journal/2026-09-26.md",
+      "file": "diary/2026-09-26.md",
       "key": "kitap",
       "kind": "number",
       "value": "50"
     },
     {
       "date": "2026-09-26",
-      "file": "journal/2026-09-26.md",
+      "file": "diary/2026-09-26.md",
       "key": "su",
       "kind": "number",
       "value": "8"
@@ -1781,23 +1781,11 @@
   ],
   "links": [
     {
-      "byteEnd": 28,
-      "byteStart": 8,
-      "embedded": false,
-      "file": "goals/Spor.md",
-      "key": "place",
-      "line": 8,
-      "ordinal": 0,
-      "resolvedFile": "places/Tepe Spor Salonu.md",
-      "target": "Tepe Spor Salonu",
-      "targetKey": "tepe spor salonu"
-    },
-    {
       "block": 1,
       "byteEnd": 20,
       "byteStart": 6,
       "embedded": false,
-      "file": "journal/2026-09-14.md",
+      "file": "diary/2026-09-14.md",
       "line": 12,
       "ordinal": 0,
       "resolvedFile": "places/Liman Ofis.md",
@@ -1809,7 +1797,7 @@
       "byteEnd": 22,
       "byteStart": 8,
       "embedded": false,
-      "file": "journal/2026-09-14.md",
+      "file": "diary/2026-09-14.md",
       "line": 15,
       "ordinal": 1,
       "resolvedFile": "places/Liman Ofis.md",
@@ -1822,7 +1810,7 @@
       "byteStart": 8,
       "displayText": "Deniz",
       "embedded": false,
-      "file": "journal/2026-09-14.md",
+      "file": "diary/2026-09-14.md",
       "line": 16,
       "ordinal": 2,
       "resolvedFile": "people/Deniz Arıkan.md",
@@ -1835,7 +1823,7 @@
       "byteStart": 8,
       "displayText": "salon",
       "embedded": false,
-      "file": "journal/2026-09-14.md",
+      "file": "diary/2026-09-14.md",
       "line": 17,
       "ordinal": 3,
       "resolvedFile": "places/Tepe Spor Salonu.md",
@@ -1848,7 +1836,7 @@
       "byteStart": 50,
       "displayText": "Deniz abi",
       "embedded": false,
-      "file": "journal/2026-09-14.md",
+      "file": "diary/2026-09-14.md",
       "line": 20,
       "ordinal": 4,
       "resolvedFile": "people/Deniz Arıkan.md",
@@ -1860,7 +1848,7 @@
       "byteEnd": 137,
       "byteStart": 117,
       "embedded": false,
-      "file": "journal/2026-09-14.md",
+      "file": "diary/2026-09-14.md",
       "line": 20,
       "ordinal": 5,
       "resolvedFile": "places/Tepe Spor Salonu.md",
@@ -1872,7 +1860,7 @@
       "byteEnd": 23,
       "byteStart": 6,
       "embedded": false,
-      "file": "journal/2026-09-15.md",
+      "file": "diary/2026-09-15.md",
       "line": 11,
       "ordinal": 0,
       "resolvedFile": "people/Selin Korkmaz.md",
@@ -1885,7 +1873,7 @@
       "byteStart": 8,
       "displayText": "Mert",
       "embedded": false,
-      "file": "journal/2026-09-15.md",
+      "file": "diary/2026-09-15.md",
       "line": 14,
       "ordinal": 1,
       "resolvedFile": "people/Mert Aksu (iş).md",
@@ -1898,7 +1886,7 @@
       "byteStart": 68,
       "displayText": "Mert",
       "embedded": false,
-      "file": "journal/2026-09-15.md",
+      "file": "diary/2026-09-15.md",
       "line": 19,
       "ordinal": 2,
       "resolvedFile": "people/Mert Aksu (iş).md",
@@ -1910,7 +1898,7 @@
       "byteEnd": 21,
       "byteStart": 6,
       "embedded": false,
-      "file": "journal/2026-09-16.md",
+      "file": "diary/2026-09-16.md",
       "line": 11,
       "ordinal": 0,
       "resolvedFile": "people/Baran Tunç.md",
@@ -1922,7 +1910,7 @@
       "byteEnd": 28,
       "byteStart": 8,
       "embedded": false,
-      "file": "journal/2026-09-16.md",
+      "file": "diary/2026-09-16.md",
       "line": 14,
       "ordinal": 1,
       "resolvedFile": "places/Tepe Spor Salonu.md",
@@ -1934,7 +1922,7 @@
       "byteEnd": 29,
       "byteStart": 8,
       "embedded": false,
-      "file": "journal/2026-09-16.md",
+      "file": "diary/2026-09-16.md",
       "line": 16,
       "ordinal": 2,
       "resolvedFile": "places/Çınaraltı Kafe.md",
@@ -1947,7 +1935,7 @@
       "byteStart": 19,
       "displayText": "salon",
       "embedded": false,
-      "file": "journal/2026-09-16.md",
+      "file": "diary/2026-09-16.md",
       "line": 19,
       "ordinal": 3,
       "resolvedFile": "places/Tepe Spor Salonu.md",
@@ -1959,7 +1947,7 @@
       "byteEnd": 92,
       "byteStart": 71,
       "embedded": false,
-      "file": "journal/2026-09-16.md",
+      "file": "diary/2026-09-16.md",
       "line": 19,
       "ordinal": 4,
       "resolvedFile": "places/Çınaraltı Kafe.md",
@@ -1971,7 +1959,7 @@
       "byteEnd": 22,
       "byteStart": 8,
       "embedded": false,
-      "file": "journal/2026-09-17.md",
+      "file": "diary/2026-09-17.md",
       "line": 10,
       "ordinal": 0,
       "resolvedFile": "places/Liman Ofis.md",
@@ -1984,7 +1972,7 @@
       "byteStart": 8,
       "displayText": "Ece",
       "embedded": false,
-      "file": "journal/2026-09-17.md",
+      "file": "diary/2026-09-17.md",
       "line": 11,
       "ordinal": 1,
       "resolvedFile": "people/Ece Yalın.md",
@@ -1996,7 +1984,7 @@
       "byteEnd": 34,
       "byteStart": 6,
       "embedded": false,
-      "file": "journal/2026-09-18.md",
+      "file": "diary/2026-09-18.md",
       "line": 11,
       "ordinal": 0,
       "target": "Henüz Yazılmamış Not",
@@ -2008,7 +1996,7 @@
       "byteStart": 8,
       "displayText": "salon",
       "embedded": false,
-      "file": "journal/2026-09-18.md",
+      "file": "diary/2026-09-18.md",
       "line": 16,
       "ordinal": 1,
       "resolvedFile": "places/Tepe Spor Salonu.md",
@@ -2020,7 +2008,7 @@
       "byteEnd": 73,
       "byteStart": 56,
       "embedded": false,
-      "file": "journal/2026-09-18.md",
+      "file": "diary/2026-09-18.md",
       "line": 19,
       "ordinal": 2,
       "resolvedFile": "people/Deniz Arıkan.md",
@@ -2033,7 +2021,7 @@
       "byteStart": 8,
       "displayText": "Baran",
       "embedded": false,
-      "file": "journal/2026-09-19.md",
+      "file": "diary/2026-09-19.md",
       "line": 14,
       "ordinal": 0,
       "resolvedFile": "people/Baran Tunç.md",
@@ -2045,7 +2033,7 @@
       "byteEnd": 29,
       "byteStart": 8,
       "embedded": false,
-      "file": "journal/2026-09-19.md",
+      "file": "diary/2026-09-19.md",
       "line": 15,
       "ordinal": 1,
       "resolvedFile": "places/Çınaraltı Kafe.md",
@@ -2057,7 +2045,7 @@
       "byteEnd": 43,
       "byteStart": 28,
       "embedded": false,
-      "file": "journal/2026-09-19.md",
+      "file": "diary/2026-09-19.md",
       "line": 18,
       "ordinal": 2,
       "resolvedFile": "people/Baran Tunç.md",
@@ -2069,7 +2057,7 @@
       "byteEnd": 119,
       "byteStart": 98,
       "embedded": false,
-      "file": "journal/2026-09-19.md",
+      "file": "diary/2026-09-19.md",
       "line": 18,
       "ordinal": 3,
       "resolvedFile": "places/Çınaraltı Kafe.md",
@@ -2081,7 +2069,7 @@
       "byteEnd": 14,
       "byteStart": 8,
       "embedded": false,
-      "file": "journal/2026-09-20.md",
+      "file": "diary/2026-09-20.md",
       "line": 14,
       "ordinal": 0,
       "resolvedFile": "places/Ev.md",
@@ -2093,7 +2081,7 @@
       "byteEnd": 22,
       "byteStart": 8,
       "embedded": false,
-      "file": "journal/2026-09-20.md",
+      "file": "diary/2026-09-20.md",
       "line": 15,
       "ordinal": 1,
       "resolvedFile": "people/Ece Yalın.md",
@@ -2106,7 +2094,7 @@
       "byteStart": 61,
       "displayText": "Ece",
       "embedded": false,
-      "file": "journal/2026-09-20.md",
+      "file": "diary/2026-09-20.md",
       "line": 18,
       "ordinal": 2,
       "resolvedFile": "people/Ece Yalın.md",
@@ -2119,7 +2107,7 @@
       "byteStart": 6,
       "displayText": "Mert",
       "embedded": false,
-      "file": "journal/2026-09-21.md",
+      "file": "diary/2026-09-21.md",
       "line": 11,
       "ordinal": 0,
       "resolvedFile": "people/Mert Aksu (iş).md",
@@ -2131,7 +2119,7 @@
       "byteEnd": 22,
       "byteStart": 8,
       "embedded": false,
-      "file": "journal/2026-09-21.md",
+      "file": "diary/2026-09-21.md",
       "line": 15,
       "ordinal": 1,
       "resolvedFile": "places/Liman Ofis.md",
@@ -2143,7 +2131,7 @@
       "byteEnd": 25,
       "byteStart": 8,
       "embedded": false,
-      "file": "journal/2026-09-21.md",
+      "file": "diary/2026-09-21.md",
       "line": 16,
       "ordinal": 2,
       "resolvedFile": "people/Deniz Arıkan.md",
@@ -2155,7 +2143,7 @@
       "byteEnd": 28,
       "byteStart": 8,
       "embedded": false,
-      "file": "journal/2026-09-21.md",
+      "file": "diary/2026-09-21.md",
       "line": 17,
       "ordinal": 3,
       "resolvedFile": "places/Tepe Spor Salonu.md",
@@ -2167,7 +2155,7 @@
       "byteEnd": 61,
       "byteStart": 47,
       "embedded": false,
-      "file": "journal/2026-09-21.md",
+      "file": "diary/2026-09-21.md",
       "line": 20,
       "ordinal": 4,
       "resolvedFile": "places/Liman Ofis.md",
@@ -2179,7 +2167,7 @@
       "byteEnd": 136,
       "byteStart": 119,
       "embedded": false,
-      "file": "journal/2026-09-22.md",
+      "file": "diary/2026-09-22.md",
       "line": 10,
       "ordinal": 0,
       "resolvedFile": "people/Deniz Arıkan.md",
@@ -2191,7 +2179,7 @@
       "byteEnd": 36,
       "byteStart": 19,
       "embedded": false,
-      "file": "journal/2026-09-22.md",
+      "file": "diary/2026-09-22.md",
       "line": 13,
       "ordinal": 1,
       "resolvedFile": "notes/Okuma Listesi.md",
@@ -2204,7 +2192,7 @@
       "byteStart": 8,
       "displayText": "salon",
       "embedded": false,
-      "file": "journal/2026-09-23.md",
+      "file": "diary/2026-09-23.md",
       "line": 15,
       "ordinal": 0,
       "resolvedFile": "places/Tepe Spor Salonu.md",
@@ -2216,7 +2204,7 @@
       "byteEnd": 22,
       "byteStart": 8,
       "embedded": false,
-      "file": "journal/2026-09-23.md",
+      "file": "diary/2026-09-23.md",
       "line": 16,
       "ordinal": 1,
       "resolvedFile": "places/Liman Ofis.md",
@@ -2229,7 +2217,7 @@
       "byteStart": 8,
       "displayText": "Selin",
       "embedded": false,
-      "file": "journal/2026-09-23.md",
+      "file": "diary/2026-09-23.md",
       "line": 17,
       "ordinal": 2,
       "resolvedFile": "people/Selin Korkmaz.md",
@@ -2241,7 +2229,7 @@
       "byteEnd": 21,
       "byteStart": 8,
       "embedded": false,
-      "file": "journal/2026-09-23.md",
+      "file": "diary/2026-09-23.md",
       "line": 18,
       "ordinal": 3,
       "resolvedFile": "people/Mert Aksu.md",
@@ -2253,7 +2241,7 @@
       "byteEnd": 33,
       "byteStart": 16,
       "embedded": false,
-      "file": "journal/2026-09-23.md",
+      "file": "diary/2026-09-23.md",
       "line": 21,
       "ordinal": 4,
       "resolvedFile": "people/Selin Korkmaz.md",
@@ -2265,7 +2253,7 @@
       "byteEnd": 121,
       "byteStart": 108,
       "embedded": false,
-      "file": "journal/2026-09-23.md",
+      "file": "diary/2026-09-23.md",
       "line": 21,
       "ordinal": 5,
       "resolvedFile": "people/Mert Aksu.md",
@@ -2277,7 +2265,7 @@
       "byteEnd": 25,
       "byteStart": 6,
       "embedded": false,
-      "file": "journal/2026-09-24.md",
+      "file": "diary/2026-09-24.md",
       "line": 10,
       "ordinal": 0,
       "resolvedFile": "notes/Proje Fikirleri.md",
@@ -2289,7 +2277,7 @@
       "byteEnd": 21,
       "byteStart": 6,
       "embedded": false,
-      "file": "journal/2026-09-24.md",
+      "file": "diary/2026-09-24.md",
       "line": 11,
       "ordinal": 1,
       "resolvedFile": "people/Baran Tunç.md",
@@ -2301,7 +2289,7 @@
       "byteEnd": 22,
       "byteStart": 8,
       "embedded": false,
-      "file": "journal/2026-09-24.md",
+      "file": "diary/2026-09-24.md",
       "line": 15,
       "ordinal": 2,
       "resolvedFile": "places/Liman Ofis.md",
@@ -2313,7 +2301,7 @@
       "byteEnd": 29,
       "byteStart": 8,
       "embedded": false,
-      "file": "journal/2026-09-24.md",
+      "file": "diary/2026-09-24.md",
       "line": 16,
       "ordinal": 3,
       "resolvedFile": "places/Çınaraltı Kafe.md",
@@ -2326,7 +2314,7 @@
       "byteStart": 8,
       "displayText": "Deniz",
       "embedded": false,
-      "file": "journal/2026-09-25.md",
+      "file": "diary/2026-09-25.md",
       "line": 16,
       "ordinal": 0,
       "resolvedFile": "people/Deniz Arıkan.md",
@@ -2339,7 +2327,7 @@
       "byteStart": 35,
       "displayText": "Mert",
       "embedded": false,
-      "file": "journal/2026-09-25.md",
+      "file": "diary/2026-09-25.md",
       "line": 16,
       "ordinal": 1,
       "resolvedFile": "people/Mert Aksu (iş).md",
@@ -2351,7 +2339,7 @@
       "byteEnd": 28,
       "byteStart": 8,
       "embedded": false,
-      "file": "journal/2026-09-25.md",
+      "file": "diary/2026-09-25.md",
       "line": 17,
       "ordinal": 2,
       "resolvedFile": "places/Tepe Spor Salonu.md",
@@ -2363,7 +2351,7 @@
       "byteEnd": 80,
       "byteStart": 60,
       "embedded": false,
-      "file": "journal/2026-09-25.md",
+      "file": "diary/2026-09-25.md",
       "line": 21,
       "ordinal": 3,
       "resolvedFile": "places/Tepe Spor Salonu.md",
@@ -2375,7 +2363,7 @@
       "byteEnd": 23,
       "byteStart": 8,
       "embedded": false,
-      "file": "journal/2026-09-26.md",
+      "file": "diary/2026-09-26.md",
       "line": 10,
       "ordinal": 0,
       "resolvedFile": "people/Baran Tunç.md",
@@ -2387,7 +2375,7 @@
       "byteEnd": 29,
       "byteStart": 8,
       "embedded": false,
-      "file": "journal/2026-09-26.md",
+      "file": "diary/2026-09-26.md",
       "line": 11,
       "ordinal": 1,
       "resolvedFile": "places/Çınaraltı Kafe.md",
@@ -2399,7 +2387,7 @@
       "byteEnd": 14,
       "byteStart": 8,
       "embedded": false,
-      "file": "journal/2026-09-26.md",
+      "file": "diary/2026-09-26.md",
       "line": 13,
       "ordinal": 2,
       "resolvedFile": "places/Ev.md",
@@ -2412,7 +2400,7 @@
       "byteStart": 47,
       "displayText": "Baran",
       "embedded": false,
-      "file": "journal/2026-09-26.md",
+      "file": "diary/2026-09-26.md",
       "line": 17,
       "ordinal": 3,
       "resolvedFile": "people/Baran Tunç.md",
@@ -2424,7 +2412,7 @@
       "byteEnd": 130,
       "byteStart": 109,
       "embedded": false,
-      "file": "journal/2026-09-26.md",
+      "file": "diary/2026-09-26.md",
       "line": 17,
       "ordinal": 4,
       "resolvedFile": "places/Çınaraltı Kafe.md",
@@ -2436,7 +2424,7 @@
       "byteEnd": 28,
       "byteStart": 6,
       "embedded": false,
-      "file": "journal/2026-09-27.md",
+      "file": "diary/2026-09-27.md",
       "line": 8,
       "ordinal": 0,
       "resolvedFile": "notes/Toplantı Notları.md",
@@ -2448,7 +2436,7 @@
       "byteEnd": 14,
       "byteStart": 8,
       "embedded": false,
-      "file": "journal/2026-09-27.md",
+      "file": "diary/2026-09-27.md",
       "line": 11,
       "ordinal": 1,
       "resolvedFile": "places/Ev.md",
@@ -2460,7 +2448,7 @@
       "byteEnd": 22,
       "byteStart": 8,
       "embedded": false,
-      "file": "journal/2026-09-27.md",
+      "file": "diary/2026-09-27.md",
       "line": 12,
       "ordinal": 2,
       "resolvedFile": "people/Ece Yalın.md",
@@ -2472,12 +2460,24 @@
       "byteEnd": 88,
       "byteStart": 74,
       "embedded": false,
-      "file": "journal/2026-09-27.md",
+      "file": "diary/2026-09-27.md",
       "line": 15,
       "ordinal": 3,
       "resolvedFile": "people/Ece Yalın.md",
       "target": "Ece Yalın",
       "targetKey": "ece yalın"
+    },
+    {
+      "byteEnd": 28,
+      "byteStart": 8,
+      "embedded": false,
+      "file": "goals/Spor.md",
+      "key": "place",
+      "line": 8,
+      "ordinal": 0,
+      "resolvedFile": "places/Tepe Spor Salonu.md",
+      "target": "Tepe Spor Salonu",
+      "targetKey": "tepe spor salonu"
     },
     {
       "block": 2,

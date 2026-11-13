@@ -86,7 +86,7 @@ struct InkListSelectionTests {
             #expect(row < 150, "sheet row painted \(row) fill pixels")
         }
 
-        @Test func journalDayRowDrawsColumnSelection() async throws {
+        @Test func diaryDayRowDrawsColumnSelection() async throws {
             let context = try TaskTestContext(sample: true)
             defer { context.clean() }
             await context.start()
@@ -99,7 +99,7 @@ struct InkListSelectionTests {
                 size: size)
             let fill = try await SelectionBitmap.fillSwatch()
             let wells = SelectionBitmap.wellCount(in: bitmap, yRange: 0..<120, fill: fill)
-            #expect(wells > 200, "journal row fill pixels \(wells)")
+            #expect(wells > 200, "diary row fill pixels \(wells)")
         }
 
         /// CI runs this one (the Mac snapshot suites are skipped there). A control stacked under

@@ -39,7 +39,7 @@ struct DefinitionDeletionTests {
         defer { context.clean() }
         await context.start()
         let model = DefinitionDeletionModel()
-        #expect(await !model.delete(store: context.store, path: "journal/2026-09-27.md", goal: false))
+        #expect(await !model.delete(store: context.store, path: "diary/2026-09-27.md", goal: false))
         #expect(!model.isDeleted && !model.isDeleting)
         #expect(model.errorText != nil)
         model.request(path: context.path)

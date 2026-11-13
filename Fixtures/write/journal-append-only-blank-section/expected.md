@@ -1,7 +1,0 @@
-## Journal
-
-Yeni
-
-
-## Notlar
-Sakla

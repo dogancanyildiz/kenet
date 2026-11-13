@@ -48,16 +48,16 @@ struct DayView: View {
     @Environment(\.inkMastheadPlacement) private var mastheadPlacement
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.scenePhase) private var scenePhase
-    /// The shell's bridge: the journal editor's presence and the drafts live there, so a shell
+    /// The shell's bridge: the diary editor's presence and the drafts live there, so a shell
     /// rebuilt by the iPhone Duo shows the same page with the same text. Nil when the page is
     /// hosted without a shell (tests).
     @Environment(ShellNavigationState.self) private var navigation: ShellNavigationState?
     #if os(macOS)
         @Environment(\.todayDeskChrome) private var todayDeskChrome: TodayDeskChrome?
     #endif
-    @State private var showsJournal = false
+    @State private var showsDiary = false
     /// On screen (`onAppear`): a page in another tab or under a pushed page is not, and leaves
-    /// the journal editor route to the page the user sees.
+    /// the diary editor route to the page the user sees.
     @State private var isVisible = false
     @State private var closeDayRoute: CloseDayRoute?
     @State private var tasksModel: DayTasksModel
@@ -166,7 +166,7 @@ struct DayView: View {
         let entitiesByID = InkLinkMapping.entityIndex(store.content.entities)
         let day = self.day
         let isEmptyDay =
-            day.map { $0.events.isEmpty && $0.journal.isEmpty && !$0.hasGoalRecords } == true
+            day.map { $0.events.isEmpty && $0.diary.isEmpty && !$0.hasGoalRecords } == true
             && tasksModel.groups.isEmpty && presented.completedTaskCount == 0
         let deskPlan = makeDeskPlan(presented: presented, day: day)
         return withPastDaySheets(
@@ -365,8 +365,8 @@ struct DayView: View {
         }
         .onAppear { isVisible = true }
         .onDisappear { isVisible = false }
-        .sheet(isPresented: journalPresented) {
-            NavigationStack { JournalView(store: store, date: date) }
+        .sheet(isPresented: diaryPresented) {
+            NavigationStack { DiaryView(store: store, date: date) }
         }
         .sheet(item: $closeDayRoute) { route in
             NavigationStack {
@@ -547,7 +547,7 @@ struct DayView: View {
                 }
             }
 
-            journalSection
+            diarySection
                 .dayContext(store: store, today: isToday ? date : nil)
                 .dayBacklinks(store: store, date: date)
 
@@ -555,7 +555,7 @@ struct DayView: View {
             // flow decides its goal step from the strip's model, so it waits for its goals.
             if showsInlineCloseDay, let day, goalModel.hasLoaded,
                 CloseDayEntry.isOffered(
-                    isToday: isToday, presentation: presented, hasJournal: CloseDayEntry.hasJournal(day))
+                    isToday: isToday, presentation: presented, hasDiary: CloseDayEntry.hasDiary(day))
             {
                 closeDayEntry
             }
@@ -601,7 +601,7 @@ struct DayView: View {
         }
     }
 
-    /// The wide past day: manşet, goal cards, the "Program" card, the calendar, the journal.
+    /// The wide past day: manşet, goal cards, the "Program" card, the calendar, the diary.
     private func programDayContent(
         presented: TodayPresentation, schedule: DaySchedulePresentation,
         entitiesByID: [String: EntitySummary], day: DaySummary?, isEmptyDay: Bool, todayInstant: Date
@@ -634,7 +634,7 @@ struct DayView: View {
 
             DayCalendarView(date: date)
 
-            journalSection
+            diarySection
                 .dayBacklinks(store: store, date: date)
         }
         .padding(.horizontal, InkSpacing.margin)
@@ -684,7 +684,7 @@ struct DayView: View {
                 }
             }
 
-            // The strip, the journal and the backlinks draw their own cards; a day without goals
+            // The strip, the diary and the backlinks draw their own cards; a day without goals
             // draws no goal card at all.
             GoalStripView(
                 model: goalModels.model(store: store, day: date),
@@ -697,7 +697,7 @@ struct DayView: View {
             )
             .id(GoalStripIdentity.key(day: date, vaultPath: store.vaultURL?.path))
 
-            journalSection
+            diarySection
                 .dayBacklinks(store: store, date: date)
         }
         .padding(.horizontal, InkSpacing.margin)
@@ -720,7 +720,7 @@ struct DayView: View {
             for overview in overviews {
                 let instant = LocalDay.instant(for: overview.date, timeZone: calendarValue.timeZone)
                 counts[instant] = overview.eventCount
-                if overview.eventCount > 0 || overview.journalCount > 0 {
+                if overview.eventCount > 0 || overview.diaryCount > 0 {
                     written.insert(instant)
                 }
             }
@@ -757,7 +757,7 @@ struct DayView: View {
                 lastPersonName: person?.name, lastPersonID: person?.id))
     }
 
-    /// The evening journal reminder opens the flow on its journal step. The reminder's own day is
+    /// The evening diary reminder opens the flow on its diary step. The reminder's own day is
     /// not the flow's day: whatever day it names, Today's flow opens. A cold launch waits for the
     /// vault and for the day's tasks as that publish has them (an answer from before the vault opened
     /// has none) and for the strip's goals of that publish, because the flow lists its task and
@@ -767,7 +767,7 @@ struct DayView: View {
             goalModels.model(store: store, day: date).isCurrent,
             CloseDayReminder.claim(notifications.navigationRequest?.closeDayRequestID)
         else { return }
-        closeDayRoute = CloseDayRoute(step: .journal)
+        closeDayRoute = CloseDayRoute(step: .diary)
     }
 
     /// The back item of a page pushed from this past day: "17 Eyl" (drawing).
@@ -776,20 +776,20 @@ struct DayView: View {
             for: date, today: LocalDay.today(at: clockNow()), locale: locale, calendar: calendarValue)
     }
 
-    private var journalRoute: JournalEditorRoute { JournalEditorRoute(day: date, isToday: isToday) }
+    private var diaryRoute: DiaryEditorRoute { DiaryEditorRoute(day: date, isToday: isToday) }
 
-    /// Whether this page's journal editor is open. With a shell the bridge holds the route, so
+    /// Whether this page's diary editor is open. With a shell the bridge holds the route, so
     /// a new shell's page of the same day presents the editor again; only the page on screen
     /// presents, as the same past day can be live in two tabs. Without a shell the page itself.
-    private var journalPresented: Binding<Bool> {
-        guard let navigation else { return $showsJournal }
+    private var diaryPresented: Binding<Bool> {
+        guard let navigation else { return $showsDiary }
         return Binding(
-            get: { isVisible && navigation.journalEditor == journalRoute },
+            get: { isVisible && navigation.diaryEditor == diaryRoute },
             set: { open in
                 if open {
-                    navigation.journalEditor = journalRoute
+                    navigation.diaryEditor = diaryRoute
                 } else {
-                    navigation.closeJournalEditor(journalRoute)
+                    navigation.closeDiaryEditor(diaryRoute)
                 }
             })
     }
@@ -1688,7 +1688,7 @@ struct DayView: View {
         ) -> String? {
             guard let day, goalModel.hasLoaded,
                 CloseDayEntry.isOffered(
-                    isToday: true, presentation: presented, hasJournal: CloseDayEntry.hasJournal(day))
+                    isToday: true, presentation: presented, hasDiary: CloseDayEntry.hasDiary(day))
             else { return nil }
             let count = presented.closeDayTaskCount
             let title = PresentationLocalization.string(localized: "Günü kapat", locale: locale)
@@ -1726,22 +1726,22 @@ struct DayView: View {
         }
     }
 
-    @ViewBuilder private var journalSection: some View {
+    @ViewBuilder private var diarySection: some View {
         // No section title: the card itself reads as the day's writing (the drawing).
         VStack(alignment: .leading, spacing: InkSpacing.row) {
             #if os(iOS)
                 Button {
-                    journalPresented.wrappedValue = true
+                    diaryPresented.wrappedValue = true
                 } label: {
-                    InkCard { journalPreview }
+                    InkCard { diaryPreview }
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Günlük yazısını düzenle")
             #else
                 NavigationLink {
-                    JournalView(store: store, date: date)
+                    DiaryView(store: store, date: date)
                 } label: {
-                    InkCard { journalPreview }
+                    InkCard { diaryPreview }
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Günlük yazısını düzenle")
@@ -1749,8 +1749,8 @@ struct DayView: View {
         }
     }
 
-    private var journalPreview: some View {
-        DayJournalPreview(isLoaded: day != nil, preview: day?.preview)
+    private var diaryPreview: some View {
+        DayDiaryPreview(isLoaded: day != nil, preview: day?.preview)
     }
 }
 
@@ -1879,7 +1879,7 @@ struct DaySchedulePresentation: Sendable {
 
 /// The Günlük yazısı section's button label: the opening of the day's text and "Devamını yaz",
 /// or the placeholder. Nothing until the day is loaded.
-struct DayJournalPreview: View {
+struct DayDiaryPreview: View {
     let isLoaded: Bool
     let preview: String?
     @Environment(\.locale) private var locale
@@ -1891,7 +1891,7 @@ struct DayJournalPreview: View {
                     .font(.ink.content)
                     .foregroundStyle(Color.ink.text)
                     .lineLimit(4)
-                    .inkJournalParagraph()
+                    .inkDiaryParagraph()
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Label {
                     Text(

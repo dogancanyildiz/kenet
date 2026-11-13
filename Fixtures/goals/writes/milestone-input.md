@@ -1,5 +1,5 @@
 ---
-type: journal
+type: diary
 goals:
   other: 3 # keep
 ---

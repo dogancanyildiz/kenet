@@ -54,8 +54,8 @@
                 case .search:
                     return AnyView(PadSearchSheetContent(store: store))
                 case .closeDay:
-                    // The evening reminder's route: Today opens its close-day sheet on the journal step.
-                    scene.notifications.open(.journal)
+                    // The evening reminder's route: Today opens its close-day sheet on the diary step.
+                    scene.notifications.open(.diary)
                     return AnyView(AdaptiveNavigation(store: store))
                 case .taskDetail:
                     let tasks = TasksModel(store: store, today: { snapshotDay })

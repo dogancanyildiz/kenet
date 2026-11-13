@@ -79,7 +79,7 @@ struct ConflictCopyTests {
 
     @Test func missingFolderListsNothing() throws {
         try withVault { root in
-            try write(root, "journal/2026-10-02.md", "- Gün\n")
+            try write(root, "diary/2026-10-02.md", "- Gün\n")
             #expect(try VaultIndex.conflictCopies(vaultRoot: root).isEmpty)
         }
     }
@@ -115,7 +115,7 @@ struct ConflictCopyTests {
                 try VaultIndex.conflictCopies(vaultRoot: root) == [
                     CopyFile(
                         folder: "conflicts", copy: "conflicts/2026-10-01 (conflict 20261001T090000Z).md",
-                        original: "journal/2026-10-01.md")
+                        original: "diary/2026-10-01.md")
                 ])
         }
     }

@@ -1,10 +1,10 @@
 ---
-type: journal
+type: diary
 date: 2026-09-27
 goals:
   spor: true # keep
 custom: value
 ---
 
-## Journal
+## Diary
 Su

@@ -167,7 +167,7 @@ struct QuickEntryLocationTests {
             task
             ? try context.document()
             : try RawDocument(
-                bytes: Data(contentsOf: context.root.appendingPathComponent("journal/\(LocalDay.today()).md")))
+                bytes: Data(contentsOf: context.root.appendingPathComponent("diary/\(LocalDay.today()).md")))
         #expect(String(decoding: document.serialized(), as: UTF8.self).contains("Çalıştım [[Liman Ofis]]"))
         #expect(source.locationRequests == 1)
         #expect(model.suggestedPlace != nil)

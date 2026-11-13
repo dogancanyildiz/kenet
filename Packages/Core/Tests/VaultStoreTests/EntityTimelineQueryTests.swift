@@ -52,7 +52,7 @@ struct EntityTimelineQueryTests {
         try vault.write("people/Can.md", "---\ntype: person\nname: Can\n---\n")
         try vault.write("places/Koru.md", "---\ntype: place\nname: Koru\n---\n")
         try vault.write(
-            "journal/2026-03-01.md", "---\ntype: journal\ndate: 2026-03-01\n---\n\n## Events\n- 09:00 [[Can]] ile\n")
+            "diary/2026-03-01.md", "---\ntype: diary\ndate: 2026-03-01\n---\n\n## Events\n- 09:00 [[Can]] ile\n")
         try vault.index.rebuild(vaultRoot: vault.root)
         let day = CalendarDate("2026-03-01")!
         let activity = try vault.index.entityListActivity(from: day, through: day)
@@ -74,24 +74,24 @@ struct EntityTimelineQueryTests {
         let index = try VaultIndex()
         try index.rebuild(vaultRoot: root)
         try expectConstruction(index, asOf: ["2026-09-14", "2026-09-30", "2026-10-05"])
-        // The linked person is in an event and a Journal paragraph every day: two rows a day.
+        // The linked person is in an event and a Diary paragraph every day: two rows a day.
         let linked = try index.entityTimeline(for: try #require(manifest.linkedPersonPath))
         #expect(linked.count == 2 * SyntheticVault.Configuration.compact.days)
         #expect(linked.first?.date == manifest.endDate)
     }
 
     /// Every rule of the construction in one small vault, with the rows written out by hand.
-    @Test func edgeCaseVaultCountsOnlyDayEventsAndJournalParagraphs() throws {
+    @Test func edgeCaseVaultCountsOnlyDayEventsAndDiaryParagraphs() throws {
         let vault = try StoreVault()
         defer { vault.remove() }
         try vault.write("people/Ada Test.md", "---\ntype: person\nname: Ada Test\naliases: [Ada]\n---\n[[Koru]]\n")
         try vault.write("places/Koru.md", "---\ntype: place\nname: Koru\n---\n")
-        try vault.write("notes/Plan.md", "## Events\n- 09:00 [[Ada Test]]\n\n## Journal\n[[Ada Test]] planı.\n")
+        try vault.write("notes/Plan.md", "## Events\n- 09:00 [[Ada Test]]\n\n## Diary\n[[Ada Test]] planı.\n")
         try vault.write(
-            "journal/2026-03-01.md",
+            "diary/2026-03-01.md",
             """
             ---
-            type: journal
+            type: diary
             date: 2026-03-01
             with: "[[Ada Test]]"
             ---
@@ -103,17 +103,17 @@ struct EntityTimelineQueryTests {
             - 09:00 [[Ada Test]] ve [[Ada Test|Ada]] [[Koru]]'da, [[Yok]] yoktu
             - 10:00 [[Ada]] ile yürüyüş, Ada Test de vardı
 
-            ## Journal
+            ## Diary
             ### [[Ada Test]] başlığı
             [[Ada Test|görünen]] ile uzun bir gün.
 
             ## Notlar
             [[Ada Test]] başka bölümde.
             """)
-        try vault.write("journal/2026-03-02.md", "## Events\n- 08:00 [[Koru]]\n\n## Journal\n[[Ada Test]] yine.\n")
-        try vault.write("journal/2026-03-05.md", "## Events\n- 08:00 [[Ada Test]] sonra\n")
-        try vault.write("journal/2026-02-30.md", "## Events\n- 08:00 [[Ada Test]]\n")
-        try vault.write("journal/arsiv/2026-03-03.md", "## Events\n- 08:00 [[Ada Test]]\n")
+        try vault.write("diary/2026-03-02.md", "## Events\n- 08:00 [[Koru]]\n\n## Diary\n[[Ada Test]] yine.\n")
+        try vault.write("diary/2026-03-05.md", "## Events\n- 08:00 [[Ada Test]] sonra\n")
+        try vault.write("diary/2026-02-30.md", "## Events\n- 08:00 [[Ada Test]]\n")
+        try vault.write("diary/arsiv/2026-03-03.md", "## Events\n- 08:00 [[Ada Test]]\n")
         try vault.write("arsiv/2026-03-04.md", "## Events\n- 08:00 [[Ada Test]]\n")
         try vault.index.rebuild(vaultRoot: vault.root)
         try expectConstruction(vault.index, asOf: ["2026-02-28", "2026-03-01", "2026-03-03", "2026-03-05"])
@@ -122,7 +122,7 @@ struct EntityTimelineQueryTests {
         let koru = "places/Koru.md"
         // Ada: the 03-05 event, the 03-02 paragraph, and on 03-01 the paragraph and the 09:00 event
         // once despite two links. Not the task, the heading, the frontmatter, the `Notlar` paragraph,
-        // the alias link or plain name, the note, the misdated file or the files outside `journal/`.
+        // the alias link or plain name, the note, the misdated file or the files outside `diary/`.
         let rows = try vault.index.entityTimeline(for: ada)
         #expect(rows.map(\.date.description) == ["2026-03-05", "2026-03-02", "2026-03-01", "2026-03-01"])
         #expect(rows.map(\.block.kind) == ["event", "paragraph", "paragraph", "event"])
@@ -174,7 +174,7 @@ struct EntityTimelineQueryTests {
         #expect(try vault.index.entityTimeline(for: deniz).isEmpty)
         #expect(try vault.index.entityTimeline(for: renamed.path).map(\.block.ordinal) == added.map(\.block.ordinal))
 
-        try FileManager.default.removeItem(at: vault.root.appendingPathComponent("journal/\(day).md"))
+        try FileManager.default.removeItem(at: vault.root.appendingPathComponent("diary/\(day).md"))
         try vault.index.refresh(vaultRoot: vault.root)
         try check()
         #expect(try vault.index.entityTimeline(for: renamed.path).count == before.count)
@@ -207,7 +207,7 @@ private func snapshotConstruction(_ snapshot: IndexSnapshot) -> [String: [Entity
     let links = Dictionary(grouping: snapshot.links, by: \.file)
     var result: [String: [CalendarDate: [EntityTimelineEntry]]] = [:]
     for block in snapshot.blocks
-    where block.kind == "event" || (block.kind == "paragraph" && block.section == "Journal") {
+    where block.kind == "event" || (block.kind == "paragraph" && block.section == "Diary") {
         guard let date = dates[block.file] else { continue }
         let own = (links[block.file] ?? []).filter { $0.block == block.ordinal }.sorted { $0.ordinal < $1.ordinal }
         for target in Set(own.compactMap(\.resolvedFile)) {

@@ -119,16 +119,16 @@ struct ChangeDetectionTests {
     /// A notification on an empty index (first launch, erased schema) builds the whole vault.
     @Test func notificationOnEmptyIndexBuildsTheWholeVault() throws {
         try withVault { root in
-            try write(root, "journal/2026-10-01.md", "## Events\n- 09:00 Su [[Kitap]]")
+            try write(root, "diary/2026-10-01.md", "## Events\n- 09:00 Su [[Kitap]]")
             try write(root, "notes/Kitap.md", "Kitap")
             try write(root, "notes/Spor.md", "Spor")
             let index = try VaultIndex()
 
             let result = try index.update(paths: ["notes/Spor.md"], vaultRoot: root)
 
-            #expect(result.addedPaths.sorted() == ["journal/2026-10-01.md", "notes/Kitap.md", "notes/Spor.md"])
-            #expect(try index.files().map(\.path) == ["journal/2026-10-01.md", "notes/Kitap.md", "notes/Spor.md"])
-            #expect(try index.links(to: "notes/Kitap.md").map(\.file) == ["journal/2026-10-01.md"])
+            #expect(result.addedPaths.sorted() == ["diary/2026-10-01.md", "notes/Kitap.md", "notes/Spor.md"])
+            #expect(try index.files().map(\.path) == ["diary/2026-10-01.md", "notes/Kitap.md", "notes/Spor.md"])
+            #expect(try index.links(to: "notes/Kitap.md").map(\.file) == ["diary/2026-10-01.md"])
             try equivalent(index, root)
         }
     }

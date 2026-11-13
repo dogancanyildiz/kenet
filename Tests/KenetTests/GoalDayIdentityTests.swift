@@ -24,10 +24,10 @@ struct GoalDayIdentityTests {
         // Writing through the new model targets the new day file.
         let water = try #require(second.goals.first { $0.key == "su" })
         #expect(await second.set(water, value: .number(1)))
-        let tuesdayFile = context.root.appendingPathComponent("journal/2026-09-22.md")
+        let tuesdayFile = context.root.appendingPathComponent("diary/2026-09-22.md")
         let text = String(decoding: try Data(contentsOf: tuesdayFile), as: UTF8.self)
         #expect(text.contains("su: 1"))
-        let mondayFile = context.root.appendingPathComponent("journal/2026-09-21.md")
+        let mondayFile = context.root.appendingPathComponent("diary/2026-09-21.md")
         if FileManager.default.fileExists(atPath: mondayFile.path) {
             let mondayText = String(decoding: try Data(contentsOf: mondayFile), as: UTF8.self)
             #expect(!mondayText.contains("su: 1"))

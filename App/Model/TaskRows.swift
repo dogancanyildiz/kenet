@@ -20,8 +20,7 @@ struct TaskRow: Identifiable, Sendable {
     let linkedFiles: Set<String>
 
     var createdDate: CalendarDate? {
-        guard file.hasPrefix("journal/"), file.hasSuffix(".md") else { return nil }
-        return CalendarDate(String(file.dropFirst(8).dropLast(3)))
+        VaultLayout.day(ofDayPath: file)
     }
 
     var isClosed: Bool { rawStatus == "x" || rawStatus == "X" || rawStatus == "-" }
@@ -67,9 +66,9 @@ struct TaskGroups {
         dated = eligible.filter { $0.due == day }.sorted(by: TasksModel.order)
         // Written in the day's file: undated ones, and open ones due later (decision 82). Due on
         // the day they are `dated`, before it `overdue`: no row twice.
-        let file = "journal/\(day).md"
         created = eligible.filter { row in
-            guard row.file == file else { return false }
+            // The day's file, also under a folder not yet migrated (`LegacyVaultNames`).
+            guard VaultLayout.day(ofDayPath: row.file) == day else { return false }
             guard let due = row.due else { return true }
             return due > day && !row.isClosed
         }.sorted(by: TasksModel.order)

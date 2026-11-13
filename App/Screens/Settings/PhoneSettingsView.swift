@@ -79,6 +79,10 @@ struct PhoneSettingsView: View {
                                     .font(.ink.meta)
                                     .foregroundStyle(Color.ink.secondaryText)
                             }
+                            // One element ("30 dosya, dizin güncel"): inside the list cell the
+                            // hidden "·" still surfaced as an element of its own, and the iPad
+                            // audit named the 4 pt dot as text that does not grow (run 43250059451).
+                            .accessibilityElement(children: .combine)
                         }
                         Spacer(minLength: 8)
                         Image(systemName: "chevron.right")

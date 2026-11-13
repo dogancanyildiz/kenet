@@ -1,4 +1,0 @@
-## Journal
-İlk
-## Journal
-İkinci

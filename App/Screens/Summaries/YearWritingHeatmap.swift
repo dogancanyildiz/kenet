@@ -55,7 +55,7 @@ struct YearWritingHeatmap: View {
         switch calendar.day(day) {
         case nil: .future
         case .unwritten?: .empty
-        case .journal?: .partial
+        case .diary?: .partial
         case .events?: .full
         }
     }

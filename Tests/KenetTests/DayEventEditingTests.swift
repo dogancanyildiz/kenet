@@ -34,7 +34,7 @@ struct DayEventEditingTests {
         #expect(document.bodyLines.events.last?.time?.minute == 5)
         #expect(
             !FileManager.default.fileExists(
-                atPath: context.root.appendingPathComponent("journal/\(LocalDay.today()).md").path))
+                atPath: context.root.appendingPathComponent("diary/\(LocalDay.today()).md").path))
         let today = QuickEntryModel(store: context.store)
         #expect(today.includesTime)
         #expect(!today.isHistorical)
@@ -58,7 +58,7 @@ struct DayEventEditingTests {
         #expect(try await context.store.computeDay(on: context.day).events.first?.time?.hour == 9)
     }
 
-    @Test func deletesCompleteEventBlockPreservingJournalAndSectionHeading() async throws {
+    @Test func deletesCompleteEventBlockPreservingDiaryAndSectionHeading() async throws {
         let context = try DayEditingTestContext()
         defer { context.clean() }
         await context.start()

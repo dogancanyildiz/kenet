@@ -16,7 +16,7 @@ struct IntentActionsTests {
     func document(_ context: TaskTestContext) throws -> RawDocument {
         RawDocument(
             bytes: try Data(
-                contentsOf: context.root.appendingPathComponent("journal/\(LocalDay.today(at: instant)).md")))
+                contentsOf: context.root.appendingPathComponent("diary/\(LocalDay.today(at: instant)).md")))
     }
 
     @Test func coldEventWritesExactBytesAndReturnsVisibleText() async throws {
@@ -28,7 +28,7 @@ struct IntentActionsTests {
         let identifier = try #require(document.bodyLines.events.first?.block.id)
         let day = LocalDay.today(at: instant)
         let expected =
-            "---\ntype: journal\ndate: \(day)\n---\n\n## Events\n- 13:00 [[Deniz Arıkan|Deniz]] ile [[Liman Ofis]]'te ^\(identifier)\n"
+            "---\ntype: diary\ndate: \(day)\n---\n\n## Events\n- 13:00 [[Deniz Arıkan|Deniz]] ile [[Liman Ofis]]'te ^\(identifier)\n"
         #expect(document.serialized() == Array(expected.utf8))
         #expect(result.text == String(localized: "Olay eklendi: \("Deniz ile Liman Ofis'te")"))
         #expect(try await context.store.computeDay(on: day).events.last?.text.plainText == "Deniz ile Liman Ofis'te")
@@ -173,9 +173,9 @@ struct IntentActionsTests {
         let goals = try await actions.goals()
         let sport = try #require(goals.first { $0.definition.key == "spor" })
         let water = try #require(goals.first { $0.definition.key == "su" })
-        let file = context.root.appendingPathComponent("journal/\(LocalDay.today(at: instant)).md")
+        let file = context.root.appendingPathComponent("diary/\(LocalDay.today(at: instant)).md")
         let original =
-            "---\ntype: journal\ndate: \(LocalDay.today(at: instant))\ncustom: retain\ngoals:\n  untouched: 4 # keep\n---\n\n## Journal\nKeep this paragraph.\n"
+            "---\ntype: diary\ndate: \(LocalDay.today(at: instant))\ncustom: retain\ngoals:\n  untouched: 4 # keep\n---\n\n## Diary\nKeep this paragraph.\n"
         try Data(original.utf8).write(to: file)
         let result = try await actions.markGoal(id: sport.id)
         _ = try await actions.markGoal(id: water.id, amount: 3.5)
@@ -184,7 +184,7 @@ struct IntentActionsTests {
         #expect(text.contains("  su: 3.5"))
         #expect(text.contains("  untouched: 4 # keep"))
         #expect(text.contains("custom: retain"))
-        #expect(text.hasSuffix("## Journal\nKeep this paragraph.\n"))
+        #expect(text.hasSuffix("## Diary\nKeep this paragraph.\n"))
         #expect(result.text == String(localized: "Hedef kaydedildi: \("Spor")"))
     }
 
@@ -199,7 +199,7 @@ struct IntentActionsTests {
         }
         #expect(
             !FileManager.default.fileExists(
-                atPath: context.root.appendingPathComponent("journal/\(LocalDay.today(at: instant)).md").path))
+                atPath: context.root.appendingPathComponent("diary/\(LocalDay.today(at: instant)).md").path))
     }
 
     @Test func missingAmountAndStaleGoalAreErrors() async throws {
@@ -223,9 +223,9 @@ struct IntentActionsTests {
     @Test func lockedAppBlocksWritesAndGoalListing() async throws {
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
-        let file = context.root.appendingPathComponent("journal/\(LocalDay.today(at: instant)).md")
+        let file = context.root.appendingPathComponent("diary/\(LocalDay.today(at: instant)).md")
         let original =
-            "---\ntype: journal\ndate: \(LocalDay.today(at: instant))\ncustom: retain\ngoals:\n  untouched: 4 # keep\n---\n\n## Journal\nKeep this paragraph.\n"
+            "---\ntype: diary\ndate: \(LocalDay.today(at: instant))\ncustom: retain\ngoals:\n  untouched: 4 # keep\n---\n\n## Diary\nKeep this paragraph.\n"
         try Data(original.utf8).write(to: file)
         let locked = IntentActions(
             store: context.store, now: { instant }, permitsStart: { true }, isLocked: { true })
@@ -285,7 +285,7 @@ struct IntentActionsTests {
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
         await context.start()
-        let file = context.root.appendingPathComponent("journal/\(LocalDay.today(at: instant)).md")
+        let file = context.root.appendingPathComponent("diary/\(LocalDay.today(at: instant)).md")
         let bytes = Data([0xff, 0xfe, 0x00])
         try bytes.write(to: file)
         await #expect(throws: IntentActionError.writeFailed) { try await actions(context).addEvent(text: "Yeni") }
@@ -326,7 +326,7 @@ struct IntentActionsTests {
         await #expect(throws: IntentActionError.goalMissing) { try await actions.markGoal(id: goal.id) }
         #expect(
             !FileManager.default.fileExists(
-                atPath: other.appendingPathComponent("journal/\(LocalDay.today(at: instant)).md").path))
+                atPath: other.appendingPathComponent("diary/\(LocalDay.today(at: instant)).md").path))
     }
 }
 

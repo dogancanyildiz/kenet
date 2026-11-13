@@ -583,7 +583,7 @@ struct WidgetSnapshotTests {
             isLocked: { lock.isLocked })
         let navigation = IntentNavigation()
         let handler = WidgetLinkHandler(actions: actions, navigation: navigation)
-        let day = harness.context.root.appendingPathComponent("journal/\(GraceDayVault.today).md")
+        let day = harness.context.root.appendingPathComponent("diary/\(GraceDayVault.today).md")
 
         #expect(await handler.open(url))
         #expect(navigation.todayRequest != nil)
@@ -609,7 +609,7 @@ struct WidgetSnapshotTests {
         let url = try #require(URL(string: "kenet-widget://mark?goal="))
         #expect(WidgetLink(url: url) == nil)
 
-        let day = harness.context.root.appendingPathComponent("journal/\(GraceDayVault.today).md")
+        let day = harness.context.root.appendingPathComponent("diary/\(GraceDayVault.today).md")
         let before = try Data(contentsOf: day)
         let actions = IntentActions(
             store: harness.context.store, now: { WidgetSnapshotTests.noon }, permitsStart: { true },

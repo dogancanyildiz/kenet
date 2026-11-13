@@ -2,13 +2,13 @@
   "options": { "folders": true, "settings": true, "types": true },
   "apply": true,
   "report": {
-    "missingFolders": ["journal", "places", "goals", "notes", "templates"],
+    "missingFolders": ["diary", "places", "goals", "notes", "templates"],
     "caseVariantFolders": [],
     "missingTemplates": ["templates/person.md", "templates/place.md"],
     "needsSettings": false,
     "canPrepare": false,
     "markdownCount": 1,
-    "journalDays": [],
+    "diaryDays": [],
     "externalDays": [],
     "typed": {},
     "candidates": [

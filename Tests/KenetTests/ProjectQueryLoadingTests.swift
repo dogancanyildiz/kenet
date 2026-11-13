@@ -76,7 +76,7 @@ import VaultFormat
 
             let gate = TaskQueryGate(store: shell.context.store)
             gate.hold()
-            let file = shell.context.root.appendingPathComponent("journal/2026-09-15.md")
+            let file = shell.context.root.appendingPathComponent("diary/2026-09-15.md")
             let text = try String(contentsOf: file, encoding: .utf8)
             #expect(text.contains("#project/altyapi"))
             try text.replacingOccurrences(of: " #project/altyapi", with: "")

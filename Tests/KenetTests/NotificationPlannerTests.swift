@@ -24,14 +24,14 @@ struct NotificationPlannerTests {
             preferences: preferences, now: now, timeZone: notificationUTC, people: people, lastNotified: lastNotified)
     }
 
-    @Test func sampleDayHasSingleMorningSummaryDailyGoalsAndNoJournalReminder() throws {
+    @Test func sampleDayHasSingleMorningSummaryDailyGoalsAndNoDiaryReminder() throws {
         let requests = plan(try notificationSample())
         let morning = try #require(requests.first { $0.id == "task-2026-09-27" })
         #expect(morning.title == String(localized: "Bugünkü görevler"))
         #expect(morning.body == String(localized: "Önceki günlerden \(10) açık görev."))
         let goals = try #require(requests.first { $0.id == "goals-2026-09-27" })
         #expect(goals.body == String(localized: "Bugün bekleyen hedefler: \("Kitap, Su")"))
-        #expect(!requests.contains { $0.id == "journal-2026-09-27" })
+        #expect(!requests.contains { $0.id == "diary-2026-09-27" })
         let tomorrow = try #require(requests.first { $0.id == "task-2026-09-28" })
         #expect(tomorrow.title == "Toplantı Notları dosyasını güncelle")
         #expect(Set(requests.filter { $0.id.hasSuffix(today.description) }.map(\.destination)) == [.tasks, .goals])
@@ -64,9 +64,9 @@ struct NotificationPlannerTests {
         #expect(!plan(snapshot).contains { $0.id == "goals-2026-09-27" })
     }
 
-    /// Without the week (the index could not be read) no task or journal reminder is planned;
+    /// Without the week (the index could not be read) no task or diary reminder is planned;
     /// goals still are.
-    @Test func anUnreadWeekPlansNoTaskOrJournalReminder() throws {
+    @Test func anUnreadWeekPlansNoTaskOrDiaryReminder() throws {
         let sample = try notificationSample()
         let requests = NotificationPlanner.requests(
             goals: sample.goals, days: nil, preferences: NotificationPreferences(), now: notificationDate(),
@@ -80,15 +80,15 @@ struct NotificationPlannerTests {
         var settings = NotificationPreferences()
         settings.tasksEnabled = false
         settings.goalsEnabled = false
-        settings.journalEnabled = false
+        settings.diaryEnabled = false
         #expect(plan(snapshot, preferences: settings).isEmpty)
         settings.goalsEnabled = true
         #expect(plan(snapshot, preferences: settings).allSatisfy { $0.destination == .goals })
         settings.goalTime.hour = 24
         #expect(plan(snapshot, preferences: settings).isEmpty)
         settings.goalsEnabled = false
-        settings.journalEnabled = true
-        #expect(plan(snapshot, preferences: settings).allSatisfy { $0.destination == .journal })
+        settings.diaryEnabled = true
+        #expect(plan(snapshot, preferences: settings).allSatisfy { $0.destination == .diary })
     }
 
     @Test func pastAndExactlyCurrentTimesAreSkippedWithDeterministicSevenDayBoundary() throws {
@@ -96,7 +96,7 @@ struct NotificationPlannerTests {
         let requests = plan(snapshot, now: notificationDate(hour: 20))
         #expect(!requests.contains { $0.id == "task-2026-09-27" || $0.id == "goals-2026-09-27" })
         #expect(requests.allSatisfy { $0.date > notificationDate(hour: 20) })
-        #expect(requests.contains { $0.id == "journal-2026-10-03" })
+        #expect(requests.contains { $0.id == "diary-2026-10-03" })
         #expect(!requests.contains { $0.id.hasSuffix("2026-10-04") })
         #expect(requests == plan(snapshot, now: notificationDate(hour: 20)))
         #expect(NotificationPlanner.identifiers(on: today).count == 21)
@@ -169,7 +169,7 @@ struct NotificationPlannerTests {
         var settings = NotificationPreferences()
         settings.tasksEnabled = false
         settings.goalsEnabled = false
-        settings.journalTime = NotificationTime(hour: 21, minute: 15)
+        settings.diaryTime = NotificationTime(hour: 21, minute: 15)
         let requests = NotificationPlanner.requests(
             goals: NotificationGoals(), days: NotificationVaultDays(), preferences: settings, now: now, timeZone: zone)
         #expect(requests.count == 7)
@@ -180,7 +180,7 @@ struct NotificationPlannerTests {
             requests.allSatisfy {
                 calendar.component(.hour, from: $0.date) == 21 && calendar.component(.minute, from: $0.date) == 15
             })
-        #expect(requests.first?.id == "journal-2026-03-07" && requests.last?.id == "journal-2026-03-13")
+        #expect(requests.first?.id == "diary-2026-03-07" && requests.last?.id == "diary-2026-03-13")
     }
 
     @Test func disabledPeopleReminderMatchesThePlanWithoutPeople() throws {
@@ -237,7 +237,7 @@ struct NotificationPlannerTests {
         settings.peopleEnabled = true
         settings.tasksEnabled = false
         settings.goalsEnabled = false
-        settings.journalEnabled = false
+        settings.diaryEnabled = false
         settings.hideContent = true
         let people = [
             cadencePerson("people/a.md", name: "Deniz", last: "2026-08-01", days: 7),
@@ -263,7 +263,7 @@ struct NotificationPlannerTests {
         var settings = NotificationPreferences()
         settings.tasksEnabled = false
         settings.goalsEnabled = false
-        settings.journalEnabled = false
+        settings.diaryEnabled = false
         settings.peopleEnabled = true
         let person = cadencePerson("people/Lale Mor.md", name: "Lale", last: "2026-10-01", days: 10)
         let now = notificationDate("2026-10-10", hour: 22)

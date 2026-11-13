@@ -1,5 +1,5 @@
 ---
-type: journal
+type: diary
 ---
 
 Metin.

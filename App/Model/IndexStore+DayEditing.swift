@@ -3,15 +3,15 @@ import VaultFormat
 import VaultStore
 
 extension IndexStore {
-    /// Replaces the day's Journal section. With `base`, the section on disk must still be `base`
+    /// Replaces the day's Diary section. With `base`, the section on disk must still be `base`
     /// when the write runs: a write queued before it (a day copy merge, another edit) or another
     /// process (the share extension, the widget, Obsidian, iCloud) may have changed it after the
     /// caller read it, and replacing it would erase those lines. Core compares inside the
-    /// coordinated write (`VaultStore.changingJournal(on:to:expectedBody:)`). A changed section is
+    /// coordinated write (`VaultStore.changingDiary(on:to:expectedBody:)`). A changed section is
     /// `staleTarget`, and nothing is written.
-    func changeJournal(on day: CalendarDate, to text: String, base: String? = nil) async throws {
-        try await performEdit(path: "journal/\(day).md") { writer in
-            try await writer.changingJournal(on: day, to: text, expectedBody: base)
+    func changeDiary(on day: CalendarDate, to text: String, base: String? = nil) async throws {
+        try await performEdit(path: VaultLayout.dayPath(day)) { writer in
+            try await writer.changingDiary(on: day, to: text, expectedBody: base)
         }
     }
 
@@ -30,14 +30,14 @@ extension IndexStore {
     }
 
     func changeEvent(on day: CalendarDate, target: LineBlock, to text: String) async throws {
-        let path = "journal/\(day).md"
+        let path = VaultLayout.dayPath(day)
         try await performEdit(path: path) { writer in
             try await writer.changingText(of: target, at: path, to: text)
         }
     }
 
     func deleteEvent(on day: CalendarDate, target: LineBlock) async throws {
-        let path = "journal/\(day).md"
+        let path = VaultLayout.dayPath(day)
         try await performEdit(path: path) { writer in
             try await writer.deletingBlock(target, at: path)
         }
@@ -55,7 +55,7 @@ extension IndexStore {
         let body = document.bodyLines
         let lines = (body.tasks.map(\.block) + body.events.map(\.block)).filter { $0.id == id }
         guard lines.count == 1, let line = lines.first else { return }
-        let path = "journal/\(day).md"
+        let path = VaultLayout.dayPath(day)
         let holders = try await indexQuery(seam: \.testingQueryDidFinish, whenClosed: .empty([])) {
             try $0.files(holdingIdentifier: id)
         }

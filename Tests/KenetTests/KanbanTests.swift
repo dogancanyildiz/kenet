@@ -136,7 +136,7 @@ struct KanbanBoardLayoutTests {
         defer { context.clean() }
         await context.start()
         let source =
-            "\u{feff}---\r\ntype: journal\r\ndate: 2026-10-03\r\ncustom: 'keep'\r\n---\r\n\r\n## Tasks\r\n- [ ] Plan 📅 2026-10-06 #project/Alpha ^task\r\n  Note untouched\r\n\r\n## Other\r\nCustom bytes  \r\n"
+            "\u{feff}---\r\ntype: diary\r\ndate: 2026-10-03\r\ncustom: 'keep'\r\n---\r\n\r\n## Tasks\r\n- [ ] Plan 📅 2026-10-06 #project/Alpha ^task\r\n  Note untouched\r\n\r\n## Other\r\nCustom bytes  \r\n"
         try Data(source.utf8).write(to: context.file)
         await context.store.refresh()
         let model = await board(context)

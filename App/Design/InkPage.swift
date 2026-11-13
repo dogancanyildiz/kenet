@@ -27,7 +27,7 @@ extension View {
     }
 
     /// Reading column: content is centered and at most ``InkSpacing/macPageWidth`` wide.
-    /// Page-like screens (day, journal, entity, goal detail) use this on Mac and wide layouts;
+    /// Page-like screens (day, diary, entity, goal detail) use this on Mac and wide layouts;
     /// on a phone the limit is never reached, so it is safe to apply everywhere.
     func inkPageColumn() -> some View {
         self

@@ -2,7 +2,7 @@ import Foundation
 import GRDB
 import VaultFormat
 
-/// A day-file event or Journal paragraph with a resolved link to an entity: one row of its timeline.
+/// A day-file event or Diary paragraph with a resolved link to an entity: one row of its timeline.
 public struct EntityTimelineEntry: Sendable, Equatable {
     public let date: CalendarDate
     public let block: IndexedBlock
@@ -17,11 +17,11 @@ public struct EntityTimelineEntry: Sendable, Equatable {
 }
 
 extension VaultIndex {
-    /// Blocks counted as an encounter: events and Journal paragraphs of a day file. Tasks,
-    /// headings, frontmatter and files outside `journal/<date>.md` never are.
+    /// Blocks counted as an encounter: events and Diary paragraphs of a day file. Tasks,
+    /// headings, frontmatter and files outside `diary/<date>.md` never are.
     static let encounterBlocks = """
         f.kind = 'day' AND f.date IS NOT NULL
-          AND (b.kind = 'event' OR (b.kind = 'paragraph' AND b.section = 'Journal'))
+          AND (b.kind = 'event' OR (b.kind = 'paragraph' AND b.section = 'Diary'))
         """
 
     /// The encounter blocks linking to `file`, newest date first and, within a date, by

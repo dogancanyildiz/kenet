@@ -53,7 +53,7 @@ final class VaultWatcher: @unchecked Sendable {
     /// reports in-place edits itself and covers every directory.
     static let foregroundInterval: TimeInterval = 10
 
-    private let queue = DispatchQueue(label: "journal.vault-watcher")
+    private let queue = DispatchQueue(label: "kenet.vault-watcher")
     private let root: URL
     private let interval: TimeInterval
     private let ticker: any WatcherTicker

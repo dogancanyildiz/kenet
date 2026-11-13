@@ -193,7 +193,7 @@ struct StaleReloadAndCancellationTests {
         defer { context.clean() }
         let day = try #require(CalendarDate("2026-10-02"))
         try Self.write(
-            ["journal/2026-10-02.md": "## Events\n", "notes/Fikir.md": "Toplantı [[2026-10-02]] günü.\n"],
+            ["diary/2026-10-02.md": "## Events\n", "notes/Fikir.md": "Toplantı [[2026-10-02]] günü.\n"],
             in: context.root)
         await context.start()
         let model = DayBacklinksModel(store: context.store)
@@ -238,7 +238,7 @@ struct StaleReloadAndCancellationTests {
         try Self.write(
             [
                 "people/Lale Mor.md": "---\ntype: person\nname: Lale Mor\ncadence_days: 7\n---\n",
-                "journal/2026-09-20.md": "---\ntype: journal\ndate: 2026-09-20\n---\n\n## Events\n- [[Lale Mor]]\n",
+                "diary/2026-09-20.md": "---\ntype: diary\ndate: 2026-09-20\n---\n\n## Events\n- [[Lale Mor]]\n",
             ], in: context.root)
         await context.start()
         let defaults = try TestDefaults()
@@ -249,7 +249,7 @@ struct StaleReloadAndCancellationTests {
         service.attach(to: context.store)
         service.preferences.tasksEnabled = false
         service.preferences.goalsEnabled = false
-        service.preferences.journalEnabled = false
+        service.preferences.diaryEnabled = false
         service.preferences.peopleEnabled = true
         service.update(isOpen: context.store.lastUpdated != nil, vaultID: context.store.vaultURL?.path)
 
@@ -272,7 +272,7 @@ struct StaleReloadAndCancellationTests {
         try Self.write(
             [
                 "people/Lale Mor.md": "---\ntype: person\nname: Lale Mor\ncadence_days: 7\n---\n",
-                "journal/2026-09-20.md": "---\ntype: journal\ndate: 2026-09-20\n---\n\n## Events\n- [[Lale Mor]]\n",
+                "diary/2026-09-20.md": "---\ntype: diary\ndate: 2026-09-20\n---\n\n## Events\n- [[Lale Mor]]\n",
             ], in: context.root)
         await context.start()
         let defaults = try TestDefaults()
@@ -284,7 +284,7 @@ struct StaleReloadAndCancellationTests {
         service.attach(to: context.store)
         service.preferences.tasksEnabled = false
         service.preferences.goalsEnabled = false
-        service.preferences.journalEnabled = false
+        service.preferences.diaryEnabled = false
         service.preferences.peopleEnabled = true
         service.update(isOpen: context.store.lastUpdated != nil, vaultID: context.store.vaultURL?.path)
 

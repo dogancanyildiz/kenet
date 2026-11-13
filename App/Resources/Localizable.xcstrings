@@ -504,7 +504,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Delete %@? Mentions in journal entries will remain."
+            "value" : "Delete %@? Mentions in diary entries will remain."
           }
         },
         "tr" : {
@@ -922,7 +922,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ · journal entry"
+            "value" : "%@ · diary entry"
           }
         },
         "tr" : {
@@ -2179,6 +2179,126 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%lld gün kopyası birleştirilemedi; Tanılama’da duruyor."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld gün dosyası diary klasörüne taşındı." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day file moved to the diary folder."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day files moved to the diary folder."
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld gün dosyası diary klasörüne taşındı."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld gün dosyası diary klasörüne taşındı."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld gün dosyası diary klasöründe gün kopyası olarak duruyor." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day file is kept as a day copy in the diary folder."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day files are kept as day copies in the diary folder."
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld gün dosyası diary klasöründe gün kopyası olarak duruyor."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld gün dosyası diary klasöründe gün kopyası olarak duruyor."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld gün dosyası taşınamadı; eski klasörde duruyor." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day file could not be moved; it stays in the old folder."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day files could not be moved; they stay in the old folder."
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld gün dosyası taşınamadı; eski klasörde duruyor."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld gün dosyası taşınamadı; eski klasörde duruyor."
                 }
               }
             }
@@ -3712,7 +3832,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Evening journal reminder"
+            "value" : "Evening diary reminder"
           }
         },
         "tr" : {
@@ -5074,7 +5194,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "An entry drafted from an event is saved to your journal when you send it."
+            "value" : "An entry drafted from an event is saved to your diary when you send it."
           }
         },
         "tr" : {
@@ -5823,18 +5943,18 @@
         }
       }
     },
-    "Bu günlükler taşınmaz. Gün görünümünde kullanmak için Obsidian'da journal klasörüne düzenleyebilirsin." : {
+    "Bu günlükler taşınmaz. Gün görünümünde kullanmak için Obsidian'da diary klasörüne düzenleyebilirsin." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "These daily notes stay in place. You can organize them under journal in Obsidian to use the day view."
+            "value" : "These daily notes stay in place. You can organize them under diary in Obsidian to use the day view."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bu günlükler taşınmaz. Gün görünümünde kullanmak için Obsidian'da journal klasörüne düzenleyebilirsin."
+            "value" : "Bu günlükler taşınmaz. Gün görünümünde kullanmak için Obsidian'da diary klasörüne düzenleyebilirsin."
           }
         }
       }
@@ -6057,18 +6177,18 @@
         }
       }
     },
-    "Bu klasör adları tam olarak journal, people, places, goals, notes veya templates olmalı. Obsidian'da yeniden adlandır; aksi halde o klasöre yazma reddedilir." : {
+    "Bu klasör adları tam olarak diary, people, places, goals, notes veya templates olmalı. Obsidian'da yeniden adlandır; aksi halde o klasöre yazma reddedilir." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "These folder names must be exactly journal, people, places, goals, notes, or templates. Rename them in Obsidian; otherwise writes to that folder are refused."
+            "value" : "These folder names must be exactly diary, people, places, goals, notes, or templates. Rename them in Obsidian; otherwise writes to that folder are refused."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bu klasör adları tam olarak journal, people, places, goals, notes veya templates olmalı. Obsidian'da yeniden adlandır; aksi halde o klasöre yazma reddedilir."
+            "value" : "Bu klasör adları tam olarak diary, people, places, goals, notes veya templates olmalı. Obsidian'da yeniden adlandır; aksi halde o klasöre yazma reddedilir."
           }
         }
       }
@@ -6608,7 +6728,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Can’t add to the journal section of today’s file. Check for an unclosed code block or the fields at the top of the file."
+            "value" : "Can’t add to the diary section of today’s file. Check for an unclosed code block or the fields at the top of the file."
           }
         },
         "tr" : {
@@ -6624,7 +6744,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Added as is to the end of today’s journal."
+            "value" : "Added as is to the end of today’s diary."
           }
         },
         "tr" : {
@@ -6704,7 +6824,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Added to the journal."
+            "value" : "Added to the diary."
           }
         },
         "tr" : {
@@ -8967,7 +9087,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Journal reminder %@"
+            "value" : "Diary reminder %@"
           }
         },
         "tr" : {
@@ -8983,7 +9103,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Journal reminder off"
+            "value" : "Diary reminder off"
           }
         },
         "tr" : {
@@ -9079,7 +9199,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Has a journal entry"
+            "value" : "Has a diary entry"
           }
         },
         "tr" : {
@@ -9143,7 +9263,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Journal time"
+            "value" : "Diary time"
           }
         },
         "tr" : {
@@ -9175,7 +9295,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Journal entry"
+            "value" : "Diary entry"
           }
         },
         "tr" : {
@@ -9191,7 +9311,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Add journal text…"
+            "value" : "Add diary text…"
           }
         },
         "tr" : {
@@ -9207,7 +9327,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Loading journal text…"
+            "value" : "Loading diary text…"
           }
         },
         "tr" : {
@@ -9223,7 +9343,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Edit journal text"
+            "value" : "Edit diary text"
           }
         },
         "tr" : {
@@ -9239,7 +9359,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Based on journal mentions."
+            "value" : "Based on diary mentions."
           }
         },
         "tr" : {
@@ -9255,7 +9375,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Add an event to journal"
+            "value" : "Add an event to diary"
           }
         },
         "tr" : {
@@ -9271,7 +9391,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Write to journal"
+            "value" : "Write to diary"
           }
         },
         "tr" : {
@@ -9287,7 +9407,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Authenticate to unlock your journal."
+            "value" : "Authenticate to unlock your diary."
           }
         },
         "tr" : {
@@ -9463,7 +9583,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Weekly review written to the journal, but the index could not be updated."
+            "value" : "Weekly review written to the diary, but the index could not be updated."
           }
         },
         "tr" : {
@@ -9479,7 +9599,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Weekly review written to the journal."
+            "value" : "Weekly review written to the diary."
           }
         },
         "tr" : {
@@ -10153,7 +10273,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No journal entries yet."
+            "value" : "No diary entries yet."
           }
         },
         "tr" : {
@@ -10169,7 +10289,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No journal mentions yet."
+            "value" : "No diary mentions yet."
           }
         },
         "tr" : {
@@ -10724,22 +10844,6 @@
         }
       }
     },
-    "Journal" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kenet"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kenet"
-          }
-        }
-      }
-    },
     "Kalan görev" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11018,7 +11122,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The vault is read-only; the review can’t be written to the journal."
+            "value" : "The vault is read-only; the review can’t be written to the diary."
           }
         },
         "tr" : {
@@ -11109,7 +11213,7 @@
         }
       }
     },
-    "Kasaya erişilemiyor. Journal'da kasanı açıp yeniden dene." : {
+    "Kasaya erişilemiyor. Kenet'te kasanı açıp yeniden dene." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -11242,7 +11346,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You have unsaved journal text."
+            "value" : "You have unsaved diary text."
           }
         },
         "tr" : {
@@ -14121,7 +14225,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pick one of the system's journaling suggestions"
+            "value" : "Pick one of the system's diary suggestions"
           }
         },
         "tr" : {
@@ -16906,7 +17010,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The note you wrote has not been added to the journal."
+            "value" : "The note you wrote has not been added to the diary."
           }
         },
         "tr" : {

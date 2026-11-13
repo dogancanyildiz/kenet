@@ -104,8 +104,8 @@
             quickEntry.mode = .task
             quickEntry.text = "Taslak görevi gözden geçir"
             let notifications = NotificationService(center: FakeNotificationCenter(), defaults: defaults)
-            // The evening reminder's route: `DayView` opens its own close-day sheet on the journal step.
-            if screen == .closeDay { notifications.open(.journal) }
+            // The evening reminder's route: `DayView` opens its own close-day sheet on the diary step.
+            if screen == .closeDay { notifications.open(.diary) }
             let content = ChromeSheetsDuoContent(
                 screen: screen, store: store, navigation: navigation, row: row,
                 tasks: tasks, quickEntry: quickEntry

@@ -102,7 +102,7 @@ public struct SummaryUnit: Sendable, Equatable {
     }
 }
 
-/// A person or place whose first body link in the whole journal falls in the measured range.
+/// A person or place whose first body link in the whole diary falls in the measured range.
 public struct SummaryFirstMention: Sendable, Equatable {
     public let id: String
     public let name: String

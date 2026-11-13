@@ -45,7 +45,7 @@ struct TasksListRowCompletionTests {
 
     private func taskRow(status: String) throws -> TaskRow {
         var fields: [String: Any] = [
-            "file": "journal/2026-09-20.md", "ordinal": 1, "kind": "task", "firstLine": 2,
+            "file": "diary/2026-09-20.md", "ordinal": 1, "kind": "task", "firstLine": 2,
             "lastLine": 2, "text": "Sample task", "section": "Tasks", "rawStatus": status,
             "ownsIdentifier": false,
         ]

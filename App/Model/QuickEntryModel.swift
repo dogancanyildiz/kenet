@@ -50,7 +50,7 @@ final class QuickEntryModel {
     private(set) var isSubmitting = false
     /// Set while the field holds a draft made from a calendar event.
     var calendarDraft: CalendarDraft?
-    /// Set while lines from a journaling suggestion wait for the field (``applySuggestion(_:)``).
+    /// Set while lines from a diary suggestion wait for the field (``applySuggestion(_:)``).
     var suggestionQueue: SuggestionQueue?
     @ObservationIgnored var analysisCache: (key: AnalysisKey, analysis: QuickEntryAnalysis)?
     /// Project names the `#project/` suggestions offer (``loadProjects()``); a reload keeps the

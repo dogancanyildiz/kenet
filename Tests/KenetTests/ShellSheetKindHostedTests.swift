@@ -41,7 +41,7 @@
             await context.start()
             let ended = Counter()
             let note = NavigationStack {
-                SearchNoteView(store: context.store, file: "journal/\(context.today).md")
+                SearchNoteView(store: context.store, file: "diary/\(context.today).md")
             }
             .inkSheetDismissAction { ended.count += 1 }
             .environment(\.openSearch, .nothing)
@@ -62,7 +62,7 @@
             defer { context.clean() }
             await context.start()
             let model = SearchModel(store: context.store)
-            let destination = SearchDestination.note("journal/\(context.today).md")
+            let destination = SearchDestination.note("diary/\(context.today).md")
             model.path = [destination]
             let mount = HostedLayout.Mount(
                 SearchView(store: context.store, model: model).environment(\.openSearch, .nothing),

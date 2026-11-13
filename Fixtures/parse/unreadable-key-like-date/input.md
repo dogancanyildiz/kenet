@@ -1,4 +1,4 @@
 ---
-type: journal
+type: diary
 2026-10-02: bugün
 ---

@@ -188,10 +188,10 @@ struct QueryOutcomeTests {
         #expect(model.isLoaded && model.personCadence.days == 30)
     }
 
-    @Test func aJournalEditorLeftBeforeItsReadShowsNoError() async throws {
+    @Test func aDiaryEditorLeftBeforeItsReadShowsNoError() async throws {
         let context = try await Self.cadenceContext()
         defer { context.clean() }
-        let model = JournalEditorModel(store: context.store, day: try #require(CalendarDate("2026-10-01")))
+        let model = DiaryEditorModel(store: context.store, day: try #require(CalendarDate("2026-10-01")))
         let gate = FirstArrivalGate()
         context.store.testingQueryDidFinish = { await gate.pass() }
 

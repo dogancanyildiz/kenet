@@ -57,7 +57,7 @@ extension VaultIndex {
         }
     }
 
-    /// Derives counts, last source journal date and distinct shared-day counts in one read transaction.
+    /// Derives counts, last source diary date and distinct shared-day counts in one read transaction.
     public func entityUsage() throws -> [EntityUsage] {
         try database.read { db in
             let totals = try Row.fetchAll(

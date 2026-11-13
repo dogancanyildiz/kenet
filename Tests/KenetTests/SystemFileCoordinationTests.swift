@@ -174,11 +174,11 @@ struct SystemFileCoordinationTests {
     @Test func aDayCopyMergeLetsTheDayEditorSaveFirst() async throws {
         let root = try testDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
-        let journal = root.appendingPathComponent("journal")
-        try FileManager.default.createDirectory(at: journal, withIntermediateDirectories: true)
-        let day = journal.appendingPathComponent("2026-10-02.md")
-        let copy = journal.appendingPathComponent("2026-10-02 2.md")
-        let header = "---\ntype: journal\ndate: 2026-10-02\n---\n\n## Events\n"
+        let diary = root.appendingPathComponent("diary")
+        try FileManager.default.createDirectory(at: diary, withIntermediateDirectories: true)
+        let day = diary.appendingPathComponent("2026-10-02.md")
+        let copy = diary.appendingPathComponent("2026-10-02 2.md")
+        let header = "---\ntype: diary\ndate: 2026-10-02\n---\n\n## Events\n"
         try Data((header + "- 09:00 Kurgu toplantı ^k1\n").utf8).write(to: day)
         try Data((header + "- 12:00 Kurgu yemek ^k2\n").utf8).write(to: copy)
         let dayProbe = PresenterProbe(day)
@@ -189,7 +189,7 @@ struct SystemFileCoordinationTests {
         try index.rebuild(vaultRoot: root)
         let store = VaultStore(vaultRoot: root, index: index, fileCoordination: SystemFileCoordination())
 
-        let outcome = try await store.mergingDayCopy("journal/2026-10-02 2.md")
+        let outcome = try await store.mergingDayCopy("diary/2026-10-02 2.md")
 
         #expect(outcome.kind == .merged)
         #expect(Set(dayProbe.drain()) == ["toWriter", "save"])
@@ -207,12 +207,12 @@ struct SystemFileCoordinationTests {
 @MainActor
 struct CoordinatedVaultWriteTests {
     private static let day =
-        "---\ntype: journal\ndate: 2026-10-03\n---\n\n## Tasks\n- [ ] süt al ^sut\n\n## Events\n"
-        + "- 08:00 kahve ^kahve\n\n## Journal\nEski.\n"
+        "---\ntype: diary\ndate: 2026-10-03\n---\n\n## Tasks\n- [ ] süt al ^sut\n\n## Events\n"
+        + "- 08:00 kahve ^kahve\n\n## Diary\nEski.\n"
     private static let person = "---\ntype: person\nname: Ada Kurgu\n---\n"
 
     private func seed(_ context: TaskTestContext) async throws {
-        for (path, text) in ["journal/2026-10-03.md": Self.day, "people/Ada Kurgu.md": Self.person] {
+        for (path, text) in ["diary/2026-10-03.md": Self.day, "people/Ada Kurgu.md": Self.person] {
             let url = context.root.appendingPathComponent(path)
             try FileManager.default.createDirectory(
                 at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
@@ -221,7 +221,7 @@ struct CoordinatedVaultWriteTests {
         await context.store.refresh()
     }
 
-    @Test func eventTaskJournalAndRenameWritesAreCoordinatedAndIndexed() async throws {
+    @Test func eventTaskDiaryAndRenameWritesAreCoordinatedAndIndexed() async throws {
         let context = try TaskTestContext()
         defer { context.clean() }
         await context.start()
@@ -244,10 +244,10 @@ struct CoordinatedVaultWriteTests {
         #expect(try context.document().bodyLines.tasks.first?.status == .done)
         #expect(try await context.row("süt al").isClosed)
 
-        try await store.appendToJournal(on: today, lines: ["Kurgu satır."])
+        try await store.appendToDiary(on: today, lines: ["Kurgu satır."])
         #expect(dayProbe.count("toWriter") == 3)
         #expect(try String(contentsOf: context.file, encoding: .utf8).hasSuffix("Eski.\n\nKurgu satır.\n"))
-        #expect(try await store.computeDay(on: today).journal.last?.text.plainText == "Kurgu satır.")
+        #expect(try await store.computeDay(on: today).diary.last?.text.plainText == "Kurgu satır.")
 
         let result = try await store.renameEntity(at: "people/Ada Kurgu.md", to: "Ada Kurgulu", qualifier: nil)
         let renamed = context.root.appendingPathComponent("people/Ada Kurgulu.md")
@@ -286,7 +286,7 @@ struct CoordinatedVaultWriteTests {
 
         #expect(try await finishes { await store.addEvent(on: today, text: "kilitsiz", time: nil) })
         #expect(try await finishes { (try? await store.completeTask(row, on: today)) != nil })
-        #expect(try await finishes { (try? await store.appendToJournal(on: today, lines: ["Kilitsiz."])) != nil })
+        #expect(try await finishes { (try? await store.appendToDiary(on: today, lines: ["Kilitsiz."])) != nil })
         #expect(
             try await finishes {
                 (try? await store.renameEntity(at: "people/Ada Kurgu.md", to: "Ada Kilitsiz", qualifier: nil)) != nil
@@ -307,7 +307,7 @@ struct CoordinatedVaultWriteTests {
         let day = RawDocument(bytes: try Data(contentsOf: context.file))
         #expect(day.bodyLines.events.map(\.block.text).contains("kilitsiz"))
         #expect(day.bodyLines.tasks.first?.status == .done)
-        let otherDay = RawDocument(bytes: try Data(contentsOf: other.appendingPathComponent("journal/2026-10-03.md")))
+        let otherDay = RawDocument(bytes: try Data(contentsOf: other.appendingPathComponent("diary/2026-10-03.md")))
         #expect(otherDay.bodyLines.events.map(\.block.text).contains("öteki kasa"))
         let renamed = context.root.appendingPathComponent("people/Ada Kilitsiz.md")
         #expect(FileManager.default.fileExists(atPath: renamed.path))

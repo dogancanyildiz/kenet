@@ -1,9 +1,9 @@
 ---
-type: journal
+type: diary
 date: 2026-09-21
 ---
 
-## Journal
+## Diary
 Gün.
 
 ## Notlar

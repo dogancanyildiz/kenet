@@ -24,7 +24,7 @@ enum IntentActionError: LocalizedError {
     case vaultUnavailable, emptyText, writeFailed, goalMissing, invalidAmount, appLocked
     var errorDescription: String? {
         switch self {
-        case .vaultUnavailable: String(localized: "Kasaya erişilemiyor. Journal'da kasanı açıp yeniden dene.")
+        case .vaultUnavailable: String(localized: "Kasaya erişilemiyor. Kenet'te kasanı açıp yeniden dene.")
         case .emptyText: String(localized: "Eklenecek metin boş olamaz.")
         case .writeFailed: String(localized: "Kayıt yazılamadı. Kasa erişimini ve metni kontrol et.")
         case .goalMissing: String(localized: "Hedef bulunamadı. Kısayolda hedefi yeniden seç.")

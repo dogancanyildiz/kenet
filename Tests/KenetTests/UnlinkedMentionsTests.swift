@@ -73,7 +73,7 @@ struct UnlinkedMentionsTests {
         await model.load(entity)
         let mention = try #require(
             model.mentions.first {
-                $0.file == "journal/2026-10-10.md" && $0.isExplicit && $0.spelling == "Elif"
+                $0.file == "diary/2026-10-10.md" && $0.isExplicit && $0.spelling == "Elif"
             })
         let beforeCount = model.mentions.count
         let beforeFiles = try Self.vaultFiles(context.root)
@@ -106,7 +106,7 @@ struct UnlinkedMentionsTests {
         let model = context.model()
         await model.load(entity)
         let pair = model.mentions.filter {
-            $0.file == "journal/2026-10-10.md" && $0.spelling == "Elif" && $0.lineText.contains("sonra")
+            $0.file == "diary/2026-10-10.md" && $0.spelling == "Elif" && $0.lineText.contains("sonra")
         }
         #expect(pair.count == 2)
         let first = pair[0]
@@ -140,7 +140,7 @@ struct UnlinkedMentionsTests {
         let model = context.model()
         await model.load(entity)
         let mention = try #require(
-            model.mentions.first { $0.file == "journal/2026-10-09.md" && $0.spelling == "Elif" })
+            model.mentions.first { $0.file == "diary/2026-10-09.md" && $0.spelling == "Elif" })
         let url = context.root.appendingPathComponent(mention.file)
         var text = String(decoding: try Data(contentsOf: url), as: UTF8.self)
         #expect(text.components(separatedBy: mention.lineText).count == 2)
@@ -180,8 +180,8 @@ struct UnlinkedMentionsTests {
         let entity = try context.elif()
         let model = context.model()
         await model.load(entity)
-        let first = try #require(model.mentions.first { $0.file == "journal/2026-10-10.md" })
-        let second = try #require(model.mentions.first { $0.file == "journal/2026-10-09.md" })
+        let first = try #require(model.mentions.first { $0.file == "diary/2026-10-10.md" })
+        let second = try #require(model.mentions.first { $0.file == "diary/2026-10-09.md" })
         let untouched = try Data(contentsOf: context.root.appendingPathComponent(second.file))
         let gate = ArrivalGate()
         model.testingHoldBeforeWrite = {
@@ -205,7 +205,7 @@ struct UnlinkedMentionsTests {
         let entity = try context.elif()
         let model = context.model()
         await model.load(entity)
-        let pair = model.mentions.filter { $0.file == "journal/2026-10-10.md" && $0.lineText.contains("sonra") }
+        let pair = model.mentions.filter { $0.file == "diary/2026-10-10.md" && $0.lineText.contains("sonra") }
         #expect(pair.count == 2)
         let store = context.store
         let gate = QueryGate()
@@ -248,7 +248,7 @@ struct UnlinkedMentionsTests {
         let eceRows = model.mentions.map(\.rowIdentity)
         #expect(!eceRows.isEmpty)
         await model.load(entity)
-        let mention = try #require(model.mentions.first { $0.file == "journal/2026-10-09.md" })
+        let mention = try #require(model.mentions.first { $0.file == "diary/2026-10-09.md" })
         let gate = ArrivalGate()
         model.testingHoldBeforeWrite = { _ = await gate.holdIfFirst() }
 
@@ -263,7 +263,7 @@ struct UnlinkedMentionsTests {
 
         // A refusal that arrives on the other page is not that page's news either.
         await model.load(entity)
-        let older = try #require(model.mentions.first { $0.file == "journal/2026-10-08.md" })
+        let older = try #require(model.mentions.first { $0.file == "diary/2026-10-08.md" })
         try Data("## Events\n".utf8).write(to: context.root.appendingPathComponent(older.file))
         let second = ArrivalGate()
         model.testingHoldBeforeWrite = { _ = await second.holdIfFirst() }
@@ -283,7 +283,7 @@ struct UnlinkedMentionsTests {
         let entity = try context.elif()
         let model = context.model()
         await model.load(entity)
-        let mention = try #require(model.mentions.first { $0.file == "journal/2026-10-09.md" })
+        let mention = try #require(model.mentions.first { $0.file == "diary/2026-10-09.md" })
         // The other vault holds the very same line, so only the vault check can refuse the write.
         let other = context.directory.appendingPathComponent("Other")
         try FileManager.default.copyItem(at: context.root, to: other)
@@ -324,7 +324,7 @@ struct UnlinkedMentionsTests {
         let entity = try context.elif()
         let model = context.model()
         await model.load(entity)
-        let mention = try #require(model.mentions.first { $0.file == "journal/2026-10-09.md" })
+        let mention = try #require(model.mentions.first { $0.file == "diary/2026-10-09.md" })
         let count = model.mentions.count
         let store = context.store
         model.testingWrite = { mention, entity in
@@ -365,7 +365,7 @@ struct UnlinkedMentionsTests {
         let entity = try context.elif()
         let model = context.model()
         await model.load(entity)
-        let explicit = try #require(model.mentions.first { $0.file == "journal/2026-10-10.md" && $0.isExplicit })
+        let explicit = try #require(model.mentions.first { $0.file == "diary/2026-10-10.md" && $0.isExplicit })
         let earlier = try #require(
             model.mentions.first { $0.file == explicit.file && $0.position.line < explicit.position.line })
 
@@ -382,7 +382,7 @@ struct UnlinkedMentionsTests {
         await context.start()
         let model = context.model()
         await model.load(try context.elif())
-        let clocked = try #require(model.mentions.first { $0.file == "journal/2026-10-08.md" && $0.spelling == "Elif" })
+        let clocked = try #require(model.mentions.first { $0.file == "diary/2026-10-08.md" && $0.spelling == "Elif" })
         #expect(Self.shown(UnlinkedMentionLine.styled(clocked)) == "🎸 çaldı, Çağrı’yla şöyle: Elif geldi.")
         #expect(Self.emphasized(UnlinkedMentionLine.styled(clocked)) == "Elif")
         // Linking removes the at sign too, so the row marks it.

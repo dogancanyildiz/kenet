@@ -12,7 +12,7 @@ struct NotificationPreferencesTests {
         settings.goalTime = NotificationTime(hour: 19, minute: 30)
         settings.persist(in: defaults.defaults)
         #expect(NotificationPreferences.read(from: defaults.defaults) == settings)
-        settings.journalTime.hour = 24
+        settings.diaryTime.hour = 24
         defaults.defaults.set(try JSONEncoder().encode(settings), forKey: NotificationPreferences.storageKey)
         #expect(NotificationPreferences.read(from: defaults.defaults) == NotificationPreferences())
         defaults.defaults.set(Data("invalid".utf8), forKey: NotificationPreferences.storageKey)
@@ -36,10 +36,10 @@ struct NotificationPreferencesTests {
         let legacy: [String: Any] = [
             "tasksEnabled": false,
             "goalsEnabled": true,
-            "journalEnabled": true,
+            "diaryEnabled": true,
             "taskTime": ["hour": 10, "minute": 15],
             "goalTime": ["hour": 20, "minute": 0],
-            "journalTime": ["hour": 21, "minute": 0],
+            "diaryTime": ["hour": 21, "minute": 0],
         ]
         defaults.defaults.set(
             try JSONSerialization.data(withJSONObject: legacy), forKey: NotificationPreferences.storageKey)
@@ -60,7 +60,7 @@ struct NotificationPreferencesTests {
                 "tasksEnabled": true,
                 "taskTime": ["hour": 9, "minute": 0],
                 "goalTime": ["hour": 20, "minute": 0],
-                "journalTime": ["hour": 21, "minute": 0],
+                "diaryTime": ["hour": 21, "minute": 0],
                 "hideContent": hidden,
             ]
             defaults.defaults.set(

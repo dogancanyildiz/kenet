@@ -3,7 +3,7 @@ import Testing
 
 @testable import VaultIndex
 
-/// `Fixtures/vaults/copy-files`: entity copies from the index, day copies from `journal/` on disk.
+/// `Fixtures/vaults/copy-files`: entity copies from the index, day copies from `diary/` on disk.
 struct CopyFileTests {
     private struct Expected: Decodable {
         struct Name: Decodable {
@@ -61,11 +61,11 @@ struct CopyFileTests {
         #expect(EntityCopyName.copies(in: paths.reversed(), originals: originals.reversed()) == expected)
     }
 
-    /// A folder spelled `Journal/` is not the day folder, even on a volume that ignores case.
-    @Test func dayCopiesNeedTheExactJournalFolder() throws {
+    /// A folder spelled `Diary/` is not the day folder, even on a volume that ignores case.
+    @Test func dayCopiesNeedTheExactDiaryFolder() throws {
         try withVault { root in
-            try write(root, "Journal/2026-10-02.md", "- Gün\n")
-            try write(root, "Journal/2026-10-02 2.md", "- Kopya\n")
+            try write(root, "Diary/2026-10-02.md", "- Gün\n")
+            try write(root, "Diary/2026-10-02 2.md", "- Kopya\n")
             #expect(try VaultIndex.dayCopies(vaultRoot: root).isEmpty)
         }
         try withVault { root in

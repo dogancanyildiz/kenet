@@ -274,7 +274,7 @@ private struct TaskDetailSheet: ViewModifier {
         content.sheet(item: $row) { row in
             NavigationStack {
                 TaskDetailView(store: store, row: row) { path in
-                    sourceDay = CalendarDate(String(path.dropFirst("journal/".count).dropLast(3)))
+                    sourceDay = VaultLayout.day(ofDayPath: path)
                 }
                 .navigationDestination(item: $sourceDay) { DayView(store: store, date: $0) }
                 .inkSheet("Görev", onClose: { self.row = nil })

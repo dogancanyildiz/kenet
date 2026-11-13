@@ -39,7 +39,7 @@ struct QuickEntryTaskTests {
         #expect(
             try Data(contentsOf: context.file)
                 == Data(
-                    "---\ntype: journal\ndate: 2026-10-03\n---\n\n## Tasks\n- [ ] Deniz'i ara 📅 2026-10-05 ^\(id)\n"
+                    "---\ntype: diary\ndate: 2026-10-03\n---\n\n## Tasks\n- [ ] Deniz'i ara 📅 2026-10-05 ^\(id)\n"
                         .utf8))
         #expect(document.bodyLines.events.isEmpty)
         #expect(model.text.isEmpty && model.mode == .task && model.dueDate == nil)
@@ -117,7 +117,7 @@ struct QuickEntryTaskTests {
         let model = context.model()
         model.text = "yarın ara"
         #expect(await model.submit(time: nil))
-        let eventFile = context.root.appendingPathComponent("journal/\(LocalDay.today()).md")
+        let eventFile = context.root.appendingPathComponent("diary/\(LocalDay.today()).md")
         #expect(RawDocument(bytes: try Data(contentsOf: eventFile)).bodyLines.events.first?.block.text == "yarın ara")
         let date = context.today
         let historical = QuickEntryModel(store: context.store, day: CalendarDate("2026-09-12"), today: { date })

@@ -12,8 +12,8 @@ import VaultFormat
 /// end as `expected.md`, each preserved version must sit byte for byte under its `conflicts/` name,
 /// and nothing else may be left on disk. Either version may be the one on the day file, as on two devices.
 struct DayCopyMergeCaseTests {
-    private static let day = "journal/2026-10-02.md"
-    private static let copy = "journal/2026-10-02 2.md"
+    private static let day = "diary/2026-10-02.md"
+    private static let copy = "diary/2026-10-02 2.md"
 
     private struct Case {
         let bytes: [String: [UInt8]]
@@ -69,7 +69,7 @@ struct DayCopyMergeCaseTests {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }
         try FileManager.default.createDirectory(
-            at: root.appendingPathComponent("journal"), withIntermediateDirectories: true)
+            at: root.appendingPathComponent("diary"), withIntermediateDirectories: true)
         let dayURL = root.appendingPathComponent(Self.day)
         let copyURL = root.appendingPathComponent(Self.copy)
         try Data(fixture.bytes[onDay]!).write(to: dayURL)
@@ -95,7 +95,7 @@ struct DayCopyMergeCaseTests {
         #expect(outcome.dayPath == Self.day)
         #expect(outcome.conflictPaths == names)
         #expect(outcome.fellBack == name.contains("falls-back"))
-        var expectedTree: [String: Data?] = ["journal": nil, Self.day: Data(fixture.expected)]
+        var expectedTree: [String: Data?] = ["diary": nil, Self.day: Data(fixture.expected)]
         if !names.isEmpty { expectedTree["conflicts"] = .some(nil) }
         for (path, version) in zip(names, fixture.preservedInOrder) {
             expectedTree[path] = Data(fixture.bytes[version]!)
@@ -127,8 +127,8 @@ struct DayCopyMergeCaseTests {
                 try Data("Eşzamanlı yazılan not.\n".utf8).write(to: racerURL)
             }
         })
-        let preserved = try Data(contentsOf: vault.url("journal/2026-10-05 2.md"))
-        let outcome = try await store.mergingDayCopy("journal/2026-10-05 2.md")
+        let preserved = try Data(contentsOf: vault.url("diary/2026-10-05 2.md"))
+        let outcome = try await store.mergingDayCopy("diary/2026-10-05 2.md")
         #expect(outcome.conflictPaths == ["conflicts/2026-10-05 (conflict 20261005T060000Z 2).md"])
         #expect(try Data(contentsOf: racerURL) == Data("Eşzamanlı yazılan not.\n".utf8))
         #expect(try Data(contentsOf: vault.url(outcome.conflictPaths[0])) == preserved)
@@ -141,9 +141,9 @@ struct DayCopyMergeCaseTests {
     func copyRowsOfAnOlderIndexAreRemoved(notified: Bool) throws {
         let vault = try DayCopyVault()
         defer { vault.remove() }
-        let copy = "journal/2026-10-02 2.md"
+        let copy = "diary/2026-10-02 2.md"
         let shared = "- 09:00 Proje toplantısı ^e2a001\n"
-        try Data(("---\ntype: journal\n---\n\n## Events\n" + shared).utf8).write(to: vault.url(copy))
+        try Data(("---\ntype: diary\n---\n\n## Events\n" + shared).utf8).write(to: vault.url(copy))
         try vault.index.database.write { db in
             let data = try Data(contentsOf: vault.url(copy))
             let document = RawDocument(bytes: data)
@@ -168,7 +168,7 @@ struct DayCopyMergeCaseTests {
 
         #expect(result.deletedPaths == [copy])
         #expect(result.dayCopies.contains(copy))
-        #expect(try vault.index.owner(of: "e2a001")?.file == "journal/2026-10-02.md")
+        #expect(try vault.index.owner(of: "e2a001")?.file == "diary/2026-10-02.md")
         #expect(try !vault.index.files().contains { $0.path == copy })
         try equivalent(vault.index, vault.root)
     }
@@ -178,22 +178,22 @@ struct DayCopyMergeCaseTests {
     @Test func placeholdersAndCopiesTogether() async throws {
         let vault = try DayCopyVault()
         defer { vault.remove() }
-        try Data("bplist00".utf8).write(to: vault.url("journal/.2026-10-06 2.md.icloud"))
-        try Data("bplist00".utf8).write(to: vault.url("journal/.2026-10-07.md.icloud"))
-        try Data("---\ntype: journal\n---\n\n## Events\n- Yağmur ^e7b001\n".utf8)
-            .write(to: vault.url("journal/2026-10-07 2.md"))
+        try Data("bplist00".utf8).write(to: vault.url("diary/.2026-10-06 2.md.icloud"))
+        try Data("bplist00".utf8).write(to: vault.url("diary/.2026-10-07.md.icloud"))
+        try Data("---\ntype: diary\n---\n\n## Events\n- Yağmur ^e7b001\n".utf8)
+            .write(to: vault.url("diary/2026-10-07 2.md"))
         // A downloaded copy beside its own stale placeholder is a copy, not a pending download.
-        try Data("bplist00".utf8).write(to: vault.url("journal/.2026-10-02 2.md.icloud"))
+        try Data("bplist00".utf8).write(to: vault.url("diary/.2026-10-02 2.md.icloud"))
         let result = try vault.index.refresh(vaultRoot: vault.root)
-        #expect(result.pendingDownloads == ["journal/2026-10-06 2.md", "journal/2026-10-07.md"])
-        #expect(result.dayCopies == DayCopyName.copies(in: vault.cases.dayCopies + ["journal/2026-10-07 2.md"]))
+        #expect(result.pendingDownloads == ["diary/2026-10-06 2.md", "diary/2026-10-07.md"])
+        #expect(result.dayCopies == DayCopyName.copies(in: vault.cases.dayCopies + ["diary/2026-10-07 2.md"]))
         #expect(try !vault.index.blockIdentifiers().contains("e7b001"))
         let before = try vault.tree()
-        await #expect(throws: VaultStoreError.awaitingDownload(path: "journal/2026-10-07.md")) {
-            try await vault.store().mergingDayCopy("journal/2026-10-07 2.md")
+        await #expect(throws: VaultStoreError.awaitingDownload(path: "diary/2026-10-07.md")) {
+            try await vault.store().mergingDayCopy("diary/2026-10-07 2.md")
         }
-        await #expect(throws: VaultStoreError.awaitingDownload(path: "journal/2026-10-06 2.md")) {
-            try await vault.store().mergingDayCopy("journal/2026-10-06 2.md")
+        await #expect(throws: VaultStoreError.awaitingDownload(path: "diary/2026-10-06 2.md")) {
+            try await vault.store().mergingDayCopy("diary/2026-10-06 2.md")
         }
         #expect(try vault.tree() == before)
     }
@@ -221,8 +221,8 @@ struct DayCopyIndexFailureTests {
     @Test func indexFailureAfterTheMergeKeepsTheMergedFiles() async throws {
         let vault = try DayCopyVault()
         defer { vault.remove() }
-        let copy = "journal/2026-10-01 2.md"
-        let dayPath = "journal/2026-10-01.md"
+        let copy = "diary/2026-10-01 2.md"
+        let dayPath = "diary/2026-10-01.md"
         let merge = ConflictMerge.merge(try vault.version(dayPath), try vault.version(copy))
         let reads = FailingIndexReads(fileName: "2026-10-01.md")
         let index = try VaultIndex(readFile: reads.read)

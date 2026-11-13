@@ -4,6 +4,6 @@
 ## Tasks
 - [ ] [[Liman Ofis]]
   devam [[Baran Tunç]]
-## Journal
+## Diary
 serbest [[Selin Korkmaz]]
 ## [[Ece Yalın]]

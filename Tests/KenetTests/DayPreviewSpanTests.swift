@@ -23,13 +23,13 @@ import VaultFormat
         let spans = [DayPreviewSpan(text: "Ev", destination: "places/Ev.md", target: "Ev")]
         let date = CalendarDate("2026-09-27")!
         let withEvent = DayOverview(
-            id: "journal/2026-09-27.md", date: date, eventCount: 1, journalCount: 0, preview: nil,
+            id: "diary/2026-09-27.md", date: date, eventCount: 1, diaryCount: 0, preview: nil,
             firstEventPreview: "Ev", firstEventSpans: spans)
         #expect(withEvent.displayPreviewSpans == spans)
-        let journalOnly = DayOverview(
-            id: "journal/2026-09-27.md", date: date, eventCount: 0, journalCount: 1, preview: "Yazı",
+        let diaryOnly = DayOverview(
+            id: "diary/2026-09-27.md", date: date, eventCount: 0, diaryCount: 1, preview: "Yazı",
             firstEventSpans: spans)
-        #expect(journalOnly.displayPreviewSpans == nil)
+        #expect(diaryOnly.displayPreviewSpans == nil)
     }
 
     /// The sample vault's 26 September opens with a linked person: the fragment keeps the link.
@@ -37,7 +37,7 @@ import VaultFormat
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
         await context.start()
-        let fragment = try #require(context.store.content.fragments["journal/2026-09-26.md"])
+        let fragment = try #require(context.store.content.fragments["diary/2026-09-26.md"])
         let spans = try #require(fragment.firstEventSpans)
         #expect(spans.first { $0.target != nil }?.text == "Baran Tunç")
         #expect(spans.map(\.text).joined() == fragment.firstEventPreview)

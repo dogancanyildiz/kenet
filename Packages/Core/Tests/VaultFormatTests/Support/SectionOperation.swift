@@ -4,15 +4,15 @@ import VaultFormat
 /// Checks the section append fixture independently against its expected bytes.
 enum SectionOperation {
     static func check(_ json: JSONValue, description: JSONValue, before: RawDocument, name: String) throws {
-        if json["operation"] == .string("append-journal") {
+        if json["operation"] == .string("append-diary") {
             let contents = try #require(json["lines"]?.arrayValue).map { try #require($0.stringValue) }
             if let error = description["expectedError"] {
-                #expect { try before.appendingJournalLines(contents) } throws: {
+                #expect { try before.appendingDiaryLines(contents) } throws: {
                     ($0 as? EditError)?.fixtureName == error.stringValue
                 }
             } else {
                 let expected = try Fixtures.bytes(at: "write/\(name)/expected.md")
-                let after = try before.appendingJournalLines(contents)
+                let after = try before.appendingDiaryLines(contents)
                 #expect(after.serialized() == expected)
                 #expect(after == RawDocument(bytes: expected))
                 #expect(RawDocument(bytes: after.serialized()).serialized() == expected)
@@ -25,18 +25,18 @@ enum SectionOperation {
             #expect(before == RawDocument(bytes: before.serialized()))
             return
         }
-        if json["operation"] == .string("replace-journal") {
+        if json["operation"] == .string("replace-diary") {
             let text = try #require(json["text"]?.stringValue)
             if let error = description["expectedError"] {
-                #expect { try before.replacingJournal(with: text) } throws: {
+                #expect { try before.replacingDiary(with: text) } throws: {
                     ($0 as? EditError)?.fixtureName == error.stringValue
                 }
             } else {
                 let expected = try Fixtures.bytes(at: "write/\(name)/expected.md")
-                let after = try before.replacingJournal(with: text)
+                let after = try before.replacingDiary(with: text)
                 #expect(after.serialized() == expected)
                 #expect(after == RawDocument(bytes: expected))
-                #expect(try after.replacingJournal(with: text).serialized() == after.serialized())
+                #expect(try after.replacingDiary(with: text).serialized() == after.serialized())
                 #expect(RawDocument(bytes: after.serialized()).serialized() == expected)
             }
             #expect(before == RawDocument(bytes: before.serialized()))

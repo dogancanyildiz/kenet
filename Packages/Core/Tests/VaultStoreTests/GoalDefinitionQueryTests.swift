@@ -99,7 +99,7 @@ struct GoalDefinitionQueryTests {
             (after, "  bisiklet: 4"),
         ]
         for (day, lines) in values {
-            try vault.write("journal/\(day).md", "---\ntype: journal\ndate: \(day)\ngoals:\n\(lines)\n---\n")
+            try vault.write("diary/\(day).md", "---\ntype: diary\ndate: \(day)\ngoals:\n\(lines)\n---\n")
         }
         try vault.index.rebuild(vaultRoot: vault.root)
         let expected = try readModelGoalFields(vault.index, today: today)

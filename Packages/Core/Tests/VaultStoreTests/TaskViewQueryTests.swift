@@ -94,11 +94,11 @@ struct TaskViewQueryTests {
         // Swift keys compare canonically: the decomposed spelling counts with "Café".
         #expect(try index.openTaskCounts() == ["Café": 2, "café": 1, "CAFÉ": 1])
         #expect(try index.projectTaskCounts().keys.sorted() == ["CAFÉ", "Café", "café"].sorted())
-        let owned = try #require(try index.task(id: "journal/2026-03-10.md^bugun1"))
+        let owned = try #require(try index.task(id: "diary/2026-03-10.md^bugun1"))
         #expect(owned.links.map(\.resolvedFile) == ["people/Ada Test.md", "people/Can Test.md"])
-        #expect(try index.task(id: "journal/2026-03-10.md#3")?.block.text.hasPrefix("geçmiş") == true)
-        #expect(try index.task(id: "journal/2026-03-10.md#\(owned.block.firstLine)") == nil)
-        #expect(try index.task(id: "journal/2026-03-09.md#2")?.block.text == "dünkü tarihsiz")
+        #expect(try index.task(id: "diary/2026-03-10.md#3")?.block.text.hasPrefix("geçmiş") == true)
+        #expect(try index.task(id: "diary/2026-03-10.md#\(owned.block.firstLine)") == nil)
+        #expect(try index.task(id: "diary/2026-03-09.md#2")?.block.text == "dünkü tarihsiz")
         // A task whose identifier an event owns is named by its line.
         #expect(try index.task(id: "notes/Plan.md#3")?.block.text.hasPrefix("kopya") == true)
         #expect(try index.task(id: "notes/Plan.md^olay1") == nil)
@@ -110,7 +110,7 @@ struct TaskViewQueryTests {
         let vault = try StoreVault()
         defer { vault.remove() }
         try vault.write(
-            "journal/2026-03-10.md",
+            "diary/2026-03-10.md",
             """
             ## Tasks
             - [ ] ileri açık 📅 2026-03-15
@@ -121,7 +121,7 @@ struct TaskViewQueryTests {
             - [x] tarihsiz bitti
 
             """)
-        try vault.write("journal/2026-03-09.md", "## Tasks\n- [ ] dünden ileri 📅 2026-03-15\n")
+        try vault.write("diary/2026-03-09.md", "## Tasks\n- [ ] dünden ileri 📅 2026-03-15\n")
         try vault.write("notes/Plan.md", "- [ ] notta ileri 📅 2026-03-15\n")
         try vault.index.rebuild(vaultRoot: vault.root)
         try expectConstruction(
@@ -154,7 +154,7 @@ struct TaskViewQueryTests {
                 try vault.index.completedTasks(limit: 50, scope: .all) == rebuilt.completedTasks(limit: 50, scope: .all)
             )
         }
-        let path = "journal/2026-03-10.md"
+        let path = "diary/2026-03-10.md"
         func task(_ prefix: String) throws -> TaskLine {
             try #require(
                 RawDocument(bytes: try vault.bytes(path)).bodyLines.tasks.first { $0.text.hasPrefix(prefix) })
@@ -190,7 +190,7 @@ struct TaskViewQueryTests {
         try vault.write("people/Ada Test.md", "---\ntype: person\nname: Ada Test\n---\n")
         try vault.write("people/Can Test.md", "---\ntype: person\nname: Can Test\n---\n")
         try vault.write(
-            "journal/2026-03-10.md",
+            "diary/2026-03-10.md",
             """
             ## Tasks
             - [ ] tarihsiz açık
@@ -210,10 +210,10 @@ struct TaskViewQueryTests {
             - 09:00 Olay [[Ada Test]] ^olay1
             """)
         try vault.write(
-            "journal/2026-03-09.md",
+            "diary/2026-03-09.md",
             "## Tasks\r\n- [ ] dünkü tarihsiz\r\n- [x] dün bitti ✅ 2026-03-09\r\n")
         try vault.write(
-            "journal/2026-03-04.md",
+            "diary/2026-03-04.md",
             "## Tasks\n- [x] eski bitti ✅ 2026-02-01\n- [x] geç bitti 📅 2026-03-02 ✅ 2026-03-10\n- [x] sınır bitti ✅ 2026-02-09\n"
         )
         try vault.write(
@@ -367,7 +367,7 @@ private struct TaskConstruction {
     func day(_ day: CalendarDate) -> [TaskEntry] {
         tasks.filter { entry in
             (Self.isOpen(entry) && Self.due(entry).map { $0 < day } ?? false) || Self.due(entry) == day
-                || ((Self.due(entry) == nil || Self.isOpen(entry)) && entry.block.file == "journal/\(day).md")
+                || ((Self.due(entry) == nil || Self.isOpen(entry)) && entry.block.file == "diary/\(day).md")
                 || (Self.isDone(entry) && Self.done(entry) == day)
         }
     }
@@ -401,8 +401,8 @@ private struct TaskConstruction {
             guard Self.isOpen(entry) else { return false }
             if let due = Self.due(entry) { return due <= last }
             let file = entry.block.file
-            guard file.hasPrefix("journal/"), file.hasSuffix(".md"),
-                let created = CalendarDate(String(file.dropFirst(8).dropLast(3)))
+            guard file.hasPrefix("diary/"), file.hasSuffix(".md"),
+                let created = CalendarDate(String(file.dropFirst("diary/".count).dropLast(3)))
             else { return false }
             return created >= first && created <= last
         }.sorted(by: Self.order)

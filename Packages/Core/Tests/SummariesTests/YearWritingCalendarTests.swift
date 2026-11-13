@@ -44,21 +44,21 @@ struct YearWritingCalendarTests {
         }
     }
 
-    /// The light day query reads the summary's own rules: a Journal heading writes the day,
-    /// a blank Journal or an empty heading or text under another heading does not, and a task alone does not.
+    /// The light day query reads the summary's own rules: a Diary heading writes the day,
+    /// a blank Diary or an empty heading or text under another heading does not, and a task alone does not.
     @Test func dayQueryMatchesTheSummaryRows() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }
         let files = [
-            "2026-02-01": "## Journal\n### Başlık\n",
-            "2026-02-02": "## Journal\n   \n",
+            "2026-02-01": "## Diary\n### Başlık\n",
+            "2026-02-02": "## Diary\n   \n",
             "2026-02-03": "## Notlar\nBaşka bölüm.\n",
             "2026-02-04": "## Tasks\n- [ ] görev\n",
-            "2026-02-05": "## Events\n- 09:00 kahve\n- 10:00 yürüyüş\n\n## Journal\nBir gün.\n",
-            "2026-02-06": "## Journal\n### \n",
+            "2026-02-05": "## Events\n- 09:00 kahve\n- 10:00 yürüyüş\n\n## Diary\nBir gün.\n",
+            "2026-02-06": "## Diary\n### \n",
         ]
         for (date, body) in files {
-            let url = root.appendingPathComponent("journal/\(date).md")
+            let url = root.appendingPathComponent("diary/\(date).md")
             try FileManager.default.createDirectory(
                 at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
             try Data(body.utf8).write(to: url)
@@ -70,20 +70,20 @@ struct YearWritingCalendarTests {
         let days = try index.summaryDays(from: start, to: end)
         #expect(days.map(\.date.description) == files.keys.sorted())
         #expect(days.map(\.events) == [0, 0, 0, 0, 2, 0])
-        #expect(days.map(\.hasJournal) == [true, false, false, false, true, false])
+        #expect(days.map(\.hasDiary) == [true, false, false, false, true, false])
         let input = try index.summaryInput(from: start, to: end).days
         #expect(days.map(\.events) == input.map(\.events))
-        #expect(days.map(\.hasJournal) == input.map(\.hasJournal))
+        #expect(days.map(\.hasDiary) == input.map(\.hasDiary))
         #expect(YearWritingCalendar.compute(days: days, year: 2026).writtenDays == 2)
     }
 
     @Test func dayLooksUpMeasuredDaysOnly() throws {
         let rows: [SummaryInput.Day] = [
-            .init(date: CalendarDate("2026-03-04")!, events: 0, hasJournal: true),
-            .init(date: CalendarDate("2026-03-05")!, events: 1, hasJournal: true),
+            .init(date: CalendarDate("2026-03-04")!, events: 0, hasDiary: true),
+            .init(date: CalendarDate("2026-03-05")!, events: 1, hasDiary: true),
         ]
         let map = YearWritingCalendar.compute(days: rows, year: 2026, today: CalendarDate("2026-03-05"))
-        #expect(map.day(CalendarDate("2026-03-04")!) == .journal)
+        #expect(map.day(CalendarDate("2026-03-04")!) == .diary)
         #expect(map.day(CalendarDate("2026-03-05")!) == .events)
         #expect(map.day(CalendarDate("2026-03-03")!) == .unwritten)
         #expect(map.day(CalendarDate("2026-03-06")!) == nil)
@@ -101,32 +101,32 @@ func summaryDays(_ fixture: [String: Any], from: CalendarDate, to: CalendarDate)
         let input = try index.summaryInput(from: from, to: to).days
         #expect(days.map(\.date) == input.map(\.date))
         #expect(days.map(\.events) == input.map(\.events))
-        #expect(days.map(\.hasJournal) == input.map(\.hasJournal))
+        #expect(days.map(\.hasDiary) == input.map(\.hasDiary))
         return days
     }
     let rows = try #require(fixture["days"] as? [[String: Any]])
     return try rows.map { row in
         SummaryInput.Day(
             date: try #require((row["date"] as? String).flatMap { CalendarDate($0) }),
-            events: try #require(row["events"] as? Int), hasJournal: try #require(row["hasJournal"] as? Bool))
+            events: try #require(row["events"] as? Int), hasDiary: try #require(row["hasDiary"] as? Bool))
     }
 }
 
 private func yearSnapshot(_ value: YearWritingCalendar) -> [String: Any] {
     var events: [String] = []
-    var journal: [String] = []
+    var diary: [String] = []
     for month in value.months {
         for (offset, day) in month.days.enumerated() {
             let date = CalendarDate(year: value.year, month: month.month, day: offset + 1)!.description
             switch day {
             case .events: events.append(date)
-            case .journal: journal.append(date)
+            case .diary: diary.append(date)
             case .unwritten: break
             }
         }
     }
     return [
-        "eventDays": events, "journalDays": journal,
+        "eventDays": events, "diaryDays": diary,
         "measuredEnd": value.measuredEnd?.description as Any? ?? NSNull(),
         "monthDays": value.months.map(\.days.count), "monthWritten": value.months.map(\.writtenDays),
         "writtenDays": value.writtenDays,

@@ -37,7 +37,7 @@ struct GraphMentionsTests {
         #expect(books.totals == ["books/Örnek Kitap.md": 1])
         #expect(books.days.map(\.mentions) == [["books/Örnek Kitap.md": 1]])
         #expect(try index.graphMentions(kinds: []).days.isEmpty)
-        #expect(try index.snapshot().files.allSatisfy { $0.path != "journal/2026-10-03 2.md" })
+        #expect(try index.snapshot().files.allSatisfy { $0.path != "diary/2026-10-03 2.md" })
     }
 
     @Test func syntheticVaultMatchesSnapshotConstruction() throws {
@@ -69,12 +69,12 @@ struct GraphMentionsTests {
         )
         try vault.write("notes/Plan.md", "[[Ada Test]] ile [[Ada Test|Ada]], [[Okuma]], [[Yok]]\n")
         try vault.write(
-            "journal/2026-03-01.md",
+            "diary/2026-03-01.md",
             "## Events\n- 09:00 [[Ada Test]] [[Koru]] [[Plan]] [[Okuma]] [[Yok]]\n- 10:00 [[Ada Test]]\n")
-        try vault.write("journal/2026-03-02.md", "## Events\n- 09:00 [[Plan]] [[Yok]]\n")
-        try vault.write("journal/2026-03-03.md", "---\nplace: \"[[Koru]]\"\n---\n")
-        try vault.write("journal/2026-02-30.md", "[[Ada Test]]\n")
-        try vault.write("journal/arsiv/2026-03-01.md", "[[Koru]]\n")
+        try vault.write("diary/2026-03-02.md", "## Events\n- 09:00 [[Plan]] [[Yok]]\n")
+        try vault.write("diary/2026-03-03.md", "---\nplace: \"[[Koru]]\"\n---\n")
+        try vault.write("diary/2026-02-30.md", "[[Ada Test]]\n")
+        try vault.write("diary/arsiv/2026-03-01.md", "[[Koru]]\n")
         try vault.write("arsiv/2026-03-01.md", "[[Koru]]\n")
         try vault.index.rebuild(vaultRoot: vault.root)
 
@@ -83,7 +83,7 @@ struct GraphMentionsTests {
         let ada = "people/Ada Test.md"
         let koru = "places/Koru.md"
         // Ada: her own heading link, two in the note, two on 03-01, one in the misdated file.
-        // Koru: Ada, the goal's place, 03-01, the frontmatter of 03-03, two files outside `journal/<date>.md`.
+        // Koru: Ada, the goal's place, 03-01, the frontmatter of 03-03, two files outside `diary/<date>.md`.
         // Goal, note and unresolved targets never count; only real day files have a date.
         #expect(mentions.totals == [ada: 6, koru: 6])
         #expect(
@@ -115,7 +115,7 @@ struct GraphMentionsTests {
         let renamed = try await vault.store.renamingEntity(at: "people/Deniz Arıkan.md", to: "Deniz Yeni")
         #expect(renamed.failures.isEmpty)
         try check()
-        try FileManager.default.removeItem(at: vault.root.appendingPathComponent("journal/\(day).md"))
+        try FileManager.default.removeItem(at: vault.root.appendingPathComponent("diary/\(day).md"))
         try vault.index.refresh(vaultRoot: vault.root)
         try check()
     }

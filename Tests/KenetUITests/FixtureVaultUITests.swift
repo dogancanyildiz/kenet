@@ -25,7 +25,7 @@ final class FixtureVaultUITests: XCTestCase {
     func testPresentFixtureIsCopiedOnCI() throws {
         let copy = try UITestSupport.prepareFixtureVault(named: "sample", environment: ["CI": "true"])
         defer { try? FileManager.default.removeItem(at: copy) }
-        XCTAssertTrue(FileManager.default.fileExists(atPath: copy.appendingPathComponent("journal").path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: copy.appendingPathComponent("diary").path))
     }
 
     func testOnlyASetCIValueCountsAsCI() {

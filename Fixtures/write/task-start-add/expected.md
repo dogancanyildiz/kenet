@@ -2,5 +2,5 @@
 - [ ] Deniz 🛫 2026-10-01 ^id
   continuation
 
-## Journal
+## Diary
 keep

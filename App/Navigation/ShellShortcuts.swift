@@ -13,12 +13,12 @@
         var body: some View {
             Group {
                 Button("Ara") { openSearch() }
-                    .keyboardShortcut(JournalShortcut.search.key, modifiers: JournalShortcut.search.modifiers)
+                    .keyboardShortcut(KenetShortcut.search.key, modifiers: KenetShortcut.search.modifiers)
                 Button("Hızlı geçiş") { openSearch() }
                     .keyboardShortcut(
-                        JournalShortcut.quickSwitch.key, modifiers: JournalShortcut.quickSwitch.modifiers)
+                        KenetShortcut.quickSwitch.key, modifiers: KenetShortcut.quickSwitch.modifiers)
                 Button("Bugüne git") { navigation.goToToday(shell: shell) }
-                    .keyboardShortcut(JournalShortcut.today.key, modifiers: JournalShortcut.today.modifiers)
+                    .keyboardShortcut(KenetShortcut.today.key, modifiers: KenetShortcut.today.modifiers)
             }
             .frame(width: 0, height: 0)
             .opacity(0)

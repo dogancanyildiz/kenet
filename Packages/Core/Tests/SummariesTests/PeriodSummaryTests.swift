@@ -172,7 +172,7 @@ struct PeriodSummaryTests {
     @Test func queryKeepsOlderGoalAndMentionHistoryButBoundsActivityAndExcludesFrontmatterLinks() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }
-        for path in ["journal", "people", "goals"] {
+        for path in ["diary", "people", "goals"] {
             try FileManager.default.createDirectory(
                 at: root.appendingPathComponent(path), withIntermediateDirectories: true)
         }
@@ -181,10 +181,10 @@ struct PeriodSummaryTests {
         try "---\ntype: goal\nname: Spor\nkey: spor\nperiod: week\nkind: boolean\ntarget: 1\n---\n".write(
             to: root.appendingPathComponent("goals/Spor.md"), atomically: true, encoding: .utf8)
         try "---\ngoals:\n  spor: true\n---\n## Events\n- [[Deniz Arıkan]]\n".write(
-            to: root.appendingPathComponent("journal/2026-09-07.md"), atomically: true, encoding: .utf8)
-        let file = root.appendingPathComponent("journal/2026-09-14.md")
+            to: root.appendingPathComponent("diary/2026-09-07.md"), atomically: true, encoding: .utf8)
+        let file = root.appendingPathComponent("diary/2026-09-14.md")
         try
-            "---\nvisitor: '[[Deniz Arıkan]]'\ngoals:\n  spor: true\n---\n## Journal\n[[Deniz Arıkan]] and [[Deniz Arıkan|Deniz]]\n"
+            "---\nvisitor: '[[Deniz Arıkan]]'\ngoals:\n  spor: true\n---\n## Diary\n[[Deniz Arıkan]] and [[Deniz Arıkan|Deniz]]\n"
             .write(to: file, atomically: true, encoding: .utf8)
         let index = try VaultIndex()
         try index.rebuild(vaultRoot: root)

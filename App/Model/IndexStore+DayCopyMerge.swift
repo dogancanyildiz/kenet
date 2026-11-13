@@ -8,12 +8,28 @@ struct DayCopyMergeReport: Equatable, Sendable {
     var merged = 0
     /// Copies left in place; Diagnostics still lists them.
     var failed = 0
+    /// Day files the day folder migration moved to `diary/` under their own name.
+    var movedDays = 0
+    /// Day files the migration wrote as day copies, because `diary/` held another version.
+    var copiedDays = 0
+    /// Day files the migration left in the legacy folder after an error.
+    var unmovedDays = 0
 
-    var isEmpty: Bool { merged == 0 && failed == 0 }
+    var isEmpty: Bool { merged == 0 && failed == 0 && movedDays == 0 && copiedDays == 0 && unmovedDays == 0 }
 
-    /// The band's sentences, in this order: merged, failed.
+    /// Whether the band warns: something stayed where it was.
+    var hasFailures: Bool { failed > 0 || unmovedDays > 0 }
+
+    /// The band's sentences, in this order: moved, copied, unmoved, merged, failed.
     var message: String {
         var parts: [String] = []
+        if movedDays > 0 { parts.append(String(localized: "\(movedDays) gün dosyası diary klasörüne taşındı.")) }
+        if copiedDays > 0 {
+            parts.append(String(localized: "\(copiedDays) gün dosyası diary klasöründe gün kopyası olarak duruyor."))
+        }
+        if unmovedDays > 0 {
+            parts.append(String(localized: "\(unmovedDays) gün dosyası taşınamadı; eski klasörde duruyor."))
+        }
         if merged > 0 { parts.append(String(localized: "\(merged) gün kopyası birleştirildi.")) }
         if failed > 0 {
             parts.append(String(localized: "\(failed) gün kopyası birleştirilemedi; Tanılama’da duruyor."))

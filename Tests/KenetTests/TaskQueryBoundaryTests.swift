@@ -65,7 +65,7 @@ import VaultStore
             "- [-] cancelled edge 📅 \(day(365)) ^cancellededge",
             "- [ ] undated ^undated",
         ].joined(separator: "\n")
-        try Self.write(["journal/\(today).md": source + "\n"], in: context)
+        try Self.write(["diary/\(today).md": source + "\n"], in: context)
         await context.start()
         let all = try await context.store.allTasks()
         let tasks = TasksModel(store: context.store, today: { today })
@@ -98,7 +98,7 @@ import VaultStore
     }
 
     /// A day page asked before the vault was published (no index yet: no rows) has an answer, but
-    /// not the current one: the journal reminder must not open the flow on it.
+    /// not the current one: the diary reminder must not open the flow on it.
     @Test func aDaysRowsFromBeforeThePublishAreNotCurrent() async throws {
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }

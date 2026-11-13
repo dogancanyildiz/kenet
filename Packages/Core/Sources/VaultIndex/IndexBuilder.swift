@@ -16,7 +16,8 @@ enum IndexBuilder {
         }
         let stem = String(file.dropLast(3))
         let basename = (stem as NSString).lastPathComponent
-        let date = file == "journal/" + basename + ".md" ? CalendarDate(basename)?.description : nil
+        // Day identity is the path, under `diary/` or the legacy day folder (`LegacyVaultNames`).
+        let date = VaultLayout.day(ofDayPath: file)?.description
         let type = scalar("type") ?? "note"
         let kind =
             !document.isValidUTF8

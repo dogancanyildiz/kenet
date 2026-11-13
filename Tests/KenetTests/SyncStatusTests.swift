@@ -31,11 +31,11 @@ struct SyncStatusTests {
         await context.start()
         #expect(context.store.syncStatus == .downloading(expected.waiting.count))
 
-        try context.arrive("journal/2026-09-30.md", bytes: CloudDownloadTests.arrivedDay)
+        try context.arrive("diary/2026-09-30.md", bytes: CloudDownloadTests.arrivedDay)
         await context.refresh()
         #expect(context.store.syncStatus == .downloading(expected.waiting.count - 1))
 
-        for path in expected.waiting where path != "journal/2026-09-30.md" {
+        for path in expected.waiting where path != "diary/2026-09-30.md" {
             try context.arrive(path, bytes: path == SyncLists.typesPath ? #"{"formatVersion":1,"types":[]}"# : "Not\n")
         }
         await context.refresh()

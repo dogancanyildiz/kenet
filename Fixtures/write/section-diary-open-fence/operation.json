@@ -1,0 +1,7 @@
+{
+  "sections": {
+    "operation": "replace-diary",
+    "text": "```\nSu"
+  },
+  "expectedError": "section-not-writable"
+}

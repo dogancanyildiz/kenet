@@ -4,10 +4,10 @@ import VaultFormat
 
 @testable import VaultIndex
 
-@Test func dayIdentityRequiresRootJournalAndOverridesType() throws {
+@Test func dayIdentityRequiresRootDiaryAndOverridesType() throws {
     try withVault { root in
         try write(root, "notes/2026-01-01.md", "---\ndate: 2026-01-01\ngoals:\n  su: 8\n---\nSu")
-        try write(root, "journal/2026-01-01.md", "---\ntype: person\ngoals:\n  kitap: 20\n---\n## Events\n- Su")
+        try write(root, "diary/2026-01-01.md", "---\ntype: person\ngoals:\n  kitap: 20\n---\n## Events\n- Su")
         let index = try VaultIndex()
         try index.rebuild(vaultRoot: root)
         let snapshot = try index.snapshot()
@@ -94,13 +94,13 @@ import VaultFormat
 @Test func headingBlocksExcludeSectionLabelsAndKeepNestedHeadingsOutsideFences() throws {
     try withVault { root in
         try write(
-            root, "journal/2026-01-01.md",
+            root, "diary/2026-01-01.md",
             """
             ## Tasks
             - [ ] Su
             ## Events
             - Kitap
-            ## Journal
+            ## Diary
             Su
             ### Kitap
             Kitap
@@ -117,7 +117,7 @@ import VaultFormat
         #expect(blocks.filter { $0.kind == "heading" }.map(\.headingLevel) == [3, 2])
         #expect(blocks.filter { $0.kind == "paragraph" }.map(\.text) == ["Su", "Kitap\n```\n### Su\n```", "Spor"])
         #expect(try index.search("Events").isEmpty)
-        #expect(blocks.first { $0.kind == "heading" }?.section == "Journal")
+        #expect(blocks.first { $0.kind == "heading" }?.section == "Diary")
     }
 }
 

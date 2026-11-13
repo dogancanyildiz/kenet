@@ -40,7 +40,7 @@ enum CalendarAuthorization: Sendable, CaseIterable {
 }
 
 /// Reading, requesting permission and, on the user's request only, writing events. Tasks and
-/// journal entries never go through here (decision 2026-11-11).
+/// diary entries never go through here (decision 2026-11-11).
 @MainActor protocol CalendarEventSource: AnyObject {
     var authorization: CalendarAuthorization { get }
     var onChange: (@MainActor @Sendable () -> Void)? { get set }

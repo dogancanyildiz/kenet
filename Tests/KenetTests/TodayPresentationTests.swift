@@ -20,7 +20,7 @@ struct TodayPresentationTests {
     ) throws -> TaskRow {
         let on = date ?? day
         var fields: [String: Any] = [
-            "file": file ?? "journal/\(on).md", "ordinal": id, "kind": "task", "firstLine": id + 1,
+            "file": file ?? "diary/\(on).md", "ordinal": id, "kind": "task", "firstLine": id + 1,
             "lastLine": id + 1, "text": "Sample", "section": "Tasks", "rawStatus": status,
             "ownsIdentifier": false,
         ]
@@ -43,7 +43,7 @@ struct TodayPresentationTests {
                 EventRow(
                     id: $0, time: nil, text: text, sourceLine: $0, sourceEnd: $0 + 1,
                     sourceText: "Sample", sourceIdentifier: nil)
-            }, journal: [])
+            }, diary: [])
     }
 
     private func make(
@@ -259,7 +259,7 @@ struct TodayPresentationTests {
         #expect(value.counter(for: .tasks) == "4")
         #expect(value.counter(for: .events) == "3")
         #expect(value.counter(for: .calendar) == nil)
-        #expect(value.counter(for: .journal) == nil)
+        #expect(value.counter(for: .diary) == nil)
         // The byline counts the open daily and weekly goals; the close-day flow the daily alone.
         #expect(value.remainingCountedGoalCount == 3)
         #expect(value.remainingGoalCount == 2)
@@ -280,7 +280,7 @@ struct TodayPresentationTests {
         let rows = try [
             row(1, due: "2026-09-30"), row(2, due: day.description), row(3), row(4, due: later),
             row(5, status: "x", due: later, done: "2026-10-05"), row(6, status: "-", due: later),
-            row(7, due: later, file: "journal/2026-10-05.md"),
+            row(7, due: later, file: "diary/2026-10-05.md"),
         ]
         let groups = TaskGroups(rows: rows, on: day, isToday: true)
         let value = try TodayPresentation(
@@ -323,7 +323,7 @@ struct TodayPresentationTests {
         let cancelled = try row(3, status: "-", due: past.description, on: past)
         let doneSame = try row(4, status: "x", due: past.description, done: past.description, on: past)
         let undatedDone = try row(
-            5, status: "x", due: nil, done: "2026-10-04", file: "journal/\(past).md", on: past)
+            5, status: "x", due: nil, done: "2026-10-04", file: "diary/\(past).md", on: past)
         let doneWithoutDate = try row(
             6, status: "x", due: past.description, includeDoneDate: false, on: past)
         let rows = [open, doneLater, cancelled, doneSame, undatedDone, doneWithoutDate]
@@ -551,7 +551,7 @@ struct TodayPresentationTests {
     @Test func dayTaskSecondaryExposesDateRecurrencePriorityAndCarried() throws {
         let locale = Locale(identifier: "tr_TR")
         var fields: [String: Any] = [
-            "file": "journal/\(day).md", "ordinal": 1, "kind": "task", "firstLine": 2,
+            "file": "diary/\(day).md", "ordinal": 1, "kind": "task", "firstLine": 2,
             "lastLine": 2, "text": "Sample", "section": "Tasks", "rawStatus": " ",
             "ownsIdentifier": false, "dueDate": "2026-10-06", "priority": "🔽",
             "recurrence": "every week",

@@ -7,7 +7,7 @@ import VaultIndex
 
 @MainActor
 struct NotificationIntegrationTests {
-    @Test func indexPublicationsCancelCompletedGoalsAndWrittenJournalReminders() async throws {
+    @Test func indexPublicationsCancelCompletedGoalsAndWrittenDiaryReminders() async throws {
         let context = try TaskTestContext()
         defer { context.clean() }
         let defaults = try TestDefaults()
@@ -27,10 +27,10 @@ struct NotificationIntegrationTests {
         try await context.store.setGoal(on: today, key: "day", value: .boolean(true))
         await service.replanNow()
         #expect(!service.pending.contains { $0.id == "goals-\(today)" })
-        #expect(service.pending.contains { $0.id == "journal-\(today)" })
+        #expect(service.pending.contains { $0.id == "diary-\(today)" })
         #expect(await context.store.addEvent(on: today, text: "A moment", time: nil))
         await service.replanNow()
-        #expect(!service.pending.contains { $0.id == "journal-\(today)" })
+        #expect(!service.pending.contains { $0.id == "diary-\(today)" })
         #expect(center.permissionRequests == 0)
     }
 
@@ -44,8 +44,8 @@ struct NotificationIntegrationTests {
         let center = FakeNotificationCenter()
         let today = LocalDay.today()
         let old = NotificationRequest(
-            id: "journal-\(today)", date: notificationDate(today.description, hour: 21), title: "old", body: "",
-            destination: .journal)
+            id: "diary-\(today)", date: notificationDate(today.description, hour: 21), title: "old", body: "",
+            destination: .diary)
         center.values = [old.id: old]
         let service = NotificationService(
             center: center, defaults: defaults.defaults,
@@ -95,10 +95,10 @@ struct NotificationIntegrationTests {
         for _ in 0..<5 { service.update(isOpen: true, vaultID: "sample") }
         await waitUntil { service.pending.count == 7 && !service.isPlanning }
         #expect(service.pending.count == 7 && center.removals.count == 1)
-        service.preferences.journalEnabled = false
+        service.preferences.diaryEnabled = false
         await waitUntil { center.values.isEmpty && !service.isPlanning }
         #expect(service.pending.isEmpty && center.removals.count == 2)
         #expect(center.permissionRequests == 0)
-        #expect(NotificationPreferences.read(from: defaults.defaults).journalEnabled == false)
+        #expect(NotificationPreferences.read(from: defaults.defaults).diaryEnabled == false)
     }
 }

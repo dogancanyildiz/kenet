@@ -1,5 +1,0 @@
-## Journal
-
-
-## Notlar
-Sakla

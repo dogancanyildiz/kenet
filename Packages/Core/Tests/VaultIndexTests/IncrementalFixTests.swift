@@ -90,7 +90,7 @@ import Testing
 @Test func disposableDatabaseRemovalDeletesRollbackJournalDirectly() throws {
     try withVault { root in
         let url = root.appendingPathComponent("index.sqlite")
-        // Check the application's deletion routine without SQLite opening (and discarding) the journal.
+        // Check the application's deletion routine without SQLite opening (and discarding) the diary.
         let magic = Data([0xd9, 0xd5, 0x05, 0xf9, 0x20, 0xa1, 0x63, 0xd7])
         let suffixes = ["", "-wal", "-shm", "-journal"]
         for suffix in suffixes {

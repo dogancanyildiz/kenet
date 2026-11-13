@@ -43,7 +43,7 @@ struct GoalQueryTests {
             try write(
                 root, "goals/Spor.md", "---\ntype: goal\nkey: spor\nperiod: month\nkind: boolean\ntarget: 3\n---\n")
             try write(root, "goals/Su.md", "---\ntype: goal\nkey: su\nperiod: day\nkind: number\ntarget: 0\n---\n")
-            try write(root, "journal/2026-10-04.md", "---\ngoals:\n  spor: text\n  su: -1\n---\n")
+            try write(root, "diary/2026-10-04.md", "---\ngoals:\n  spor: text\n  su: -1\n---\n")
             let index = try VaultIndex()
             try index.rebuild(vaultRoot: root)
             #expect(try index.goalDefinitionsByName().map(\.definition).isEmpty)

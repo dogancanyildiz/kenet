@@ -1,5 +1,5 @@
 ---
-type: journal
+type: diary
 date: 2026-10-10
 custom: korunur # Elif
 ---
@@ -26,5 +26,5 @@ custom: korunur # Elif
   Elif için ayrıntı.  
   `Elif` https://example.invalid/Elif
 
-## Journal
+## Diary
 Elif burada paragrafta.

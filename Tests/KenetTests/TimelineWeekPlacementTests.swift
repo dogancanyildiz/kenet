@@ -11,7 +11,7 @@ import VaultIndex
 
     private func row(_ line: Int, status: String = " ", start: String? = nil, due: String? = nil) throws -> TaskRow {
         var fields: [String: Any] = [
-            "file": "journal/2026-11-09.md", "ordinal": line, "kind": "task", "firstLine": line,
+            "file": "diary/2026-11-09.md", "ordinal": line, "kind": "task", "firstLine": line,
             "lastLine": line, "text": "Task \(line)", "section": "Tasks", "rawStatus": status,
             "ownsIdentifier": false,
         ]

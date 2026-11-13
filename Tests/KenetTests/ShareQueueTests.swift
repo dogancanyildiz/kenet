@@ -37,7 +37,7 @@ struct ShareQueueTests {
         }
 
         var pending: ShareListFile { ShareListFile(url: ShareFiles.pending(in: group)) }
-        var dayFile: URL { context.root.appendingPathComponent("journal/\(Self.day).md") }
+        var dayFile: URL { context.root.appendingPathComponent("diary/\(Self.day).md") }
 
         func entry(_ text: String, time: String? = "09:30", kind: ShareEntryKind = .event) -> ShareEntry {
             // Whole seconds: the lists keep ISO 8601 dates.
@@ -362,7 +362,7 @@ struct ShareQueueTests {
         await context.store.createCloudVault()
         processor.publishTarget()
         let root = ShareVault.cloudRoot(in: context.container)
-        let older = root.appendingPathComponent("journal/2000-01-05.md")
+        let older = root.appendingPathComponent("diary/2000-01-05.md")
         let olderBytes = Data("## Events\n- Eski olay ^abc123\n".utf8)
         try olderBytes.write(to: older)
         await context.store.refresh()
@@ -373,7 +373,7 @@ struct ShareQueueTests {
             randomValue: SequenceRandom.drawing("abc123").source)
         let entry = ShareEntry(text: "Paylaşılanmakale", at: Date())
         #expect(try await writer.add(entry) == .written)
-        let day = root.appendingPathComponent("journal/\(entry.day).md")
+        let day = root.appendingPathComponent("diary/\(entry.day).md")
         #expect(RawDocument(bytes: try Data(contentsOf: day)).bodyLines.events.last?.block.id == "abc123")
 
         processor.process()
@@ -402,8 +402,8 @@ struct ShareQueueTests {
         processor.publishTarget()
         let root = ShareVault.cloudRoot(in: context.container)
         try Data("## Events\n- Eski olay ^abc123\n".utf8).write(
-            to: root.appendingPathComponent("journal/2000-01-05.md"))
-        let day = root.appendingPathComponent("journal/2026-11-10.md")
+            to: root.appendingPathComponent("diary/2000-01-05.md"))
+        let day = root.appendingPathComponent("diary/2026-11-10.md")
         let userLine = "- 09:30 Kahve ^abc123\n"
         try Data(("## Events\n" + userLine).utf8).write(to: day)
         await context.store.refresh()

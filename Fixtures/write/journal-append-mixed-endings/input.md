@@ -1,4 +1,0 @@
-## Journal
-Eski
-
-## NotlarSakla

@@ -104,7 +104,7 @@ struct VaultImportView: View {
                         InkCardDivider()
                         cardLabeled("Markdown dosyaları", model.report.markdownCount)
                         InkCardDivider()
-                        cardLabeled("Gün dosyaları", model.report.journalDays.count)
+                        cardLabeled("Gün dosyaları", model.report.diaryDays.count)
                         InkCardDivider()
                         cardLabeled("Diğer yollardaki gün dosyaları", model.report.externalDays.count)
                         InkCardDivider()
@@ -134,7 +134,7 @@ struct VaultImportView: View {
                                     }
                                 }
                                 Text(
-                                    "Bu klasör adları tam olarak journal, people, places, goals, notes veya templates olmalı. Obsidian'da yeniden adlandır; aksi halde o klasöre yazma reddedilir."
+                                    "Bu klasör adları tam olarak diary, people, places, goals, notes veya templates olmalı. Obsidian'da yeniden adlandır; aksi halde o klasöre yazma reddedilir."
                                 )
                                 .font(.ink.meta)
                                 .foregroundStyle(Color.ink.secondaryText)
@@ -155,7 +155,7 @@ struct VaultImportView: View {
                                     }
                                 }
                                 Text(
-                                    "Bu günlükler taşınmaz. Gün görünümünde kullanmak için Obsidian'da journal klasörüne düzenleyebilirsin."
+                                    "Bu günlükler taşınmaz. Gün görünümünde kullanmak için Obsidian'da diary klasörüne düzenleyebilirsin."
                                 )
                                 .font(.ink.meta)
                                 .foregroundStyle(Color.ink.secondaryText)

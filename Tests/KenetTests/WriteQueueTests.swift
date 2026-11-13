@@ -16,7 +16,7 @@ struct WriteQueueTests {
 
         let gate = FirstArrivalGate()
         let first = Task {
-            try await context.store.performEdit(path: "journal/\(day).md") { writer in
+            try await context.store.performEdit(path: "diary/\(day).md") { writer in
                 try await writer.addingEvent(on: day, text: "First queued", time: nil)
                 await gate.pass()
             }
@@ -32,7 +32,7 @@ struct WriteQueueTests {
         let texts = try await context.store.computeDay(on: day).events.map(\.text.plainText)
         #expect(texts == ["First queued", "Second queued"])
         let root = try #require(context.store.vaultURL)
-        let disk = RawDocument(bytes: try Data(contentsOf: root.appendingPathComponent("journal/\(day).md")))
+        let disk = RawDocument(bytes: try Data(contentsOf: root.appendingPathComponent("diary/\(day).md")))
         #expect(disk.bodyLines.events.map(\.block.text) == ["First queued", "Second queued"])
         #expect(context.store.entryErrorText == nil)
     }
@@ -52,8 +52,8 @@ struct WriteQueueTests {
 
         let gate = FirstArrivalGate()
         let hold = Task {
-            try await context.store.performEdit(path: "journal/\(day).md") { writer in
-                try await writer.changingText(of: firstTarget, at: "journal/\(day).md", to: "Edited one")
+            try await context.store.performEdit(path: "diary/\(day).md") { writer in
+                try await writer.changingText(of: firstTarget, at: "diary/\(day).md", to: "Edited one")
                 await gate.pass()
             }
         }
@@ -83,7 +83,7 @@ struct WriteQueueTests {
         let row = try #require(try await context.store.computeDay(on: day).events.first)
         let target = try await context.store.eventTarget(on: day, row: row)
         let root = try #require(context.store.vaultURL)
-        let file = root.appendingPathComponent("journal/\(day).md")
+        let file = root.appendingPathComponent("diary/\(day).md")
         let external = try String(contentsOf: file, encoding: .utf8).replacingOccurrences(
             of: "Original", with: "Changed outside")
         try Data(external.utf8).write(to: file)
@@ -102,7 +102,7 @@ struct WriteQueueTests {
 
         let gate = FirstArrivalGate()
         let hold = Task {
-            try await context.store.performEdit(path: "journal/\(day).md") { writer in
+            try await context.store.performEdit(path: "diary/\(day).md") { writer in
                 try await writer.addingEvent(on: day, text: "Holder", time: nil)
                 await gate.pass()
             }
@@ -130,7 +130,7 @@ struct WriteQueueTests {
 
         let gate = FirstArrivalGate()
         let hold = Task {
-            try await context.store.performEdit(path: "journal/\(day).md") { writer in
+            try await context.store.performEdit(path: "diary/\(day).md") { writer in
                 try await writer.addingEvent(on: day, text: "Blocking write", time: nil)
                 await gate.pass()
             }
@@ -214,7 +214,7 @@ struct WriteQueueTests {
             at: otherRoot.appendingPathComponent(".app"), withIntermediateDirectories: true)
         try Data("{ \"formatVersion\": 1 }\n".utf8).write(
             to: otherRoot.appendingPathComponent(".app/vault.json"))
-        for name in ["journal", "people", "places", "goals", "notes", "templates"] {
+        for name in ["diary", "people", "places", "goals", "notes", "templates"] {
             try FileManager.default.createDirectory(
                 at: otherRoot.appendingPathComponent(name), withIntermediateDirectories: true)
         }
@@ -243,7 +243,7 @@ struct WriteQueueTests {
             at: otherRoot.appendingPathComponent(".app"), withIntermediateDirectories: true)
         try Data("{ \"formatVersion\": 1 }\n".utf8).write(
             to: otherRoot.appendingPathComponent(".app/vault.json"))
-        for name in ["journal", "people", "places", "goals", "notes", "templates"] {
+        for name in ["diary", "people", "places", "goals", "notes", "templates"] {
             try FileManager.default.createDirectory(
                 at: otherRoot.appendingPathComponent(name), withIntermediateDirectories: true)
         }
@@ -254,7 +254,7 @@ struct WriteQueueTests {
         context.store.testingReleaseWriteSlot()
         await context.store.select(otherRoot)
         #expect(await queued.value == false)
-        let newDay = otherRoot.appendingPathComponent("journal/\(day).md")
+        let newDay = otherRoot.appendingPathComponent("diary/\(day).md")
         #expect(!FileManager.default.fileExists(atPath: newDay.path))
         _ = await context.store.addEvent(on: day, text: "New vault text", time: nil)
         #expect(FileManager.default.fileExists(atPath: newDay.path))
@@ -269,7 +269,7 @@ struct WriteQueueTests {
         // Events above Tasks so inserted events shift task line numbers.
         let seed = """
             ---
-            type: journal
+            type: diary
             date: \(day)
             ---
 
@@ -280,7 +280,7 @@ struct WriteQueueTests {
             - [ ] Mark me done ^task01
 
             """
-        let file = root.appendingPathComponent("journal/\(day).md")
+        let file = root.appendingPathComponent("diary/\(day).md")
         try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
         try Data(seed.utf8).write(to: file)
         await context.store.refresh()
@@ -289,7 +289,7 @@ struct WriteQueueTests {
 
         let gate = FirstArrivalGate()
         let hold = Task {
-            try await context.store.performEdit(path: "journal/\(day).md") { writer in
+            try await context.store.performEdit(path: "diary/\(day).md") { writer in
                 try await writer.addingEvent(on: day, text: "Inserted event line", time: nil)
                 try await writer.addingEvent(on: day, text: "Second insert shifts further", time: nil)
                 await gate.pass()

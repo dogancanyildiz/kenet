@@ -11,7 +11,7 @@
 
 | Konu | Değer |
 |---|---|
-| Ad | Kenet. Şema, hedef ve modül adları da `Kenet` taşır. Kasa biçimindeki `journal/` ve `## Journal` kod adı değildir. |
+| Ad | Kenet. Şema, hedef ve modül adları da `Kenet` taşır. Kasa biçimi gün klasörü için `diary/`, serbest yazı için `## Diary` kullanır. |
 | Platform | iPhone, iPad ve Mac, SwiftUI |
 | Temel iş | Kullanıcı gün içinde kısa olaylar yazar. Uygulama metindeki kişi ve konumları tanır. Uygulama tanıdığı adları olaya kendiliğinden bağlar. |
 | Ek özellikler | Görevler, hedefler ve zincir, widget'lar, kanban, zaman çizelgesi |

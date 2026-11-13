@@ -17,10 +17,10 @@ struct QuickEntryTests {
         let date = LocalDay.today()
         let clock = try LineClock(hour: 14, minute: 30)
         #expect(await context.store.addEvent(text: "First event", time: clock))
-        let file = root.appendingPathComponent("journal/\(date).md")
+        let file = root.appendingPathComponent("diary/\(date).md")
         let document = RawDocument(bytes: try Data(contentsOf: file))
         let id = try #require(document.bodyLines.events.first?.block.id)
-        let expected = "---\ntype: journal\ndate: \(date)\n---\n\n## Events\n- 14:30 First event ^\(id)\n"
+        let expected = "---\ntype: diary\ndate: \(date)\n---\n\n## Events\n- 14:30 First event ^\(id)\n"
         #expect(try Data(contentsOf: file) == Data(expected.utf8))
         #expect(id.count == 6)
         #expect(await context.store.addEvent(text: "Earlier event", time: try LineClock(hour: 9, minute: 5)))
@@ -47,7 +47,7 @@ struct QuickEntryTests {
         #expect(context.store.counts.events == 0)
         let root = try #require(context.store.vaultURL)
         #expect(
-            try FileManager.default.contentsOfDirectory(atPath: root.appendingPathComponent("journal").path).isEmpty)
+            try FileManager.default.contentsOfDirectory(atPath: root.appendingPathComponent("diary").path).isEmpty)
     }
 
     @Test func readOnlyDocumentRetainsDraftAndProducesMessage() async throws {
@@ -55,7 +55,7 @@ struct QuickEntryTests {
         defer { context.clean() }
         await context.store.start()
         let root = try #require(context.store.vaultURL)
-        let file = root.appendingPathComponent("journal/\(LocalDay.today()).md")
+        let file = root.appendingPathComponent("diary/\(LocalDay.today()).md")
         let bytes = Data([0xFF, 0xFE, 0x00])
         try bytes.write(to: file)
         #expect(await !context.store.addEvent(text: "Event", time: nil))
@@ -79,7 +79,7 @@ struct QuickEntryTests {
         #expect(await context.store.addEvent(text: "Saved event", time: nil))
         #expect(context.store.entryErrorText == EntryWriteError.savedWithoutIndex)
         let root = try #require(context.store.vaultURL)
-        let file = root.appendingPathComponent("journal/\(LocalDay.today()).md")
+        let file = root.appendingPathComponent("diary/\(LocalDay.today()).md")
         #expect(RawDocument(bytes: try Data(contentsOf: file)).bodyLines.events.count == 1)
         #expect(sqlite3_exec(handle, "DROP TRIGGER reject_event", nil, nil, nil) == SQLITE_OK)
         await context.store.refresh(rebuild: true)
@@ -93,7 +93,7 @@ struct QuickEntryTests {
         #expect(
             EntryWriteError.message(
                 for: VaultStoreError.indexUpdateFailed(
-                    path: "journal/test.md", underlying: CocoaError(.fileReadUnknown)))
+                    path: "diary/test.md", underlying: CocoaError(.fileReadUnknown)))
                 == EntryWriteError.savedWithoutIndex)
     }
 

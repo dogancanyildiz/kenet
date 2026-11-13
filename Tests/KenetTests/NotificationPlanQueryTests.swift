@@ -18,7 +18,7 @@ import VaultIndex
         try TasksStoreQueryTests.writeEdgeCases(context)
         await context.store.refresh()
         let counts = try await expectDevPlans(context, from: "2026-09-12", mornings: 30)
-        #expect(counts.task > 20 && counts.journal > 20)
+        #expect(counts.task > 20 && counts.diary > 20)
 
         // By hand: on 3 October "today" and "weekly" are due; on the 4th only the `[?]` task, which
         // is open and named.
@@ -36,15 +36,15 @@ import VaultIndex
         try Self.writeDayEdgeCases(context.root)
         await context.start()
         let counts = try await expectDevPlans(context, from: "2026-08-28", mornings: 30)
-        #expect(counts.task > 0 && counts.journal > 0)
+        #expect(counts.task > 0 && counts.diary > 0)
 
-        let journal = try await plan(context.store, on: "2026-09-02").filter { $0.destination == .journal }
+        let diary = try await plan(context.store, on: "2026-09-02").filter { $0.destination == .diary }
         #expect(
-            journal.map(\.id) == ["2026-09-03", "2026-09-04", "2026-09-05", "2026-09-06"].map { "journal-\($0)" })
-        let later = try await plan(context.store, on: "2026-09-09").filter { $0.destination == .journal }
-        // 2026-9-10 is not a day file, `arsiv/` is not `journal/<date>.md`, and the notes only link
+            diary.map(\.id) == ["2026-09-03", "2026-09-04", "2026-09-05", "2026-09-06"].map { "diary-\($0)" })
+        let later = try await plan(context.store, on: "2026-09-09").filter { $0.destination == .diary }
+        // 2026-9-10 is not a day file, `arsiv/` is not `diary/<date>.md`, and the notes only link
         // to the days; the unreadable 14th stays unwritten.
-        #expect(later.map(\.id) == (9...15).map { "journal-2026-09-\(String(format: "%02d", $0))" })
+        #expect(later.map(\.id) == (9...15).map { "diary-2026-09-\(String(format: "%02d", $0))" })
         let task = try #require(try await plan(context.store, on: "2026-09-03").first { $0.id == "task-2026-09-03" })
         #expect(task.title == "yalnız görev")
         #expect(task.body.isEmpty)
@@ -83,7 +83,7 @@ import VaultIndex
     }
 
     /// The service plans from the store's week: what it schedules equals `dev`'s plan, and a week
-    /// that could not be read schedules no task or journal reminder.
+    /// that could not be read schedules no task or diary reminder.
     @Test func theServicePlansFromTheStoresWeek() async throws {
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
@@ -97,7 +97,7 @@ import VaultIndex
         service.attach(to: context.store)
         await service.replanNow()
         let expected = legacyPlan(try LegacyVault(context), now: now, preferences: NotificationPreferences())
-        #expect(expected.contains { $0.destination == .tasks } && expected.contains { $0.destination == .journal })
+        #expect(expected.contains { $0.destination == .tasks } && expected.contains { $0.destination == .diary })
         #expect(service.pending == expected)
 
         service.useVaultDays(nil)
@@ -128,12 +128,12 @@ import VaultIndex
         let expected = legacyPlan(try LegacyVault(context), now: now, preferences: preferences)
         #expect(service.pending == expected)
         #expect(service.pending.first { $0.id == "task-\(seventh)" }?.title == "yedinci gün işi")
-        #expect(!service.pending.contains { $0.id == "journal-\(seventh)" })
+        #expect(!service.pending.contains { $0.id == "diary-\(seventh)" })
     }
 
-    /// With task reminders off and journal reminders on, the service still reads the week: a
-    /// written day gets no journal reminder.
-    @Test func journalRemindersAloneStillReadTheWeek() async throws {
+    /// With task reminders off and diary reminders on, the service still reads the week: a
+    /// written day gets no diary reminder.
+    @Test func diaryRemindersAloneStillReadTheWeek() async throws {
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
         await context.start()
@@ -145,9 +145,9 @@ import VaultIndex
         service.preferences = preferences
         await service.replanNow()
         let expected = legacyPlan(try LegacyVault(context), now: now, preferences: preferences)
-        #expect(expected.contains { $0.destination == .journal })
+        #expect(expected.contains { $0.destination == .diary })
         #expect(service.pending == expected)
-        #expect(!service.pending.contains { $0.id == "journal-\(day)" })
+        #expect(!service.pending.contains { $0.id == "diary-\(day)" })
         #expect(service.pending.allSatisfy { $0.destination != .tasks })
     }
 
@@ -163,14 +163,14 @@ import VaultIndex
     // MARK: - Construction
 
     /// Each morning from `first`, at 08:00 and 20:00 and with content shown or hidden, the plan
-    /// from the queried week equals `dev`'s. Returns how many task and journal requests it saw.
+    /// from the queried week equals `dev`'s. Returns how many task and diary requests it saw.
     @discardableResult
     private func expectDevPlans(
         _ context: TaskTestContext, from first: String, mornings: Int, label: String = ""
-    ) async throws -> (task: Int, journal: Int) {
+    ) async throws -> (task: Int, diary: Int) {
         let start = try #require(CalendarDate(first))
         let legacy = try LegacyVault(context)
-        var seen = (task: 0, journal: 0)
+        var seen = (task: 0, diary: 0)
         for offset in 0..<mornings {
             let day = try #require(start.addingDays(offset))
             for hour in [8, 20] {
@@ -182,7 +182,7 @@ import VaultIndex
                     let expected = legacyPlan(legacy, now: now, preferences: preferences)
                     #expect(queried == expected, "\(label) \(day) \(hour) \(hidden)")
                     seen.task += queried.count { $0.destination == .tasks }
-                    seen.journal += queried.count { $0.destination == .journal }
+                    seen.diary += queried.count { $0.destination == .diary }
                 }
             }
         }
@@ -239,20 +239,20 @@ import VaultIndex
         let files = [
             ".app/vault.json": "{ \"formatVersion\": 1 }\n",
             "people/Ada Test.md": "---\ntype: person\nname: Ada Test\n---\n",
-            "journal/2026-09-02.md": "## Journal\n### Yalnız başlık\n",
-            "journal/2026-09-03.md": "## Tasks\n- [ ] yalnız görev 📅 2026-09-03\n",
-            "journal/2026-09-04.md": "---\ntype: journal\ngoals:\n  su: 3\n---\n",
-            "journal/2026-09-05.md": "",
-            "journal/2026-09-06.md": "## Notlar\nBaşka bölümde paragraf.\n",
-            "journal/2026-09-07.md": "\u{FEFF}## Events\r\n- 08:00 CRLF [[Ada Test]]\r\n",
-            "journal/2026-09-08.md": "## Journal\nYalnız [[Ada Test]] günlük.\n",
-            "journal/2026-09-09.md": "## Events\n\n## Journal\n\n",
-            "journal/2026-9-10.md": "## Events\n- 08:00 Tarih değil\n",
-            "journal/arsiv/2026-09-11.md": "## Events\n- 08:00 Arşiv\n",
-            "notes/Plan.md": "## Events\n- 09:00 [[2026-09-12]] planı\n\n## Journal\n[[2026-09-13]] notu.\n",
+            "diary/2026-09-02.md": "## Diary\n### Yalnız başlık\n",
+            "diary/2026-09-03.md": "## Tasks\n- [ ] yalnız görev 📅 2026-09-03\n",
+            "diary/2026-09-04.md": "---\ntype: diary\ngoals:\n  su: 3\n---\n",
+            "diary/2026-09-05.md": "",
+            "diary/2026-09-06.md": "## Notlar\nBaşka bölümde paragraf.\n",
+            "diary/2026-09-07.md": "\u{FEFF}## Events\r\n- 08:00 CRLF [[Ada Test]]\r\n",
+            "diary/2026-09-08.md": "## Diary\nYalnız [[Ada Test]] günlük.\n",
+            "diary/2026-09-09.md": "## Events\n\n## Diary\n\n",
+            "diary/2026-9-10.md": "## Events\n- 08:00 Tarih değil\n",
+            "diary/arsiv/2026-09-11.md": "## Events\n- 08:00 Arşiv\n",
+            "notes/Plan.md": "## Events\n- 09:00 [[2026-09-12]] planı\n\n## Diary\n[[2026-09-13]] notu.\n",
         ]
         for (path, text) in files { try IncrementalReadModelVault.write(root, path, text) }
-        try Data([0x23, 0x23, 0x20, 0xFF, 0x0A]).write(to: root.appendingPathComponent("journal/2026-09-14.md"))
+        try Data([0x23, 0x23, 0x20, 0xFF, 0x0A]).write(to: root.appendingPathComponent("diary/2026-09-14.md"))
     }
 }
 
@@ -297,16 +297,16 @@ private enum LegacyNotificationPlanner {
                             body: body, destination: .goals))
                 }
             }
-            if preferences.journalEnabled,
-                let date = NotificationPlanner.fireDate(day, time: preferences.journalTime, timeZone: timeZone),
+            if preferences.diaryEnabled,
+                let date = NotificationPlanner.fireDate(day, time: preferences.diaryTime, timeZone: timeZone),
                 date > now
             {
                 let summary = DaySummary.day(on: day, in: days)
-                if summary.events.isEmpty && summary.journal.isEmpty {
+                if summary.events.isEmpty && summary.diary.isEmpty {
                     result.append(
                         NotificationRequest(
-                            id: "journal-\(day)", date: date, title: String(localized: "Gününden bir an"),
-                            body: String(localized: "Bugünden bir an yazmak ister misin?"), destination: .journal))
+                            id: "diary-\(day)", date: date, title: String(localized: "Gününden bir an"),
+                            body: String(localized: "Bugünden bir an yazmak ister misin?"), destination: .diary))
                 }
             }
         }

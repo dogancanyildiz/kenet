@@ -5,7 +5,7 @@
     - [ ] kod
 	```
 - olay
-## Journal
+## Diary
 - not
 	~~~~
 ## Events

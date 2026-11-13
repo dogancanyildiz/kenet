@@ -56,8 +56,8 @@ import VaultFormat
                 "notes/Proje Fikirleri.md",
                 "[[Deniz Arıkan]] [[z/Deniz Arıkan.md]] [[işık]] [[ışık]] [[Çınaraltı Kafe]] [[#Başlık]]\n"
             ),
-            ("journal/2026-01-01.md", "## Events\n- 9:05 Su ^event\n"),
-            ("journal/2026-01-01 2.md", "---\ntype: journal\n---\nKitap\n"),
+            ("diary/2026-01-01.md", "## Events\n- 9:05 Su ^event\n"),
+            ("diary/2026-01-01 2.md", "---\ntype: diary\n---\nKitap\n"),
             ("notes/Okuma Listesi.md", "---\ntype: person\ntype: place\n---\nSu\n"),
             (".hidden/Su.md", "Su"), ("templates/Kitap.md", "Kitap"),
             ("conflicts/Spor.md", "Spor"), ("notes/.hidden/Su.md", "Su"),
@@ -73,9 +73,9 @@ import VaultFormat
         #expect(snapshot.files.first { $0.path == "notes/Okuma Listesi.md" }?.kind == "note")
         #expect(snapshot.blocks.contains { $0.file == "notes/Okuma Listesi.md" && $0.text == "Su" })
         // A day copy belongs to its day and reaches the index only by being merged into it.
-        #expect(!snapshot.files.contains { $0.path == "journal/2026-01-01 2.md" })
-        #expect(result.dayCopies == ["journal/2026-01-01 2.md"])
-        #expect(snapshot.files.first { $0.path == "journal/2026-01-01.md" }?.kind == "day")
+        #expect(!snapshot.files.contains { $0.path == "diary/2026-01-01 2.md" })
+        #expect(result.dayCopies == ["diary/2026-01-01 2.md"])
+        #expect(snapshot.files.first { $0.path == "diary/2026-01-01.md" }?.kind == "day")
         #expect(
             snapshot.blocks.filter { $0.identifier == "same" && $0.ownsIdentifier }.map(\.file) == ["a/Deniz Arıkan.md"]
         )

@@ -178,7 +178,7 @@ private enum StripVault {
         let goals = root.appendingPathComponent("goals")
         try FileManager.default.createDirectory(at: goals, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(
-            at: root.appendingPathComponent("journal"), withIntermediateDirectories: true)
+            at: root.appendingPathComponent("diary"), withIntermediateDirectories: true)
         for (name, key) in [("Alfa", "alfa"), ("Beta", "beta")] {
             let text = "---\ntype: goal\nname: \(name)\nkey: \(key)\nperiod: week\nkind: number\ntarget: 2\n---\n"
             try Data(text.utf8).write(to: goals.appendingPathComponent("\(name).md"))

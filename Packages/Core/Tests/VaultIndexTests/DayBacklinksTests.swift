@@ -16,11 +16,11 @@ struct DayBacklinksTests {
         // 1. Total count: note (3 lines), person (1 line), place (1 line), other day (1 line) = 6
         #expect(links.count == 6)
 
-        // 2. The day itself (journal/2026-10-02.md) MUST be excluded.
-        #expect(!links.contains { $0.file == "journal/2026-10-02.md" })
+        // 2. The day itself (diary/2026-10-02.md) MUST be excluded.
+        #expect(!links.contains { $0.file == "diary/2026-10-02.md" })
 
         // 3. Another day is included with its date as name and day as kind.
-        let otherDay = try #require(links.first { $0.file == "journal/2026-10-01.md" })
+        let otherDay = try #require(links.first { $0.file == "diary/2026-10-01.md" })
         #expect(otherDay.kind == "day")
         #expect(otherDay.name == "2026-10-01")
         #expect(otherDay.text.contains("[[2026-10-02]]"))

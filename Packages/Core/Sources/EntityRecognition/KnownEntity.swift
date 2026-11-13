@@ -12,7 +12,7 @@ public struct KnownEntity: Hashable, Sendable {
             case "place": self = .place
             default:
                 guard EntityTypeDefinition.isValidID(rawValue),
-                    !["goal", "journal", "day", "note"].contains(rawValue)
+                    !["goal", VaultLayout.dayType, LegacyVaultNames.dayType, "day", "note"].contains(rawValue)
                 else { return nil }
                 self = .custom(rawValue)
             }

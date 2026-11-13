@@ -350,7 +350,7 @@ struct EntityView: View {
         }
     }
 
-    /// Card row of the timeline: icon box (calendar for an event, pencil for journal text), the
+    /// Card row of the timeline: icon box (calendar for an event, pencil for diary text), the
     /// linked text, under it "19 Eyl Cmt · 10:30" or "19 Eyl Cmt · günlük yazısı", a chevron.
     private func timelineRow(_ row: EntityTimelineRow, date: CalendarDate) -> some View {
         let isEvent = row.kind == "event"
@@ -388,7 +388,7 @@ struct EntityView: View {
         .contentShape(Rectangle())
     }
 
-    /// "19 Eyl Cmt · 10:30" for a timed event, "19 Eyl Cmt · günlük yazısı" for journal text; the
+    /// "19 Eyl Cmt · 10:30" for a timed event, "19 Eyl Cmt · günlük yazısı" for diary text; the
     /// year only outside the current year.
     private func timelineMeta(_ row: EntityTimelineRow, date: CalendarDate) -> String {
         var style = Date.FormatStyle.dateTime.day().month(.abbreviated).weekday(.abbreviated)
@@ -415,7 +415,7 @@ struct EntityView: View {
                     .inkListRow()
             } else {
                 InkCard {
-                    Text(verbatim: display).font(.ink.content).inkJournalParagraph()
+                    Text(verbatim: display).font(.ink.content).inkDiaryParagraph()
                         .foregroundStyle(.ink.text).textSelection(.enabled)
                 }.inkListRow()
             }

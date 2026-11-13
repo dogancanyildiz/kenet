@@ -4,5 +4,5 @@
   - tam buğday
   not: fırından
 
-## Journal
+## Diary
 Gün.

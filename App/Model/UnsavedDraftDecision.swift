@@ -1,6 +1,6 @@
 import Foundation
 
-/// Whether leaving a journal editor would throw away typed text without asking.
+/// Whether leaving a diary editor would throw away typed text without asking.
 enum UnsavedDraftDecision {
     /// Dirty text that is not mid-save must prompt before leave, vault switch, or day change.
     static func requiresPrompt(isDirty: Bool, isSaving: Bool) -> Bool {
@@ -13,7 +13,7 @@ enum UnsavedDraftDecision {
     }
 }
 
-/// User choice from the unsaved-journal prompt (Kaydet / At / Vazgeç).
+/// User choice from the unsaved-diary prompt (Kaydet / At / Vazgeç).
 enum UnsavedDraftLeaveChoice: Equatable {
     case save
     case discard

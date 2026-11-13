@@ -26,7 +26,7 @@ struct IncrementalReadModelMeasureTests {
         let baseline = VaultReadModel(snapshot: try index.snapshot(), today: today)
 
         _ = try await store.addingEvent(on: today, text: "Measure event", time: nil)
-        let day = "journal/\(today).md"
+        let day = "diary/\(today).md"
 
         let fullStart = DispatchTime.now()
         let full = VaultReadModel(snapshot: try index.snapshot(), today: today)
@@ -57,7 +57,7 @@ struct IncrementalReadModelMeasureTests {
         // patch: they left the read model for queries.
         let plain = try #require(
             baseline.fragments.keys.sorted().last {
-                baseline.fragments[$0]?.entity == nil && !$0.hasPrefix("journal/")
+                baseline.fragments[$0]?.entity == nil && !$0.hasPrefix("diary/")
             })
         var plainPatched = baseline
         let plainStart = DispatchTime.now()
@@ -178,8 +178,8 @@ struct IncrementalReadModelMeasureTests {
         lines.append("  old days field | \(oldDays.rows) | \(oldDays.nestedRows) | \(oldDays.bytes)")
         lines.append("  old days build median: \(String(format: "%.1f", median(daysMs))) ms")
         let busiestDay = try #require(
-            days.max { $0.events.count + $0.journal.count < $1.events.count + $1.journal.count })
-        let month = JournalCalendar.range(of: today)
+            days.max { $0.events.count + $0.diary.count < $1.events.count + $1.diary.count })
+        let month = DiaryCalendar.range(of: today)
         var listMs: [Double] = []
         var monthMs: [Double] = []
         var dayMs: [Double] = []
@@ -202,7 +202,7 @@ struct IncrementalReadModelMeasureTests {
         )
         lines.append("  month query median: \(String(format: "%.1f", median(monthMs))) ms")
         lines.append(
-            "  day query median (\(busiestDay.events.count) events, \(busiestDay.journal.count) journal): \(String(format: "%.1f", median(dayMs))) ms"
+            "  day query median (\(busiestDay.events.count) events, \(busiestDay.diary.count) diary): \(String(format: "%.1f", median(dayMs))) ms"
         )
         // The goal statuses left the rederive too: their old construction (every log, as the
         // rederive folded it) for comparison, and the query the goal list and day page now run.

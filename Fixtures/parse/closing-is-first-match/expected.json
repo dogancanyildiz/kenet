@@ -8,8 +8,8 @@
         "key": "type",
         "firstLine": 2,
         "lastLine": 2,
-        "scalar": { "type": "text", "text": "journal", "raw": "journal" },
-        "listItems": ["journal"]
+        "scalar": { "type": "text", "text": "diary", "raw": "diary" },
+        "listItems": ["diary"]
       }
     ]
   }

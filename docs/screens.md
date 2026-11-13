@@ -341,7 +341,7 @@ Varsa ekran serbest yazının ilk 4 satırını ve "Devamını yaz" bağlantıs�
 |---|---|
 | Yer | Ekranın son öğesi. Tek satırlık kart: "Günü kapat", `button.closeDay`. Bölüm başlığı yoktur. |
 | Koşul | Akışın listeleyeceği açık görev, işaretlenmemiş günlük hedef ya da bugün henüz günlük yazısı yokken görünür; bugün yazılıp bitişi ileride olan görev Bugün'de kalan sayılsa da satırı tek başına açmaz. Üçü de yoksa satır yer tutmaz. |
-| Günlük yazısı tanımı | `Journal` bölümündeki düz metin. Ölçü, ekrandaki "Günlük yazısı ekle…" önizlemesiyle aynıdır. Bölüm yoksa, boşsa ya da yalnız başlık taşıyorsa günlük yazısı yoktur. |
+| Günlük yazısı tanımı | `Diary` bölümündeki düz metin. Ölçü, ekrandaki "Günlük yazısı ekle…" önizlemesiyle aynıdır. Bölüm yoksa, boşsa ya da yalnız başlık taşıyorsa günlük yazısı yoktur. |
 | Boş gün | Ekran kısa olduğu için satır ilk ekranda görünür. |
 | Geçmiş gün | Satır yoktur. |
 | Neden sonda | Yukarıdaki her satır ilk olay satırını ilk ekrandan aşağı iter. |
@@ -371,7 +371,7 @@ stateDiagram-v2
 | Konu | Davranış |
 |---|---|
 | Giriş | Bugün'deki "Günü kapat" satırı kısa bir sheet açar. Mac'te sheet aynıdır. |
-| Bildirimden giriş | Akşamki günlük hatırlatmasına (`journal-<gün>`) dokunma akışı günlük adımından açar. |
+| Bildirimden giriş | Akşamki günlük hatırlatmasına (`diary-<gün>`) dokunma akışı günlük adımından açar. |
 | Bildirim günü | Bildirimdeki gün akışın günü değildir. Dünkü hatırlatma da bugünün akışını açar. O gün için görev ya da hedef adımı varsa akışta durur. "Geri" bu adımlara döner. |
 | Tek açılış | Her dokunuş akışı bir kez açar. Bugün ekranı sonradan yenilense de uygulama akışı kendiliğinden yeniden açmaz. |
 | Soğuk açılış | Uygulama soğuk açılıyorsa akış kasa okunana kadar bekler. |
@@ -592,7 +592,7 @@ flowchart TD
 | Dönem düğmeleri | Önceki ve sonraki dönem. Bugünün döneminden sonraki döneme geçiş yoktur. Gösterilen dönem bugünü içermiyorsa dönem adının yanında "Bu hafta", "Bu ay" ya da "Bu yıl" kapsülü görünür; ayrı satır açmaz. iPhone'da yatay kaydırma da dönemi değiştirir. |
 | Ritim | Kartta. Hafta ve Yıl: dönemin birimleri başına olay sayısı çubuğu; hafta birimi gündür, yıl birimi aydır. Önceki dönemin aynı sıradaki birimi arkada geniş ve soluk çubuktur. Ay: ayın her günü için içinde gün rakamı olan bir kare, satırda 10 gün. Olaylı gün dolu, yalnız günlük yazısı olan gün yarım, yazılmayan gün boş karedir. Gelecek günde kare yoktur; bugün halkalıdır. Süren ayda başlığın sağında sayılan son gün yazar: "20 Eyl'e kadar"; biten ayda "26/30". VoiceOver tek öğe okur: "30 günün 22'sinde yazıldı". |
 | Yazıldı işareti | Hafta ve Yıl ritminde her birimin altında durur. Dolu nokta: gün yazıldı ya da birimin ölçülen günlerinin en az yarısı yazıldı. Halka: yarıdan azı yazıldı. Kısa çizgi: hiç yazılmadı. İşaret yok: birim henüz başlamadı. |
-| Yazılan günler | Yalnız Yıl sekmesinde, ritim şeridinin altında. 12 satır: satır başında kısa ay adı, ardından ayın 1'inden 31'ine kadar birer ısı haritası hücresi. Yazılmayan gün boş hücredir. Yalnız `Journal` yazısı olan gün kısmi hücredir. En az bir olayı olan gün tam hücredir. Bugün çerçevelidir. Ayda olmayan tarih ve bugünden sonraki gün çizilmez. Başlığın sayacı yılın "Yazılan gün" sayısıdır: "243 gün". Erişilebilirlik boyutunda hücreler büyür ve pazartesi haftalarına dizilir; harita yatay kayar ve son ölçülen haftayla açılır. |
+| Yazılan günler | Yalnız Yıl sekmesinde, ritim şeridinin altında. 12 satır: satır başında kısa ay adı, ardından ayın 1'inden 31'ine kadar birer ısı haritası hücresi. Yazılmayan gün boş hücredir. Yalnız `Diary` yazısı olan gün kısmi hücredir. En az bir olayı olan gün tam hücredir. Bugün çerçevelidir. Ayda olmayan tarih ve bugünden sonraki gün çizilmez. Başlığın sayacı yılın "Yazılan gün" sayısıdır: "243 gün". Erişilebilirlik boyutunda hücreler büyür ve pazartesi haftalarına dizilir; harita yatay kayar ve son ölçülen haftayla açılır. |
 | Haftanın günleri | Ay ve Yıl sekmelerinde, ritim şeridinin (yılda yazılan günler haritasının) altında, ana sayıların üstünde. Pazartesi'den Pazar'a 7 satır: gün adı, 1 px çerçeveli yazma oranı çubuğu ve sağda eş aralıklı rakamlarla "3/4" sayacı. En yüksek yazma oranlı günün başında nokta işareti durur, adı ve sayacı yarı kalındır; eşitlikte olay sayısı yüksek olan, yine eşitse haftanın ilk günü seçilir. Hafta sekmesinde ve ölçülen günü sıfır olan dönemde çizilmez. |
 | Sayı kartları | Sekmenin hemen altında 3 kart yan yana: Yazılan gün (ölçülen gün üzerinden: "22/30"), Olay, Tamamlanan görev. Her kartın altında fark yazar. Erişilebilirlik boyutunda kartlar alt alta durur. |
 | Fark | Uygulama farkı yazıyla verir. Üç sayı kartının farkı kartların altında tek satırdır, farklar kalındır: "Önceki aya göre +3 gün, +69 olay, −1 görev"; değişmeyen sayı "±0" yazar. Görevler kartının farkı başlık satırındadır: "önceki aya göre +4". Ok yoktur. |
@@ -631,7 +631,7 @@ flowchart LR
 | Sayı | Tanım |
 |---|---|
 | Olay sayısı | Olay bloklarının sayısı. |
-| Yazılan gün | En az bir olay ya da boş olmayan `Journal` paragrafı veya başlığı olan farklı gün tarihleri. Yalnız görev ya da hedef kaydı olan gün bu sayıya girmez. |
+| Yazılan gün | En az bir olay ya da boş olmayan `Diary` paragrafı veya başlığı olan farklı gün tarihleri. Yalnız görev ya da hedef kaydı olan gün bu sayıya girmez. |
 | Kişi ve konum geçişi | Gün dosyalarının gövdesindeki her çözülen bağlantı. Her tekrar ayrı bir geçiştir. Frontmatter bağlantıları bu sayıya girmez. Bölüm toplamı ilk beşin dışındakileri de içerir. |
 | İlk kez geçenler | Bütün günlük geçmişinde ilk gövde bağlantısı bu döneme düşen varlıklar. Kasada oluşturma tarihi yoktur. Bu sayı dosya oluşturma sayısı değildir. Liste önce güne, sonra ada göre sıralıdır. |
 | Görev oluşturma günü | Kaynak gün dosyasının tarihi. Tekrarlayan görevin de oluşturma günü kaynak günüdür. |
@@ -851,7 +851,7 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 |---|---|
 | Giriş | "Düzenle" ayrı bir kip olarak sheet açar. Alan ve takma ad düzenleyicileri sheet'tedir. |
 | Kalıp | Ortak sheet kalıbı: sans manşet, `elevated` zemin, tek "Kapat". Her alan kendi "Kaydet" düğmesiyle yazar. "Kapat" yazmaz. |
-| Kirli taslak | Kullanıcı Kaydet ile yazmadığı alanı "Alanı kaldır" ile silerse taslak kirli değildir. Kaydı bekleyen alan metni varken sheet kapanmaz. `JournalView` ile aynı `UnsavedDraftDecision` kalıbı "At" / "Vazgeç" sorar. |
+| Kirli taslak | Kullanıcı Kaydet ile yazmadığı alanı "Alanı kaldır" ile silerse taslak kirli değildir. Kaydı bekleyen alan metni varken sheet kapanmaz. `DiaryView` ile aynı `UnsavedDraftDecision` kalıbı "At" / "Vazgeç" sorar. |
 | Ad değiştirme | Düzenleme sheet'i ad değiştirmeyi ikinci sheet olarak açar. |
 | Varlığı sil | Sheet'in en altında kırmızı düğme. Kişi, konum ve özel tipte onay ister: "<Ad> silinsin mi? Günlük kayıtlarındaki geçişler kalır." Yalnız varlık dosyasını siler. Başarılı silme önce sheet'i, sonra varlık ekranını kapatır. Mac'te ayrıntı sütunu "Bir varlık seç" durumuna döner. Hata sheet'te kalır. |
 | Görüşme ritmi | Yalnız kişide. Menü: Yok, 7, 14, 30, 60, 90 gün ve özel sayı. Özel sayı pozitif tam sayıdır. Boş, 0, harf ve taşan sayı "geçerli bir değer gir" uyarısı alır. |
@@ -916,7 +916,7 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 
 | Konu | Davranış |
 |---|---|
-| Kapsam | Zaman akışıyla aynı kapsam: gün dosyalarındaki olaylar ve `Journal` paragraflarının çözülen bağlantıları. |
+| Kapsam | Zaman akışıyla aynı kapsam: gün dosyalarındaki olaylar ve `Diary` paragraflarının çözülen bağlantıları. |
 | Dışarıda kalan | Görev, frontmatter, serbest not ve gelecek tarihli geçişler görüşme değildir. |
 | Uyarı metni | Kart, günlük kaydının görüşme kanıtı olmadığını nötr dille söyler. |
 | Satırlar | Başlık satırının sağında son geçiş: "19 Eyl Cmt · 1 gün önce". Grafiklerin altında son günün varlığa bağlı metinleri, bağlantıları dokunma hedefiyle; "O gün" ile o gün geçen öteki kişi ve konumların çipleri; ilk geçiş tarihi. |
@@ -1251,7 +1251,7 @@ iPhone'da Ayarlar, Bugün gün başlığındaki düğmenin açtığı sheet'tir.
 | Öğe | Davranış |
 |---|---|
 | Kapsam | Var olan giriş yollarını gösterir. Yeni yol eklemez. iPhone'da bölüm bir ekrandır. Mac'te aynı satırlar Hızlı giriş sekmesindedir. Klavye kısayolu kaydı sekmenin başındadır. |
-| Siri cümleleri | `JournalShortcuts` cümleleri, uygulama adıyla, kayıtlı sırada. Metin kısayol kataloğundan gelir. Kod cümleleri ekrana elle yazmaz. |
+| Siri cümleleri | `KenetShortcuts` cümleleri, uygulama adıyla, kayıtlı sırada. Metin kısayol kataloğundan gelir. Kod cümleleri ekrana elle yazmaz. |
 | Kısayollar | Aynı cümleler Kısayollar uygulamasında da çalışır. |
 | Widget ve kilit ekranı | iOS’ta ana ekranı veya kilit ekranını düzenleyerek Yaz widget’ını ekleme açıklaması. |
 | Denetim Merkezi | iOS’ta Kenet’e yaz kontrolünü ekleme açıklaması; iPhone’da başlık “Denetim Merkezi ve Eylem düğmesi” olur. |
@@ -1532,6 +1532,7 @@ flowchart TD
 | İlk kasa | Kullanıcı kasayı açınca boş Bugün ekranında ipucu görünür: "Gününden bir an yaz; @ ile kişi ekle". İlk kişi ve konum yazarken oluşur. |
 | Kayıtlı kasaya erişilemiyor | Yer imi var ama klasör açılmıyorsa ya da yer imi bozuksa sekmelerin yerine durum ekranı gelir. "Yeniden dene" ve "Başka klasör seç" düğmeleri durur. Yerel kasaya sessiz geçiş yoktur. |
 | Boş gün | Kartta simge, suçlayıcı olmayan kısa metin. Giriş kutusu hazırdır. |
+| Eski gün klasörü | 2026-11-13 öncesi kasada uygulama gün dosyalarını yenilemeden sonra `diary/` altına taşır. Ana pencerenin üstündeki kapatılabilir bant sonucu söyler: “12 gün dosyası diary klasörüne taşındı.” Gün kopyası olan ya da taşınamayan dosya da sayılır; taşınamayan varsa bant uyarı tonundadır. Her kasada çalışır, yerel kasada da. |
 | Kasa eşitlenirken | Eldeki içerik görünür. Yalnız iCloud kasasında ana pencerenin üstünde, içeriği aşağı iterek küçük ve sessiz bir gösterge eşitleme durumunu söyler: “3 dosya iCloud’dan iniyor.” ya da “2 gün kopyası birleştiriliyor.” Gösterge eşitlenen klasör bandının biçimindedir: bilgi tonunda `InfoBand`, kapatma düğmesi yok. Eşitleme bitince gösterge kalkar. İstek reddedilir ya da düşerse uygulama ön plana her dönüşte bekleyen dosyaları yeniden ister. Gün kopyası birleştirmesi bitince aynı yerde kapatılabilir bant sonucu söyler: “7 gün kopyası birleştirildi.”; birleşmeyen kopya varsa bant uyarı tonundadır ve kopyanın Tanılama’da durduğunu söyler. Birleştirme bugün varsayılan kapalıdır. |
 
 ## Var olan klasörü seçme
@@ -1554,7 +1555,7 @@ flowchart TD
 | Seçici | İlk açılışta ve Ayarlar'da aynı klasör seçici çalışır. |
 | Rapor | Kasa yapısı eksikse rapor şunları gösterir: bulunan klasörler, Markdown dosya sayısı, gün dosyaları, kişi, konum ve hedef sayıları, eksik `type` alanları ve atlanan dosyalar. |
 | Kökteki gün dosyaları | Rapor kökteki ve `daily/` altındaki gün dosyalarını bilgi olarak listeler. Uygulama bu dosyaları taşımaz. |
-| Harf farkı | Rapor, standart klasör adının yalnız harf farkı olan biçimini ayrıca söyler, örneğin `Journal/`. Kullanıcı adı Obsidian'da düzeltir. Uygulama taşımaz ve yeniden adlandırmaz. |
+| Harf farkı | Rapor, standart klasör adının yalnız harf farkı olan biçimini ayrıca söyler, örneğin `Diary/`. Kullanıcı adı Obsidian'da düzeltir. Uygulama taşımaz ve yeniden adlandırmaz. |
 | Teklifler | Eksik klasör ve şablonları oluşturma, eksik kasa ayarını yazma ve kişi ve konum türlerini ekleme. Her teklif ayrı onay kutusudur. Varsayılan açıktır. |
 | Uygula | Sonrasında oluşan ve değişen dosya sayıları, atlanan ve hatalı yollar görünür. "Kasayı aç" indeksi hazırlar. |
 | Atla | Dosyalara yazmadan indeksi açar. |

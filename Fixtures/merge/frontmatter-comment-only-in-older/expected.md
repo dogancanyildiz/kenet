@@ -1,6 +1,6 @@
 ---
-type: journal
+type: diary
 ---
-## Journal
+## Diary
 A
 B

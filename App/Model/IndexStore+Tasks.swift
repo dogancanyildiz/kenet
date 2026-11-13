@@ -12,7 +12,7 @@ extension IndexStore {
         guard canAddEvent else { return false }
         reportTaskEntryError(nil)
         do {
-            try await performEdit(path: "journal/\(day).md") { writer in
+            try await performEdit(path: VaultLayout.dayPath(day)) { writer in
                 try await writer.addingTask(on: day, text: text, due: due, priority: priority, recurrence: recurrence)
             }
             return true

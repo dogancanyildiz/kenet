@@ -1,4 +1,4 @@
 ## Tasks
 not
-## Journal
+## Diary
 yazı

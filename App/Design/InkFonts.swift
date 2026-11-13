@@ -60,13 +60,13 @@ extension Font {
 }
 
 extension View {
-    /// Journal paragraph leading: design targets 26 pt line height at default body (17).
-    func inkJournalParagraph() -> some View {
-        modifier(InkJournalParagraphModifier())
+    /// Diary paragraph leading: design targets 26 pt line height at default body (17).
+    func inkDiaryParagraph() -> some View {
+        modifier(InkDiaryParagraphModifier())
     }
 }
 
-private struct InkJournalParagraphModifier: ViewModifier {
+private struct InkDiaryParagraphModifier: ViewModifier {
     /// Extra space beyond the font's built-in leading (26 − 17 at default size).
     @ScaledMetric(relativeTo: .body) private var extraLeading = 9
 

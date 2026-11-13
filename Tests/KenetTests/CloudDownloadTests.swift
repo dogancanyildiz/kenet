@@ -157,7 +157,7 @@ struct PlaceholderExpectation: Decodable {
 
 @MainActor @Suite(.timeLimit(.minutes(1)))
 struct CloudDownloadTests {
-    static let arrivedDay = "---\ntype: journal\ndate: 2026-09-30\n---\n\n## Events\n- Sabah yürüyüşü\n"
+    static let arrivedDay = "---\ntype: diary\ndate: 2026-09-30\n---\n\n## Events\n- Sabah yürüyüşü\n"
 
     @Test func iCloudVaultRequestsEachPlaceholderOnce() async throws {
         let expected = try PlaceholderExpectation.load()
@@ -186,18 +186,18 @@ struct CloudDownloadTests {
         let day = try #require(CalendarDate("2026-09-30"))
         #expect(!(try await context.store.computeDaySummaries()).contains { $0.date == day })
 
-        try context.arrive("journal/2026-09-30.md", bytes: Self.arrivedDay)
+        try context.arrive("diary/2026-09-30.md", bytes: Self.arrivedDay)
         // The watcher's refresh of the one folder: the other folders' placeholders still wait.
-        await context.refresh(directories: ["journal"])
+        await context.refresh(directories: ["diary"])
 
-        #expect(context.store.sync.pendingDownloads == expected.waiting.filter { $0 != "journal/2026-09-30.md" })
+        #expect(context.store.sync.pendingDownloads == expected.waiting.filter { $0 != "diary/2026-09-30.md" })
         let days = try await context.store.computeDaySummaries()
         #expect(days.first { $0.date == day }?.eventCount == 1)
         // The arrived file is not asked for again, nor are the others.
         #expect(await context.downloader.calls.count == 1)
 
         // Evicted again, the file is asked for again, alone.
-        try context.evict("journal/2026-09-30.md")
+        try context.evict("diary/2026-09-30.md")
         await context.refresh()
         #expect(context.store.sync.pendingDownloads == expected.waiting)
         let calls = await context.downloader.calls
@@ -248,7 +248,7 @@ struct CloudDownloadTests {
         #expect(try await context.store.computeDaySummaries().contains { $0.date == day })
         #expect(await context.store.addEvent(on: day, text: "Akşam yürüyüşü", time: nil))
         #expect(
-            try String(contentsOf: context.url("journal/2026-10-01.md"), encoding: .utf8).contains("Akşam yürüyüşü"))
+            try String(contentsOf: context.url("diary/2026-10-01.md"), encoding: .utf8).contains("Akşam yürüyüşü"))
         #expect(context.store.sync.downloadFailures == 0)
 
         await gated.open()

@@ -96,7 +96,7 @@ enum SummarySyntheticVault {
             let introduced = introductions[day]
             if introduced == nil, random.unit() < 0.13 { continue }
 
-            var front = ["---", "type: journal", "date: \(day)"]
+            var front = ["---", "type: diary", "date: \(day)"]
             var goalLines: [String] = []
             if random.unit() < 0.78 { goalLines.append("  kitap: \(5 + Int(random.unit() * 36))") }
             if random.unit() < 0.64 { goalLines.append("  meditasyon: true") }
@@ -161,11 +161,11 @@ enum SummarySyntheticVault {
                 lines.append("")
             }
             if random.unit() < 0.7 || events == 0 {
-                lines.append("## Journal")
+                lines.append("## Diary")
                 lines.append("Günün sonunda kısa bir not: sakin bir gündü, yarın için küçük bir liste hazırladım.")
                 lines.append("")
             }
-            try write(root, "journal/\(day).md", lines.joined(separator: "\n"))
+            try write(root, "diary/\(day).md", lines.joined(separator: "\n"))
         }
     }
 

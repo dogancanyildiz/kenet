@@ -32,8 +32,8 @@ final class GeofenceService {
     @ObservationIgnored private var goalsReloadCount = 0
     /// Called when a mark action is blocked by app lock so the UI can open goals with an explanation.
     @ObservationIgnored var onLockedMarkBlocked: (() -> Void)?
-    private static let modesKey = "journal.geofence.modes"
-    private static let handledKey = "journal.geofence.handled"
+    nonisolated static let modesKey = "kenet.geofence.modes"
+    nonisolated static let handledKey = "kenet.geofence.handled"
 
     init(
         location: LocationService, center: any GeofenceNotificationDelivering,

@@ -21,7 +21,7 @@ struct DayCopyTests {
         for name in table.names {
             #expect(DayCopyName.isDayCopy(path: name.path) == (name.day != nil), "\(name.path)")
             #expect(DayCopyName.day(ofCopy: name.path)?.description == name.day, "\(name.path)")
-            #expect(DayCopyName.dayPath(ofCopy: name.path) == name.day.map { "journal/" + $0 + ".md" })
+            #expect(DayCopyName.dayPath(ofCopy: name.path) == name.day.map { "diary/" + $0 + ".md" })
         }
         let paths = table.names.map(\.path)
         #expect(DayCopyName.copies(in: paths) == table.mergeOrder)
@@ -42,21 +42,21 @@ struct DayCopyTests {
         let vault = try DayCopyVault()
         defer { vault.remove() }
         // Not copies by name: a decomposed mark after the number, and a decomposed note name.
-        let decomposed = ["journal/2026-10-02 2\u{301}.md", "journal/Gu\u{308}nlu\u{308}k 2.md"]
+        let decomposed = ["diary/2026-10-02 2\u{301}.md", "diary/Gu\u{308}nlu\u{308}k 2.md"]
         for path in decomposed { try Data("Not.\n".utf8).write(to: vault.url(path)) }
         let indexed = (vault.cases.indexedFiles + decomposed.map(\.precomposedStringWithCanonicalMapping)).sorted {
             $0.utf8.lexicographicallyPrecedes($1.utf8)
         }
         let results = [
             try vault.index.rebuild(vaultRoot: vault.root), try vault.index.refresh(vaultRoot: vault.root),
-            try vault.index.update(paths: ["journal"], vaultRoot: vault.root),
+            try vault.index.update(paths: ["diary"], vaultRoot: vault.root),
         ]
         for result in results {
             #expect(result.dayCopies == vault.cases.dayCopies)
             #expect(try vault.index.files().map(\.path) == indexed)
         }
-        let copy = "journal/2026-10-02 3.md"
-        try Data("---\ntype: journal\n---\n\n## Events\n- Yeni ^e2c009\n".utf8).write(to: vault.url(copy))
+        let copy = "diary/2026-10-02 3.md"
+        try Data("---\ntype: diary\n---\n\n## Events\n- Yeni ^e2c009\n".utf8).write(to: vault.url(copy))
         let notified = try vault.index.update(paths: [copy], vaultRoot: vault.root)
         #expect(notified.dayCopies == [copy])
         #expect(notified.addedPaths.isEmpty && notified.updatedPaths.isEmpty)
@@ -120,7 +120,7 @@ struct DayCopyTests {
             "e4a001": "04", "e5a001": "05", "e8a001": "08", "e8b001": "08",
         ]
         for (identifier, day) in days {
-            #expect(blocks.first { $0.identifier == identifier }?.file == "journal/2026-10-\(day).md", "\(identifier)")
+            #expect(blocks.first { $0.identifier == identifier }?.file == "diary/2026-10-\(day).md", "\(identifier)")
         }
     }
 
@@ -130,8 +130,8 @@ struct DayCopyTests {
         let vault = try DayCopyVault()
         defer { vault.remove() }
         let store = vault.store()
-        let copy = "journal/2026-10-01 2.md"
-        let dayPath = "journal/2026-10-01.md"
+        let copy = "diary/2026-10-01 2.md"
+        let dayPath = "diary/2026-10-01.md"
         let originalCopy = try Data(contentsOf: vault.url(copy))
         let originalDay = try Data(contentsOf: vault.url(dayPath))
         let conflict = "conflicts/2026-10-01 (conflict 20261001T090000Z 2).md"
@@ -170,8 +170,8 @@ struct DayCopyTests {
         where FileManager.default.fileExists(atPath: first.url(path).path) {
             #expect(try first.time(path) == second.time(path), "\(path)")
         }
-        let copy = "journal/2026-10-02 2.md"
-        try Data(contentsOf: second.url("journal/2026-10-02.md")).write(to: first.url(copy))
+        let copy = "diary/2026-10-02 2.md"
+        try Data(contentsOf: second.url("diary/2026-10-02.md")).write(to: first.url(copy))
         let outcome = try await first.store().mergingDayCopy(copy)
         #expect(outcome.kind == .identical)
         #expect(outcome.conflictPaths.isEmpty)
@@ -183,14 +183,14 @@ struct DayCopyTests {
         defer { vault.remove() }
         try FileManager.default.removeItem(at: vault.url("conflicts"))
         let before = try vault.tree()
-        let outcome = try await vault.store().mergingDayCopy("journal/2026-10-04 2.md")
+        let outcome = try await vault.store().mergingDayCopy("diary/2026-10-04 2.md")
         #expect(
             outcome
                 == DayCopyMergeOutcome(
-                    kind: .identical, dayPath: "journal/2026-10-04.md", dayFileChanged: false, conflictPaths: [],
+                    kind: .identical, dayPath: "diary/2026-10-04.md", dayFileChanged: false, conflictPaths: [],
                     fellBack: false))
         var expected = before
-        expected.removeValue(forKey: "journal/2026-10-04 2.md")
+        expected.removeValue(forKey: "diary/2026-10-04 2.md")
         #expect(try vault.tree() == expected)
     }
 
@@ -202,7 +202,7 @@ struct DayCopyTests {
         let placeholder = "conflicts/.2026-10-05 (conflict 20261005T060000Z 2).md.icloud"
         try Data("Başka not.\n".utf8).write(to: vault.url(taken))
         try Data("bplist00".utf8).write(to: vault.url(placeholder))
-        let outcome = try await vault.store().mergingDayCopy("journal/2026-10-05 2.md")
+        let outcome = try await vault.store().mergingDayCopy("diary/2026-10-05 2.md")
         #expect(outcome.conflictPaths == ["conflicts/2026-10-05 (conflict 20261005T060000Z 3).md"])
         #expect(try Data(contentsOf: vault.url(taken)) == Data("Başka not.\n".utf8))
         #expect(try Data(contentsOf: vault.url(placeholder)) == Data("bplist00".utf8))

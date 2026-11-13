@@ -18,9 +18,7 @@ enum SectionParser {
             guard let level = headingLevel(bytes) else { continue }
             // Deeper headings belong to the current section, rather than splitting it.
             if !includingNested, let active = headings.last, level > 2, level > active.level { continue }
-            let candidate = DaySectionKind.allCases.first {
-                trimmedHeading(bytes).elementsEqual(("## " + $0.rawValue).utf8)
-            }
+            let candidate = DaySectionKind.recognizing(trimmedHeading: trimmedHeading(bytes))
             let kind = candidate.flatMap { seen.insert($0).inserted ? $0 : nil }
             headings.append((index, level, kind))
         }

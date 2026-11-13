@@ -79,8 +79,8 @@ struct WatcherRefreshMeasureTests {
         try index.rebuild(vaultRoot: root)
         var coreFull: [Double] = []
         var coreNotes: [Double] = []
-        var coreJournal: [Double] = []
-        let day = root.appendingPathComponent("journal/2026-10-05.md")
+        var coreDiary: [Double] = []
+        let day = root.appendingPathComponent("diary/2026-10-05.md")
         for round in 0..<5 {
             for file in [note, day] {
                 let handle = try FileHandle(forWritingTo: file)
@@ -101,8 +101,8 @@ struct WatcherRefreshMeasureTests {
             try index.update(paths: ["notes"], vaultRoot: root)
             coreNotes.append(milliseconds(since: start))
             start = DispatchTime.now()
-            try index.update(paths: ["journal"], vaultRoot: root)
-            coreJournal.append(milliseconds(since: start))
+            try index.update(paths: ["diary"], vaultRoot: root)
+            coreDiary.append(milliseconds(since: start))
         }
         print(
             """
@@ -114,7 +114,7 @@ struct WatcherRefreshMeasureTests {
               new note file to task count median: \(format(median(eventMs))) ms
               core refresh (whole vault) median: \(format(median(coreFull))) ms
               core update notes/ median: \(format(median(coreNotes))) ms
-              core update journal/ median: \(format(median(coreJournal))) ms
+              core update diary/ median: \(format(median(coreDiary))) ms
             """)
     }
 

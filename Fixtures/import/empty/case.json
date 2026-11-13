@@ -7,7 +7,7 @@
   "apply": true,
   "report": {
     "missingFolders": [
-      "journal",
+      "diary",
       "people",
       "places",
       "goals",
@@ -22,7 +22,7 @@
     "needsSettings": true,
     "canPrepare": true,
     "markdownCount": 0,
-    "journalDays": [],
+    "diaryDays": [],
     "externalDays": [],
     "typed": {},
     "candidates": [],
@@ -30,7 +30,7 @@
   },
   "result": {
     "created": [
-      "journal/",
+      "diary/",
       "people/",
       "places/",
       "goals/",
@@ -47,7 +47,7 @@
   "expectedDirectories": [
     ".app",
     "goals",
-    "journal",
+    "diary",
     "notes",
     "people",
     "places",

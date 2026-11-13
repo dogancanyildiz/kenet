@@ -37,11 +37,11 @@ struct DaysQueryTests {
         let vault = try StoreVault()
         defer { vault.remove() }
         try vault.write("people/Ada Test.md", "---\ntype: person\nname: Ada Test\n---\n")
-        // Sections out of order; a heading, a two-line paragraph and a second paragraph in Journal.
+        // Sections out of order; a heading, a two-line paragraph and a second paragraph in Diary.
         try vault.write(
-            "journal/2026-03-01.md",
+            "diary/2026-03-01.md",
             """
-            ## Journal
+            ## Diary
             ### Sabah
             İlk paragraf [[Ada Test|Ada]] ve [[Yok]].
             ikinci satır
@@ -58,21 +58,21 @@ struct DaysQueryTests {
             ## Notlar
             Başka bölümde paragraf.
             """)
-        try vault.write("journal/2026-03-02.md", "## Journal\nYalnız günlük.\n")
-        try vault.write("journal/2026-03-03.md", "## Tasks\n- [ ] yalnız görev\n")
+        try vault.write("diary/2026-03-02.md", "## Diary\nYalnız günlük.\n")
+        try vault.write("diary/2026-03-03.md", "## Tasks\n- [ ] yalnız görev\n")
         try vault.write(
-            "journal/2026-03-04.md",
-            "\u{FEFF}---\r\ntype: journal\r\ngoals:\r\n  kitap: 5\r\n---\r\n\r\n## Events\r\n- 08:00 Sabah\r\n\r\n## Journal\r\nCRLF paragrafı.\r\n"
+            "diary/2026-03-04.md",
+            "\u{FEFF}---\r\ntype: diary\r\ngoals:\r\n  kitap: 5\r\n---\r\n\r\n## Events\r\n- 08:00 Sabah\r\n\r\n## Diary\r\nCRLF paragrafı.\r\n"
         )
-        try vault.write("journal/2026-03-05.md", "---\ntype: journal\n---\n")
-        try vault.write("journal/2026-03-09.md", "## Journal\n### Yalnız başlık\n")
-        // Not day files: a note linking to a day, a misdated name, files outside `journal/`, bad UTF-8.
+        try vault.write("diary/2026-03-05.md", "---\ntype: diary\n---\n")
+        try vault.write("diary/2026-03-09.md", "## Diary\n### Yalnız başlık\n")
+        // Not day files: a note linking to a day, a misdated name, files outside `diary/`, bad UTF-8.
         try vault.write(
-            "notes/Plan.md", "## Events\n- 09:00 [[2026-03-01]] planı\n\n## Journal\n[[2026-03-02]] notu.\n")
-        try vault.write("journal/2026-02-30.md", "## Events\n- 08:00 Yok\n")
-        try vault.write("journal/arsiv/2026-03-06.md", "## Events\n- 08:00 Arşiv\n")
+            "notes/Plan.md", "## Events\n- 09:00 [[2026-03-01]] planı\n\n## Diary\n[[2026-03-02]] notu.\n")
+        try vault.write("diary/2026-02-30.md", "## Events\n- 08:00 Yok\n")
+        try vault.write("diary/arsiv/2026-03-06.md", "## Events\n- 08:00 Arşiv\n")
         try vault.write("arsiv/2026-03-07.md", "## Events\n- 08:00 Arşiv\n")
-        try Data([0x23, 0x23, 0x20, 0xFF, 0x0A]).write(to: vault.root.appendingPathComponent("journal/2026-03-08.md"))
+        try Data([0x23, 0x23, 0x20, 0xFF, 0x0A]).write(to: vault.root.appendingPathComponent("diary/2026-03-08.md"))
         try vault.index.rebuild(vaultRoot: vault.root)
         try expectConstruction(
             vault.index,
@@ -84,7 +84,7 @@ struct DaysQueryTests {
                 "2026-03-09", "2026-03-05", "2026-03-04", "2026-03-03", "2026-03-02", "2026-03-01",
             ])
         #expect(all.map(\.eventCount) == [0, 0, 1, 0, 0, 2])
-        #expect(all.map(\.journalCount) == [1, 0, 1, 0, 1, 3])
+        #expect(all.map(\.diaryCount) == [1, 0, 1, 0, 1, 3])
         #expect(all.map(\.hasGoalRecords) == [false, false, true, false, false, false])
         #expect(
             all.map { $0.firstParagraph?.text } == [
@@ -133,10 +133,10 @@ struct DaysQueryTests {
         #expect(try vault.index.daySummaries().count == before.count + 1)
         #expect(try vault.index.daySummaries(from: day).map(\.eventCount) == [1])
 
-        _ = try await vault.store.appendingJournal(on: day, lines: ["[[Deniz Arıkan]] ile ilk satır."])
+        _ = try await vault.store.appendingDiary(on: day, lines: ["[[Deniz Arıkan]] ile ilk satır."])
         try check()
         let written = try #require(try vault.index.daySummaries(from: day).first)
-        #expect(written.journalCount == 1 && written.firstParagraph?.text == "[[Deniz Arıkan]] ile ilk satır.")
+        #expect(written.diaryCount == 1 && written.firstParagraph?.text == "[[Deniz Arıkan]] ile ilk satır.")
 
         let renamed = try await vault.store.renamingEntity(at: "people/Deniz Arıkan.md", to: "Deniz Yeni")
         #expect(renamed.failures.isEmpty)
@@ -144,7 +144,7 @@ struct DaysQueryTests {
         let after = try #require(try vault.index.daySummaries(from: day).first)
         #expect(after.firstParagraphLinks.map(\.resolvedFile) == [renamed.path])
 
-        try FileManager.default.removeItem(at: vault.root.appendingPathComponent("journal/\(day).md"))
+        try FileManager.default.removeItem(at: vault.root.appendingPathComponent("diary/\(day).md"))
         try vault.index.refresh(vaultRoot: vault.root)
         try check()
         #expect(try vault.index.daySummaries().count == before.count)
@@ -182,8 +182,8 @@ struct DaysQueryTests {
 }
 
 /// The read model's `days` as the app built it before the query existed, in Core terms: day files
-/// newest first (path on ties), their event count, Journal paragraphs and headings, the first
-/// Journal paragraph with its own links in source order, and whether a goal value is recorded.
+/// newest first (path on ties), their event count, Diary paragraphs and headings, the first
+/// Diary paragraph with its own links in source order, and whether a goal value is recorded.
 private func snapshotConstruction(_ snapshot: IndexSnapshot) -> [DaySummaryEntry] {
     let goalFiles = Set(snapshot.goalLogs.map(\.file))
     let blocks = Dictionary(grouping: snapshot.blocks, by: \.file)
@@ -191,15 +191,15 @@ private func snapshotConstruction(_ snapshot: IndexSnapshot) -> [DaySummaryEntry
     return snapshot.files.compactMap { file -> DaySummaryEntry? in
         guard file.kind == "day", let value = file.date, let date = CalendarDate(value) else { return nil }
         let rows = (blocks[file.path] ?? []).sorted { $0.ordinal < $1.ordinal }
-        let journal = rows.filter { $0.section == "Journal" && ["paragraph", "heading"].contains($0.kind) }
-        let first = journal.first { $0.headingLevel == nil }
+        let diary = rows.filter { $0.section == "Diary" && ["paragraph", "heading"].contains($0.kind) }
+        let first = diary.first { $0.headingLevel == nil }
         let own =
             first.map { block in
                 (links[file.path] ?? []).filter { $0.block == block.ordinal }.sorted { $0.ordinal < $1.ordinal }
             } ?? []
         return DaySummaryEntry(
             file: file.path, date: date, eventCount: rows.filter { $0.kind == "event" }.count,
-            journalCount: journal.count, firstParagraph: first, firstParagraphLinks: own,
+            diaryCount: diary.count, firstParagraph: first, firstParagraphLinks: own,
             hasGoalRecords: goalFiles.contains(file.path))
     }.sorted { $0.date != $1.date ? $0.date > $1.date : $0.file < $1.file }
 }

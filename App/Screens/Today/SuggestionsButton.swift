@@ -5,7 +5,7 @@ import VaultFormat
     @preconcurrency import JournalingSuggestions
 #endif
 
-/// The quick entry's way into the system's journaling suggestions (iPhone): an icon at the end of
+/// The quick entry's way into the system's diary suggestions (iPhone): an icon at the end of
 /// the empty field. The bar presents the picker with ``View/suggestionsPicker(isPresented:onPick:)``.
 struct SuggestionsButton: View {
     var isEnabled: Bool
@@ -21,7 +21,7 @@ struct SuggestionsButton: View {
         .disabled(!isEnabled)
         .accessibilityLabel(Text("Öneriler"))
         .accessibilityHint(Text("Sistemin günlük önerilerinden birini seç"))
-        .accessibilityIdentifier("button.journalingSuggestions")
+        .accessibilityIdentifier("button.diarySuggestions")
     }
 }
 

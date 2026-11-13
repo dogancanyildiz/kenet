@@ -11,7 +11,7 @@ struct TaskQueryTests {
     @Test func overdueTodayUpcomingAndUndatedQueriesRespectStatusAndDay() throws {
         try withVault { root in
             try write(
-                root, "journal/2026-10-01.md",
+                root, "diary/2026-10-01.md",
                 """
                 ## Tasks
                 - [ ] late 📅 2026-10-01 ^late
@@ -30,7 +30,7 @@ struct TaskQueryTests {
             #expect(try index.overdueTasks(asOf: day).map(\.identifier) == ["late"])
             #expect(try index.tasks(dueOn: day).map(\.identifier) == ["today"])
             #expect(try index.tasks(dueOn: CalendarDate("2026-10-01")!).count == 3)
-            #expect(try index.search("2026-13-40").contains { $0.file.hasPrefix("journal/") })
+            #expect(try index.search("2026-13-40").contains { $0.file.hasPrefix("diary/") })
         }
     }
 
@@ -113,7 +113,7 @@ struct TaskQueryTests {
             try old.write { try $0.execute(sql: "CREATE TABLE old_data (value TEXT); PRAGMA user_version=3") }
             let index = try VaultIndex(databaseURL: url)
             #expect(try index.files().isEmpty)
-            #expect(try index.database.read { try Int.fetchOne($0, sql: "PRAGMA user_version") } == 9)
+            #expect(try index.database.read { try Int.fetchOne($0, sql: "PRAGMA user_version") } == IndexSchema.version)
             #expect(try index.database.read { try $0.tableExists("old_data") } == false)
             #expect(
                 try index.database.read {
@@ -149,7 +149,7 @@ struct TaskQueryTests {
 
     @Test func taskFieldChangesRefreshToTheSameSnapshotAsRebuild() throws {
         try withVault { root in
-            let path = "journal/2026-10-01.md"
+            let path = "diary/2026-10-01.md"
             try write(root, path, "- [ ] x 📅 2026-10-05 #project/old ^task")
             let index = try VaultIndex()
             try index.rebuild(vaultRoot: root)

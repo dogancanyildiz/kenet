@@ -1,7 +1,8 @@
 import Foundation
+import VaultFormat
 
 struct VaultImportReport: Sendable {
-    static let folders = ["journal", "people", "places", "goals", "notes", "templates"]
+    static let folders = [VaultLayout.dayFolder, "people", "places", "goals", "notes", "templates"]
     struct Candidate: Sendable {
         let path: String
         let kind: String
@@ -9,11 +10,11 @@ struct VaultImportReport: Sendable {
     let root: URL
     var foundFolders: [String] = []
     var missingFolders: [String] = []
-    /// Reserved folders present under a different spelling (`Journal/` instead of `journal/`).
+    /// Reserved folders present under a different spelling (`Diary/` instead of `diary/`).
     var caseVariantFolders: [String] = []
     var missingTemplates: [String] = []
     var markdownCount = 0
-    var journalDays: [String] = []
+    var diaryDays: [String] = []
     var externalDays: [String] = []
     var typed: [String: Int] = [:]
     var candidates: [Candidate] = []

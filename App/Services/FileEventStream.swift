@@ -35,7 +35,7 @@
             rootComponents = rootPath.split(separator: "/")
             self.handler = handler
             let folder = FileManager.default.temporaryDirectory.appendingPathComponent(
-                "journal-watch-" + UUID().uuidString, isDirectory: true)
+                "kenet-watch-" + UUID().uuidString, isDirectory: true)
             let sentinelPath = (try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true))
                 .map { Self.realPath(folder.path) }
             sentinel = sentinelPath == nil ? nil : folder

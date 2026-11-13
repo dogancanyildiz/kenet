@@ -61,7 +61,7 @@ struct QuickEntryMentionTests {
         let event = try #require(document.bodyLines.events.last)
         let id = try #require(event.block.id)
         let expected =
-            "---\ntype: journal\ndate: \(LocalDay.today())\n---\n\n## Events\n- 13:00 [[Deniz Arıkan|Deniz]] ile [[Liman Ofis]]'te ^\(id)\n"
+            "---\ntype: diary\ndate: \(LocalDay.today())\n---\n\n## Events\n- 13:00 [[Deniz Arıkan|Deniz]] ile [[Liman Ofis]]'te ^\(id)\n"
         #expect(bytes == Data(expected.utf8))
         #expect(
             try await context.store.computeDay(on: LocalDay.today()).events.last?.text.plainText
@@ -219,7 +219,7 @@ struct QuickEntryMentionTests {
         let entity = try #require(context.model.suggestions().first { $0.qualifier == "iş" })
         context.model.selectSuggestion(entity)
         let original = Data([0xFF, 0xFE])
-        try original.write(to: context.root.appendingPathComponent("journal/\(LocalDay.today()).md"))
+        try original.write(to: context.root.appendingPathComponent("diary/\(LocalDay.today()).md"))
         #expect(await !context.model.submit(time: nil))
         #expect(context.model.text == "Mert Aksu")
         #expect(context.model.choices.values.contains(entity.file))
@@ -427,7 +427,7 @@ private struct MentionTestContext {
 
     func start() async { await store.select(root) }
     func eventBytes() throws -> Data {
-        try Data(contentsOf: root.appendingPathComponent("journal/\(LocalDay.today()).md"))
+        try Data(contentsOf: root.appendingPathComponent("diary/\(LocalDay.today()).md"))
     }
     func clean() {
         defaults.clean()

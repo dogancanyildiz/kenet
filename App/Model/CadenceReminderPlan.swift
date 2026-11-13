@@ -42,7 +42,7 @@ struct CadenceReminderMemory: Equatable, Sendable {
 
 /// Device record of cadence reminders, keyed by vault path. Nothing is written into the vault.
 struct CadenceReminderHistory: Equatable, Sendable {
-    static let storageKey = "journal.notifications.cadenceReminders.v1"
+    static let storageKey = "kenet.notifications.cadenceReminders.v1"
 
     private(set) var vaults: [String: CadenceReminderMemory] = [:]
 

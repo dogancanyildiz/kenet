@@ -39,14 +39,14 @@
         }
 
         /// Today's Günlük yazısı row with the placeholder alone: one line of text in a 44 pt row.
-        @Test func journalPlaceholderRowIsAtLeastFortyFourPointsTall() {
-            let size = Self.size(of: DayJournalPreview(isLoaded: true, preview: nil), width: 370)
+        @Test func diaryPlaceholderRowIsAtLeastFortyFourPointsTall() {
+            let size = Self.size(of: DayDiaryPreview(isLoaded: true, preview: nil), width: 370)
             #expect(size.height >= Self.minimum, "placeholder row is \(size)")
         }
 
         /// Before the day loads the row draws nothing and takes no room: no invisible target.
-        @Test func journalPreviewBeforeLoadTakesNoRoom() {
-            let size = Self.size(of: DayJournalPreview(isLoaded: false, preview: nil), width: 370)
+        @Test func diaryPreviewBeforeLoadTakesNoRoom() {
+            let size = Self.size(of: DayDiaryPreview(isLoaded: false, preview: nil), width: 370)
             #expect(size.height < 1, "unloaded row is \(size)")
         }
 

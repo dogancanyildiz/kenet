@@ -1,4 +1,4 @@
 ## Tasks
 ```
 ## Events
-## Journal
+## Diary

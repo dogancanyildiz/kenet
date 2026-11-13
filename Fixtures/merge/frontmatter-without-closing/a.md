@@ -1,4 +1,4 @@
 ---
-type: journal
-## Journal
+type: diary
+## Diary
 Gün.

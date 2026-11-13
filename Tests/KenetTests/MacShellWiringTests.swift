@@ -130,7 +130,7 @@
             for _ in 0..<5 { try await shell.pressDown() }
             #expect(shell.window.title == "altyapi", "walked to the first project: \(shell.window.title)")
 
-            let file = shell.context.root.appendingPathComponent("journal/2026-09-15.md")
+            let file = shell.context.root.appendingPathComponent("diary/2026-09-15.md")
             let text = try String(contentsOf: file, encoding: .utf8)
             #expect(text.contains("#project/altyapi"))
             try text.replacingOccurrences(of: " #project/altyapi", with: "")
@@ -191,7 +191,7 @@
                     appearance == nil
                     ? withSearch : AnyView(withSearch.environment(\.colorScheme, scheme))
                 mount = HostedLayout.Mount(view, size: CGSize(width: 1280, height: 800), bridgesToolbar: true)
-                releaseJournalMark = await HostedJournalWindow.claim(mount.window)
+                releaseKenetMark = await HostedKenetWindow.claim(mount.window)
                 if let appearance {
                     mount.window.appearance = NSAppearance(named: appearance)
                     mount.window.contentView?.appearance = mount.window.appearance
@@ -199,9 +199,9 @@
                 await mount.settle(rounds: 20)
             }
 
-            /// The shell judges focus in the journal window: that is this hosted window until
+            /// The shell judges focus in the diary window: that is this hosted window until
             /// the shell closes.
-            private let releaseJournalMark: @MainActor () -> Void
+            private let releaseKenetMark: @MainActor () -> Void
 
             var window: NSWindow { mount.window }
             var paneCounts: [Int] { mount.views(NSSplitView.self).map(\.arrangedSubviews.count) }
@@ -236,7 +236,7 @@
             }
 
             func close() {
-                releaseJournalMark()
+                releaseKenetMark()
                 mount.close()
                 context.clean()
             }

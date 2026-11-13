@@ -1,7 +1,0 @@
-## Journal
-Eski
-
-Yeni
-
- 
-	

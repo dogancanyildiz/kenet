@@ -3,11 +3,11 @@ import Testing
 @testable import VaultFormat
 
 struct VaultLayoutTests {
-    @Test func detectsJournalCaseVariant() {
-        #expect(VaultLayout.caseVariantFolders(among: ["Journal", "people", "notes"]) == ["Journal"])
-        #expect(VaultLayout.expectedFolder(forVariant: "Journal") == "journal")
-        #expect(VaultLayout.caseVariantFolders(among: ["journal", "People"]) == ["People"])
-        #expect(VaultLayout.caseVariantFolders(among: ["journal", "people"]).isEmpty)
+    @Test func detectsDiaryCaseVariant() {
+        #expect(VaultLayout.caseVariantFolders(among: ["Diary", "people", "notes"]) == ["Diary"])
+        #expect(VaultLayout.expectedFolder(forVariant: "Diary") == "diary")
+        #expect(VaultLayout.caseVariantFolders(among: ["diary", "People"]) == ["People"])
+        #expect(VaultLayout.caseVariantFolders(among: ["diary", "people"]).isEmpty)
     }
 }
 

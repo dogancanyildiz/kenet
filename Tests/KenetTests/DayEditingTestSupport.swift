@@ -11,7 +11,7 @@ struct DayEditingTestContext {
     let defaults: TestDefaults
     let store: IndexStore
     let day = CalendarDate("2026-09-12")!
-    var file: URL { root.appendingPathComponent("journal/\(day).md") }
+    var file: URL { root.appendingPathComponent("diary/\(day).md") }
 
     init() throws {
         directory = try testDirectory()
@@ -20,8 +20,8 @@ struct DayEditingTestContext {
         let fixtures = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
             .deletingLastPathComponent().appendingPathComponent("Fixtures")
         try FileManager.default.copyItem(at: fixtures.appendingPathComponent("vaults/sample"), to: root)
-        try Data(contentsOf: fixtures.appendingPathComponent("journal/edit/input.md"))
-            .write(to: root.appendingPathComponent("journal/2026-09-12.md"))
+        try Data(contentsOf: fixtures.appendingPathComponent("diary/edit/input.md"))
+            .write(to: root.appendingPathComponent("diary/2026-09-12.md"))
         store = IndexStore(
             location: VaultLocation(defaults: defaults.defaults, documentsURL: directory, bookmarks: pathBookmarks()),
             supportURL: directory.appendingPathComponent("indexes"))
@@ -29,7 +29,7 @@ struct DayEditingTestContext {
 
     func fixture(_ name: String) -> URL {
         URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
-            .deletingLastPathComponent().appendingPathComponent("Fixtures/journal/edit/" + name)
+            .deletingLastPathComponent().appendingPathComponent("Fixtures/diary/edit/" + name)
     }
     func start() async { await store.select(root) }
     func clean() {

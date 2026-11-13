@@ -61,7 +61,7 @@ struct GoalCreationTests {
         defer { vault.remove() }
         // No refresh: reservations must see external edits before the watcher does.
         try vault.write("goals/Other.md", "---\ntype: goal\nname: Other\nkey: su-icme\nperiod: invalid\n---\n")
-        try vault.write(storePath, "---\ntype: journal\ndate: 2026-09-27\ngoals:\n  su-icme-2: true\n---\n")
+        try vault.write(storePath, "---\ntype: diary\ndate: 2026-09-27\ngoals:\n  su-icme-2: true\n---\n")
         let path = try await vault.store.creatingGoal(name: "Su İçme", period: .week, kind: .boolean, target: 3)
         #expect(String(decoding: try vault.bytes(path), as: UTF8.self).contains("key: su-icme-2\n"))
         _ = try vault.index.refresh(vaultRoot: vault.root)

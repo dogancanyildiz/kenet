@@ -4,9 +4,9 @@
 ````
 ## Events
    ~~~~ info
-## Journal
+## Diary
 ~~~
 ~~~~ text
    ~~~~~ 	
-## Journal
+## Diary
 yazı

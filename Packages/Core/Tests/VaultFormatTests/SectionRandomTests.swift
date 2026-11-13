@@ -50,7 +50,7 @@ struct SectionRandomTests {
                 position = start + local
                 blocks[blockIndex].lines.insert(contentsOf: additions, at: local)
             } else {
-                let ranks: [DaySectionKind: Int] = [.tasks: 0, .events: 1, .journal: 2]
+                let ranks: [DaySectionKind: Int] = [.tasks: 0, .events: 1, .diary: 2]
                 let later = DaySectionKind.allCases.filter { ranks[$0]! > ranks[target]! }
                 let blockIndex =
                     later.compactMap { next in blocks.firstIndex { $0.kind == next } }.first ?? blocks.count

@@ -17,7 +17,7 @@ struct ReadModelBackgroundTests {
         // no event text, so the day is one no other suite writes.
         let marker = "Off-main model"
         let date = CalendarDate("1999-07-13")!
-        let path = "journal/\(date).md"
+        let path = "diary/\(date).md"
         VaultPublishedContent.buildProbe = { _, body in
             let published = try body()
             guard published.content.fragments[path]?.eventCount == 1 else { return published }

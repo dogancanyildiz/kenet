@@ -14,5 +14,5 @@ ayarlar:
 matris:
   - - 1
     - 2
-type: journal
+type: diary
 ---

@@ -38,7 +38,7 @@ struct GoalEditingTests {
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
         await context.start()
-        let file = context.root.appendingPathComponent("journal/\(day).md")
+        let file = context.root.appendingPathComponent("diary/\(day).md")
         let before = try Data(contentsOf: file)
         let model = GoalDayModel(store: context.store, day: day)
         await model.load()
@@ -78,7 +78,7 @@ struct GoalEditingTests {
         #expect(model.value(for: water) == .number(8.5))
         #expect(model.isComplete(for: water))
         #expect(await !editor.save())
-        let bytes = try Data(contentsOf: context.root.appendingPathComponent("journal/\(day).md"))
+        let bytes = try Data(contentsOf: context.root.appendingPathComponent("diary/\(day).md"))
         #expect(String(decoding: bytes, as: UTF8.self).contains("  su: 8.5\n"))
         let invalid = GoalValueModel(dayModel: model, goal: water)
         for text in ["-1", "nan", "inf", "", "2x"] {
@@ -95,7 +95,7 @@ struct GoalEditingTests {
         defer { context.clean() }
         await context.start()
         let date = CalendarDate("2026-09-17")!
-        let file = context.root.appendingPathComponent("journal/\(date).md")
+        let file = context.root.appendingPathComponent("diary/\(date).md")
         let before = try Data(contentsOf: file)
         let model = GoalDayModel(store: context.store, day: date)
         await model.load()
@@ -145,7 +145,7 @@ struct GoalEditingTests {
         #expect(await model.set(water, value: .number(8)))
         #expect(
             String(
-                decoding: try Data(contentsOf: context.root.appendingPathComponent("journal/2024-01-01.md")),
+                decoding: try Data(contentsOf: context.root.appendingPathComponent("diary/2024-01-01.md")),
                 as: UTF8.self
             ).contains("  su: 8\n"))
     }
@@ -156,8 +156,8 @@ struct GoalEditingTests {
         await context.start()
         let model = GoalDayModel(store: context.store, day: day)
         await model.load()
-        let source = "---\ntype: journal\ndate: 2026-09-27\ngoals:\n  su: 3\n---\n"
-        try Data(source.utf8).write(to: context.root.appendingPathComponent("journal/\(day).md"))
+        let source = "---\ntype: diary\ndate: 2026-09-27\ngoals:\n  su: 3\n---\n"
+        try Data(source.utf8).write(to: context.root.appendingPathComponent("diary/\(day).md"))
         await context.store.refresh()
         await model.load()
         #expect(model.value(for: try #require(model.goals.first { $0.key == "su" })) == .number(3))

@@ -161,7 +161,7 @@ struct TodayDeskPlanTests {
         let next = try task(3, text: "13:00 Sıradaki")
         let carriedDone = try task(4, text: "09:00 Eski iş", due: earlier, rawStatus: "x")
         let otherDay = try task(
-            5, text: "14:00 Başka gün", due: nil, rawStatus: "x", file: "journal/\(earlier).md")
+            5, text: "14:00 Başka gün", due: nil, rawStatus: "x", file: "diary/\(earlier).md")
         let cancelled = try task(6, text: "15:00 Vazgeçildi", rawStatus: "-")
         let plan = TodayDeskPlan(
             events: [], openTasks: [next], carriedOver: [], nowHour: 10, nowMinute: 0,
@@ -205,7 +205,7 @@ struct TodayDeskPlanTests {
         priority: String? = nil, file: String? = nil
     ) throws -> TaskRow {
         var fields: [String: Any] = [
-            "file": file ?? "journal/\(day).md", "ordinal": id, "kind": "task", "firstLine": id + 1,
+            "file": file ?? "diary/\(day).md", "ordinal": id, "kind": "task", "firstLine": id + 1,
             "lastLine": id + 1, "text": text, "section": "Tasks", "rawStatus": rawStatus,
             "ownsIdentifier": false,
         ]

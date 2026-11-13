@@ -45,7 +45,7 @@ public struct WeeklyReviewRhythm: Sendable, Equatable {
         var written: Set<CalendarDate> = []
         for row in days {
             events[row.date, default: 0] += max(0, row.events)
-            if row.events > 0 || row.hasJournal { written.insert(row.date) }
+            if row.events > 0 || row.hasDiary { written.insert(row.date) }
         }
         var result: [Day] = []
         var total = 0

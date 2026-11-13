@@ -31,7 +31,7 @@ struct IncrementalReadModelTests {
         let store = VaultStore(vaultRoot: root, index: index)
         _ = try await store.addingEvent(
             on: IncrementalReadModelVault.today, text: "Wrote after lunch", time: nil)
-        let day = "journal/\(IncrementalReadModelVault.today).md"
+        let day = "diary/\(IncrementalReadModelVault.today).md"
         let incremental = try VaultPublishedContent.applying(
             previous: previous, index: index, changedPaths: [day], today: IncrementalReadModelVault.today
         ).content
@@ -49,7 +49,7 @@ struct IncrementalReadModelTests {
         try index.rebuild(vaultRoot: root)
         let previous = try IncrementalReadModelVault.fullModel(index: index)
         let store = VaultStore(vaultRoot: root, index: index)
-        let path = "journal/\(IncrementalReadModelVault.today).md"
+        let path = "diary/\(IncrementalReadModelVault.today).md"
         let document = try await store.document(at: path)
         let task = try #require(document.bodyLines.tasks.first { $0.block.id == "task1" })
         _ = try await store.changingStatus(
@@ -116,7 +116,7 @@ struct IncrementalReadModelTests {
         try index.rebuild(vaultRoot: root)
         let previous = try IncrementalReadModelVault.fullModel(index: index)
 
-        let path = "journal/2026-10-04.md"
+        let path = "diary/2026-10-04.md"
         var text = try String(contentsOf: root.appendingPathComponent(path), encoding: .utf8)
         text += "\nExtra external paragraph.\n"
         try Data(text.utf8).write(to: root.appendingPathComponent(path))
@@ -140,7 +140,7 @@ struct IncrementalReadModelTests {
         let root = try testDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
         try IncrementalReadModelVault.seed(at: root)
-        let path = "journal/2026-10-03.md"
+        let path = "diary/2026-10-03.md"
         try IncrementalReadModelVault.write(
             root, path, "## Events\n- 08:00 Plain event\n- Untimed event\n\n## Tasks\n- [ ] plain task\n- [x] done\n")
         let index = try VaultIndex()
@@ -166,10 +166,10 @@ struct IncrementalReadModelTests {
         defer { try? FileManager.default.removeItem(at: root) }
         try IncrementalReadModelVault.seed(at: root)
         try IncrementalReadModelVault.write(
-            root, "journal/2026-10-03.md",
+            root, "diary/2026-10-03.md",
             """
             ---
-            type: journal
+            type: diary
             date: 2026-10-03
             ---
             ## Events
@@ -206,8 +206,8 @@ struct IncrementalReadModelTests {
         try IncrementalReadModelVault.write(root, person, body)
         try IncrementalReadModelVault.write(root, "zeta/Kaya Example.md", "Same name, not a person.\n")
         try IncrementalReadModelVault.write(
-            root, "journal/2026-10-03.md",
-            "---\ntype: journal\ndate: 2026-10-03\n---\n## Events\n- 11:00 [[Kaya Example]] and [[Deniz Example]] ^k1\n"
+            root, "diary/2026-10-03.md",
+            "---\ntype: diary\ndate: 2026-10-03\n---\n## Events\n- 11:00 [[Kaya Example]] and [[Deniz Example]] ^k1\n"
         )
         let index = try VaultIndex()
         try index.rebuild(vaultRoot: root)
@@ -270,7 +270,7 @@ struct IncrementalReadModelTests {
         let untouchedGoalsDay = CalendarDate("2026-10-04")!
         let store = VaultStore(vaultRoot: root, index: index)
         _ = try await store.addingEvent(on: untouchedGoalsDay, text: "After midnight note", time: nil)
-        let dayPath = "journal/\(untouchedGoalsDay).md"
+        let dayPath = "diary/\(untouchedGoalsDay).md"
 
         let incremental = try VaultPublishedContent.applying(
             previous: previous, index: index, changedPaths: [dayPath], today: nextDay
@@ -288,16 +288,16 @@ struct IncrementalReadModelTests {
         defer { try? FileManager.default.removeItem(at: root) }
         try IncrementalReadModelVault.seed(at: root)
         try IncrementalReadModelVault.write(
-            root, "journal/2026-10-04.md",
+            root, "diary/2026-10-04.md",
             """
             ---
-            type: journal
+            type: diary
             date: 2026-10-04
             goals:
               eski: true
             ---
 
-            ## Journal
+            ## Diary
             Quiet evening.
             """)
         let index = try VaultIndex()
@@ -310,7 +310,7 @@ struct IncrementalReadModelTests {
             try index.reservedGoalKeys()
                 == LegacyGoalFields(snapshot: try index.snapshot(), today: today).reservedGoalKeys)
 
-        let file = root.appendingPathComponent("journal/2026-10-05.md")
+        let file = root.appendingPathComponent("diary/2026-10-05.md")
         let text = try String(contentsOf: file, encoding: .utf8).replacingOccurrences(
             of: "reading: 5", with: "reading: 6")
         try Data(text.utf8).write(to: file)
@@ -347,12 +347,12 @@ struct IncrementalReadModelTests {
         #expect(try index.goalDefinitionsByName().allSatisfy { $0.definition.key != "broken-milestone" })
         #expect(try index.reservedGoalKeys().contains("broken-milestone"))
 
-        var text = try String(contentsOf: root.appendingPathComponent("journal/2026-10-05.md"), encoding: .utf8)
+        var text = try String(contentsOf: root.appendingPathComponent("diary/2026-10-05.md"), encoding: .utf8)
         text = text.replacingOccurrences(of: "reading: 5", with: "reading: 6")
-        try Data(text.utf8).write(to: root.appendingPathComponent("journal/2026-10-05.md"))
+        try Data(text.utf8).write(to: root.appendingPathComponent("diary/2026-10-05.md"))
         try FileManager.default.setAttributes(
             [.modificationDate: Date().addingTimeInterval(2)],
-            ofItemAtPath: root.appendingPathComponent("journal/2026-10-05.md").path)
+            ofItemAtPath: root.appendingPathComponent("diary/2026-10-05.md").path)
         let result = try index.refresh(vaultRoot: root)
 
         let incremental = try IncrementalReadModelVault.apply(previous, index: index, result: result)
@@ -372,7 +372,7 @@ struct IncrementalReadModelTests {
         try index.rebuild(vaultRoot: root)
         let store = VaultStore(vaultRoot: root, index: index)
         let today = IncrementalReadModelVault.today
-        let day = "journal/\(today).md"
+        let day = "diary/\(today).md"
         func graphs(_ model: VaultReadModel) throws -> (published: GraphInput, rebuilt: GraphInput) {
             let rebuilt = try VaultIndex()
             try rebuilt.rebuild(vaultRoot: root)
@@ -408,7 +408,7 @@ struct IncrementalReadModelTests {
         #expect(pair.published == pair.rebuilt)
         #expect(pair.published.entities.map(\.name) == ["Deniz Renamed", "Harbor Cafe"])
 
-        try FileManager.default.removeItem(at: root.appendingPathComponent("journal/2026-10-04.md"))
+        try FileManager.default.removeItem(at: root.appendingPathComponent("diary/2026-10-04.md"))
         let result = try index.refresh(vaultRoot: root)
         model = try IncrementalReadModelVault.apply(model, index: index, result: result)
         pair = try graphs(model)
@@ -424,7 +424,7 @@ struct IncrementalReadModelTests {
         defer { try? FileManager.default.removeItem(at: root) }
         try IncrementalReadModelVault.seed(at: root)
         try IncrementalReadModelVault.write(
-            root, "journal/2026-10-03.md", "## Events\n- 11:00 Met [[Zora Example]] ^z1\n")
+            root, "diary/2026-10-03.md", "## Events\n- 11:00 Met [[Zora Example]] ^z1\n")
         let index = try VaultIndex()
         try index.rebuild(vaultRoot: root)
         let store = VaultStore(vaultRoot: root, index: index)
@@ -457,9 +457,9 @@ struct IncrementalReadModelTests {
         timelines = try check("event")
         #expect(timelines[deniz]?.first?.rows.count == 2)
 
-        let document = try await store.document(at: "journal/\(today).md")
+        let document = try await store.document(at: "diary/\(today).md")
         let task = try #require(document.bodyLines.tasks.first { $0.block.id == "task2" })
-        _ = try await store.changingStatus(of: task, at: "journal/\(today).md", to: .done, completionDate: today)
+        _ = try await store.changingStatus(of: task, at: "diary/\(today).md", to: .done, completionDate: today)
         try check("task")
 
         let renamed = try await store.renamingEntity(at: deniz, to: "Deniz Renamed")
@@ -470,7 +470,7 @@ struct IncrementalReadModelTests {
         timelines = try check("create")
         #expect(timelines["people/Zora Example.md"]?.map(\.date) == [CalendarDate("2026-10-03")!])
 
-        let edited = root.appendingPathComponent("journal/2026-10-04.md")
+        let edited = root.appendingPathComponent("diary/2026-10-04.md")
         var text = try String(contentsOf: edited, encoding: .utf8)
         text += "\n[[Deniz Renamed]] joined later.\n"
         try Data(text.utf8).write(to: edited)
@@ -499,7 +499,7 @@ struct IncrementalReadModelTests {
         try index.rebuild(vaultRoot: root)
         let store = VaultStore(vaultRoot: root, index: index)
         let today = IncrementalReadModelVault.today
-        let path = "journal/\(today).md"
+        let path = "diary/\(today).md"
         var model = try IncrementalReadModelVault.fullModel(index: index)
         @discardableResult
         func check(_ label: String) throws -> [DaySummary] {
@@ -536,10 +536,10 @@ struct IncrementalReadModelTests {
         days = try check("event")
         #expect(days.first?.events.count == 2)
 
-        _ = try await store.appendingJournal(on: today, lines: ["Later with [[Zora Example]]."])
+        _ = try await store.appendingDiary(on: today, lines: ["Later with [[Zora Example]]."])
         try publish([path])
-        days = try check("journal")
-        #expect(days.first?.journal.count == 2)
+        days = try check("diary")
+        #expect(days.first?.diary.count == 2)
 
         let document = try await store.document(at: path)
         let task = try #require(document.bodyLines.tasks.first { $0.block.id == "task2" })
@@ -555,9 +555,9 @@ struct IncrementalReadModelTests {
         let created = try await store.creatingEntity(kind: .person, name: "Zora Example", qualifier: nil)
         try publish([created])
         days = try check("create")
-        #expect(days.first?.journal.last?.text.spans.compactMap(\.destination) == [created])
+        #expect(days.first?.diary.last?.text.spans.compactMap(\.destination) == [created])
 
-        let edited = root.appendingPathComponent("journal/2026-10-04.md")
+        let edited = root.appendingPathComponent("diary/2026-10-04.md")
         var text = try String(contentsOf: edited, encoding: .utf8)
         text += "\n\nAnother paragraph.\n"
         try Data(text.utf8).write(to: edited)
@@ -565,10 +565,10 @@ struct IncrementalReadModelTests {
             [.modificationDate: Date().addingTimeInterval(2)], ofItemAtPath: edited.path)
         model = try IncrementalReadModelVault.apply(model, index: index, result: try index.refresh(vaultRoot: root))
         days = try check("external edit")
-        #expect(days.last?.journal.count == 2)
+        #expect(days.last?.diary.count == 2)
 
-        _ = try await store.appendingJournal(on: CalendarDate("2026-10-01")!, lines: ["A day of its own."])
-        try publish(["journal/2026-10-01.md"])
+        _ = try await store.appendingDiary(on: CalendarDate("2026-10-01")!, lines: ["A day of its own."])
+        try publish(["diary/2026-10-01.md"])
         days = try check("new day")
         #expect(days.map(\.date.description) == ["2026-10-05", "2026-10-04", "2026-10-01"])
 

@@ -411,11 +411,11 @@ Okuma modeli Graph alanı tutmaz. Ekran açıkken ve her indeks yayımında `.ta
 
 ### Varlık zaman akışı ve son görüşme
 
-Okuma modeli zaman akışı tutmaz. Varlık sayfası açıkken ve her indeks yayımında sayfa o varlığa bağlanan gün dosyası olaylarını ve Journal paragraflarını sorgular. İçgörü kartı aynı sonucu kullanır. `lastEncounters(asOf:)` kişi başına son görüşme gününü verir ve zaman akışıyla aynı kayıtları sayar. Bu sorgu görevleri ve frontmatter'ı saymaz; `entityUsage().lastDate` ise ikisini de sayar.
+Okuma modeli zaman akışı tutmaz. Varlık sayfası açıkken ve her indeks yayımında sayfa o varlığa bağlanan gün dosyası olaylarını ve Diary paragraflarını sorgular. İçgörü kartı aynı sonucu kullanır. `lastEncounters(asOf:)` kişi başına son görüşme gününü verir ve zaman akışıyla aynı kayıtları sayar. Bu sorgu görevleri ve frontmatter'ı saymaz; `entityUsage().lastDate` ise ikisini de sayar.
 
 ### Günler
 
-Okuma modeli gün listesi tutmaz. Günlük listesi bütün günleri sorgular: iPhone'da `DaysView`, Mac'te gün sütunu. Takvim yalnız gösterdiği ayı sorgular. Yanıt gün başına olay sayısını, Journal paragraf ve başlık sayısını, ilk Journal paragrafını ve hedef kaydını taşır. İlk paragraf önizleme olarak görünür.
+Okuma modeli gün listesi tutmaz. Günlük listesi bütün günleri sorgular: iPhone'da `DaysView`, Mac'te gün sütunu. Takvim yalnız gösterdiği ayı sorgular. Yanıt gün başına olay sayısını, Diary paragraf ve başlık sayısını, ilk Diary paragrafını ve hedef kaydını taşır. İlk paragraf önizleme olarak görünür.
 
 ### Görevler
 
@@ -493,7 +493,7 @@ Kullanıcı hedefi işaretlediği anda ekran işareti o ekranın düzenleme mode
 | App Intents hedef listesi ve işaretleme | `computeGoalDefinitions()` | Okuma hatası kasayı açılamamış sayar |
 | Konum izleme hedefleri | `computeGoalDefinitions()`: tanım ve konum bağlantısının çözüldüğü dosya | Servis her yayımda tanımları yeniden okur. Sonraki okumanın yanıtı öncekini ezer. Arka plan girişi okumanın bitmesini bekler. Okuma hatası günlüğe ve Tanılama ekranına düşer |
 | Konum izleme "işaretli mi" | `computeGoalLogs(from:through:keys:)`, yalnız o gün | Okuma askıya alınır; denetim ile işi üstlenme arasında askı yoktur: ikinci giriş bekleyen işi görür |
-| Widget anlık görüntüsü | `computeGoalStatuses(today:)`, bugün ve yarın | Her yayımda yeniden sorar. Başka kasa açıldıysa yanıtı atar; dosya son yanıtı tutar. Okuma hatası günlüğe ve Tanılama ekranına düşer. Widget kendisi işaretlediyse önce `journal` klasörünü tarar. Ayrıntı: [Widget'lar](#widgetlar) |
+| Widget anlık görüntüsü | `computeGoalStatuses(today:)`, bugün ve yarın | Her yayımda yeniden sorar. Başka kasa açıldıysa yanıtı atar; dosya son yanıtı tutar. Okuma hatası günlüğe ve Tanılama ekranına düşer. Widget kendisi işaretlediyse önce `diary` klasörünü tarar. Ayrıntı: [Widget'lar](#widgetlar) |
 
 Widget ekranlarla aynı hedef sorgusunu kullanır. Widget sorguyu kendisi çalıştırmaz: uygulama sonucu App Group'a yazar. Widget'ın kendi işaretlemesi yalnız gün dosyasına ve anlık görüntüye yazar.
 
@@ -543,7 +543,7 @@ Widget ekranlarla aynı hedef sorgusunu kullanır. Widget sorguyu kendisi çalı
 | Hatırlatma | Kaynak |
 |---|---|
 | Görev sabahı | Bildirim haftası: son güne kadar vade günü başına açık görev sayısı ve haftaya düşen açık görevler |
-| Günlük hatırlatması | Bildirim haftası: olayı ya da Journal paragrafı veya başlığı olan günler |
+| Günlük hatırlatması | Bildirim haftası: olayı ya da Diary paragrafı veya başlığı olan günler |
 | Hedef hatırlatması | Günlük hedefler: `computeNotificationGoals(from:through:)`. Günlük tanımlar ve planlanan günlerin kayıtları |
 | Görüşme ritmi hatırlatması | `cadenceReminderPeople(today:)` |
 
@@ -601,9 +601,9 @@ Kısıt: `Core` yalnız Foundation ve SQLite katmanını kullanır. Bu sayede ay
 
 `VaultIndex.unlinkedMentions` önce arama indeksiyle aday gün dosyalarını daraltır. Arama belirteci yalnız `I` harfini `i` yapar; `İ`, `ı` ve birleşik noktayı korur. Bu yüzden arama yazımları `OR` ile arar. Ad anahtarındaki her `ı` için `ı` ve `i` aranır. Her `i` için `i`, `İ` ve `i` + U+0307 aranır. Bir sözcüğün 81'den çok yazımı varsa sorgu bütün gün dosyalarını okur. Sonra sorgu dosyaları diskten okur ve olay ile görev ilk satırlarını var olan tanıyıcıyla tarar. `VaultStore.linkingMention` onaylanan tek anmayı yazma kuyruğunda bağlar. Yazıcı dosyayı yeniden okur ve bayat hedefi denetler. Önce dosyaya yazar, sonra indeksi günceller.
 
-### Journal sonuna ekleme ve ilk kullanım
+### Diary sonuna ekleme ve ilk kullanım
 
-Journal sonuna ekleme, `VaultStore`'un dosya-önce atomik yazma yolunu ve `RawDocument` bölüm ekleme altyapısını kullanır. `Summaries` içindeki saf `WeeklyReviewText`, çağıranın yerelleştirdiği özet cümlelerini ve cevapları güvenli düz satırlara birleştirir.
+Diary sonuna ekleme, `VaultStore`'un dosya-önce atomik yazma yolunu ve `RawDocument` bölüm ekleme altyapısını kullanır. `Summaries` içindeki saf `WeeklyReviewText`, çağıranın yerelleştirdiği özet cümlelerini ve cevapları güvenli düz satırlara birleştirir.
 
 İlk kullanımda ve kasa hazırlamada App katmanındaki `VaultImportBootstrap` yalnız eksik klasörü, şablonu ve `.app/vault.json` dosyasını oluşturur. `VaultImportBootstrap` var olan dosyaları değiştirmez. `Core`'un genel belge yazıcısı bu yapısal yolları kabul etmez. Bu yüzden `VaultImportBootstrap` yeni dosyaları geçici dosya ve dışlayıcı sabit bağlantıyla yayımlar. Birim sabit bağlantıyı desteklemiyorsa `VaultImportBootstrap` dışlayıcı oluşturmayı kullanır. Eksik `type` eklemelerini `VaultStore` yapar.
 
@@ -910,7 +910,7 @@ erDiagram
 | Konum | Her cihazda yerel, kasanın dışında. Eşitleme indeksi taşımaz |
 | Yeniden üretim | Uygulama indeksi dosyalardan eksiksiz yeniden üretebilir. İndeks bozulursa uygulama indeksi siler ve yeniden kurar |
 | Dosya adı | İndeks kasa yolunun SHA-256 özetiyle adlandırılmış ayrı bir Application Support veritabanındadır |
-| Şema sürümü | Veritabanı sürümü tutar: `PRAGMA user_version = 9`. Sürüm 9 ad anahtarına Türkçe büyük harf eşlemesini ekledi; sürüm 8 indeksi silinir ve dosyalardan yeniden kurulur. Uygulamanın beklediği sürümle uyuşmazsa uygulama bütün tabloları siler ve güncel boş şemayı kurar. Şema göçü yok |
+| Şema sürümü | Veritabanı sürümü tutar: `PRAGMA user_version = 10`. Sürüm 10 bölüm değerini `Diary` yazar ve iki gün klasörünü okur; sürüm 9 indeksi silinir ve dosyalardan yeniden kurulur. Uygulamanın beklediği sürümle uyuşmazsa uygulama bütün tabloları siler ve güncel boş şemayı kurar. Şema göçü yok |
 | Doldurma | Çağıran indeksi `rebuild(vaultRoot:)` ile ya da boş indekste tam kurulum yolunu kullanan `refresh(vaultRoot:)` ya da `update(paths:vaultRoot:)` ile dosyalardan doldurur |
 | Bozuk veritabanı | Açılışta SQLite NOTADB ya da CORRUPT hatası gelirse uygulama dosyayı ve `-wal`/`-shm`/`-journal` yardımcılarını siler ve boş şemayı kurar. Diğer hataları fırlatır |
 
@@ -1068,7 +1068,7 @@ flowchart TD
   Tur -->|"yer tutucu .X.icloud"| Ozgun{"Özgün dosya var mı"}
   Ozgun -->|"evet"| Kullan["Özgün dosyayı indeksle"]
   Ozgun -->|"hayır"| Bekleyen["pendingDownloads listesine ekle"]
-  Tur -->|"gün kopyası: journal/2026-10-02 2.md"| Kopya["dayCopies listesine birleştirme sırasıyla ekle"]
+  Tur -->|"gün kopyası: diary/2026-10-02 2.md"| Kopya["dayCopies listesine birleştirme sırasıyla ekle"]
   Tur -->|"normal dosya"| Indeksle["İndeksle"]
   Bekleyen --> Ret["Oluşturma ve yeniden adlandırma hedefi: awaitingDownload(path:)"]
   Kopya --> Birlestir["VaultStore.mergingDayCopy(_:)"]
@@ -1078,7 +1078,7 @@ flowchart TD
 
 App her yenilemede listeyi `IndexUpdate.pendingDownloads` ile alır. Klasör yenilemesi yalnız kendi klasörlerinin satırlarını değiştirir; bu birleştirme `IndexUpdate.read` içinde, ana iş parçacığı dışında yapılır. Liste `.app/types.json` yer tutucusunu da taşır: `Core` yalnız Markdown yer tutucularını bildirir. Kasa iCloud kasasıysa `IndexStore` her yeni yer tutucunun özgün yolu için `startDownloadingUbiquitousItem` bir kez ister: istenenler kümesi yinelemeyi önler. İstek arka planda gider; yenileme yayımlamak ve yazmalar sıra almak için yanıtı beklemez. Gelen dosya kümeden çıkar; iCloud dosyayı yeniden boşaltırsa istek yeniden gider. Ön plana her dönüşte bekleyen bütün dosyalar yeniden istenir: reddedilen ya da düşen istek göstergeyi takılı bırakmaz. Kasa yeniden açılınca listeler, istekler, sayılar ve birleştirme bandı sıfırlanır. Yerel kasa ve seçilen klasör, iCloud Drive içinde olsa da, istek göndermez. Uygulama dosyanın gelmesini beklemez: izleyici ve sonraki yenileme dosyayı indeksler. Reddedilen istek sessizdir; Tanılama sayısını gösterir.
 
-`Core` gün kopyalarını indekslemez. Örnek ad: `journal/2026-10-02 2.md`; ad kuralı `DayCopyName`. Tarama sonucu kopyaları `dayCopies` alanında birleştirme sırasıyla bildirir. Tanılama gün kopyalarını ve varlık kopyalarını `VaultIndex.dayCopies(vaultRoot:)` ve `entityCopies()` ile listeler; kopya kuralı `EntityCopyName`. Tanılama listeden hiçbir dosyayı birleştirmez, taşımaz ya da silmez.
+`Core` gün kopyalarını indekslemez. Örnek ad: `diary/2026-10-02 2.md`; ad kuralı `DayCopyName`. Tarama sonucu kopyaları `dayCopies` alanında birleştirme sırasıyla bildirir. Tanılama gün kopyalarını ve varlık kopyalarını `VaultIndex.dayCopies(vaultRoot:)` ve `entityCopies()` ile listeler; kopya kuralı `EntityCopyName`. Tanılama listeden hiçbir dosyayı birleştirmez, taşımaz ya da silmez.
 
 **Şema bir gün kopyasının tek koordinasyon sınırında birleşmesini gösterir.**
 
@@ -1113,7 +1113,23 @@ sequenceDiagram
 
 Gün dosyası değişmeden önceki her hata, o çağrının yazdığı çakışma kopyalarını geri alır. Yalnız zaman verme ya da silme başarısızsa gün dosyası birleşmiş kalır. Sonraki çağrı aynı içeriğe varır ve kopyayı siler.
 
-App bağlantısı `IndexStore+DayCopyMerge` içindedir. Yenileme bitince `IndexStore` taramanın `dayCopies` listesini sırayla birleştirir; her kopya yazma kuyruğundan geçen tek bir yazmadır ve gün dosyasını yayımlar. Birleştirme yalnız `SyncPolicy.mergesDayCopies` açıkken, iCloud kasasında ve yazılabilir kasada çalışır. Bayrak varsayılan açıktır (karar 2026-11-09; karar 2026-10-13 onu iki cihaz denemesine kadar kapalı tutmuştu); Ayarlar'da anahtarı yoktur, testler kapatır. Bayrak kapalıyken hiçbir kopya birleşmez ve Tanılama listesi aynı kalır. Bir kopyanın hatası ötekileri durdurmaz. Başarısız kopya o oturumda, diskte durdukça yeniden denenmez ve Tanılama'da kalır. İki durum hata sayılmaz ve sonraki yenilemede yeniden denenir. Biri indirme bekleyen kopya ya da gün dosyasıdır (`awaitingDownload`). Öteki yazma sırasında yok olan kopyadır (`staleTarget`: başka cihaz birleştirip sildi). Gün editörü Journal bölümünü yazma sırasında, yazmadan hemen önce yeniden okur. Araya giren birleştirme ya da başka yazma bölümü değiştirdiyse yazma `staleTarget` ile reddedilir. Taslak editörde kalır. Bu kural bayrak kapalıyken de geçerlidir. Sonuç ana pencerenin üstünde bantta görünür: "N gün kopyası birleştirildi."
+App bağlantısı `IndexStore+DayCopyMerge` içindedir. Yenileme bitince `IndexStore` taramanın `dayCopies` listesini sırayla birleştirir; her kopya yazma kuyruğundan geçen tek bir yazmadır ve gün dosyasını yayımlar. Birleştirme yalnız `SyncPolicy.mergesDayCopies` açıkken, iCloud kasasında ve yazılabilir kasada çalışır. Bayrak varsayılan açıktır (karar 2026-11-09; karar 2026-10-13 onu iki cihaz denemesine kadar kapalı tutmuştu); Ayarlar'da anahtarı yoktur, testler kapatır. Bayrak kapalıyken hiçbir kopya birleşmez ve Tanılama listesi aynı kalır. Bir kopyanın hatası ötekileri durdurmaz. Başarısız kopya o oturumda, diskte durdukça yeniden denenmez ve Tanılama'da kalır. İki durum hata sayılmaz ve sonraki yenilemede yeniden denenir. Biri indirme bekleyen kopya ya da gün dosyasıdır (`awaitingDownload`). Öteki yazma sırasında yok olan kopyadır (`staleTarget`: başka cihaz birleştirip sildi). Gün editörü Diary bölümünü yazma sırasında, yazmadan hemen önce yeniden okur. Araya giren birleştirme ya da başka yazma bölümü değiştirdiyse yazma `staleTarget` ile reddedilir. Taslak editörde kalır. Bu kural bayrak kapalıyken de geçerlidir. Sonuç ana pencerenin üstünde bantta görünür: "N gün kopyası birleştirildi."
+
+### Eski gün klasörünün geçişi
+
+**Tablo 2026-11-13 öncesi kasanın `diary/` düzenine geçişini gösterir.**
+
+| Parça | Yer | İş |
+|---|---|---|
+| Ad kuralları | `Core`: `LegacyVaultNames`, `VaultLayout.day(ofDayPath:)` | Eski klasör, başlık ve `type` adlarını tek yerde tutar. Okuyucular iki klasörü ve iki başlığı kabul eder. |
+| Bayt çevirisi | `Core`: `RawDocument.migratingLegacyDayNames()` | Yalnız başlığın adını ve `type` değerini çevirir. |
+| Dosya taşıma | `Core`: `VaultStore.migratingLegacyDayFolder()` | Dosya başına tek koordinasyon sınırı. Kural: `vault-format.md`, "Eski adlar ve geçiş". |
+| Koordinasyon | App: `SystemFileCoordination` | `.move`, `.merge` ve `.delete` niyetlerini `NSFileCoordinator`'a bağlar. |
+| Tetikleme | App: `IndexStore+DayFolderMigration` | Her yenilemeden sonra, eski klasörün listesi değiştiyse tek yazma. Sonra iki klasörü tarar. |
+| Bildirim | App: ana ekran bandı | Taşınan, kopya olan ve taşınamayan gün sayısını `DayCopyMergeReport` ile gösterir. |
+| Cihaz ayarları | App: `LegacyDefaults` | Açılışta `journal.*` değerlerini `kenet.*` anahtarlarına bir kez taşır. Eski bildirim kimliklerini ve bölgeleri siler. Eski indeks dizinini siler. |
+
+Geçiş indeksi dosyalardan sonra günceller. Yarım kalan geçiş sonraki açılışta sürer.
 
 ### Çakışan sürümler
 
@@ -1179,7 +1195,7 @@ flowchart LR
   Widget -->|"iCloud kasası: MarkGoalInWidgetIntent"| Isaret["WidgetGoalMarker"]
   Isaret -->|"NSFileCoordinator: gün dosyasının goals alanı"| Kasa["iCloud kasası"]
   Isaret -->|"iyimser anlık görüntü, markedAt"| Grup
-  Kasa -.->|"uygulamanın sonraki yazması: önce journal taraması"| Yazici
+  Kasa -.->|"uygulamanın sonraki yazması: önce diary taraması"| Yazici
 ```
 
 **Tablo widget'ın kurallarını gösterir.**
@@ -1197,7 +1213,7 @@ flowchart LR
 | Dokunma | Hızlı giriş widget’ı `kenet-widget://write` ile Bugün’ü ve hızlı giriş odağını ister (`IntentNavigation.openTodayForWriting`); kilitliyken istek `pendingFocus` içinde bekler, `WidgetLinkHandler.unlocked` uygular. Hızlı giriş widget’ı anlık görüntü okumaz. Küçük zincir widget’ı tek dokunma hedefidir ve uygulamayı Bugün'de açar. Orta widget'ta iCloud kasasının bekleyen evet/hayır hedefi widget içinde işaretlenir (aşağıda). Yerel ya da seçili kasada bu satır `kenet-widget://mark?goal=<kimlik>` bağlantısıyla uygulamayı açar. `WidgetLinkHandler` Bugün'e geçer ve `IntentActions.markGoal` ile hedefi o gün için işaretler. Sayı hedefinin ve yapılmış hedefin satırı Bugün'ü açar. Uygulama kilitliyse işaretleme kilit açılınca yapılır. Uygulama URL şeması kaydetmez: bağlantıyı yalnız kendi widget'ı açar (`ReleaseConfigurationTests`). Şema kaydedilirse `WidgetLinkHandler` önce kaynağı denetlemelidir |
 | Widget içinden yazma | Yalnız iCloud kasasında: anlık görüntüde `vaultKind` `icloud` ve `cloudRelativePath` dolu. Satır `Button(intent:)` ile `MarkGoalInWidgetIntent` niyetini widget sürecinde çalıştırır (`openAppWhenRun = false`, Kısayollar'da görünmez). `WidgetGoalMarker` önce anlık görüntüyü okur: dosya yoksa (kasa erişilemez, uygulama çıkarken kilitlendi), kilidin devreye girme anı (`lockedAfter`) geçtiyse ya da hedef bugünün bekleyen evet/hayır hedefi değilse hiçbir şey yazmaz. Sonra kapsayıcıyı `url(forUbiquityContainerIdentifier:)` ile alır; iCloud kapalıysa, hesap yoksa ya da kasanın `.app/vault.json` dosyası cihazda değilse yazmaz. Anlık görüntü kasa klasörünün ve `.app/vault.json` dosyasının bu cihazdaki dosya numaralarını taşır (`cloudVaultIdentity`). Aynı yerde başka bir kasa varsa (başka hesabın kapsayıcısı, Dosyalar'da değiştirilmiş klasör) numaralar tutmaz ve widget yazmaz. Uygulama numaraları bulamazsa dokunma uygulamayı açar. Gün dosyasını Core'un yazıcısı yazar: `VaultStore.settingGoalValue`, `SystemFileCoordination` (`NSFileCoordinator`, `.forMerging`). Gün dosyası henüz inmediyse Core yazmaz (`awaitingDownload`). Sonra widget anlık görüntüde hedefi yapılmış, zinciri bir uzun gösterir (7'nin katında bir zincir günü ekler, en çok 3; dünkü kaçırmaya harcanan zincir günü uygulamanın sonraki yazmasında görünür), yarının girişine yeni zinciri taşır, `markedAt` yazar ve zaman çizelgesini yeniler. Yerel ve seçili kasa uygulamanın sandbox'ında ya da güvenlik kapsamlı yer iminde durur: widget erişemez, dokunma uygulamayı açar |
 | Widget'ın indeksi | Core'un yazıcısı yazmadan sonra indeksini günceller; boş indeksi önce bütün kasadan kurar. Widget uygulamanın indeksini açmaz: bellekte atılacak bir indeks kurar (`Shared/ThrowawayIndex.swift`, paylaşım uzantısıyla ortak). İndeks tek boş nottan ve kasanın `.app/types.json` dosyasından oluşan geçici bir kasadan başlar. Böylece güncelleme yalnız yazılan günü okur. Yazmadan sonraki indeks hatası (`indexUpdateFailed`) işaretlemeyi durdurmaz: gün dosyası yazılmıştır, widget anlık görüntüyü işaretler. Geçici kasa kurulamazsa (`.app/types.json` şu an okunamıyor) `ThrowawayIndex` hata verir. Widget yazmaz ve `.unavailable` döner; boş indeksle bütün kasayı okumaz. Ölçüm, 5 yıllık sentetik kasa (2.271 dosya, iOS simülatörü): bu yolla 0,08 sn ve test konağında yaklaşık 0,2 MB; boş indeksle 7,5 sn ve yaklaşık 13 MB (`WidgetRefreshReliabilityTests.fiveYearVaultMarkCost`, `MEASURE_WIDGET=1`; simülatörde xcodebuild ortamında `TEST_RUNNER_MEASURE_WIDGET=1` ve `-only-testing` ile küme adı). Widget sürecinin kendi belleği cihazda ölçülür |
-| Uzlaşma | Widget'ın yazdığı gün dosyasını uygulamanın indeksi henüz görmedi. Anlık görüntüde `markedAt` varsa yazıcı sorgudan önce `journal` klasörünü tarar (`refresh(directories:)`) ve taramanın bitmesini bekler. Sonra indeks yanıtını yazar: widget'ın işaretlemesi eski yanıtla ezilmez. İndeks ve widget aynıysa yazıcı yalnız `markedAt` alanını siler, zaman çizelgesini yenilemez. Dosyada işaret artık yoksa (başka cihaz, düzenleyici) indeks kazanır. Uygulama öne gelince, kilit açılınca ve izleyici gün dosyasındaki değişikliği görünce yazıcı çalışır |
+| Uzlaşma | Widget'ın yazdığı gün dosyasını uygulamanın indeksi henüz görmedi. Anlık görüntüde `markedAt` varsa yazıcı sorgudan önce `diary` klasörünü tarar (`refresh(directories:)`) ve taramanın bitmesini bekler. Sonra indeks yanıtını yazar: widget'ın işaretlemesi eski yanıtla ezilmez. İndeks ve widget aynıysa yazıcı yalnız `markedAt` alanını siler, zaman çizelgesini yenilemez. Dosyada işaret artık yoksa (başka cihaz, düzenleyici) indeks kazanır. Uygulama öne gelince, kilit açılınca ve izleyici gün dosyasındaki değişikliği görünce yazıcı çalışır |
 | Aynı dosyaya iki süreç | Uygulama ve widget gün dosyasını aynı koordinasyonla yazar: biri dosyayı tutarken öteki bekler, sonra güncel baytları okur. Core yalnız hedeflenen satırı değiştirir. İki değişiklik de kalır, başka bayt değişmez (`WidgetMarkingTests`) |
 | App Group deposu | `AppGroupStore` kapsayıcıyı verir. Kapsayıcı yoksa (imzasız derleme, test) yazıcı sessizce kapalıdır. Testler geçici klasör verir. Mac grubu henüz kullanmaz: imzasız Mac derlemesinde kapsayıcıya dokunmak kullanıcıdan izin ister |
 | Gizlilik | Widget içeriği `privacySensitive` taşır: kilitli cihazda (StandBy, iPad kilit ekranı) sistem içeriği gizler |
@@ -1222,7 +1238,7 @@ flowchart TD
   Hedef -- Hayır --> Kuyruk
   Isaret --> Uyg["Uygulama açılır, kasa açık, kilit açık"]
   Kuyruk --> Uyg
-  Uyg -->|"işaret"| Yenile["IndexStore.refresh: journal klasörü; çakışan kimliğe yeni kimlik"]
+  Uyg -->|"işaret"| Yenile["IndexStore.refresh: diary klasörü; çakışan kimliğe yeni kimlik"]
   Uyg -->|"kuyruk"| Ekle["IndexStore.addEvent: önce dosya, sonra indeks; ad tanıma"]
   Ekle --> Sil["Kayıt kuyruktan çıkar"]
 ```
@@ -1238,7 +1254,7 @@ flowchart TD
 | Yol (a): iCloud | Not `icloud` ve kilit kapalıysa uzantı iCloud kapsayıcısını çözer ve `Documents/Kenet` kasasına kendisi yazar: Core `VaultStore.addingEvent`, `SystemFileCoordination` (`NSFileCoordinator`), geçici indeks (`ThrowawayIndex`). İndeks güncellemesi yalnız gün dosyasını okur; kasanın tamamını koordineli yazmanın içinde okumaz. Geçici indeks kurulamazsa uzantı yazmaz, metni kuyruğa ekler. Uzantı yazdığı satırın kimliğini işarete koyar (`writtenLineID`). `written.json` şu an değiştirilemiyorsa işaret kendi listesine gider: `share/written-<UUID>.json`. Yazıcı gün dosyasına yalnız yeni satırı ekler; dosyanın geri kalanı bayt düzeyinde kalır. Sonra `share/written.json` listesine işaret ekler. Kapsayıcı yoksa, kasanın ayar dosyası yoksa, gün dosyası henüz iCloud'dan inmediyse, kasa ya da gün salt okunursa uzantı hiçbir bayt yazmaz ve yol (b)'ye geçer |
 | Yol (b): kuyruk | Yerel kasa (`Documents/Vault`) ve seçili klasör uzantıdan erişilemez. Uygulama kilidi açıksa iCloud kasasına da yazılmaz: içerik gün dosyasına uygulama açılıp kilit çözülünce girer. Uzantı metni `<grup>/share/pending.json` kuyruğuna ekler |
 | Liste biçimi | `pending.json` ve `written.json`: `{"format":1,"entries":[…]}`. Kayıt: `id` (UUID), `text` (tek satır), `day` (`YYYY-MM-DD`), `time` (`HH:MM`), `sharedAt` (ISO 8601), isteğe bağlı `writing` (uygulamanın yazmakta olduğu satır metni). Her değişiklik koordineli okuma, değişiklik ve atomik yazmadır (`NSFileCoordinator`, `Data.write(.atomic)`): uzantının eklediği ve uygulamanın çıkardığı kayıt birbirini ezmez. Son kayıt çıkınca dosya silinir |
-| Uygulamanın işlemesi | `ShareQueueProcessor`. Kasa açık, yazılabilir ve yayımlanmışken, uygulama kilitli değilken çalışır: kasa yayımlanınca, sahne öne gelince, kilit açılınca. Önce işaretler: `IndexStore.refresh(directories: ["journal"])`. İşaretin `writtenLineID` kimliği başka dosyada da varsa yalnız o satıra yeni kimlik verilir (`IndexStore.renewClashingIdentifier`). Sonra işaretler silinir. Uygulama `written.json` ile birlikte `written-*.json` listelerini de alır. Okunamayan ya da değiştirilemeyen liste yerinde kalır; Tanılama onu "Paylaşım listeleri" bölümünde adıyla gösterir (`IndexStore.shareListProblems`). Sonra kuyruk: her kayıt `IndexStore.addEvent` ile kendi gününe ve saatine yazılır (önce dosya, sonra indeks). Yazmadan önce kayda `writing` alanı (bağlanmış satır metni) yazılır; işaret yazılamazsa kayıt yazılmaz, bekler. Kayıt, satırı kaydedilir kaydedilmez kuyruktan çıkar; ikinci koşu ya da sonraki açılış onu yeniden yazmaz. Koşu kayıttan sonra ve çıkarmadan önce durduysa sonraki koşu `writing` taşıyan kaydın gününde aynı metin ve saatte olay arar: varsa yazmadan çıkarır, yoksa yazar. Gün okunamazsa kayıt bekler. Yazma başarısız olursa kayıt geldiği gibi kalır: işaretli kayıt işaretini korur. Gün iCloud yer tutucusuna döndüyse arama satırı göremez, Core yazmayı reddeder; gün inince sonraki koşu satırı bulur. Üst üste gelen istekler tek koşuda birleşir |
+| Uygulamanın işlemesi | `ShareQueueProcessor`. Kasa açık, yazılabilir ve yayımlanmışken, uygulama kilitli değilken çalışır: kasa yayımlanınca, sahne öne gelince, kilit açılınca. Önce işaretler: `IndexStore.refresh(directories: ["diary"])`. İşaretin `writtenLineID` kimliği başka dosyada da varsa yalnız o satıra yeni kimlik verilir (`IndexStore.renewClashingIdentifier`). Sonra işaretler silinir. Uygulama `written.json` ile birlikte `written-*.json` listelerini de alır. Okunamayan ya da değiştirilemeyen liste yerinde kalır; Tanılama onu "Paylaşım listeleri" bölümünde adıyla gösterir (`IndexStore.shareListProblems`). Sonra kuyruk: her kayıt `IndexStore.addEvent` ile kendi gününe ve saatine yazılır (önce dosya, sonra indeks). Yazmadan önce kayda `writing` alanı (bağlanmış satır metni) yazılır; işaret yazılamazsa kayıt yazılmaz, bekler. Kayıt, satırı kaydedilir kaydedilmez kuyruktan çıkar; ikinci koşu ya da sonraki açılış onu yeniden yazmaz. Koşu kayıttan sonra ve çıkarmadan önce durduysa sonraki koşu `writing` taşıyan kaydın gününde aynı metin ve saatte olay arar: varsa yazmadan çıkarır, yoksa yazar. Gün okunamazsa kayıt bekler. Yazma başarısız olursa kayıt geldiği gibi kalır: işaretli kayıt işaretini korur. Gün iCloud yer tutucusuna döndüyse arama satırı göremez, Core yazmayı reddeder; gün inince sonraki koşu satırı bulur. Üst üste gelen istekler tek koşuda birleşir |
 | Ad tanıma | Uzantıda tanıma yok: bellek ve indeks yok. Kuyruktaki metin App Intent'teki gibi kesin adlarla bağlanır (`IntentText.linking`). Yol (a)'da satır yazıldığı gibi kalır; bağlanmamış anmalar indeks güncellenince her zamanki gibi önerilir |
 | Bozuk kayıt | Okunamayan kayıt (eksik alan, geçersiz gün ya da saat, tek satıra sığmayan metin) kuyruktan çıkar; baytları `share/damaged-<UUID>.json` dosyasında kalır. Liste olmayan dosya da bu ada bütün olarak taşınır, sonra yeni liste yazılır; taşıma başarısızsa hiçbir şey değişmez. Silinmez, üzerine yazılmaz. Şu an okunamayan dosya (izin, geçici G/Ç hatası) yerinde kalır: değişiklik hata verir, sonraki koşu yeniden okur |
 | Yazılamayan kayıt | `addEvent` satırı kaydedemezse (kasa ya da gün salt okunur, gün dosyası okunamaz) kayıt kuyrukta kalır; sonraki koşu yeniden dener |
@@ -1310,7 +1326,7 @@ Ekran görüntüsü testleri SwiftUI görünümünü sabit ortamda çizer ve `Sn
 | Konu | Kural |
 |---|---|
 | Varyantlar | Açık görüntü her kümede durur. Koyu, AX3 ve Kontrastı Artır yalnız temsilci kümelerde kalır. |
-| Temsilci kümeler | `TodayScreenSnapshotTests`, `TodayContextSnapshotTests`, `TasksSnapshotTests`, `EntitiesSnapshotTests`, `JournalSheetSnapshotTests`, `ShellSheetSnapshotTests`, `QuickEntryChipsSnapshotTests`, `QuickEntryNameChipSnapshotTests`, `MentionCreatedSnapshotTests`, `ComponentSnapshotTests` |
+| Temsilci kümeler | `TodayScreenSnapshotTests`, `TodayContextSnapshotTests`, `TasksSnapshotTests`, `EntitiesSnapshotTests`, `DiarySheetSnapshotTests`, `ShellSheetSnapshotTests`, `QuickEntryChipsSnapshotTests`, `QuickEntryNameChipSnapshotTests`, `MentionCreatedSnapshotTests`, `ComponentSnapshotTests` |
 | Varyant istisnası | Küme başına en çok bir istisna varyanta özgü yerleşimi korur: `PadShellSnapshotTests.todayLandscapeAX3` (geniş kenar çubuğu), `GoalsSummarySnapshotTests.goalDetailAX3` ve `GoalChartSnapshotTests.dailyAX3` (grafik aralığı ve eksen etiketleri), `SummariesSnapshotTests.weekAX3` (sayı listesi), `WeeklyReviewSnapshotTests.numbersAX3` (ritim satırları) |
 | Referans yeri | `Tests/KenetTests/Snapshots/__Snapshots__/` |
 | Referans tavanı | `Tests/**/__Snapshots__/**/*.png` en çok 320 dosya ve 80 MiB. Dosya tavanı 2026-10-23'te 300'den 320'ye çıktı. Boyut tavanı 2026-11-10'da Şafak'ın koyu referanslarıyla 61 MiB'den 80 MiB'ye çıktı. |

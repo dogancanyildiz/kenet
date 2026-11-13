@@ -3,7 +3,7 @@ import Summaries
 import VaultFormat
 import VaultStore
 
-/// A journal mention is evidence of a recorded encounter, not proof of a meeting.
+/// A diary mention is evidence of a recorded encounter, not proof of a meeting.
 struct EntityInsights {
     let lastDay: CalendarDate?
     let firstDay: CalendarDate?
@@ -28,9 +28,9 @@ struct EntityInsights {
         let density = EntityMentionDensity.compute(days: history.map(\.date), today: today)
         let rows = history.filter { $0.date == last }.flatMap(\.rows)
             .sorted { ($0.file, $0.ordinal) < ($1.file, $1.ordinal) }
-        // Same-day context includes separate events and journal paragraphs, excluding tasks/frontmatter.
+        // Same-day context includes separate events and diary paragraphs, excluding tasks/frontmatter.
         let days = [lastDay].compactMap { $0 }.filter { $0.date == last }
-        let texts = days.flatMap { $0.events.map(\.text) + $0.journal.filter { $0.headingLevel == nil }.map(\.text) }
+        let texts = days.flatMap { $0.events.map(\.text) + $0.diary.filter { $0.headingLevel == nil }.map(\.text) }
         let companions = Set(texts.flatMap { $0.spans.compactMap(\.destination) }).subtracting([path])
         let entities = entities.filter { companions.contains($0.id) }.sorted {
             $0.name == $1.name ? $0.id < $1.id : $0.name < $1.name

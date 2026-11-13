@@ -9,7 +9,7 @@ struct EntityLinkDestination: Identifiable {
     var id: String { path ?? name }
 
     static func from(url: URL, entities: [EntitySummary]) -> EntityLinkDestination? {
-        guard url.scheme == "journal-entity",
+        guard url.scheme == "kenet-entity",
             let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
             let name = components.queryItems?.first(where: { $0.name == "name" })?.value
         else { return nil }

@@ -17,12 +17,12 @@ struct LineWriteValidationTests {
 
     @Test func rejectsChangedSectionOwnership() {
         reject(
-            "## Events\nSu\n## Journal\nKitap\n", "## Events\nKitap\n## Journal\nSu\n",
+            "## Events\nSu\n## Diary\nKitap\n", "## Events\nKitap\n## Diary\nSu\n",
             origins: [0, 3, 2, 1], error: .sectionNotWritable)
     }
 
     @Test func rejectsChangedSectionCount() {
-        reject("## Events\n## Journal\n", "## Events\n", origins: [0], error: .sectionNotWritable)
+        reject("## Events\n## Diary\n", "## Events\n", origins: [0], error: .sectionNotWritable)
     }
 
     @Test func rejectsChangedBOM() {

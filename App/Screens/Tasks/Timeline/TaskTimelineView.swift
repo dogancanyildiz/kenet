@@ -200,7 +200,7 @@ struct TaskTimelineView: View {
                 NavigationStack {
                     if let row = selectionAnswer.row(for: selection.id, listed: selection) {
                         TaskDetailView(store: model.store, row: row) { path in
-                            sourceDay = CalendarDate(String(path.dropFirst("journal/".count).dropLast(3)))
+                            sourceDay = VaultLayout.day(ofDayPath: path)
                         }
                         .navigationDestination(item: $sourceDay) { DayView(store: model.store, date: $0) }
                         .inkSheet("Görev", onClose: { selected = nil })

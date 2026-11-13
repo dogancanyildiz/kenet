@@ -1,0 +1,7 @@
+## Diary
+
+Yeni
+
+
+## Notlar
+Sakla

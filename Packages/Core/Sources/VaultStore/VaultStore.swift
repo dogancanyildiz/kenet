@@ -69,7 +69,7 @@ public actor VaultStore {
 
     /// Returns the canonical vault-relative path of a day.
     public nonisolated func dayFilePath(for date: CalendarDate) -> String {
-        "journal/" + date.description + ".md"
+        VaultLayout.dayPath(date)
     }
 
     /// Reads the current disk bytes without querying the index.
@@ -185,23 +185,23 @@ public actor VaultStore {
         }
     }
 
-    /// Replaces Journal content, preserving trailing blanks and leaving a missing section untouched for empty text.
+    /// Replaces Diary content, preserving trailing blanks and leaving a missing section untouched for empty text.
     ///
-    /// With `expectedBody`, the section on disk (`RawDocument.journalText`, a missing day reads as
+    /// With `expectedBody`, the section on disk (`RawDocument.diaryText`, a missing day reads as
     /// empty) must still be what the caller read. The comparison runs inside the coordinated write,
     /// so a change another process or an earlier queued write made meanwhile is never replaced:
     /// `staleTarget`, and nothing is written.
     @discardableResult
-    public func changingJournal(
+    public func changingDiary(
         on date: CalendarDate, to text: String, expectedBody: String? = nil
     ) async throws -> RawDocument {
         try await perform {
             try self.edit(self.dayFilePath(for: date), date: date, createDay: !text.allSatisfy(\.isWhitespace)) {
                 document in
-                if let expectedBody, !(try document.journalText()).utf8.elementsEqual(expectedBody.utf8) {
+                if let expectedBody, !(try document.diaryText()).utf8.elementsEqual(expectedBody.utf8) {
                     throw VaultStoreError.staleTarget
                 }
-                return try document.replacingJournal(with: text)
+                return try document.replacingDiary(with: text)
             }
         }
     }
@@ -310,8 +310,10 @@ public actor VaultStore {
                 try rejectPendingDownload(at: url, path: path)
                 guard createDay else { return RawDocument(bytes: []) }
                 wasMissing = true
-                original = try RawDocument(bytes: []).settingFrontmatterValue(.text("journal"), forKey: "type")
-                    .settingFrontmatterValue(.date(date!), forKey: "date")
+                original = try RawDocument(bytes: []).settingFrontmatterValue(
+                    .text(VaultLayout.dayType), forKey: "type"
+                )
+                .settingFrontmatterValue(.date(date!), forKey: "date")
             }
             let changed: RawDocument
             do { changed = try transform(original) } catch EditError.targetNotFound {

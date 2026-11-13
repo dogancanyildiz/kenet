@@ -3,7 +3,7 @@ import Foundation
 /// A vault file for which the sync service keeps unresolved conflicting versions beside the
 /// current one. The app lists these and changes nothing: no version is merged, kept or removed.
 public struct ConflictedFile: Sendable, Hashable {
-    /// The file's vault-relative path, NFC, such as `journal/2026-10-02.md`.
+    /// The file's vault-relative path, NFC, such as `diary/2026-10-02.md`.
     public let path: String
     /// The conflicting versions; `sorted(_:)` puts the newest first.
     public let versions: [ConflictVersion]

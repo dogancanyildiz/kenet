@@ -86,10 +86,10 @@ struct GoalMarkingFallbackTests {
 
             """)
         try vault.write(
-            "journal/2026-03-01.md",
+            "diary/2026-03-01.md",
             """
             ---
-            type: journal
+            type: diary
             date: 2026-03-01
             goals:
               proje: true
@@ -125,10 +125,10 @@ struct GoalMarkingFallbackTests {
 
             """)
         try vault.write(
-            "journal/2026-03-01.md",
+            "diary/2026-03-01.md",
             """
             ---
-            type: journal
+            type: diary
             date: 2026-03-01
             goals:
               proje: true
@@ -160,10 +160,10 @@ struct GoalMarkingFallbackTests {
 
             """)
         try vault.write(
-            "journal/2026-03-01.md",
+            "diary/2026-03-01.md",
             """
             ---
-            type: journal
+            type: diary
             date: 2026-03-01
             goals:
               proje: true

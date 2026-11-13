@@ -2,15 +2,27 @@ import VaultFormat
 
 /// Pure path rule for the copies iCloud makes when two devices create the same day file.
 ///
-/// A copy is `journal/YYYY-MM-DD N.md`: directly under the exact `journal/` folder, a valid day
+/// A copy is `diary/YYYY-MM-DD N.md`: directly under the exact `diary/` folder, a valid day
 /// written as the vault writes it, one space, and an ASCII number of at least 2 without a leading
 /// zero. Matching uses UTF-8 bytes, so a decomposed or full-width digit never passes.
 public enum DayCopyName {
-    private static let folder = Array("journal/".utf8)
+    private static let folder = Array((VaultLayout.dayFolder + "/").utf8)
+    private static let legacyFolder = Array((LegacyVaultNames.dayFolder + "/").utf8)
     private static let suffix = Array(".md".utf8)
 
     public static func isDayCopy(path: String) -> Bool {
         parse(path) != nil
+    }
+
+    /// Whether the path has a day copy's name directly under the legacy day folder. Such a copy is
+    /// not indexed and not merged; the vault migration moves it to `diary/` (`LegacyVaultNames`).
+    public static func isLegacyDayCopy(path: String) -> Bool {
+        parse(path, folder: legacyFolder) != nil
+    }
+
+    /// The day of a copy directly under the legacy day folder, or `nil`.
+    public static func day(ofLegacyCopy path: String) -> CalendarDate? {
+        parse(path, folder: legacyFolder)?.day
     }
 
     /// The day whose file the copy duplicates, or `nil` when the path is not a copy.
@@ -18,9 +30,9 @@ public enum DayCopyName {
         parse(path)?.day
     }
 
-    /// The day file the copy belongs to, such as `journal/2026-10-02.md`.
+    /// The day file the copy belongs to, such as `diary/2026-10-02.md`.
     public static func dayPath(ofCopy path: String) -> String? {
-        parse(path).map { "journal/" + $0.day.description + ".md" }
+        parse(path).map { VaultLayout.dayPath($0.day) }
     }
 
     /// The copies among `paths` in merge order: by day, then by copy number, then by bytes.
@@ -42,9 +54,9 @@ public enum DayCopyName {
         let number: [UInt8]
     }
 
-    private static func parse(_ path: String) -> Parsed? {
+    private static func parse(_ path: String, folder: [UInt8] = folder) -> Parsed? {
         let bytes = Array(path.utf8)
-        // "journal/" + 10 date bytes + " " + at least one digit + ".md"
+        // folder + 10 date bytes + " " + at least one digit + ".md"
         guard bytes.count >= folder.count + 12 + suffix.count, bytes.starts(with: folder),
             bytes.reversed().starts(with: suffix.reversed())
         else { return nil }

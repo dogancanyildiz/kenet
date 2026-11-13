@@ -1,5 +1,5 @@
 ---
-type: journal
+type: diary
 goals:
   # sayfa
   kitap: 25

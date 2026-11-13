@@ -97,7 +97,7 @@
                 line = "- [ ] Yedekleri denetle 🔁 every weekday 📅 2026-09-25 ^rcrunk"
             default: return
             }
-            let file = root.appendingPathComponent("journal/2026-09-23.md")
+            let file = root.appendingPathComponent("diary/2026-09-23.md")
             var text = try String(contentsOf: file, encoding: .utf8)
             let anchor = try #require(text.range(of: "^r3pe29\n"))
             text.insert(contentsOf: line + "\n", at: anchor.upperBound)

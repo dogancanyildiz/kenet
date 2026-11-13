@@ -3,5 +3,5 @@ yeni
 
 ## Events
 not
-## Journal
+## Diary
 yazı

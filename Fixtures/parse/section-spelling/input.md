@@ -3,5 +3,5 @@
 # Tasks
 ## Tasks 	
 not
-## Journal ###
+## Diary ###
 son

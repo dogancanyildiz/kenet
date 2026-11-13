@@ -11,9 +11,9 @@ import VaultStore
 @MainActor
 struct WeeklyReviewTests {
     private static let todayFile =
-        "---\ntype: journal\ndate: 2026-10-03\ngoals:\n  spor: true\n  kitap: 5\n---\n\n## Tasks\n"
+        "---\ntype: diary\ndate: 2026-10-03\ngoals:\n  spor: true\n  kitap: 5\n---\n\n## Tasks\n"
         + "- [ ] bugünkü 📅 2026-10-03 ^o3\n- [ ] ileri tarihli 📅 2026-10-20 ^o4\n\n"
-        + "## Events\n- 09:00 yürüyüş ^e9\n\n## Journal\nSakin bir gün.\n"
+        + "## Events\n- 09:00 yürüyüş ^e9\n\n## Diary\nSakin bir gün.\n"
 
     /// Saturday 3 October 2026 is the review day. Sunday 27 September belongs to the reviewed
     /// week only on a Sunday calendar.
@@ -25,16 +25,16 @@ struct WeeklyReviewTests {
         "people/Ada Kurgu.md": "---\ntype: person\nname: Ada Kurgu\n---\n",
         "people/Bora Masal.md": "---\ntype: person\nname: Bora Masal\n---\n",
         "people/Cem Roman.md": "---\ntype: person\nname: Cem Roman\n---\n",
-        "journal/2026-08-01.md": "## Events\n- 10:00 [[Ada Kurgu]] ile kahve ^e1\n",
-        "journal/2026-09-20.md": "## Tasks\n- [ ] eski açık 📅 2026-09-20 ^o0\n\n## Events\n- 08:00 koşu ^e2\n",
-        "journal/2026-09-27.md":
-            "---\ntype: journal\ndate: 2026-09-27\ngoals:\n  spor: true\n  kitap: 10\n---\n\n## Tasks\n"
+        "diary/2026-08-01.md": "## Events\n- 10:00 [[Ada Kurgu]] ile kahve ^e1\n",
+        "diary/2026-09-20.md": "## Tasks\n- [ ] eski açık 📅 2026-09-20 ^o0\n\n## Events\n- 08:00 koşu ^e2\n",
+        "diary/2026-09-27.md":
+            "---\ntype: diary\ndate: 2026-09-27\ngoals:\n  spor: true\n  kitap: 10\n---\n\n## Tasks\n"
             + "- [x] pazar işi ✅ 2026-09-27 ^t1\n\n## Events\n- 11:00 pazar kahvaltısı ^e3\n",
-        "journal/2026-09-28.md":
-            "---\ntype: journal\ndate: 2026-09-28\ngoals:\n  spor: true\n  kitap: 20\n---\n\n## Tasks\n"
+        "diary/2026-09-28.md":
+            "---\ntype: diary\ndate: 2026-09-28\ngoals:\n  spor: true\n  kitap: 20\n---\n\n## Tasks\n"
             + "- [x] pazartesi işi ✅ 2026-09-29 ^t2\n- [ ] açık bir 📅 2026-09-30 ^o1\n- [ ] açık iki ^o2\n\n"
             + "## Events\n- 09:00 toplantı ^e4\n- 13:00 [[Bora Masal]] ile öğle yemeği ^e5\n",
-        "journal/2026-10-03.md": todayFile,
+        "diary/2026-10-03.md": todayFile,
     ]
 
     private static let turkish = Locale(identifier: "tr_TR")
@@ -252,7 +252,7 @@ struct WeeklyReviewTests {
         }
     }
 
-    /// The text goes into Journal as written, so a name must stay a name: no link syntax.
+    /// The text goes into Diary as written, so a name must stay a name: no link syntax.
     @Test func peopleAreWrittenByNameWithoutLinkSyntax() async throws {
         let context = try await context()
         defer { context.clean() }
@@ -292,10 +292,10 @@ struct WeeklyReviewTests {
         #expect(written == Data(Self.todayFile.utf8) + block(preview))
         var after = try vaultFiles(context)
         #expect(after.count == before.count)
-        after["journal/2026-10-03.md"] = before["journal/2026-10-03.md"]
+        after["diary/2026-10-03.md"] = before["diary/2026-10-03.md"]
         #expect(after == before)
 
-        // Read back, the block is Journal text: no task and no event came out of it.
+        // Read back, the block is Diary text: no task and no event came out of it.
         await context.store.refresh()
         #expect(try await context.store.allTasks().count == taskCount)
         #expect(try await context.store.days().reduce(0) { $0 + $1.events.count } == eventCount)
@@ -308,11 +308,11 @@ struct WeeklyReviewTests {
 
     @Test func aNoteAloneCreatesTheDayWithOnlyTheNote() async throws {
         var files = Self.files
-        files["journal/2026-10-03.md"] = nil
+        files["diary/2026-10-03.md"] = nil
         let context = try await context(files)
         defer { context.clean() }
         let before = try vaultFiles(context)
-        #expect(before["journal/2026-10-03.md"] == nil)
+        #expect(before["diary/2026-10-03.md"] == nil)
 
         let model = await model(context)
         for section in WeeklyReviewSection.allCases { model.setIncluded(section, false) }
@@ -321,16 +321,16 @@ struct WeeklyReviewTests {
         await model.write()
 
         #expect(model.result == .written)
-        let created = "---\ntype: journal\ndate: 2026-10-03\n---\n\n## Journal\n"
+        let created = "---\ntype: diary\ndate: 2026-10-03\n---\n\n## Diary\n"
         #expect(try Data(contentsOf: context.file) == Data(created.utf8) + block(model.previewLines))
         var after = try vaultFiles(context)
-        after["journal/2026-10-03.md"] = nil
+        after["diary/2026-10-03.md"] = nil
         #expect(after == before)
     }
 
     @Test func nothingSelectedWritesNoFile() async throws {
         var files = Self.files
-        files["journal/2026-10-03.md"] = nil
+        files["diary/2026-10-03.md"] = nil
         let context = try await context(files)
         defer { context.clean() }
         let before = try vaultFiles(context)
@@ -351,7 +351,7 @@ struct WeeklyReviewTests {
 
     @Test func leavingWithoutWritingTouchesNoFile() async throws {
         var files = Self.files
-        files["journal/2026-10-03.md"] = nil
+        files["diary/2026-10-03.md"] = nil
         let context = try await context(files)
         defer { context.clean() }
         let before = try vaultFiles(context)
@@ -374,16 +374,16 @@ struct WeeklyReviewTests {
         #expect(try vaultFiles(context) == before)
     }
 
-    /// BOM, CRLF, a task with its note, blank lines at the end of Journal and a section after
+    /// BOM, CRLF, a task with its note, blank lines at the end of Diary and a section after
     /// it: every one of those bytes stays, and the block takes the file's line ending.
     @Test func existingBytesStayAlsoInACarriageReturnFile() async throws {
         var files = Self.files
-        let journal = "## Journal\r\nİlk paragraf.\r\n\r\n- madde\r\n"
+        let diary = "## Diary\r\nİlk paragraf.\r\n\r\n- madde\r\n"
         let rest = "\r\n\r\n## Notlar\r\nsonda satır sonu yok"
         let source =
             "\u{FEFF}## Tasks\r\n- [ ] bugünkü 📅 2026-10-03 ^o3\r\n  alt not\r\n\r\n## Events\r\n- 09:00 yürüyüş ^e9\r\n\r\n"
-            + journal + rest
-        files["journal/2026-10-03.md"] = source
+            + diary + rest
+        files["diary/2026-10-03.md"] = source
         let context = try await context(files)
         defer { context.clean() }
         let before = try Data(contentsOf: context.file)
@@ -396,7 +396,7 @@ struct WeeklyReviewTests {
         #expect(model.result == .written)
         let after = try Data(contentsOf: context.file)
         #expect(isInsertion(block(preview, ending: "\r\n"), into: before, giving: after))
-        // Below Journal's last line, above its trailing blank lines and the next section.
+        // Below Diary's last line, above its trailing blank lines and the next section.
         let head = String(source.dropLast(rest.count))
         #expect(after == Data(head.utf8) + block(preview, ending: "\r\n") + Data(rest.utf8))
     }
@@ -425,8 +425,8 @@ struct WeeklyReviewTests {
         #expect(written == Data(Self.todayFile.utf8) + block(preview))
         let reread = RawDocument(bytes: written)
         #expect(reread.bodyLines.tasks.count == tasks && reread.bodyLines.events.count == events)
-        // Every line stays in Journal: no heading in the note opened a section of its own.
-        #expect(journalHolds(preview, in: reread))
+        // Every line stays in Diary: no heading in the note opened a section of its own.
+        #expect(diaryHolds(preview, in: reread))
         await context.store.refresh()
         #expect(try await context.store.allTasks().count == indexedTasks)
         #expect(try await !context.store.allTasks().contains { $0.sourceText.contains("süt") })
@@ -477,11 +477,11 @@ struct WeeklyReviewTests {
 
     // MARK: - Refusals
 
-    /// Journal sits inside a code fence that never closes: text added there would be code.
+    /// Diary sits inside a code fence that never closes: text added there would be code.
     @Test func anUnclosedCodeFenceRefusesTheWriteAndSaysWhy() async throws {
         var files = Self.files
-        let source = "## Events\n- 09:00 yürüyüş ^e9\n\n```\nkapanmayan çit\n\n## Journal\nSakin bir gün.\n"
-        files["journal/2026-10-03.md"] = source
+        let source = "## Events\n- 09:00 yürüyüş ^e9\n\n```\nkapanmayan çit\n\n## Diary\nSakin bir gün.\n"
+        files["diary/2026-10-03.md"] = source
         let context = try await context(files)
         defer { context.clean() }
         let before = try vaultFiles(context)
@@ -552,9 +552,9 @@ struct WeeklyReviewTests {
         defer { context.clean() }
         let store = context.store
         let model = await model(context) { day, lines in
-            try await store.appendToJournal(on: day, lines: lines)
+            try await store.appendToDiary(on: day, lines: lines)
             throw VaultStoreError.indexUpdateFailed(
-                path: "journal/\(day).md", underlying: CocoaError(.fileWriteUnknown))
+                path: "diary/\(day).md", underlying: CocoaError(.fileWriteUnknown))
         }
         model.note = "indeks geride kaldı"
         let preview = model.previewLines
@@ -615,7 +615,7 @@ struct WeeklyReviewTests {
             await context.start()
         } else {
             var files = Self.files
-            files["journal/2026-09-20.md"] =
+            files["diary/2026-09-20.md"] =
                 "## Tasks\n- [ ] eski açık 📅 2026-09-20 ^o0\n- [x] geç biten ✅ 2026-09-29 ^t3\n\n"
                 + "## Events\n- 08:00 koşu ^e2\n"
             context = try await self.context(files)
@@ -663,32 +663,32 @@ struct WeeklyReviewTests {
     // MARK: - Unusual day files
 
     /// Day files as people leave them. Each one takes the previewed lines as one inserted piece
-    /// inside Journal, keeping every other byte, or (`nil`) is refused with nothing written.
+    /// inside Diary, keeping every other byte, or (`nil`) is refused with nothing written.
     @Test(
         arguments: [
-            // Journal with a section after it, LF.
-            ("## Journal\nMetin.\n\n## Notlar\nalt\n", "## Journal\nMetin.\n\n{block}\n\n## Notlar\nalt\n"),
-            // Empty Journal at the end.
-            ("## Events\n- 09:00 yürüyüş\n\n## Journal\n", "## Events\n- 09:00 yürüyüş\n\n## Journal\n\n{block}\n"),
-            // Frontmatter alone: Journal is added after it.
+            // Diary with a section after it, LF.
+            ("## Diary\nMetin.\n\n## Notlar\nalt\n", "## Diary\nMetin.\n\n{block}\n\n## Notlar\nalt\n"),
+            // Empty Diary at the end.
+            ("## Events\n- 09:00 yürüyüş\n\n## Diary\n", "## Events\n- 09:00 yürüyüş\n\n## Diary\n\n{block}\n"),
+            // Frontmatter alone: Diary is added after it.
             (
-                "---\ntype: journal\ndate: 2026-10-03\n---\n",
-                "---\ntype: journal\ndate: 2026-10-03\n---\n\n## Journal\n\n{block}\n"
+                "---\ntype: diary\ndate: 2026-10-03\n---\n",
+                "---\ntype: diary\ndate: 2026-10-03\n---\n\n## Diary\n\n{block}\n"
             ),
             // Old Mac line endings: the block takes them.
-            ("## Journal\rMetin.\r", "## Journal\rMetin.\r\r{block}\r"),
+            ("## Diary\rMetin.\r", "## Diary\rMetin.\r\r{block}\r"),
             // An empty file.
-            ("", "## Journal\n\n{block}\n"),
+            ("", "## Diary\n\n{block}\n"),
             // The last line has no line ending.
-            ("## Journal\nMetin.", "## Journal\nMetin.\n\n{block}\n"),
+            ("## Diary\nMetin.", "## Diary\nMetin.\n\n{block}\n"),
             // Frontmatter that never closes is body text.
-            ("---\ntype: journal\n## Journal\nMetin.\n", "---\ntype: journal\n## Journal\nMetin.\n\n{block}\n"),
-            // Journal ends inside a code fence that never closes: the text would be code.
-            ("## Journal\nMetin.\n```\n## Notlar\n", nil),
+            ("---\ntype: diary\n## Diary\nMetin.\n", "---\ntype: diary\n## Diary\nMetin.\n\n{block}\n"),
+            // Diary ends inside a code fence that never closes: the text would be code.
+            ("## Diary\nMetin.\n```\n## Notlar\n", nil),
         ] as [(String, String?)])
     func unusualDayFilesKeepTheirBytes(source: String, expected: String?) async throws {
         var files = Self.files
-        files["journal/2026-10-03.md"] = source
+        files["diary/2026-10-03.md"] = source
         let context = try await context(files)
         defer { context.clean() }
         let before = try vaultFiles(context)
@@ -714,21 +714,21 @@ struct WeeklyReviewTests {
         #expect(
             after == Data(expected.replacingOccurrences(of: "{block}", with: preview.joined(separator: ending)).utf8))
         #expect(isOneInsertion(into: original, giving: after))
-        // The block reads back as Journal text, in order, and adds no task or event.
+        // The block reads back as Diary text, in order, and adds no task or event.
         let document = RawDocument(bytes: after)
-        #expect(journalHolds(preview, in: document))
+        #expect(diaryHolds(preview, in: document))
         let old = RawDocument(bytes: original)
         #expect(document.bodyLines.tasks.count == old.bodyLines.tasks.count)
         #expect(document.bodyLines.events.count == old.bodyLines.events.count)
         var rest = try vaultFiles(context)
-        rest["journal/2026-10-03.md"] = before["journal/2026-10-03.md"]
+        rest["diary/2026-10-03.md"] = before["diary/2026-10-03.md"]
         #expect(rest == before)
     }
 
-    /// True when the lines stand one after another inside the document's Journal section.
-    private func journalHolds(_ lines: [String], in document: RawDocument) -> Bool {
-        guard let journal = document.daySections.section(.journal) else { return false }
-        let texts = journal.lineRange.map { document.lines[$0].text ?? "" }
+    /// True when the lines stand one after another inside the document's Diary section.
+    private func diaryHolds(_ lines: [String], in document: RawDocument) -> Bool {
+        guard let diary = document.daySections.section(.diary) else { return false }
+        let texts = diary.lineRange.map { document.lines[$0].text ?? "" }
         guard texts.count >= lines.count else { return false }
         return (0...(texts.count - lines.count)).contains { Array(texts[$0..<($0 + lines.count)]) == lines }
     }
@@ -816,15 +816,15 @@ struct WeeklyReviewTests {
         #expect(english.previewLines.last == "· Single focus for next week: Sleep early.")
     }
 
-    /// The question cards in the day file: `Fixtures/journal/weekly-review/` holds the day before
+    /// The question cards in the day file: `Fixtures/diary/weekly-review/` holds the day before
     /// and the whole file after the review is written; only the block at the end is new.
     @Test func questionCardsAreWrittenAsTheFixtureFile() async throws {
         let fixture = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
-            .deletingLastPathComponent().appendingPathComponent("Fixtures/journal/weekly-review")
+            .deletingLastPathComponent().appendingPathComponent("Fixtures/diary/weekly-review")
         let input = try String(contentsOf: fixture.appendingPathComponent("input.md"), encoding: .utf8)
         let expected = try Data(contentsOf: fixture.appendingPathComponent("expected.md"))
         var files = Self.files
-        files["journal/2026-10-03.md"] = input
+        files["diary/2026-10-03.md"] = input
         let context = try await context(files)
         defer { context.clean() }
 
@@ -837,7 +837,7 @@ struct WeeklyReviewTests {
 
         #expect(model.result == .written && model.errorText == nil)
         #expect(try Data(contentsOf: context.file) == expected)
-        // Read back, the answers are Journal text: the task-looking answer made no task.
+        // Read back, the answers are Diary text: the task-looking answer made no task.
         await context.store.refresh()
         #expect(try await context.store.allTasks().allSatisfy { !$0.text.plainText.contains("erken uyu") })
     }

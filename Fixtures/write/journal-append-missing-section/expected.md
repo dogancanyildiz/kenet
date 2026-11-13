@@ -1,6 +1,0 @@
-## Tasks
-- [ ] Kitap
-
-## Journal
-
-Yeni

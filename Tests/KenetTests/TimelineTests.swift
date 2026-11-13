@@ -178,7 +178,7 @@ import VaultFormat
         defer { context.clean() }
         await context.start()
         let source =
-            "\u{feff}---\r\ntype: journal\r\ndate: 2026-10-03\r\ncustom: 'keep'\r\n---\r\n\r\n## Tasks\r\n- [/] Plan 🛫 2026-10-03 📅 2026-10-06 🔁 every week #project/demo ^task\r\n  Unchanged note  \r\n\r\n## Other\r\nUntouched\r\n"
+            "\u{feff}---\r\ntype: diary\r\ndate: 2026-10-03\r\ncustom: 'keep'\r\n---\r\n\r\n## Tasks\r\n- [/] Plan 🛫 2026-10-03 📅 2026-10-06 🔁 every week #project/demo ^task\r\n  Unchanged note  \r\n\r\n## Other\r\nUntouched\r\n"
         try Data(source.utf8).write(to: context.file)
         await context.store.refresh()
         let model = await timeline(context)
@@ -336,8 +336,8 @@ import VaultFormat
         let dates = try #require(TimelineDates(drag.row).shifted(by: 3))
         let next = context.directory.appendingPathComponent("AnotherVault", isDirectory: true)
         try FileManager.default.createDirectory(
-            at: next.appendingPathComponent("journal"), withIntermediateDirectories: true)
-        let nextFile = next.appendingPathComponent("journal/2026-10-03.md")
+            at: next.appendingPathComponent("diary"), withIntermediateDirectories: true)
+        let nextFile = next.appendingPathComponent("diary/2026-10-03.md")
         try source.write(to: nextFile, atomically: true, encoding: .utf8)
         await context.store.select(next)
         model.preview(dates, for: drag.row)

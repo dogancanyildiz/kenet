@@ -12,11 +12,11 @@ struct EditVaultTurnTests {
     /// Every `IndexStore` write path: the shared `performEdit` and the three that hold the write slot
     /// themselves.
     enum Edit: String, CaseIterable, Sendable {
-        case addEvent, completeTask, appendToJournal, renameEntity, createEntity
+        case addEvent, completeTask, appendToDiary, renameEntity, createEntity
     }
 
     private static let day =
-        "---\ntype: journal\ndate: 2026-10-03\n---\n\n## Tasks\n- [ ] süt al ^sut\n\n## Journal\nEski.\n"
+        "---\ntype: diary\ndate: 2026-10-03\n---\n\n## Tasks\n- [ ] süt al ^sut\n\n## Diary\nEski.\n"
     private static let person = "---\ntype: person\nname: Ada Kurgu\n---\n"
 
     @Test(arguments: Edit.allCases)
@@ -24,7 +24,7 @@ struct EditVaultTurnTests {
         let context = try TaskTestContext()
         defer { context.clean() }
         await context.start()
-        for (path, text) in ["journal/2026-10-03.md": Self.day, "people/Ada Kurgu.md": Self.person] {
+        for (path, text) in ["diary/2026-10-03.md": Self.day, "people/Ada Kurgu.md": Self.person] {
             let url = context.root.appendingPathComponent(path)
             try FileManager.default.createDirectory(
                 at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
@@ -54,8 +54,8 @@ struct EditVaultTurnTests {
                 switch edit {
                 case .addEvent: break
                 case .completeTask: try await store.completeTask(row, on: context.today)
-                case .appendToJournal:
-                    try await store.appendToJournal(on: context.today, lines: ["Yanlış kasa."])
+                case .appendToDiary:
+                    try await store.appendToDiary(on: context.today, lines: ["Yanlış kasa."])
                 case .renameEntity:
                     _ = try await store.renameEntity(at: "people/Ada Kurgu.md", to: "Ada Yanlış", qualifier: nil)
                 case .createEntity:

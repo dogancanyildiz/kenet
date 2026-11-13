@@ -77,9 +77,9 @@ import VaultFormat
         // The answer asked before the write comes now; the first edit is not in it.
         model.answerShown(askedAt: asked)
         await model.load()
-        let journal = context.root.appendingPathComponent("journal")
-        try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: journal.path)
-        defer { try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: journal.path) }
+        let diary = context.root.appendingPathComponent("diary")
+        try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: diary.path)
+        defer { try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: diary.path) }
 
         #expect(await !model.set(water, value: .number(5)))
         #expect(model.status(for: water) == first)
@@ -128,16 +128,16 @@ import VaultFormat
         let water = try #require(model.goals.first { $0.key == "su" })
         let before = model.status(for: water)
         let empty = GoalProgress.compute(definition: water, logs: [], today: day)
-        let journal = context.root.appendingPathComponent("journal")
-        try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: journal.path)
-        defer { try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: journal.path) }
+        let diary = context.root.appendingPathComponent("diary")
+        try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: diary.path)
+        defer { try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: diary.path) }
 
         #expect(await !model.set(water, value: .number(3)))
         #expect(model.errorText != nil)
         #expect(model.value(for: water) == nil)
         #expect(model.status(for: water) == before)
         #expect(model.shownStatus(for: water, answer: empty) == empty, "the answer is drawn again")
-        #expect(!FileManager.default.fileExists(atPath: journal.appendingPathComponent("\(day).md").path))
+        #expect(!FileManager.default.fileExists(atPath: diary.appendingPathComponent("\(day).md").path))
     }
 }
 
@@ -201,9 +201,9 @@ import VaultFormat
             let list = try await MilestoneList()
             defer { list.close() }
             guard await list.isUp() else { return }
-            let journal = list.context.root.appendingPathComponent("journal")
-            try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: journal.path)
-            defer { try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: journal.path) }
+            let diary = list.context.root.appendingPathComponent("diary")
+            try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: diary.path)
+            defer { try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: diary.path) }
 
             try await list.tap()
             let failure = String(localized: "Değişiklik kaydedilemedi. Kasayı kontrol edip yeniden dene.")
@@ -373,7 +373,7 @@ import VaultFormat
             let goals = context.root.appendingPathComponent("goals")
             try FileManager.default.createDirectory(at: goals, withIntermediateDirectories: true)
             try FileManager.default.createDirectory(
-                at: context.root.appendingPathComponent("journal"), withIntermediateDirectories: true)
+                at: context.root.appendingPathComponent("diary"), withIntermediateDirectories: true)
             try Data("---\ntype: goal\nname: Maraton\nkey: maraton\nperiod: year\nkind: milestone\n---\n".utf8)
                 .write(to: goals.appendingPathComponent("Maraton.md"))
             await context.start()
@@ -417,7 +417,7 @@ import VaultFormat
         }
 
         func fileHasMark() -> Bool {
-            let url = context.root.appendingPathComponent("journal/\(context.today).md")
+            let url = context.root.appendingPathComponent("diary/\(context.today).md")
             guard let data = try? Data(contentsOf: url) else { return false }
             return String(decoding: data, as: UTF8.self).contains("maraton: true")
         }

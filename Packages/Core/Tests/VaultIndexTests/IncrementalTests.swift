@@ -27,12 +27,12 @@ private func sample(_ root: URL) throws -> URL {
             #expect(result.deletedPaths == [path])
             try equivalent(index, root)
         }
-        try put("journal/2026-10-01.md", "---\ngoals:\n  su: 8\n---\n## Events\n- Su ^new\n## Tasks\n- [ ] Kitap ^task")
+        try put("diary/2026-10-01.md", "---\ngoals:\n  su: 8\n---\n## Events\n- Su ^new\n## Tasks\n- [ ] Kitap ^task")
         try put("people/Ece Yalın (iş).md", "---\ntype: person\nname: Ece Yalın\naliases: [Ece]\n---\n")
         try delete("people/Deniz Arıkan.md")
         #expect(try index.unresolvedLinks().contains { $0.target == "Deniz Arıkan" })
         try put(
-            "journal/2026-10-01.md",
+            "diary/2026-10-01.md",
             "---\ngoals:\n  su: 9\n---\n## Events\n- Spor ^new\n- Kitap ^added\n## Tasks\n- [x] Kitap ^task")
         try put("people/Ece Yalın (iş).md", "---\ntype: person\nname: Selin Korkmaz\naliases: [Selin]\n---\n")
         try put("notes/Su.md", "[[Kitap]] [[Su]] [[people/Ece Yalın (iş)]]")
@@ -48,7 +48,7 @@ private func sample(_ root: URL) throws -> URL {
         try delete("a/Kitap.md")
         #expect(
             try index.snapshot().blocks.first { $0.identifier == "task" && $0.ownsIdentifier }?.file
-                == "journal/2026-10-01.md")
+                == "diary/2026-10-01.md")
         try Data([0xff]).write(to: root.appendingPathComponent("notes/Kitap.md"))
         #expect(try index.refresh(vaultRoot: root).updatedPaths == ["notes/Kitap.md"])
         try equivalent(index, root)
@@ -109,14 +109,14 @@ private func sample(_ root: URL) throws -> URL {
         #expect(try index.update(paths: ["notes"], vaultRoot: root).deletedPaths.count == 4)
         try equivalent(index, root)
         try write(temporary, "Su.md", "Su")
-        try write(root, "journal/2026-10-01.md", "Su")
+        try write(root, "diary/2026-10-01.md", "Su")
         let before = try index.snapshot()
         let ignored = try index.update(
             paths: ["../Su.md", temporary.appendingPathComponent("Su.md").path, "conflicts", ".app", "templates"],
             vaultRoot: root)
         #expect(ignored.addedPaths.isEmpty && ignored.updatedPaths.isEmpty && ignored.deletedPaths.isEmpty)
         #expect(try index.snapshot() == before)
-        try index.update(paths: ["journal"], vaultRoot: root)
+        try index.update(paths: ["diary"], vaultRoot: root)
         try equivalent(index, root)
     }
 }

@@ -231,7 +231,7 @@
         }
 
         @Test func onlyTheSentinelFileEndsTheWaitForTheStart() {
-            let folder = "/private/var/folders/T/journal-watch-1"
+            let folder = "/private/var/folders/T/kenet-watch-1"
             var gate = FileEventStream.SentinelGate(folder: folder)
             gate.isWaiting = true
             let file = kFSEventStreamEventFlagItemIsFile | kFSEventStreamEventFlagItemCreated

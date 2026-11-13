@@ -1,3 +1,3 @@
 ---
-type: journal
+type: diary
 ---

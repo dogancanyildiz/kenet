@@ -1,5 +1,5 @@
 ---
 # not
-type: journal # gün
+type: diary # gün
 ---
 A

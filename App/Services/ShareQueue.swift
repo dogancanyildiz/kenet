@@ -27,7 +27,7 @@ struct ShareImportReport: Equatable, Sendable {
 ///
 /// It tells the extension where the vault is (`share/target.json`) and, once the vault is open
 /// and the app unlocked, takes in what the extension left: lines it wrote into the iCloud vault
-/// itself (`share/written.json`: the index refreshes the journal folder) and texts waiting in the
+/// itself (`share/written.json`: the index refreshes the diary folder) and texts waiting in the
 /// queue (`share/pending.json`: each becomes an event on its own day and time through
 /// `IndexStore.addEvent`, with the app's name recognition). A record leaves the queue right after
 /// its line is saved, so no run writes it twice; a record that cannot be read is kept aside, a
@@ -109,14 +109,14 @@ struct ShareImportReport: Equatable, Sendable {
             if case .unreadable = contents {
                 // Only markers: the lines are in the vault already. Bytes that are not a list move
                 // aside; a list that cannot be read now stays for the next run.
-                if !refreshed { await store.refresh(directories: ["journal"]) }
+                if !refreshed { await store.refresh(directories: [VaultLayout.dayFolder]) }
                 refreshed = true
                 if (try? file.setAsideIfUnreadable()) != true { listProblems.insert(url.lastPathComponent) }
                 continue
             }
             let elements = contents.elements
             guard !elements.isEmpty else { continue }
-            if !refreshed { await store.refresh(directories: ["journal"]) }
+            if !refreshed { await store.refresh(directories: [VaultLayout.dayFolder]) }
             refreshed = true
             // The extension checked the new `^id` against its day file alone.
             var failed = Set<String>()

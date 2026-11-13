@@ -170,7 +170,7 @@ struct RowComponentTests {
             if run.link != nil {
                 sawLink = true
                 linkedText += piece
-                #expect(run.link?.scheme == "journal-entity")
+                #expect(run.link?.scheme == "kenet-entity")
             }
         }
         #expect(sawLink)

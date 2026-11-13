@@ -1,4 +1,4 @@
 ## Tasks
 - [ ] Çay ^c7b001
-- [ ] Su ^c7a001## Journal
+- [ ] Su ^c7a001## Diary
 Gün.

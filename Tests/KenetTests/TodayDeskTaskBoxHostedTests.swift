@@ -18,7 +18,7 @@
             defer { context.clean() }
             await context.start()
             let today = LocalDay.today()
-            let path = "journal/\(today).md"
+            let path = "diary/\(today).md"
             let url = context.root.appendingPathComponent(path)
             try FileManager.default.createDirectory(
                 at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
@@ -32,7 +32,7 @@
                         .environment(\.locale, Locale(identifier: "tr_TR")),
                     context: context),
                 size: CGSize(width: 720, height: 1600))
-            let release = await HostedJournalWindow.claim(mount.window)
+            let release = await HostedKenetWindow.claim(mount.window)
             defer {
                 release()
                 mount.close()

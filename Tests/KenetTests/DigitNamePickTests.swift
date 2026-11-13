@@ -22,7 +22,7 @@ struct DigitNamePickTests {
     }
 
     private func savedEvent(_ context: TaskTestContext) throws -> String? {
-        let url = context.root.appendingPathComponent("journal/\(LocalDay.today()).md")
+        let url = context.root.appendingPathComponent("diary/\(LocalDay.today()).md")
         return RawDocument(bytes: try Data(contentsOf: url)).bodyLines.events.last?.block.text
     }
 
@@ -128,13 +128,13 @@ struct DigitNamePickTests {
     }
 
     @Test(arguments: [("12", "@1", "@12"), ("Kuzey", "@Ku", "Kuzey")])
-    func journalEditorPickIsLinked(_ name: String, typed: String, picked: String) async throws {
+    func diaryEditorPickIsLinked(_ name: String, typed: String, picked: String) async throws {
         let context = try DayEditingTestContext()
         defer { context.clean() }
         try Data("---\ntype: place\nname: \(name)\n---\n".utf8)
             .write(to: context.root.appendingPathComponent("places/\(name).md"))
         await context.start()
-        let model = JournalEditorModel(store: context.store, day: context.day)
+        let model = DiaryEditorModel(store: context.store, day: context.day)
         await model.load()
         let original = model.text
         model.text = typed + " geldi.\n" + original
@@ -144,7 +144,7 @@ struct DigitNamePickTests {
         #expect(model.text == picked + " geldi.\n" + original)
         #expect(model.composer.suggestionRange(at: picked.utf8.count) == nil)
         #expect(await model.save())
-        let body = try JournalRecognition.body(of: RawDocument(bytes: try Data(contentsOf: context.file)))
+        let body = try DiaryRecognition.body(of: RawDocument(bytes: try Data(contentsOf: context.file)))
         #expect(body.hasPrefix("[[\(name)]] geldi.\n"))
     }
 

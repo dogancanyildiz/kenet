@@ -56,18 +56,18 @@ import VaultStore
         #expect(statuses["reading"]?.progress.done == 5 && statuses["reading"]?.streak == 0)
 
         _ = try await store.settingGoalValue(on: today, key: "reading", value: .number(20))
-        try publish(["journal/\(today).md"])
+        try publish(["diary/\(today).md"])
         statuses = try check("value")
         #expect(statuses["reading"]?.progress.isComplete == true && statuses["reading"]?.streak == 1)
 
         _ = try await store.settingGoalValue(on: yesterday, key: "reading", value: .number(30))
-        try publish(["journal/\(yesterday).md"])
+        try publish(["diary/\(yesterday).md"])
         statuses = try check("past value")
         #expect(statuses["reading"]?.streak == 2)
 
         for day in [previous, longAgo] {
             _ = try await store.settingGoalValue(on: day, key: "reading", value: .number(25))
-            try publish(["journal/\(day).md"])
+            try publish(["diary/\(day).md"])
         }
         statuses = try check("old values")
         let window = LegacyGoalFields(snapshot: try index.snapshot(), today: today)
@@ -80,11 +80,11 @@ import VaultStore
         #expect(statuses["walk"]?.isPendingToday == true)
 
         _ = try await store.settingGoalValue(on: today, key: "walk", value: .boolean(true))
-        try publish(["journal/\(today).md"])
+        try publish(["diary/\(today).md"])
         statuses = try check("new goal value")
         #expect(statuses["walk"]?.progress.isComplete == true)
 
-        let edited = root.appendingPathComponent("journal/\(yesterday).md")
+        let edited = root.appendingPathComponent("diary/\(yesterday).md")
         let text = try String(contentsOf: edited, encoding: .utf8)
         #expect(text.contains("reading: 30"))
         try Data(text.replacingOccurrences(of: "reading: 30", with: "reading: 3").utf8).write(to: edited)
@@ -94,7 +94,7 @@ import VaultStore
         statuses = try check("external edit")
         #expect(statuses["reading"]?.streak == 1)
 
-        try FileManager.default.removeItem(at: root.appendingPathComponent("journal/\(previous).md"))
+        try FileManager.default.removeItem(at: root.appendingPathComponent("diary/\(previous).md"))
         model = try IncrementalReadModelVault.apply(model, index: index, result: try index.refresh(vaultRoot: root))
         statuses = try check("external delete")
         #expect(statuses["reading"]?.longestStreak == 1)
@@ -215,8 +215,8 @@ private enum EdgeGoalVault {
             if offset == 0 || offset == -1 { lines.append("  kitap: 2") }
             if offset == -2 { lines.append("  maraton: true") }
             try file(
-                root, "journal/\(day).md",
-                "---\ntype: journal\ndate: \(day)\ngoals:\n" + lines.joined(separator: "\n") + "\n---\n")
+                root, "diary/\(day).md",
+                "---\ntype: diary\ndate: \(day)\ngoals:\n" + lines.joined(separator: "\n") + "\n---\n")
         }
     }
 

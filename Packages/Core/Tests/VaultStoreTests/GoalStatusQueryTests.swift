@@ -121,15 +121,15 @@ struct GoalStatusQueryTests {
             if cursor == siteFalse { lines.append("  site: false") }
             if cursor == today { lines.append("  yok: true") }
             try vault.write(
-                "journal/\(cursor).md",
-                "---\ntype: journal\ndate: \(cursor)\ngoals:\n" + lines.joined(separator: "\n") + "\n---\n")
+                "diary/\(cursor).md",
+                "---\ntype: diary\ndate: \(cursor)\ngoals:\n" + lines.joined(separator: "\n") + "\n---\n")
             cursor = try #require(cursor.addingDays(1))
         }
         try vault.write(
-            "journal/\(tomorrow).md",
-            "---\ntype: journal\ndate: \(tomorrow)\ngoals:\n  su: false\n  bos: true\n  portfolyo: true\n---\n")
+            "diary/\(tomorrow).md",
+            "---\ntype: diary\ndate: \(tomorrow)\ngoals:\n  su: false\n  bos: true\n  portfolyo: true\n---\n")
         try vault.index.rebuild(vaultRoot: vault.root)
-        let duplicate = "journal/\(missed)b.md"
+        let duplicate = "diary/\(missed)b.md"
         try vault.index.database.write { db in
             try db.execute(
                 sql: "INSERT INTO files VALUES (?,?,?,?,?,?,?,?,?,?)",

@@ -5,15 +5,15 @@ import VaultFormat
 import VaultStore
 
 /// Steps of the "close the day" flow, in order. Empty task and goal steps are left out of one
-/// opening; the journal step stays.
+/// opening; the diary step stays.
 enum CloseDayStep: Int, CaseIterable, Sendable {
     case tasks
     case goals
-    case journal
+    case diary
 }
 
-/// One opening of the sheet. The row starts on the first step that has something to do; a journal
-/// reminder starts on the journal step.
+/// One opening of the sheet. The row starts on the first step that has something to do; a diary
+/// reminder starts on the diary step.
 struct CloseDayRoute: Identifiable {
     let id = UUID()
     var step: CloseDayStep
@@ -30,25 +30,25 @@ enum CloseDayChoice: Hashable, Sendable {
 /// The Today row that opens the flow.
 enum CloseDayEntry {
     /// Only on Today, while a task the flow lists or a daily goal is still open, or while today
-    /// has no journal entry yet. Otherwise the row takes no space. A past day never offers it.
-    static func isOffered(isToday: Bool, presentation: TodayPresentation, hasJournal: Bool) -> Bool {
+    /// has no diary entry yet. Otherwise the row takes no space. A past day never offers it.
+    static func isOffered(isToday: Bool, presentation: TodayPresentation, hasDiary: Bool) -> Bool {
         isToday
-            && (presentation.closeDayTaskCount > 0 || presentation.remainingGoalCount > 0 || !hasJournal)
+            && (presentation.closeDayTaskCount > 0 || presentation.remainingGoalCount > 0 || !hasDiary)
     }
 
-    /// A journal entry is written prose: the same test as the page's journal preview, so the row
+    /// A diary entry is written prose: the same test as the page's diary preview, so the row
     /// is offered exactly while the page says "Günlük yazısı ekle…". Headings alone (an Obsidian
-    /// template) and a blank Journal are not an entry.
-    static func hasJournal(_ day: DaySummary) -> Bool {
-        day.journal.contains { $0.headingLevel == nil }
+    /// template) and a blank Diary are not an entry.
+    static func hasDiary(_ day: DaySummary) -> Bool {
+        day.diary.contains { $0.headingLevel == nil }
     }
 }
 
 extension NotificationNavigationRequest {
-    /// Set when this tap opens today's close-the-day flow, on its journal step: the evening
-    /// journal reminder. The day in its identifier is not the flow's day, so a reminder left from
+    /// Set when this tap opens today's close-the-day flow, on its diary step: the evening
+    /// diary reminder. The day in its identifier is not the flow's day, so a reminder left from
     /// yesterday opens today's flow too.
-    var closeDayRequestID: UUID? { destination == .journal ? id : nil }
+    var closeDayRequestID: UUID? { destination == .diary ? id : nil }
 }
 
 /// One reminder tap opens the flow once. The tap stays the service's latest request until the
@@ -112,19 +112,19 @@ final class CloseDayModel {
     /// Daily goals that were unmarked when the flow opened. A goal marked here stays listed (and
     /// can be unmarked) until the flow is opened again.
     let pendingGoalIDs: [String]
-    /// Steps of this opening. Empty task and goal steps are omitted; the journal step stays.
+    /// Steps of this opening. Empty task and goal steps are omitted; the diary step stays.
     let steps: [CloseDayStep]
     private(set) var step: CloseDayStep
     private(set) var report: CloseDayReport?
     private(set) var isApplying = false
     /// The sentence waiting to be appended. A paste may contain line breaks; they are kept.
     var sentence = ""
-    private(set) var journalNotice: String?
-    private(set) var journalError: String?
+    private(set) var diaryNotice: String?
+    private(set) var diaryError: String?
     private var choices: [String: CloseDayChoice] = [:]
     /// The vault the flow was opened on: a sentence typed for it never lands in another one.
     private let root: URL?
-    /// The store's Journal append; tests replace it to fail or wait the way a real write can.
+    /// The store's Diary append; tests replace it to fail or wait the way a real write can.
     private let append: @MainActor (CalendarDate, [String]) async throws -> Void
 
     /// The day's candidate rows (``IndexStore/computeDayTasks(on:)``), refreshed after each write.
@@ -142,7 +142,7 @@ final class CloseDayModel {
         self.today = today
         self.calendar = calendar
         root = store.vaultURL
-        self.append = append ?? { try await store.appendToJournal(on: $0, lines: $1) }
+        self.append = append ?? { try await store.appendToDiary(on: $0, lines: $1) }
         let goals = GoalDayModel(store: store, day: today, startingFrom: strip)
         self.goals = goals
         // The strip's model, as the flow opens: the day's own value decides a daily goal. A copied
@@ -157,7 +157,7 @@ final class CloseDayModel {
         var included: [CloseDayStep] = []
         if !open.isEmpty { included.append(.tasks) }
         if !pendingGoalIDs.isEmpty { included.append(.goals) }
-        included.append(.journal)
+        included.append(.diary)
         steps = included
         self.step = included.contains(step) ? step : included[0]
     }
@@ -220,7 +220,7 @@ final class CloseDayModel {
         step = steps[index - 1]
     }
 
-    /// Appends the sentence to the journal of the day the flow was opened on. A second call in the
+    /// Appends the sentence to the diary of the day the flow was opened on. A second call in the
     /// same opening appends another block. An empty sentence does not write. A write already in
     /// flight is not started again, and an index failure is not retried: the file was written.
     func writeSentence() async {
@@ -229,24 +229,24 @@ final class CloseDayModel {
         isApplying = true
         defer { isApplying = false }
         // Cleared first so that a second sentence's notice is announced again.
-        journalNotice = nil
-        journalError = nil
+        diaryNotice = nil
+        diaryError = nil
         do {
             try await append(today, [text])
             if sentence == text { sentence = "" }
-            journalNotice = String(localized: "Cümle günlüğe eklendi.")
+            diaryNotice = String(localized: "Cümle günlüğe eklendi.")
         } catch VaultStoreError.indexUpdateFailed {
             // The bytes are in the file: leaving the sentence would offer to write it twice.
             if sentence == text { sentence = "" }
-            journalError = String(localized: "Değişiklik kaydedildi, indeks güncellenemedi.")
+            diaryError = String(localized: "Değişiklik kaydedildi, indeks güncellenemedi.")
         } catch {
             // Nothing was written; the sentence stays for another try.
-            journalError = Self.journalMessage(for: error)
+            diaryError = Self.diaryMessage(for: error)
         }
     }
 
     /// The sentence is the user's; a refusal names the file, not the text that was typed.
-    static func journalMessage(for error: any Error) -> String {
+    static func diaryMessage(for error: any Error) -> String {
         switch error {
         case EditError.sectionNotWritable, EditError.contentNotRepresentable:
             String(

@@ -10,9 +10,9 @@ enum SyntheticVault {
         var placesCount: Int
         var notesCount: Int
         var seed: UInt64
-        /// Inclusive end date of the generated journal range.
+        /// Inclusive end date of the generated diary range.
         var endDate: CalendarDate
-        /// When set, this person is linked on a subset of journal days (rename / link-count scenarios).
+        /// When set, this person is linked on a subset of diary days (rename / link-count scenarios).
         var linkedPerson: String?
         /// Link `linkedPerson` on every Nth day (1 = every day). Five-year runs use ~100 inbound links.
         var linkedPersonInterval: Int
@@ -144,7 +144,7 @@ enum SyntheticVault {
         for offset in 0..<configuration.days {
             guard let day = start.addingDays(offset) else { continue }
             let iso = day.description
-            var lines = ["---", "type: journal", "date: \(iso)", "goals:"]
+            var lines = ["---", "type: diary", "date: \(iso)", "goals:"]
             if random.next() % 100 < 45 { lines.append("  spor: true") }
             lines.append("  kitap: \(random.next() % 41)")
             lines.append("  su: \(2 + random.next() % 9)")
@@ -198,14 +198,14 @@ enum SyntheticVault {
                 let clock = String(format: "%02d:%02d", minute / 60, minute % 60)
                 lines.append("- \(clock) \(text) ^\(nextID())")
             }
-            lines += ["", "## Journal"]
+            lines += ["", "## Diary"]
             let wordCount = 35 + Int(random.next() % 36)
-            var journal = (0..<wordCount).map { _ in words[Int(random.next() % UInt64(words.count))] }
+            var diary = (0..<wordCount).map { _ in words[Int(random.next() % UInt64(words.count))] }
                 .joined(separator: " ")
-            if includeLinked, let linked { journal += " [[\(linked)]] de yanımdaydı." }
-            lines.append(journal.prefix(1).uppercased() + journal.dropFirst())
+            if includeLinked, let linked { diary += " [[\(linked)]] de yanımdaydı." }
+            lines.append(diary.prefix(1).uppercased() + diary.dropFirst())
             lines.append("")
-            try write(root, "journal/\(iso).md", lines.joined(separator: "\n"))
+            try write(root, "diary/\(iso).md", lines.joined(separator: "\n"))
             markdownCount += 1
         }
 

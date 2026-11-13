@@ -50,8 +50,8 @@ struct PlaceholderTests {
             #expect(result.pendingDownloads == [path])
             #expect(try index.files().map(\.path) == expected.files)
         }
-        #expect(try index.update(paths: ["journal"], vaultRoot: root).pendingDownloads == ["journal/2026-09-30.md"])
-        #expect(try index.update(paths: ["journal/.2026-10-01.md.icloud"], vaultRoot: root).pendingDownloads.isEmpty)
+        #expect(try index.update(paths: ["diary"], vaultRoot: root).pendingDownloads == ["diary/2026-09-30.md"])
+        #expect(try index.update(paths: ["diary/.2026-10-01.md.icloud"], vaultRoot: root).pendingDownloads.isEmpty)
     }
 
     @Test func evictedDayReportsPendingAndDownloadedDayReturns() throws {
@@ -60,11 +60,11 @@ struct PlaceholderTests {
         try FileManager.default.copyItem(at: fixture(), to: root)
         let index = try VaultIndex()
         try index.rebuild(vaultRoot: root)
-        let path = "journal/2026-10-01.md"
+        let path = "diary/2026-10-01.md"
         let url = root.appendingPathComponent(path)
         let original = try Data(contentsOf: url)
         try FileManager.default.removeItem(at: url)
-        let result = try index.update(paths: ["journal/.2026-10-01.md.icloud"], vaultRoot: root)
+        let result = try index.update(paths: ["diary/.2026-10-01.md.icloud"], vaultRoot: root)
         #expect(result.deletedPaths == [path])
         #expect(result.pendingDownloads == [path])
         #expect(try index.files().contains { $0.path == path } == false)
@@ -80,7 +80,7 @@ struct PlaceholderTests {
 
         var path: String {
             switch self {
-            case .day: "journal/2026-09-30.md"
+            case .day: "diary/2026-09-30.md"
             case .entity, .rename: "people/Selin Korkmaz.md"
             case .goal: "goals/Su.md"
             case .types: ".app/types.json"
@@ -181,12 +181,12 @@ struct PlaceholderTests {
         let index = try VaultIndex()
         try index.rebuild(vaultRoot: root)
         let store = VaultStore(vaultRoot: root, index: index, randomValue: { 0 })
-        let placeholder = root.appendingPathComponent("journal/.2026-10-01.md.icloud")
+        let placeholder = root.appendingPathComponent("diary/.2026-10-01.md.icloud")
         let before = try Data(contentsOf: placeholder)
         let result = try await store.addingEvent(on: CalendarDate("2026-10-01")!, text: "Su")
         #expect(result.bodyLines.events.map(\.block.text) == ["Kitap", "Su"])
         #expect(try Data(contentsOf: placeholder) == before)
-        #expect(try index.refresh(vaultRoot: root).pendingDownloads.contains("journal/2026-10-01.md") == false)
+        #expect(try index.refresh(vaultRoot: root).pendingDownloads.contains("diary/2026-10-01.md") == false)
         try equivalent(index, root)
     }
 

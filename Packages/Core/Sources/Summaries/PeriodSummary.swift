@@ -157,7 +157,7 @@ public struct PeriodSummary: Sendable {
         var written: Set<CalendarDate> = []
         for row in data.days where measured.contains(row.date) {
             events[row.date, default: 0] += max(0, row.events)
-            if row.events > 0 || row.hasJournal { written.insert(row.date) }
+            if row.events > 0 || row.hasDiary { written.insert(row.date) }
         }
         return period.units(containing: day).map { unit in
             var total = 0
@@ -181,7 +181,7 @@ public struct PeriodSummary: Sendable {
         var result = SummaryCounts()
         let days = data.days.filter { range.contains($0.date) }
         result.events = days.reduce(0) { $0 + max(0, $1.events) }
-        result.writtenDays = Set(days.filter { $0.events > 0 || $0.hasJournal }.map(\.date)).count
+        result.writtenDays = Set(days.filter { $0.events > 0 || $0.hasDiary }.map(\.date)).count
         let people = Set(data.entities.filter { $0.kind == .person }.map(\.id))
         let places = Set(data.entities.filter { $0.kind == .place }.map(\.id))
         for mention in data.mentions where range.contains(mention.day) {

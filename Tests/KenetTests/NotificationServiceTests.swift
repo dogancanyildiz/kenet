@@ -20,7 +20,7 @@ struct NotificationServiceTests {
         let old = NotificationRequest(
             id: "task-2026-09-01", date: notificationDate("2026-09-01"), title: "old", body: "", destination: .tasks)
         let foreign = NotificationRequest(
-            id: "other-feature", date: notificationDate(), title: "foreign", body: "", destination: .journal)
+            id: "other-feature", date: notificationDate(), title: "foreign", body: "", destination: .diary)
         center.values = [old.id: old, foreign.id: foreign]
         let service = service(center, defaults: defaults)
         service.update(isOpen: true, vaultID: "sample")
@@ -132,7 +132,7 @@ struct NotificationServiceTests {
             await Task.yield()
         }
         let continuation = try #require(center.pausedAdd)
-        service.preferences.journalEnabled = false
+        service.preferences.diaryEnabled = false
         continuation.resume()
         await planning.value
         #expect(service.pending.isEmpty && center.values.isEmpty)
@@ -153,7 +153,7 @@ struct NotificationServiceTests {
         #expect(service.pending.isEmpty)
         service.update(isOpen: true, vaultID: "second")
         await service.replanNow()
-        #expect(service.pending.allSatisfy { $0.destination == .journal })
+        #expect(service.pending.allSatisfy { $0.destination == .diary })
     }
 
     /// The plan left by the last launch, or by the vault before it reopened, stays while the vault loads.
@@ -164,9 +164,9 @@ struct NotificationServiceTests {
         let stale = NotificationRequest(
             id: "task-2026-09-01", date: notificationDate("2026-09-01"), title: "old", body: "", destination: .tasks)
         let today = NotificationRequest(
-            id: "journal-2026-09-27", date: notificationDate(hour: 21), title: "old", body: "", destination: .journal)
+            id: "diary-2026-09-27", date: notificationDate(hour: 21), title: "old", body: "", destination: .diary)
         let foreign = NotificationRequest(
-            id: "other-feature", date: notificationDate(), title: "foreign", body: "", destination: .journal)
+            id: "other-feature", date: notificationDate(), title: "foreign", body: "", destination: .diary)
         let launch = [stale.id: stale, today.id: today, foreign.id: foreign]
         center.values = launch
         let service = service(center, defaults: defaults)
@@ -197,14 +197,14 @@ struct NotificationServiceTests {
         defer { defaults.clean() }
         let center = FakeNotificationCenter()
         let foreign = NotificationRequest(
-            id: "other-feature", date: notificationDate(), title: "foreign", body: "", destination: .journal)
+            id: "other-feature", date: notificationDate(), title: "foreign", body: "", destination: .diary)
         center.values = [foreign.id: foreign]
         let service = service(center, defaults: defaults)
         // The first vault is still loading the plan of the last launch when another one opens.
         service.update(isOpen: false, vaultID: "first")
         await service.replanNow()
-        center.values["journal-2026-09-27"] = NotificationRequest(
-            id: "journal-2026-09-27", date: notificationDate(hour: 21), title: "old", body: "", destination: .journal)
+        center.values["diary-2026-09-27"] = NotificationRequest(
+            id: "diary-2026-09-27", date: notificationDate(hour: 21), title: "old", body: "", destination: .diary)
         service.update(isOpen: false, vaultID: "second")
         await service.replanNow()
         #expect(center.values == [foreign.id: foreign] && service.pending.isEmpty)
@@ -249,7 +249,7 @@ struct NotificationServiceTests {
         let defaults = try TestDefaults()
         defer { defaults.clean() }
         let center = FakeNotificationCenter()
-        center.failIDs = ["journal-2026-09-27"]
+        center.failIDs = ["diary-2026-09-27"]
         let service = service(center, defaults: defaults)
         service.update(isOpen: true, vaultID: "sample")
         await service.replanNow()
@@ -281,15 +281,15 @@ struct NotificationServiceTests {
         let service = service(center, defaults: defaults)
         service.activateAutomatically(environment: [:], arguments: [])
         await service.replanNow()
-        center.response?(.journal)
+        center.response?(.diary)
         let first = try #require(service.navigationRequest)
-        center.response?(.journal)
-        #expect(service.navigationRequest?.id != first.id && service.navigationRequest?.destination == .journal)
+        center.response?(.diary)
+        #expect(service.navigationRequest?.id != first.id && service.navigationRequest?.destination == .diary)
         center.response?(.tasks)
         #expect(service.navigationRequest?.destination == .tasks)
         #expect(NotificationDestination.from(identifier: "goals-2026-09-27") == .goals)
         #expect(NotificationDestination.from(identifier: "task-2026-09-27") == .tasks)
-        #expect(NotificationDestination.from(identifier: "journal-2026-09-27") == .journal)
+        #expect(NotificationDestination.from(identifier: "diary-2026-09-27") == .diary)
         #expect(NotificationDestination.from(identifier: "task-2026-13-01") == nil)
         #expect(NotificationDestination.from(identifier: "task-other") == nil)
     }

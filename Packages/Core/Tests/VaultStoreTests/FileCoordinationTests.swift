@@ -8,7 +8,7 @@ import VaultFormat
 
 struct FileCoordinationTests {
     enum Workflow: CaseIterable, Sendable {
-        case edit, createDay, entity, rename, typeSave, typeDelete, goal, journal, link, read
+        case edit, createDay, entity, rename, typeSave, typeDelete, goal, diary, link, read
     }
 
     enum Outcome: CaseIterable, Sendable {
@@ -50,7 +50,7 @@ struct FileCoordinationTests {
         case .entity: operation = .modify(spy.url("people/Ece Yalın (iş).md"))
         case .goal: operation = .modify(spy.url("goals/Su.md"))
         case .typeSave, .typeDelete: operation = .modify(spy.url(".app/types.json"))
-        case .createDay: operation = .modify(spy.url("journal/2026-10-01.md"))
+        case .createDay: operation = .modify(spy.url("diary/2026-10-01.md"))
         case .link: operation = .modify(spy.url(UnlinkedMentionTests.day))
         default: operation = .modify(spy.url(storePath))
         }
@@ -69,7 +69,7 @@ struct FileCoordinationTests {
             case .typeDelete: try await store.deletingEntityType(definition)
             case .goal:
                 _ = try await store.creatingGoal(name: "Su", period: .day, kind: .number, target: 8)
-            case .journal: _ = try await store.appendingJournal(on: storeDate, lines: ["Su"])
+            case .diary: _ = try await store.appendingDiary(on: storeDate, lines: ["Su"])
             case .link:
                 let helper = UnlinkedMentionTests()
                 let entity = try helper.entity(UnlinkedMentionTests.elif, in: vault)
@@ -98,7 +98,7 @@ struct FileCoordinationTests {
             let after = try CoordinationSpy.snapshot(vault.root)
             #expect(spy.changesOutsideBoundaries(before: before, after: after).isEmpty)
             #expect(workflow == .read ? after == before : after != before)
-            if workflow == .edit || workflow == .journal || workflow == .link || workflow == .read {
+            if workflow == .edit || workflow == .diary || workflow == .link || workflow == .read {
                 let target = workflow == .link ? UnlinkedMentionTests.day : storePath
                 #expect(spy.reads.filter { $0.url == spy.url(target) }.map(\.active) == [operation])
             }
@@ -120,7 +120,7 @@ struct FileCoordinationTests {
         defer { vault.remove() }
         let coordinator = DirectFileCoordination()
         let source = vault.root.appendingPathComponent(storePath)
-        let target = vault.root.appendingPathComponent("journal/2026-10-01.md")
+        let target = vault.root.appendingPathComponent("diary/2026-10-01.md")
         let original = try vault.bytes()
         let read = try coordinator.coordinate(.read(source)) { _ in try Data(contentsOf: source) }
         #expect(read == original)
@@ -147,8 +147,8 @@ struct FileCoordinationTests {
         let spy = CoordinationSpy(root: vault.root)
         let first = VaultStore(vaultRoot: vault.root, index: vault.index, fileCoordination: spy)
         let second = VaultStore(vaultRoot: vault.root, index: vault.index, fileCoordination: spy)
-        async let a = first.appendingJournal(on: storeDate, lines: ["Kitap"])
-        async let b = second.appendingJournal(on: storeDate, lines: ["Su"])
+        async let a = first.appendingDiary(on: storeDate, lines: ["Kitap"])
+        async let b = second.appendingDiary(on: storeDate, lines: ["Su"])
         _ = try await (a, b)
         let operation = FileCoordinationOperation.modify(spy.url(storePath))
         #expect(spy.events == [.begin(operation), .end(operation), .begin(operation), .end(operation)])

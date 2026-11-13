@@ -54,7 +54,7 @@ struct UnlinkedMentionTests {
     }
 
     static let elif = "people/Elif.md"
-    static let day = "journal/2026-10-10.md"
+    static let day = "diary/2026-10-10.md"
 
     static func writeCases() throws -> [String] {
         let directory = try Fixtures.root().appendingPathComponent("write")
@@ -133,7 +133,7 @@ struct UnlinkedMentionTests {
         }
         // A name with a searchable word reads only the days that hold it.
         let place = try #require(entities.first { $0.file == "places/İstanbul.md" })
-        #expect(try vault.index.unlinkedMentionDays(naming: place).map(\.path) == ["journal/2026-10-08.md"])
+        #expect(try vault.index.unlinkedMentionDays(naming: place).map(\.path) == ["diary/2026-10-08.md"])
     }
 
     /// Spellings the recognizer accepts must reach it whatever the tokenizer makes of them.
@@ -151,13 +151,13 @@ struct UnlinkedMentionTests {
         ]
         let unrecognized = ["ISTANBUL", "işık", "Ali–Can", "O’Neil", "İstanbullu"]
         for (number, line) in (recognized + unrecognized).enumerated() {
-            try vault.write(String(format: "journal/2026-01-%02d.md", number + 1), "## Events\n- \(line)\n")
+            try vault.write(String(format: "diary/2026-01-%02d.md", number + 1), "## Events\n- \(line)\n")
         }
         try vault.index.rebuild(vaultRoot: vault.root)
         let entities = try vault.index.unlinkedMentionEntities()
         let place = try #require(entities.first)
         let found = try vault.index.unlinkedMentions(of: place, vaultRoot: vault.root)
-        let expected = recognized.indices.map { String(format: "journal/2026-01-%02d.md", $0 + 1) }
+        let expected = recognized.indices.map { String(format: "diary/2026-01-%02d.md", $0 + 1) }
         #expect(found.map(\.file).sorted() == expected)
         #expect(
             try vault.index.unlinkedMentions(
@@ -184,7 +184,7 @@ struct UnlinkedMentionTests {
         let reader = CountingReader()
         let index = try VaultIndex(readFile: reader.read)
         try index.rebuild(vaultRoot: root)
-        let day = "journal/" + manifest.endDate.description + ".md"
+        let day = "diary/" + manifest.endDate.description + ".md"
         let person = "people/Quillon Vexmoor.md"
         let url = root.appendingPathComponent(day)
         var text = String(decoding: try Data(contentsOf: url), as: UTF8.self)
@@ -208,9 +208,9 @@ struct UnlinkedMentionTests {
         let stranger = KnownEntity(file: "people/Yok.md", kind: .person, name: "Elif")
         #expect(try vault.index.unlinkedMentions(of: stranger, vaultRoot: vault.root).isEmpty)
         // A day that vanished after indexing is skipped rather than failing the whole list.
-        try FileManager.default.removeItem(at: vault.root.appendingPathComponent("journal/2026-10-09.md"))
+        try FileManager.default.removeItem(at: vault.root.appendingPathComponent("diary/2026-10-09.md"))
         let remaining = try vault.index.unlinkedMentions(of: entity(Self.elif, in: vault), vaultRoot: vault.root)
-        #expect(Set(remaining.map(\.file)) == ["journal/2026-10-10.md", "journal/2026-10-08.md"])
+        #expect(Set(remaining.map(\.file)) == ["diary/2026-10-10.md", "diary/2026-10-08.md"])
     }
 
     // MARK: - Writer
@@ -402,11 +402,11 @@ struct UnlinkedMentionTests {
         let vault = try setup()
         defer { vault.remove() }
         try vault.write("people/Kod#1.md", "---\ntype: person\nname: Kodcu\n---\n")
-        try vault.write("journal/2026-10-07.md", "## Events\n- Kodcu geldi.\n")
-        try vault.index.update(paths: ["people/Kod#1.md", "journal/2026-10-07.md"], vaultRoot: vault.root)
+        try vault.write("diary/2026-10-07.md", "## Events\n- Kodcu geldi.\n")
+        try vault.index.update(paths: ["people/Kod#1.md", "diary/2026-10-07.md"], vaultRoot: vault.root)
         let coder = try entity("people/Kod#1.md", in: vault)
         #expect(coder.linkTarget == "Kod#1")
-        #expect(try vault.index.unlinkedMentionDays(naming: coder).map(\.path) == ["journal/2026-10-07.md"])
+        #expect(try vault.index.unlinkedMentionDays(naming: coder).map(\.path) == ["diary/2026-10-07.md"])
         #expect(try vault.index.unlinkedMentions(of: coder, vaultRoot: vault.root).isEmpty)
     }
 
@@ -414,7 +414,7 @@ struct UnlinkedMentionTests {
     @Test func digitOnlyNameIsListedOnlyWhereItIsExplicit() async throws {
         let vault = try setup()
         defer { vault.remove() }
-        let day = "journal/2026-10-07.md"
+        let day = "diary/2026-10-07.md"
         let text =
             "## Events\n- 12:30 @12 kişi geldi, 12 kişi kaldı, 34 plakalı araç ^e1\n- 12 Ekim 2026, Otoyol ve @34\n"
             + "## Tasks\n- [ ] 12 kişiyi ara, @12 📅 2026-10-12\n"

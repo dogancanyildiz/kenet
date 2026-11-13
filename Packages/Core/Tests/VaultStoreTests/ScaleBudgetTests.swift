@@ -92,7 +92,7 @@ struct ScaleBudgetTests {
         #expect(sparseReads > 0)
         #expect(denseReads == sparseReads)
 
-        // Doubling journal days roughly doubles files; reads must stay within a linear band.
+        // Doubling diary days roughly doubles files; reads must stay within a linear band.
         var wider = sparse
         wider.days = sparse.days * 2
         let widerReads = try await renameMarkdownReads(configuration: wider)

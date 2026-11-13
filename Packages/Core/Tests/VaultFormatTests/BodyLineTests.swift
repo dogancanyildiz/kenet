@@ -4,7 +4,7 @@ import VaultFormat
 
 struct BodyLineTests {
     @Test func sampleVaultHasDocumentedCounts() throws {
-        let paths = try Fixtures.markdownPaths(in: "vaults/sample/journal")
+        let paths = try Fixtures.markdownPaths(in: "vaults/sample/diary")
         #expect(paths.count == 14)
         var tasks = 0
         var events = 0

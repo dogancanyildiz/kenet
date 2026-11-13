@@ -284,7 +284,7 @@
             preferences.setTime(\.goalTime, from: picked, timeZone: zone)
             #expect(preferences.goalTime == NotificationTime(hour: 6, minute: 45))
             #expect(preferences.taskTime == NotificationTime(hour: 9))
-            #expect(preferences.journalTime == NotificationTime(hour: 21))
+            #expect(preferences.diaryTime == NotificationTime(hour: 21))
             #expect(preferences.peopleTime == NotificationTime(hour: 10))
         }
 
@@ -310,7 +310,7 @@
             Self.stepUp(goal)
             #expect(service.preferences.goalTime == NotificationTime(hour: 21))
             #expect(service.preferences.taskTime == NotificationTime(hour: 9))
-            #expect(service.preferences.journalTime == NotificationTime(hour: 21))
+            #expect(service.preferences.diaryTime == NotificationTime(hour: 21))
 
             let task = try #require(fields["Görev saati"])
             #expect(Array(Self.clock(task.dateValue).suffix(2)) == [9, 0])
@@ -318,10 +318,10 @@
             #expect(service.preferences.taskTime == NotificationTime(hour: 10))
             #expect(service.preferences.goalTime == NotificationTime(hour: 21))
 
-            let journal = try #require(fields["Günlük saati"])
-            #expect(Array(Self.clock(journal.dateValue).suffix(2)) == [21, 0])
-            Self.stepUp(journal)
-            #expect(service.preferences.journalTime == NotificationTime(hour: 22))
+            let diary = try #require(fields["Günlük saati"])
+            #expect(Array(Self.clock(diary.dateValue).suffix(2)) == [21, 0])
+            Self.stepUp(diary)
+            #expect(service.preferences.diaryTime == NotificationTime(hour: 22))
             #expect(service.preferences.taskTime == NotificationTime(hour: 10))
             #expect(service.preferences.goalTime == NotificationTime(hour: 21))
 
@@ -335,7 +335,7 @@
             #expect(service.preferences.peopleTime == NotificationTime(hour: 11))
             #expect(service.preferences.taskTime == NotificationTime(hour: 10))
             #expect(service.preferences.goalTime == NotificationTime(hour: 21))
-            #expect(service.preferences.journalTime == NotificationTime(hour: 22))
+            #expect(service.preferences.diaryTime == NotificationTime(hour: 22))
 
             // A reminder that is switched off cannot be retimed.
             service.preferences.goalsEnabled = false

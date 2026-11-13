@@ -1,4 +1,4 @@
-## Journal
+## Diary
 Gün.
 ## Sonra
 Son.

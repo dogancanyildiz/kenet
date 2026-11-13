@@ -115,10 +115,13 @@ extension VaultIndex {
         try taskEntries(
             """
             (dueDate<? AND status NOT IN ('done','cancelled')) OR dueDate=?
-                OR (file=? AND (dueDate IS NULL OR status NOT IN ('done','cancelled')))
+                OR (file IN (?,?) AND (dueDate IS NULL OR status NOT IN ('done','cancelled')))
                 OR (status='done' AND doneDate=?)
             """,
-            arguments: [day.description, day.description, "journal/\(day).md", day.description],
+            arguments: [
+                day.description, day.description, VaultLayout.dayPath(day), VaultLayout.legacyDayPath(day),
+                day.description,
+            ],
             scope: .all, order: "file,ordinal")
     }
 
@@ -164,7 +167,8 @@ extension VaultIndex {
         var files: [String] = []
         var cursor: CalendarDate? = first
         while let day = cursor, day <= last {
-            files.append("journal/\(day).md")
+            // A day file not yet migrated is still the day's file (`LegacyVaultNames`).
+            files += [VaultLayout.dayPath(day), VaultLayout.legacyDayPath(day)]
             cursor = day.addingDays(1)
         }
         let written = files.isEmpty ? "0" : "file IN (\(files.map { _ in "?" }.joined(separator: ",")))"

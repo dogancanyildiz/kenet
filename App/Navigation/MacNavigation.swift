@@ -276,7 +276,7 @@ struct MacNavigation: View {
                     #endif
                 case .days:
                     if let path = navigation.selectedDay,
-                        let day = CalendarDate(String(path.dropFirst("journal/".count).dropLast(3)))
+                        let day = VaultLayout.day(ofDayPath: path)
                     {
                         DayView(
                             store: store, date: day,
@@ -328,7 +328,7 @@ struct MacNavigation: View {
 
     #if os(macOS)
         private var windowTitle: Text {
-            shellSelection.sidebarEntry?.title ?? Text("Journal")
+            shellSelection.sidebarEntry?.title ?? Text("Kenet")
         }
     #endif
 
@@ -527,7 +527,7 @@ struct MacDaysColumn: View {
                         .listRowInsets(EdgeInsets())
                         .columnTopRow()
                 }
-                DaysCalendarView(store: store) { selection = "journal/\($0).md" }
+                DaysCalendarView(store: store) { selection = VaultLayout.dayPath($0) }
                     .listRowInsets(EdgeInsets())
                     .columnTopRow()
             }
@@ -546,7 +546,7 @@ struct MacDaysColumn: View {
                 if let notice = weeklyReviewNotice {
                     InfoBand(kind: notice.kind, verbatim: notice.text, onDismiss: { weeklyReviewNotice = nil })
                 }
-                DaysCalendarView(store: store) { selection = "journal/\($0).md" }
+                DaysCalendarView(store: store) { selection = VaultLayout.dayPath($0) }
                 MacDayList(days: listedDays, selection: $selection)
             }
         #endif

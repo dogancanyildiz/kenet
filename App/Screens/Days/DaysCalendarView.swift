@@ -21,10 +21,10 @@ struct DaysCalendarView: View {
     /// The last month whose days were queried. Until the asked month's answer arrives it stays on
     /// screen, so the grid never shows a month without its marks; before the first answer the
     /// days are not drawn.
-    @State private var loaded: JournalCalendar?
+    @State private var loaded: DiaryCalendar?
     private var resolvedMonth: CalendarDate { month ?? initialMonth ?? selected ?? LocalDay.today(at: clockNow()) }
-    private var model: JournalCalendar {
-        loaded ?? JournalCalendar(month: resolvedMonth, days: [])
+    private var model: DiaryCalendar {
+        loaded ?? DiaryCalendar(month: resolvedMonth, days: [])
     }
     private var calendar: Calendar {
         var result = Calendar(identifier: .gregorian)
@@ -33,7 +33,7 @@ struct DaysCalendarView: View {
     }
     private var today: CalendarDate { LocalDay.today(at: clockNow()) }
     private var monthRequest: DayRangeRequest {
-        let range = JournalCalendar.range(of: resolvedMonth)
+        let range = DiaryCalendar.range(of: resolvedMonth)
         return DayRangeRequest(from: range.lowerBound, to: range.upperBound, updated: store.lastUpdated)
     }
 
@@ -58,11 +58,11 @@ struct DaysCalendarView: View {
         }
         .task(id: monthRequest) {
             let asked = resolvedMonth
-            let range = JournalCalendar.range(of: asked)
+            let range = DiaryCalendar.range(of: asked)
             if let days = try? await store.computeDaySummaries(from: range.lowerBound, to: range.upperBound) {
                 let fragments = store.content.fragments
                 let enriched = days.map { $0.enriched(with: fragments[$0.id]) }
-                loaded = JournalCalendar(month: asked, days: enriched)
+                loaded = DiaryCalendar(month: asked, days: enriched)
             }
         }
     }
@@ -137,7 +137,7 @@ struct DaysCalendarView: View {
     // arrives moves on instead of asking for the same month again.
     private var previousButton: some View {
         Button {
-            month = JournalCalendar(month: resolvedMonth, days: []).adjacentMonth(-1)
+            month = DiaryCalendar(month: resolvedMonth, days: []).adjacentMonth(-1)
         } label: {
             Label("Önceki ay", systemImage: "chevron.left")
                 .labelStyle(.iconOnly)
@@ -149,7 +149,7 @@ struct DaysCalendarView: View {
 
     private var nextButton: some View {
         Button {
-            month = JournalCalendar(month: resolvedMonth, days: []).adjacentMonth(1)
+            month = DiaryCalendar(month: resolvedMonth, days: []).adjacentMonth(1)
         } label: {
             Label("Sonraki ay", systemImage: "chevron.right")
                 .labelStyle(.iconOnly)

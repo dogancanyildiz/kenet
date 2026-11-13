@@ -18,7 +18,7 @@ struct LinkedTextView: View {
 
     var body: some View {
         InkLinkedText(segments: segments, isMuted: isMuted) { url in
-            guard url.scheme == "journal-entity",
+            guard url.scheme == "kenet-entity",
                 let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
                 let name = components.queryItems?.first(where: { $0.name == "name" })?.value
             else { return }

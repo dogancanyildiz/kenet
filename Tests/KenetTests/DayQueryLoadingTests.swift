@@ -57,7 +57,7 @@
             await context.start()
             let store = context.store
             let day = try #require(CalendarDate("2026-09-20"))
-            let selected = "journal/\(day).md"
+            let selected = "diary/\(day).md"
             let probe = SelectionProbe(selected)
             let gate = DayQueryGate(store: store)
             let column = MacDaysColumn(

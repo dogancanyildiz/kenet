@@ -2,5 +2,5 @@
 ilk
 ## Tasks
 ikinci
-## Journal
+## Diary
 son

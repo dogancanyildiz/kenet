@@ -141,7 +141,7 @@ private struct DayCopyMergeBand: View {
     var body: some View {
         if let report = sync.mergeReport {
             InfoBand(
-                kind: report.failed > 0 ? .warning : .info, verbatim: report.message,
+                kind: report.hasFailures ? .warning : .info, verbatim: report.message,
                 onDismiss: sync.dismissMergeReport
             )
             .background(Color.ink.paper)

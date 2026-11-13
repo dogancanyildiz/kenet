@@ -11,9 +11,9 @@ struct DayCopyFailureTests {
 
         var copy: String {
             switch self {
-            case .merged: "journal/2026-10-01 2.md"
-            case .renamed: "journal/2026-10-03 2.md"
-            case .identical: "journal/2026-10-04 2.md"
+            case .merged: "diary/2026-10-01 2.md"
+            case .renamed: "diary/2026-10-03 2.md"
+            case .identical: "diary/2026-10-04 2.md"
             }
         }
     }
@@ -58,8 +58,8 @@ struct DayCopyFailureTests {
         let vault = try DayCopyVault()
         defer { vault.remove() }
         let copy = Shape.renamed.copy
-        let dayPath = "journal/2026-10-03.md"
-        let appeared = Data("---\ntype: journal\ndate: 2026-10-03\n---\n\n## Events\n- 07:00 Kahvaltı ^e3x001\n".utf8)
+        let dayPath = "diary/2026-10-03.md"
+        let appeared = Data("---\ntype: diary\ndate: 2026-10-03\n---\n\n## Events\n- 07:00 Kahvaltı ^e3x001\n".utf8)
         let spy = DayCopySpy(root: vault.root) { operation in
             if case .move = operation { try appeared.write(to: vault.url(dayPath)) }
         }
@@ -81,7 +81,7 @@ struct DayCopyFailureTests {
         let vault = try DayCopyVault()
         defer { vault.remove() }
         let copy = Shape.merged.copy
-        let dayPath = "journal/2026-10-01.md"
+        let dayPath = "diary/2026-10-01.md"
         let spy = DayCopySpy(root: vault.root) { operation in
             if case .merge = operation { try FileManager.default.removeItem(at: vault.url(dayPath)) }
         }
@@ -108,7 +108,7 @@ struct DayCopyFailureTests {
         let snapshot = try vault.index.snapshot()
         let copy = Shape.merged.copy
         await #expect(throws: failure) { try await store.mergingDayCopy(copy) }
-        let operation = FileCoordinationOperation.merge(source: spy.url(copy), into: spy.url("journal/2026-10-01.md"))
+        let operation = FileCoordinationOperation.merge(source: spy.url(copy), into: spy.url("diary/2026-10-01.md"))
         #expect(spy.events == [.begin(operation)])
         #expect(try vault.tree() == before)
         #expect(try vault.index.snapshot() == snapshot)
@@ -127,7 +127,7 @@ struct DayCopyFailureTests {
         if !hasConflictsFolder { try FileManager.default.removeItem(at: vault.url("conflicts")) }
         let copy: String
         switch fault {
-        case .removeUnchangedDay: copy = "journal/2026-10-05 2.md"
+        case .removeUnchangedDay: copy = "diary/2026-10-05 2.md"
         case .move: copy = Shape.renamed.copy
         default: copy = Shape.merged.copy
         }
@@ -173,7 +173,7 @@ struct DayCopyFailureTests {
         let vault = try DayCopyVault()
         defer { vault.remove() }
         let copy = Shape.merged.copy
-        let dayPath = "journal/2026-10-01.md"
+        let dayPath = "diary/2026-10-01.md"
         let merge = ConflictMerge.merge(try vault.version(dayPath), try vault.version(copy))
         let failing = vault.store(
             removeFile: { url in
@@ -216,12 +216,12 @@ struct DayCopyFailureTests {
         defer { vault.remove() }
         let copy = Shape.merged.copy
         try FileManager.default.removeItem(at: vault.url(copy))
-        try Data("bplist00".utf8).write(to: vault.url("journal/.2026-10-01 2.md.icloud"))
-        try Data("bplist00".utf8).write(to: vault.url("journal/.2026-10-03.md.icloud"))
+        try Data("bplist00".utf8).write(to: vault.url("diary/.2026-10-01 2.md.icloud"))
+        try Data("bplist00".utf8).write(to: vault.url("diary/.2026-10-03.md.icloud"))
         let store = vault.store()
         let before = try vault.tree()
         await #expect(throws: VaultStoreError.awaitingDownload(path: copy)) { try await store.mergingDayCopy(copy) }
-        await #expect(throws: VaultStoreError.awaitingDownload(path: "journal/2026-10-03.md")) {
+        await #expect(throws: VaultStoreError.awaitingDownload(path: "diary/2026-10-03.md")) {
             try await store.mergingDayCopy(Shape.renamed.copy)
         }
         #expect(try vault.tree() == before)
@@ -232,8 +232,8 @@ struct DayCopyFailureTests {
         defer { vault.remove() }
         let store = vault.store()
         await #expect(throws: VaultStoreError.invalidPath) { try await store.mergingDayCopy("notes/2026-10-02 2.md") }
-        await #expect(throws: VaultStoreError.invalidPath) { try await store.mergingDayCopy("journal/2026-10-02.md") }
-        await #expect(throws: VaultStoreError.staleTarget) { try await store.mergingDayCopy("journal/2026-10-09 2.md") }
+        await #expect(throws: VaultStoreError.invalidPath) { try await store.mergingDayCopy("diary/2026-10-02.md") }
+        await #expect(throws: VaultStoreError.staleTarget) { try await store.mergingDayCopy("diary/2026-10-09 2.md") }
         let before = try vault.tree()
         let snapshot = try vault.index.snapshot()
         // A differently spelled `Conflicts/` would be scanned; a linked one leads outside the vault.

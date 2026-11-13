@@ -6,5 +6,5 @@ invalid
 ## Tasks
 yeni
 
-## Journal
+## Diary
 yazı

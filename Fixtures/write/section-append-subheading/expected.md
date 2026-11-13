@@ -1,4 +1,4 @@
-## Journal
+## Diary
 j
 ### Akşam
 not

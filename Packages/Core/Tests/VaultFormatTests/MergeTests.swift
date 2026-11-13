@@ -8,8 +8,8 @@ struct MergeTests {
     }
 
     @Test func theLaterTimeMakesTheNewerVersion() {
-        let early = version("## Journal\nbeta\n", at: 1)
-        let late = version("## Journal\nalpha\n", at: 2)
+        let early = version("## Diary\nbeta\n", at: 1)
+        let late = version("## Diary\nalpha\n", at: 2)
 
         let result = ConflictMerge.merge(early, late)
         #expect(result.bytes == late.bytes)
@@ -18,8 +18,8 @@ struct MergeTests {
     }
 
     @Test func equalTimesFallBackToByteOrder() {
-        let smaller = version("## Journal\nalpha\n", at: 5)
-        let larger = version("## Journal\nbeta\n", at: 5)
+        let smaller = version("## Diary\nalpha\n", at: 5)
+        let larger = version("## Diary\nbeta\n", at: 5)
 
         let result = ConflictMerge.merge(smaller, larger)
         #expect(result.bytes == larger.bytes)
@@ -28,8 +28,8 @@ struct MergeTests {
     }
 
     @Test func identicalBytesNeedNoCopyWhateverTheTimes() {
-        let first = version("## Journal\nalpha\n", at: 5)
-        let second = version("## Journal\nalpha\n", at: 9)
+        let first = version("## Diary\nalpha\n", at: 5)
+        let second = version("## Diary\nalpha\n", at: 9)
 
         #expect(ConflictMerge.merge(first, second) == MergeResult(bytes: first.bytes, preserved: []))
         #expect(ConflictMerge.merge(first, first) == MergeResult(bytes: first.bytes, preserved: []))
@@ -49,34 +49,34 @@ struct MergeTests {
     }
 
     @Test func bothVersionsCanBePreserved() {
-        // The older version closed the task; the newer version changed its text and the journal.
-        let older = version("## Tasks\n- [x] Su ✅ 2026-09-21 ^p1x001\n\n## Journal\nSabah.\n", at: 1)
-        let newer = version("## Tasks\n- [ ] Su iç ^p1x001\n\n## Journal\nAkşam.\n", at: 2)
+        // The older version closed the task; the newer version changed its text and the diary.
+        let older = version("## Tasks\n- [x] Su ✅ 2026-09-21 ^p1x001\n\n## Diary\nSabah.\n", at: 1)
+        let newer = version("## Tasks\n- [ ] Su iç ^p1x001\n\n## Diary\nAkşam.\n", at: 2)
 
         let result = ConflictMerge.merge(older, newer)
-        #expect(result.bytes == Array("## Tasks\n- [x] Su ✅ 2026-09-21 ^p1x001\n\n## Journal\nAkşam.\n".utf8))
+        #expect(result.bytes == Array("## Tasks\n- [x] Su ✅ 2026-09-21 ^p1x001\n\n## Diary\nAkşam.\n".utf8))
         #expect(result.preserved == [older, newer])
     }
 
     @Test func sampleVaultConflictCopyMergesByTheEventRule() throws {
-        let journal = try Fixtures.bytes(at: "vaults/sample/journal/2026-09-20.md")
+        let diary = try Fixtures.bytes(at: "vaults/sample/diary/2026-09-20.md")
         let copyName = try #require(try Fixtures.fileNames(in: "vaults/sample/conflicts").first)
         let copy = try Fixtures.bytes(at: "vaults/sample/conflicts/\(copyName)")
-        #expect(journal != copy)
+        #expect(diary != copy)
 
         // The two files differ in the text of one event; the newer text wins and the other is kept.
-        let journalNewer = ConflictMerge.merge(
-            MergeVersion(bytes: journal, modificationTime: 2), MergeVersion(bytes: copy, modificationTime: 1))
-        #expect(journalNewer.bytes == journal)
-        #expect(journalNewer.preserved == [MergeVersion(bytes: copy, modificationTime: 1)])
+        let diaryNewer = ConflictMerge.merge(
+            MergeVersion(bytes: diary, modificationTime: 2), MergeVersion(bytes: copy, modificationTime: 1))
+        #expect(diaryNewer.bytes == diary)
+        #expect(diaryNewer.preserved == [MergeVersion(bytes: copy, modificationTime: 1)])
 
         let copyNewer = ConflictMerge.merge(
-            MergeVersion(bytes: journal, modificationTime: 1), MergeVersion(bytes: copy, modificationTime: 2))
+            MergeVersion(bytes: diary, modificationTime: 1), MergeVersion(bytes: copy, modificationTime: 2))
         #expect(copyNewer.bytes == copy)
-        #expect(copyNewer.preserved == [MergeVersion(bytes: journal, modificationTime: 1)])
+        #expect(copyNewer.preserved == [MergeVersion(bytes: diary, modificationTime: 1)])
 
-        for result in [journalNewer, copyNewer] {
-            for version in [journal, copy] {
+        for result in [diaryNewer, copyNewer] {
+            for version in [diary, copy] {
                 let isPreserved = result.preserved.contains { $0.bytes == version }
                 #expect(
                     MergeLossCheck.violations(version: version, result: result.bytes, isPreserved: isPreserved) == [])
@@ -86,7 +86,7 @@ struct MergeTests {
 
     @Test func largeFilesMergeInReasonableTime() {
         // Many blocks without identifiers and much free text must not make matching quadratic.
-        var older = "---\ntype: journal\n---\n\n## Tasks\n"
+        var older = "---\ntype: diary\n---\n\n## Tasks\n"
         var newer = older
         for index in 0..<20_000 {
             older += "- [ ] Görev \(index)\n"
@@ -94,8 +94,8 @@ struct MergeTests {
             if index % 7 == 0 { older += "- [ ] Ek \(index)\n" }
             if index % 11 == 0 { newer += "- [ ] Yeni \(index)\n" }
         }
-        older += "\n## Journal\n"
-        newer += "\n## Journal\n"
+        older += "\n## Diary\n"
+        newer += "\n## Diary\n"
         for index in 0..<20_000 {
             older += "Satır \(index)\n"
             newer += "Satır \(index)\n"

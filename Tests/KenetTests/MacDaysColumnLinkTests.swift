@@ -78,7 +78,7 @@
     private struct DaysColumnHarness: View {
         let store: IndexStore
         let openSummaries: () -> Void
-        @State private var selection: String? = "journal/2026-09-25.md"
+        @State private var selection: String? = "diary/2026-09-25.md"
 
         var body: some View {
             MacDaysColumn(store: store, selection: $selection, openSummaries: openSummaries)

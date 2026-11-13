@@ -179,7 +179,7 @@
             #expect(model.entry.text.isEmpty)
             #expect(model.isPresented)
             let day = LocalDay.today()
-            let file = context.root.appendingPathComponent("journal/\(day).md")
+            let file = context.root.appendingPathComponent("diary/\(day).md")
             let data = try Data(contentsOf: file)
             #expect(
                 String(decoding: data, as: UTF8.self).contains("- 13:00 [[Deniz Arıkan|Deniz]] ile [[Liman Ofis]]'te ^")
@@ -216,7 +216,7 @@
             let context = try EntityPageTestContext()
             defer { context.clean() }
             await context.start()
-            let file = context.root.appendingPathComponent("journal/\(LocalDay.today()).md")
+            let file = context.root.appendingPathComponent("diary/\(LocalDay.today()).md")
             let original = Data([0xFF, 0xFE])
             try original.write(to: file)
             let model = QuickEntryWindowModel(store: context.store)

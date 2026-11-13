@@ -71,13 +71,13 @@ struct DefinitionMenuTests {
     }
 
     @Test(arguments: [false, true])
-    func rowDeletionConfirmsCapturedPathAndKeepsJournal(_ goal: Bool) async throws {
+    func rowDeletionConfirmsCapturedPathAndKeepsDiary(_ goal: Bool) async throws {
         let context = try EntityPageTestContext()
         defer { context.clean() }
         await context.start()
         let path = goal ? "goals/Spor.md" : context.path
-        let journal = context.root.appendingPathComponent("journal/2026-09-27.md")
-        let before = try Data(contentsOf: journal)
+        let diary = context.root.appendingPathComponent("diary/2026-09-27.md")
+        let before = try Data(contentsOf: diary)
         let model = DefinitionDeletionModel()
         model.request(path: path)
         model.confirmation.cancel()
@@ -90,7 +90,7 @@ struct DefinitionMenuTests {
         #expect(!FileManager.default.fileExists(atPath: context.root.appendingPathComponent(path).path))
         #expect(context.store.content.entities.allSatisfy { $0.id != path })
         #expect((try await context.store.goalDefinitions()).allSatisfy { $0.id != path })
-        #expect(try Data(contentsOf: journal) == before)
+        #expect(try Data(contentsOf: diary) == before)
         // Another row's delete starts with a new model, including after a successful delete.
         let next = DefinitionDeletionModel()
         let nextPath = goal ? context.path : "goals/Spor.md"

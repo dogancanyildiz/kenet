@@ -5,10 +5,10 @@ import VaultStore
 
 struct StoreRegressionTests {
     @Test(arguments: ["", " \n\t"])
-    func emptyJournalDoesNotCreateOrRewriteFiles(text: String) async throws {
+    func emptyDiaryDoesNotCreateOrRewriteFiles(text: String) async throws {
         let vault = try StoreVault()
         defer { vault.remove() }
-        let missing = try await vault.store.changingJournal(on: storeDate, to: text)
+        let missing = try await vault.store.changingDiary(on: storeDate, to: text)
         #expect(missing.serialized().isEmpty)
         #expect(!FileManager.default.fileExists(atPath: vault.root.appendingPathComponent(storePath).path))
         #expect(try vault.index.files().isEmpty)
@@ -16,7 +16,7 @@ struct StoreRegressionTests {
         let attributes = try FileManager.default.attributesOfItem(
             atPath: vault.root.appendingPathComponent(storePath).path)
         let original = try vault.bytes()
-        try await vault.store.changingJournal(on: storeDate, to: text)
+        try await vault.store.changingDiary(on: storeDate, to: text)
         #expect(try vault.bytes() == original)
         let after = try FileManager.default.attributesOfItem(atPath: vault.root.appendingPathComponent(storePath).path)
         #expect(attributes[.modificationDate] as? Date == after[.modificationDate] as? Date)
@@ -26,12 +26,12 @@ struct StoreRegressionTests {
     @Test func horizontalRuleAndTrailingBlanksArePreserved() async throws {
         let vault = try StoreVault()
         defer { vault.remove() }
-        try vault.write(storePath, "## Journal\nKitap\n\n\t\n## Notes\nSu\n")
-        try await vault.store.changingJournal(on: storeDate, to: "Deniz\n---")
-        #expect(try vault.bytes() == Data("## Journal\nDeniz\n---\n\n\t\n## Notes\nSu\n".utf8))
+        try vault.write(storePath, "## Diary\nKitap\n\n\t\n## Notes\nSu\n")
+        try await vault.store.changingDiary(on: storeDate, to: "Deniz\n---")
+        #expect(try vault.bytes() == Data("## Diary\nDeniz\n---\n\n\t\n## Notes\nSu\n".utf8))
         try vault.check()
-        try await vault.store.changingJournal(on: storeDate, to: "")
-        #expect(try vault.bytes() == Data("## Journal\n\n\t\n## Notes\nSu\n".utf8))
+        try await vault.store.changingDiary(on: storeDate, to: "")
+        #expect(try vault.bytes() == Data("## Diary\n\n\t\n## Notes\nSu\n".utf8))
         try vault.check()
     }
 

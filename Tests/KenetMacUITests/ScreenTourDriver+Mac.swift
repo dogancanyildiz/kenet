@@ -17,7 +17,7 @@ extension ScreenTourDriver {
 
     // MARK: Windows
 
-    /// Launch arguments that make AppKit restore the journal window at the tour's frame on the
+    /// Launch arguments that make AppKit restore the diary window at the tour's frame on the
     /// main display (the argument domain wins over the saved frame and is never written back).
     nonisolated static func windowFrameArguments() -> [String] {
         guard let screen = NSScreen.screens.first else { return [] }
@@ -31,9 +31,9 @@ extension ScreenTourDriver {
         return ["-NSWindow Frame main-AppWindow-1", frame, "-ApplePersistenceIgnoreState", "YES"]
     }
 
-    /// The journal window (SwiftUI names it after the scene; `MainWindowMarker` may rename it).
+    /// The diary window (SwiftUI names it after the scene; `MainWindowMarker` may rename it).
     var mainWindow: XCUIElement {
-        for identifier in ["main-AppWindow-1", "journal-main"] {
+        for identifier in ["main-AppWindow-1", "kenet-main"] {
             let window = app.windows.matching(identifier: identifier).firstMatch
             if window.exists { return window }
         }
@@ -69,7 +69,7 @@ extension ScreenTourDriver {
         throw ScreenTourError("Ayarlar sekmesi açılmadı: \(title) (pencere başlığı: \(window.title))")
     }
 
-    /// Waits for the journal window and reports when it did not come up at the tour's size.
+    /// Waits for the diary window and reports when it did not come up at the tour's size.
     func fitMainWindow() {
         let window = mainWindow
         guard window.waitForExistence(timeout: 30) else { return }

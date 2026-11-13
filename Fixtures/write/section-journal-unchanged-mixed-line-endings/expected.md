@@ -1,3 +1,0 @@
-## Journal
-Kitap
-SuSelin

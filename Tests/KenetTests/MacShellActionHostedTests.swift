@@ -128,7 +128,7 @@
         @MainActor
         private struct Host {
             let mount: HostedLayout.Mount
-            private let releaseJournalMark: @MainActor () -> Void
+            private let releaseKenetMark: @MainActor () -> Void
 
             init<Content: View>(
                 context: TaskTestContext, reader: CommandReader, @ViewBuilder content: () -> Content
@@ -145,7 +145,7 @@
                 .defaultAppStorage(defaults)
                 .environment(\.locale, Locale(identifier: "tr_TR"))
                 mount = HostedLayout.Mount(view, size: CGSize(width: 1280, height: 800), bridgesToolbar: true)
-                releaseJournalMark = await HostedJournalWindow.claim(mount.window)
+                releaseKenetMark = await HostedKenetWindow.claim(mount.window)
                 await mount.settle(rounds: 20)
             }
 
@@ -167,7 +167,7 @@
             }
 
             func close() {
-                releaseJournalMark()
+                releaseKenetMark()
                 mount.close()
             }
         }

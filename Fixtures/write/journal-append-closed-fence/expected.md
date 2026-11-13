@@ -1,6 +1,0 @@
-## Journal
-```
-kod
-```
-
-Yeni

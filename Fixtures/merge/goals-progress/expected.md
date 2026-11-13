@@ -1,5 +1,5 @@
 ---
-type: journal
+type: diary
 date: 2026-09-21
 goals:
   spor: true
@@ -8,5 +8,5 @@ goals:
   yürüyüş: 2
 ---
 
-## Journal
+## Diary
 Sabah koşu.

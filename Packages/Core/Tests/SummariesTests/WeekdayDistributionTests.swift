@@ -60,13 +60,13 @@ struct WeekdayDistributionTests {
         let partial = WeekdayDistribution.Entry(weekday: 5, writtenDays: 3, totalDays: 4, events: 10)
         #expect(partial.id == 5)
         #expect(partial.ratio == 0.75)
-        let journalOnly = WeekdayDistribution.compute(
-            days: [.init(date: CalendarDate("2026-10-04")!, events: 0, hasJournal: true)],
+        let diaryOnly = WeekdayDistribution.compute(
+            days: [.init(date: CalendarDate("2026-10-04")!, events: 0, hasDiary: true)],
             period: .week,
             containing: CalendarDate("2026-10-04")!
         )
-        #expect(journalOnly.leadingWeekday == 6)
-        #expect(journalOnly.writtenDays == 1)
+        #expect(diaryOnly.leadingWeekday == 6)
+        #expect(diaryOnly.writtenDays == 1)
     }
 }
 

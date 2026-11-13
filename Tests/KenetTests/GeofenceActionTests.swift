@@ -11,9 +11,9 @@ struct GeofenceActionTests {
         let context = try GeofenceTestContext()
         defer { context.clean() }
         await context.start()
-        let file = context.vault.root.appendingPathComponent("journal/2026-10-04.md")
+        let file = context.vault.root.appendingPathComponent("diary/2026-10-04.md")
         let original =
-            "---\ntype: journal\ndate: 2026-10-04\ncustom: untouched\ngoals:\n  water: 2 # retain\n---\n\n## Journal\nKeep this text.\n"
+            "---\ntype: diary\ndate: 2026-10-04\ncustom: untouched\ngoals:\n  water: 2 # retain\n---\n\n## Diary\nKeep this text.\n"
         try Data(original.utf8).write(to: file)
         await context.vault.store.refresh()
         await context.settle()
@@ -25,7 +25,7 @@ struct GeofenceActionTests {
         let saved = String(decoding: try context.bytes(), as: UTF8.self)
         #expect(saved.contains("  spor: true"))
         #expect(saved.contains("  water: 2 # retain"))
-        #expect(saved.hasSuffix("## Journal\nKeep this text.\n"))
+        #expect(saved.hasSuffix("## Diary\nKeep this text.\n"))
         let bytes = try context.bytes()
         await context.center.response?(action)
         #expect(try context.bytes() == bytes)
@@ -68,7 +68,7 @@ struct GeofenceActionTests {
             to: GeofenceAction(regionID: first.regionID, vaultID: first.vaultID, day: first.day, mark: false))
         #expect(
             !FileManager.default.fileExists(
-                atPath: context.vault.root.appendingPathComponent("journal/2026-10-04.md").path))
+                atPath: context.vault.root.appendingPathComponent("diary/2026-10-04.md").path))
         let nextDay = GeofenceService(
             location: context.location, center: context.center,
             defaults: context.vault.defaults.defaults, today: { CalendarDate("2026-10-05")! },
@@ -80,7 +80,7 @@ struct GeofenceActionTests {
         await nextDay.respond(to: first)
         #expect(
             !FileManager.default.fileExists(
-                atPath: context.vault.root.appendingPathComponent("journal/2026-10-04.md").path))
+                atPath: context.vault.root.appendingPathComponent("diary/2026-10-04.md").path))
     }
 
     @Test func alreadyMarkedAndOffDoNothing() async throws {
@@ -148,7 +148,7 @@ struct GeofenceActionTests {
         #expect(context.center.notices.isEmpty)
         #expect(
             !FileManager.default.fileExists(
-                atPath: context.vault.root.appendingPathComponent("journal/2026-10-04.md").path))
+                atPath: context.vault.root.appendingPathComponent("diary/2026-10-04.md").path))
     }
 
     @Test func staleVaultAndChangedRegionActionsAreIgnored() async throws {
@@ -164,13 +164,13 @@ struct GeofenceActionTests {
         await context.service.respond(to: action)
         #expect(
             !FileManager.default.fileExists(
-                atPath: context.vault.root.appendingPathComponent("journal/2026-10-04.md").path))
+                atPath: context.vault.root.appendingPathComponent("diary/2026-10-04.md").path))
         let other = context.vault.directory.appendingPathComponent("Other")
         try FileManager.default.createDirectory(at: other, withIntermediateDirectories: true)
         await context.vault.store.select(other)
         await context.service.respond(to: action)
         #expect(context.center.notices.count == 1)
-        #expect(!FileManager.default.fileExists(atPath: other.appendingPathComponent("journal/2026-10-04.md").path))
+        #expect(!FileManager.default.fileExists(atPath: other.appendingPathComponent("diary/2026-10-04.md").path))
     }
 
     @Test func concurrentEntryAndNotificationRetry() async throws {
@@ -208,7 +208,7 @@ struct GeofenceActionTests {
         #expect(context.center.notices.isEmpty)
         #expect(
             !FileManager.default.fileExists(
-                atPath: context.vault.root.appendingPathComponent("journal/2026-10-04.md").path))
+                atPath: context.vault.root.appendingPathComponent("diary/2026-10-04.md").path))
     }
 
     @Test func lockedMarkActionDoesNotWriteAndSurfacesNotice() async throws {
@@ -228,7 +228,7 @@ struct GeofenceActionTests {
         await locked.enter(target.id)
         #expect(context.center.notices.count == 1)
         let action = try #require(context.center.notices.first?.action)
-        let file = context.vault.root.appendingPathComponent("journal/2026-10-04.md")
+        let file = context.vault.root.appendingPathComponent("diary/2026-10-04.md")
         #expect(!FileManager.default.fileExists(atPath: file.path))
         await locked.respond(to: action)
         #expect(!FileManager.default.fileExists(atPath: file.path))

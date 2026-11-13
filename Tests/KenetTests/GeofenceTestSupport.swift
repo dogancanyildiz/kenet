@@ -72,6 +72,6 @@ struct GeofenceTestContext {
     var target: GeofenceTarget { get throws { try #require(service.targets.first { $0.goal.key == "spor" }) } }
     func clean() { vault.clean() }
     func bytes(_ day: String = "2026-10-04") throws -> Data {
-        try Data(contentsOf: vault.root.appendingPathComponent("journal/\(day).md"))
+        try Data(contentsOf: vault.root.appendingPathComponent("diary/\(day).md"))
     }
 }

@@ -13,7 +13,7 @@ struct CreationFallbackTests {
         try await vault.store.addingEvent(on: storeDate, text: "[[Deniz Arıkan]]")
         #expect(
             try vault.bytes()
-                == Data("---\ntype: journal\ndate: 2026-09-27\n---\n\n## Events\n- [[Deniz Arıkan]] ^aaaaaa\n".utf8))
+                == Data("---\ntype: diary\ndate: 2026-09-27\n---\n\n## Events\n- [[Deniz Arıkan]] ^aaaaaa\n".utf8))
         #expect(try vault.index.links(to: path).count == 1)
         try vault.check()
         try expectNoTemporaryFiles(vault.root)
@@ -52,7 +52,7 @@ struct CreationFallbackTests {
         try expectNoTemporaryFiles(vault.root)
     }
 
-    @Test(arguments: ["event", "task", "journal"])
+    @Test(arguments: ["event", "task", "diary"])
     func dayCreationRaceRereadsAndRetainsExternalContent(operation: String) async throws {
         let calls = LinkAttempts()
         let vault = try StoreVault(linkFile: { source, destination in
@@ -68,13 +68,13 @@ struct CreationFallbackTests {
         switch operation {
         case "event": #expect(result.bodyLines.events.map { $0.block.text } == ["Selin", "Kitap"])
         case "task": #expect(result.bodyLines.tasks.map { $0.block.text } == ["Kitap"])
-        default: #expect(try vault.bytes() == Data("## Events\n- Selin ^keepme\n\n## Journal\nKitap\n".utf8))
+        default: #expect(try vault.bytes() == Data("## Events\n- Selin ^keepme\n\n## Diary\nKitap\n".utf8))
         }
         try vault.check()
         try expectNoTemporaryFiles(vault.root)
     }
 
-    @Test(arguments: ["event", "task", "journal"])
+    @Test(arguments: ["event", "task", "diary"])
     func secondDayCreationCollisionIsStaleTarget(operation: String) async throws {
         let calls = LinkAttempts()
         let vault = try StoreVault(linkFile: { _, _ in
@@ -93,7 +93,7 @@ struct CreationFallbackTests {
         switch operation {
         case "event": try await store.addingEvent(on: storeDate, text: "Kitap")
         case "task": try await store.addingTask(on: storeDate, text: "Kitap")
-        default: try await store.changingJournal(on: storeDate, to: "Kitap")
+        default: try await store.changingDiary(on: storeDate, to: "Kitap")
         }
     }
 

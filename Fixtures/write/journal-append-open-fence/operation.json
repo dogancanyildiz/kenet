@@ -1,9 +1,0 @@
-{
-  "sections": {
-    "operation": "append-journal",
-    "lines": [
-      "Yeni"
-    ]
-  },
-  "expectedError": "section-not-writable"
-}

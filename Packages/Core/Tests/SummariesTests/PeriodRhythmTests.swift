@@ -71,10 +71,10 @@ struct PeriodRhythmTests {
     @Test func runningPeriodComparesToTheSameDateAndItsLastDayToTheWholePeriod() {
         let data = SummaryInput(
             days: (1...31).map {
-                .init(date: CalendarDate(year: 2026, month: 3, day: $0)!, events: 1, hasJournal: false)
+                .init(date: CalendarDate(year: 2026, month: 3, day: $0)!, events: 1, hasDiary: false)
             }
                 + (1...30).map {
-                    .init(date: CalendarDate(year: 2026, month: 4, day: $0)!, events: 2, hasJournal: false)
+                    .init(date: CalendarDate(year: 2026, month: 4, day: $0)!, events: 2, hasDiary: false)
                 })
         let running = PeriodSummary.compute(
             period: .month, containing: CalendarDate("2026-04-10")!, data: data, today: CalendarDate("2026-04-10"))
@@ -174,7 +174,7 @@ struct PeriodRhythmTests {
 
     @Test func leapDayYearComparesSixtyDaysWithSixtyOne() {
         let days = (0..<800).compactMap { CalendarDate("2027-06-01")!.addingDays($0) }.map {
-            SummaryInput.Day(date: $0, events: 1, hasJournal: false)
+            SummaryInput.Day(date: $0, events: 1, hasDiary: false)
         }
         let today = CalendarDate("2029-03-01")!
         let summary = PeriodSummary.compute(

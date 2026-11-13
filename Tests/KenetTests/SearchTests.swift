@@ -97,11 +97,11 @@ struct SearchTests {
         }
     }
 
-    @Test func tasksAndJournalParagraphsHaveDayDestinations() async throws {
+    @Test func tasksAndDiaryParagraphsHaveDayDestinations() async throws {
         let context = try EntityPageTestContext()
         defer { context.clean() }
-        try Data("## Tasks\n- [ ] Qunique görev\n\n## Journal\nQunique paragraf\n".utf8)
-            .write(to: context.root.appendingPathComponent("journal/2026-10-01.md"))
+        try Data("## Tasks\n- [ ] Qunique görev\n\n## Diary\nQunique paragraf\n".utf8)
+            .write(to: context.root.appendingPathComponent("diary/2026-10-01.md"))
         await context.start()
         let model = SearchModel(store: context.store, defaults: context.defaults.defaults)
         model.query = "Quni"

@@ -1,6 +1,6 @@
  ## Tasks
   ## Events
-   ## Journal
+   ## Diary
     ## Tasks
 	## Events
 ##No

@@ -6,11 +6,11 @@ public struct SummaryInput: Sendable {
     public struct Day: Sendable {
         public let date: CalendarDate
         public let events: Int
-        public let hasJournal: Bool
-        public init(date: CalendarDate, events: Int, hasJournal: Bool) {
+        public let hasDiary: Bool
+        public init(date: CalendarDate, events: Int, hasDiary: Bool) {
             self.date = date
             self.events = events
-            self.hasJournal = hasJournal
+            self.hasDiary = hasDiary
         }
     }
     public struct Entity: Sendable {

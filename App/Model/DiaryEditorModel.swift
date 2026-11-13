@@ -1,0 +1,106 @@
+import Foundation
+import Observation
+import VaultFormat
+import VaultStore
+
+@MainActor @Observable
+final class DiaryEditorModel {
+    let store: IndexStore
+    let day: CalendarDate
+    let composer: MentionComposer
+    private(set) var originalText = ""
+    private(set) var isLoaded = false
+    private(set) var isSaving = false
+    private(set) var errorText: String?
+    private var root: URL?
+
+    var text: String {
+        get { composer.text }
+        set { composer.text = newValue }
+    }
+
+    init(store: IndexStore, day: CalendarDate) {
+        self.store = store
+        self.day = day
+        self.composer = MentionComposer(store: store)
+        self.composer.resolvesExplicitAmbiguityOnly = true
+    }
+
+    var isDirty: Bool { !text.utf8.elementsEqual(originalText.utf8) }
+    var canSave: Bool {
+        isLoaded && !isSaving && !composer.isCreating && store.canAddEvent && store.vaultURL == root
+    }
+
+    func load() async {
+        guard !isLoaded else { return }
+        let selectedRoot = store.vaultURL
+        do {
+            let document = try await store.dayDocument(for: day)
+            guard store.vaultURL == selectedRoot else { throw VaultStoreError.staleTarget }
+            text = try DiaryRecognition.body(of: document)
+            originalText = text
+            root = selectedRoot
+            isLoaded = true
+            errorText = nil
+        } catch is CancellationError {
+            // The editor left before the file was read; the next one reads it again.
+        } catch { errorText = DayEditError.message(for: error) }
+    }
+
+    /// Returns true for no-op saves and persisted edits, even when indexing fails.
+    @discardableResult
+    func save() async -> Bool {
+        guard canSave else { return false }
+        guard isDirty else {
+            errorText = nil
+            composer.awaitingResolution = false
+            return true
+        }
+        // Explicit @ ambiguity/unknown on changed lines only; bare names stay plain.
+        composer.resolutionLines = DiaryRecognition.changedLineIndices(in: text, from: originalText)
+        guard composer.beginResolution() else { return false }
+        composer.awaitingResolution = false
+        let draft = text
+        isSaving = true
+        errorText = nil
+        defer { isSaving = false }
+        var linked = draft
+        do {
+            let document = try await store.dayDocument(for: day)
+            guard store.vaultURL == root,
+                try DiaryRecognition.body(of: document).utf8.elementsEqual(originalText.utf8)
+            else {
+                await store.refresh()
+                throw VaultStoreError.staleTarget
+            }
+            linked = try DiaryRecognition.linkingChanges(
+                in: draft, from: originalText, entities: store.knownEntities,
+                context: composer.pins.map(\.entity), choices: composer.choices)
+            linked = composer.removingUnbound(from: linked)
+            // Checked again in the write's turn: a merge queued meanwhile must not be overwritten.
+            try await store.changeDiary(on: day, to: linked, base: originalText)
+            await acceptSaved(draft: draft, linked: linked)
+            return true
+        } catch VaultStoreError.indexUpdateFailed {
+            await acceptSaved(draft: draft, linked: linked)
+            errorText = DayEditError.message(
+                for: VaultStoreError.indexUpdateFailed(
+                    path: VaultLayout.dayPath(day), underlying: CocoaError(.fileReadUnknown)))
+            return true
+        } catch {
+            errorText = DayEditError.message(for: error)
+            return false
+        }
+    }
+
+    private func acceptSaved(draft: String, linked: String) async {
+        var saved = linked
+        if store.vaultURL == root, let document = try? await store.dayDocument(for: day),
+            let body = try? DiaryRecognition.body(of: document)
+        {
+            saved = body
+        }
+        originalText = saved
+        if text.utf8.elementsEqual(draft.utf8) { text = saved }
+    }
+}

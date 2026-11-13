@@ -167,10 +167,10 @@
             ]
             for (date, events) in days {
                 let body =
-                    "---\ntype: journal\ndate: \(date)\n---\n\n## Tasks\n\n## Events\n"
-                    + events.joined(separator: "\n") + "\n\n## Journal\n"
+                    "---\ntype: diary\ndate: \(date)\n---\n\n## Tasks\n\n## Events\n"
+                    + events.joined(separator: "\n") + "\n\n## Diary\n"
                 try body.write(
-                    to: root.appendingPathComponent("journal/\(date).md"), atomically: true,
+                    to: root.appendingPathComponent("diary/\(date).md"), atomically: true,
                     encoding: .utf8)
             }
         }
@@ -187,7 +187,7 @@
             personText += "\n[[2026-09-20]] görüşmesi yapıldı.\n"
             try personText.write(to: person, atomically: true, encoding: .utf8)
 
-            let otherDay = root.appendingPathComponent("journal/2026-09-19.md")
+            let otherDay = root.appendingPathComponent("diary/2026-09-19.md")
             var otherDayText = try String(contentsOf: otherDay, encoding: .utf8)
             let event = "- 18:00 Yarın için [[2026-09-20]] notu bırakıldı\n"
             if let range = otherDayText.range(of: "## Events\n") {
@@ -199,9 +199,9 @@
         }
 
         private static func stripOpenTasksDueBeforeSnapshotDay(in root: URL) throws {
-            let journal = root.appendingPathComponent("journal")
+            let diary = root.appendingPathComponent("diary")
             let files = try FileManager.default.contentsOfDirectory(
-                at: journal, includingPropertiesForKeys: nil)
+                at: diary, includingPropertiesForKeys: nil)
             let openTask = try NSRegularExpression(
                 pattern: #"^- \[[ /]\] .*(?:📅|🛫) 2026-09-(0[1-9]|1[0-9])\b.*$"#,
                 options: .anchorsMatchLines)

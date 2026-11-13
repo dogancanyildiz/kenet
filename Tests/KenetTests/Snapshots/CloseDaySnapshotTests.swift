@@ -12,7 +12,7 @@
     struct CloseDaySnapshotTests {
         @Test func tasksLight() async throws { try await run(.tasks, "tasksLight") }
         @Test func goalsLight() async throws { try await run(.goals, "goalsLight") }
-        @Test func journalLight() async throws { try await run(.journal, "journalLight") }
+        @Test func diaryLight() async throws { try await run(.diary, "diaryLight") }
 
         private func run(
             _ step: CloseDayStep, _ name: String, scheme: SnapshotColorScheme = .light,
@@ -30,7 +30,7 @@
             let strip = GoalDayModel(store: store, day: day)
             await strip.load()
             #expect(probe.step == step)
-            #expect(step == .journal ? probe.steps == [.tasks, .goals, .journal] : !probe.steps.isEmpty)
+            #expect(step == .diary ? probe.steps == [.tasks, .goals, .diary] : !probe.steps.isEmpty)
             // Goal rows are drawn disabled until the day's history is read.
             let ready = CloseDayReadyBox()
             await SnapshotHost.assertView(
@@ -74,8 +74,8 @@
     struct CloseDayMacSnapshotTests {
         @Test func tasksMacLight() async throws { try await run(.tasks, "tasksMacLight", scheme: .light) }
         @Test func goalsMacDark() async throws { try await run(.goals, "goalsMacDark", scheme: .dark) }
-        @Test func journalMacLight() async throws { try await run(.journal, "journalMacLight", scheme: .light) }
-        @Test func journalMacDark() async throws { try await run(.journal, "journalMacDark", scheme: .dark) }
+        @Test func diaryMacLight() async throws { try await run(.diary, "diaryMacLight", scheme: .light) }
+        @Test func diaryMacDark() async throws { try await run(.diary, "diaryMacDark", scheme: .dark) }
 
         private func run(_ step: CloseDayStep, _ name: String, scheme: ColorScheme) async throws {
             let context = try TaskTestContext(sample: true)

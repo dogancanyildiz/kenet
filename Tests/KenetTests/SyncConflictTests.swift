@@ -95,8 +95,8 @@ struct SyncConflictTests {
     /// Versions for the day file, a day copy and a note, given oldest first.
     private static func source() -> FakeConflictVersionSource {
         FakeConflictVersionSource([
-            "journal/2026-10-02.md": [unknown, mac, phone],
-            "journal/2026-10-02 2.md": [mac],
+            "diary/2026-10-02.md": [unknown, mac, phone],
+            "diary/2026-10-02 2.md": [mac],
             "2026-10-02 (conflict 20261002T110533Z).md": [phone, mac],
         ])
     }
@@ -122,7 +122,7 @@ struct SyncConflictTests {
         let source = Self.source()
         let context = try ConflictVaultTestContext(folder: Self.iCloud, source: source)
         defer { context.clean() }
-        try Data("- Kopya\n".utf8).write(to: context.root.appendingPathComponent("journal/2026-10-02 2.md"))
+        try Data("- Kopya\n".utf8).write(to: context.root.appendingPathComponent("diary/2026-10-02 2.md"))
         #expect(try await context.store.computeConflictedFiles().isEmpty)
         await context.start()
         #expect(context.store.syncedFolder == .iCloudDrive)
@@ -133,12 +133,12 @@ struct SyncConflictTests {
         #expect(
             listed == [
                 ConflictedFile(path: "2026-10-02 (conflict 20261002T110533Z).md", versions: [Self.phone, Self.mac]),
-                ConflictedFile(path: "journal/2026-10-02 2.md", versions: [Self.mac]),
-                ConflictedFile(path: "journal/2026-10-02.md", versions: [Self.phone, Self.mac, Self.unknown]),
+                ConflictedFile(path: "diary/2026-10-02 2.md", versions: [Self.mac]),
+                ConflictedFile(path: "diary/2026-10-02.md", versions: [Self.phone, Self.mac, Self.unknown]),
             ])
         #expect(
             source.asked.sorted() == [
-                "2026-10-02 (conflict 20261002T110533Z).md", "journal/2026-10-02 2.md", "journal/2026-10-02.md",
+                "2026-10-02 (conflict 20261002T110533Z).md", "diary/2026-10-02 2.md", "diary/2026-10-02.md",
             ])
         #expect(try context.files() == before)
     }
@@ -161,11 +161,11 @@ struct SyncConflictTests {
     @Test func emptySectionsDrawNothing() {
         #expect(Self.size(ConflictedFilesSection(files: [])).height == 0)
         #expect(Self.size(ConflictCopiesSection(copies: [])).height == 0)
-        let file = ConflictedFile(path: "journal/2026-10-02.md", versions: [Self.phone, Self.mac])
+        let file = ConflictedFile(path: "diary/2026-10-02.md", versions: [Self.phone, Self.mac])
         #expect(Self.size(ConflictedFilesSection(files: [file])).height > 0)
         let copy = CopyFile(
             folder: "conflicts", copy: "conflicts/2026-10-02 (conflict 20261002T110533Z).md",
-            original: "journal/2026-10-02.md")
+            original: "diary/2026-10-02.md")
         #expect(Self.size(ConflictCopiesSection(copies: [copy])).height > 0)
     }
 

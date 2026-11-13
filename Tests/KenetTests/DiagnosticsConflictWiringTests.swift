@@ -15,7 +15,7 @@
 
         @Test func pageShowsConflictedFilesAndConflictCopies() async throws {
             let source = FakeConflictVersionSource([
-                "journal/2026-10-02.md": [
+                "diary/2026-10-02.md": [
                     ConflictVersion(modificationTime: 1_790_939_133, deviceName: "Ada'nın Mac'i"),
                     ConflictVersion(modificationTime: 1_790_950_800, deviceName: "Ece'nin iPhone'u"),
                 ]

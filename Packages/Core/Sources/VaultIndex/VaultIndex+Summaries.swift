@@ -13,8 +13,8 @@ extension VaultIndex {
                 db,
                 sql: """
                     SELECT f.date, SUM(CASE WHEN b.kind='event' THEN 1 ELSE 0 END) AS events,
-                        MAX(CASE WHEN b.section='Journal' AND b.kind IN ('paragraph','heading')
-                            AND trim(b.text)<>'' THEN 1 ELSE 0 END) AS hasJournal
+                        MAX(CASE WHEN b.section='Diary' AND b.kind IN ('paragraph','heading')
+                            AND trim(b.text)<>'' THEN 1 ELSE 0 END) AS hasDiary
                     FROM files f LEFT JOIN blocks b ON b.file=f.path
                     WHERE f.kind='day' AND f.readable=1 AND f.date BETWEEN ? AND ?
                     GROUP BY f.date ORDER BY f.date
@@ -22,7 +22,7 @@ extension VaultIndex {
             let days = dayRows.compactMap { row -> SummaryInput.Day? in
                 let source: String = row["date"]
                 guard let date = CalendarDate(source) else { return nil }
-                return .init(date: date, events: row["events"], hasJournal: (row["hasJournal"] as Int) != 0)
+                return .init(date: date, events: row["events"], hasDiary: (row["hasDiary"] as Int) != 0)
             }
             let entityRows = try Row.fetchAll(
                 db,

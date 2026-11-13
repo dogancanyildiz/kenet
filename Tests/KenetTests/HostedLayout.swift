@@ -47,12 +47,12 @@
         }
     }
 
-    /// The app finds the journal window by `MainWindowMarker.identifier`, and the test process
+    /// The app finds the diary window by `MainWindowMarker.identifier`, and the test process
     /// already owns one (the host app's). A hosted shell takes the mark for the length of a test,
     /// so the app's own lookup (`MacSidebarFocus.sidebarWindow`) lands on the hosted window.
     /// The mark is process-wide and suites run side by side: one holder at a time, others wait.
     @MainActor
-    enum HostedJournalWindow {
+    enum HostedKenetWindow {
         private static var isHeld = false
         private static var waiting: [CheckedContinuation<Void, Never>] = []
 
@@ -64,7 +64,7 @@
             isHeld = true
             let mark = MainWindowMarker.identifier
             let others = NSApp.windows.filter { $0 !== window && $0.identifier == mark }
-            for other in others { other.identifier = NSUserInterfaceItemIdentifier("journal-main-held") }
+            for other in others { other.identifier = NSUserInterfaceItemIdentifier("kenet-main-held") }
             let previous = window.identifier
             window.identifier = mark
             return {

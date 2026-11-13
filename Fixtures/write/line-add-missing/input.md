@@ -1,2 +1,2 @@
-## Journal
+## Diary
 Su

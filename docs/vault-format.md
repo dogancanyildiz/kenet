@@ -36,6 +36,7 @@ mindmap
       Serbest notlar
       Ayarlar
       Varlık tipleri
+      Eski adlar ve geçiş
     Eşitleme çakışması
       Gün kopyası
       Birleştirme işlevi
@@ -129,11 +130,11 @@ flowchart TD
 | Sembolik bağlantı | Değiştirmez. Raporlar. |
 | Kullanıcı Atla der | Yalnız indeksler. `.obsidian/` klasörünü ve diğer dosyaları korur. |
 | Kökte ya da `daily/` altında aynı tarih adlı dosya | Raporda yalnız bilgi olarak gösterir. Dosyayı taşımaz. Farklı yol için gün kimliği kuralını değiştirmez. |
-| Yalnız harfi farklı standart klasör: `Journal/`, `People/` | Hazırlama raporunda bildirir. Eksik klasör olarak oluşturmaz. Klasörü yeniden adlandırmaz. |
+| Yalnız harfi farklı standart klasör: `Diary/`, `People/` | Hazırlama raporunda bildirir. Eksik klasör olarak oluşturmaz. Klasörü yeniden adlandırmaz. |
 | Format sürümü | Hazırlama format sürümünü yükseltmez. Var olan vault.json dosyasını yeniden yazmaz. |
 | Desteklenmeyen ya da okunamayan sürüm dosyası | Hazırlama yazısı sunmaz. |
 
-`journal/YYYY-MM-DD.md` tanınan gün yoludur. Kökteki ya da `daily/` altındaki tarih adlı dosyaları kullanıcı isterse Obsidian'da kendisi düzenler. Standart klasör adları (`journal`, `people`, `places`, `goals`, `notes`, `templates`) bayt düzeyinde tam yazım ister. Yalnız harfi farklı bir klasör varsa uygulama yalnız o klasörü hedefleyen yazmayı reddeder. Örnek: `Journal/` varken uygulama `journal/…` yazmaz; `People/` varken gün olayı yazar ama `people/` altına yeni kişi oluşturmaz. Uygulama var olan dosyayı kendi gerçek yolunda düzenler; klasörü doğru ada kullanıcı çevirir.
+`diary/YYYY-MM-DD.md` tanınan gün yoludur. Kökteki ya da `daily/` altındaki tarih adlı dosyaları kullanıcı isterse Obsidian'da kendisi düzenler. Standart klasör adları (`diary`, `people`, `places`, `goals`, `notes`, `templates`) bayt düzeyinde tam yazım ister. Yalnız harfi farklı bir klasör varsa uygulama yalnız o klasörü hedefleyen yazmayı reddeder. Örnek: `Diary/` varken uygulama `diary/…` yazmaz; `People/` varken gün olayı yazar ama `people/` altına yeni kişi oluşturmaz. Uygulama var olan dosyayı kendi gerçek yolunda düzenler; klasörü doğru ada kullanıcı çevirir.
 
 ## Klasör yapısı
 
@@ -141,7 +142,7 @@ flowchart TD
 
 ```
 Vault/
-  journal/       Gün dosyaları (YYYY-MM-DD.md)
+  diary/         Gün dosyaları (YYYY-MM-DD.md)
   people/        Kişi dosyaları
   places/        Konum dosyaları
   goals/         Hedef tanımları
@@ -165,7 +166,7 @@ flowchart TD
   P -- Evet --> P1["Yalnız adını tanır"]
   P -- Hayır --> D{"Uzantı .md mi?"}
   D -- Hayır --> D1["Yok sayar; korur"]
-  D -- Evet --> E{"journal/ altında ve adı geçerli bir tarih mi?"}
+  D -- Evet --> E{"diary/ altında ve adı geçerli bir tarih mi?"}
   E -- "Evet: YYYY-MM-DD.md" --> E1["Gün dosyası"]
   E -- "Evet: YYYY-MM-DD N.md" --> E2["Gün kopyası; indekslemez"]
   E -- Hayır --> F{"Tanınan bir type değeri var mı?"}
@@ -174,7 +175,7 @@ flowchart TD
 ```
 
 - Bir dosyanın türünü klasör değil frontmatter'daki `type` belirler. Klasörler yalnız uygulamanın yeni dosyayı nereye koyacağını söyler. Tek istisna gün dosyalarıdır: gün dosyasının kimliği yoludur. Ayrıntı: [Gün dosyası](#gün-dosyası).
-- Standart klasör adları ağaçtaki yazımla birebir aynıdır: `journal/`, `Journal/` değil. Uygulama yalnız harfi farklı klasördeki dosyayı gün dosyası saymaz. Uygulama böyle klasörü hazırlamada bildirir ve yalnız o klasörü hedefleyen yazmayı reddeder. Ayrıntı: [Var olan kasayı açma ve hazırlama](#var-olan-kasayı-açma-ve-hazırlama).
+- Standart klasör adları ağaçtaki yazımla birebir aynıdır: `diary/`, `Diary/` değil. Uygulama yalnız harfi farklı klasördeki dosyayı gün dosyası saymaz. Uygulama böyle klasörü hazırlamada bildirir ve yalnız o klasörü hedefleyen yazmayı reddeder. Ayrıntı: [Var olan kasayı açma ve hazırlama](#var-olan-kasayı-açma-ve-hazırlama).
 - `type` alanı olmayan ya da tanınmayan bir `type` taşıyan dosya düz nottur.
 - Uygulama yalnız `.md` uzantılı dosyaları okur. Uygulama diğer dosyaları yok sayar ve korur. Örnek: görsel, PDF.
 - Uygulama şu klasörleri taramaz: adı nokta ile başlayan klasörler (`.app/`, `.obsidian/`, `.trash/`), kökteki `templates/` ve `conflicts/`. Uygulama bu klasörlerdeki dosyaları varlık saymaz ve indekslemez.
@@ -291,7 +292,7 @@ erDiagram
     list types "özel tip tanımları"
   }
   GUN_DOSYASI {
-    string type "journal"
+    string type "diary"
     date date "dosya adıyla çelişirse dosya adı geçerli"
     map goals "hedef key alanı ve gün değeri"
   }
@@ -342,7 +343,7 @@ erDiagram
 
 | `type` değeri | Yeni dosyanın klasörü | Yol örneği | Ayrıntı |
 |---|---|---|---|
-| `journal` | `journal/` | `journal/2026-10-02.md` | [Gün dosyası](#gün-dosyası) |
+| `diary` | `diary/` | `diary/2026-10-02.md` | [Gün dosyası](#gün-dosyası) |
 | `person` | `people/` | `people/Ahmet Yılmaz.md` | [Kişi dosyası](#kişi-dosyası) |
 | `place` | `places/` | `places/Kadıköy Ofis.md` | [Konum dosyası](#konum-dosyası) |
 | `goal` | `goals/` | `goals/Spor.md` | [Hedef dosyası](#hedef-dosyası) |
@@ -765,11 +766,11 @@ tanışma: Üniversite                                # bağ değil: bağlantı 
 
 ## Gün dosyası
 
-Yol: `journal/2026-10-02.md`
+Yol: `diary/2026-10-02.md`
 
 ```markdown
 ---
-type: journal
+type: diary
 date: 2026-10-02
 goals:
   spor: true
@@ -784,7 +785,7 @@ goals:
 - 14:30 [[Ahmet Yılmaz|Ahmet]] ile [[Kadıköy Ofis]]'te teklifi konuştuk ^a1b2c3
 - [[Elif]] ile yemek ^d4e5f6
 
-## Journal
+## Diary
 Bugün genel olarak verimli geçti...
 ```
 
@@ -796,9 +797,71 @@ Bugün genel olarak verimli geçti...
 | `goals` | Hedef gün kayıtları | Anahtar, hedef dosyasının `key` alanıdır. Değer evet/hayır hedefinde `true`, sayısal hedefte sayıdır. |
 | `## Tasks` | O gün oluşturulan görevler | Görev, bitiş tarihi ne olursa olsun oluşturulduğu günün dosyasında kalır. Uygulama yeni görevi bölümün sonuna ekler. |
 | `## Events` | Olaylar | Hızlı giriş ve widget buraya satır ekler. |
-| `## Journal` | Serbest yazı | Kullanıcı uygulamada yazarken uygulama tanınan varlık adlarını bağlantıya çevirir. Uygulama başka değişiklik yapmaz. |
+| `## Diary` | Serbest yazı | Kullanıcı uygulamada yazarken uygulama tanınan varlık adlarını bağlantıya çevirir. Uygulama başka değişiklik yapmaz. |
 
-Gün dosyasının kimliği yoludur. `journal/` altında adı geçerli bir tarih olan dosya o günün dosyasıdır: `YYYY-MM-DD.md`. Frontmatter'ı olmayan dosya da o günün dosyasıdır; örneğin kullanıcı dosyayı Obsidian'da açtıysa. Bir günün tek dosyası vardır.
+Gün dosyasının kimliği yoludur. `diary/` altında adı geçerli bir tarih olan dosya o günün dosyasıdır: `YYYY-MM-DD.md`. Frontmatter'ı olmayan dosya da o günün dosyasıdır; örneğin kullanıcı dosyayı Obsidian'da açtıysa. Bir günün tek dosyası vardır. 2026-11-13 öncesinin adları için: [Eski adlar ve geçiş](#eski-adlar-ve-geçiş).
+
+### Eski adlar ve geçiş
+
+**Değişiklik kaydı: 2026-11-13'te değişen 3 ad.**
+
+| Ad | Önceki değer | Yeni değer | Okuma | Yazma |
+|---|---|---|---|---|
+| Gün klasörü | `journal/` | `diary/` | İki klasördeki gün dosyası da gündür. | Yalnız `diary/` |
+| Serbest yazı başlığı | `## Journal` | `## Diary` | İki başlık da serbest yazı bölümünü açar. | Yalnız `## Diary` |
+| Gün dosyasının `type` değeri | `journal` | `diary` | İki değer de ayrılmıştır. Gün kimliği yine yoldur. | Yalnız `diary` |
+
+Uygulama eski adları kasa geçişi bitene kadar okur. Başka cihazdaki eski sürüm de eski adlarla yazmayı sürdürebilir. Geri alma: bu 3 adı eski değerine döndüren sürüm ve ters yönde aynı geçiş.
+
+**Okuma kuralları.**
+
+| Durum | Kural |
+|---|---|
+| Aynı gün iki klasörde | `diary/` altındaki dosya günün dosyasıdır. Eski klasördeki dosya geçişte gün kopyası olur. |
+| Eski klasördeki gün kopyası | `journal/YYYY-MM-DD N.md` indekse girmez ve birleştirilmez. Geçiş onu `diary/` altına taşır. |
+| İki başlık aynı dosyada | Önce gelen tanınan başlıktır. Yinelenen başlık kuralı geçerlidir. |
+| Birleştirme | Eski başlık bölge eşleşmesinde `## Diary` sayılır. |
+| Yalnız harfi farklı eski klasör | `Journal/` gün klasörü değildir. Geçişe girmez. |
+
+**Geçiş: uygulama eski klasörü her yenilemeden sonra `diary/` altına taşır.**
+
+```mermaid
+flowchart TD
+  A["Yenileme biter; kasa yazılabilir"] --> B{"Kökte tam yazımla journal/ var mı?"}
+  B -- Hayır --> Z["Geçiş yok"]
+  B -- Evet --> C{"Klasörün listesi son geçişten beri değişti mi?"}
+  C -- Hayır --> Z
+  C -- Evet --> D["Önce gün dosyaları ad sırasıyla, sonra gün kopyaları birleştirme sırasıyla"]
+  D --> E{"Kaynak indirilmiş mi?"}
+  E -- Hayır --> E1["Atlar; sonraki geçiş yeniden dener"]
+  E -- Evet --> F["Çevrilmiş baytlar: başlığın adı ve type değeri yeni ad"]
+  F --> G{"diary/ altında aynı ad var mı?"}
+  G -- Hayır --> H["Dosyayı o ada yazar; kaynağın zamanını verir; kaynağı siler"]
+  G -- "Evet, baytlar çevrilmiş baytlarla aynı" --> I["Yarım kalmış geçiş: yalnız kaynağı siler"]
+  G -- "Evet, baytlar farklı" --> J["İlk boş gün kopyası adına yazar: YYYY-MM-DD N.md"]
+  J --> H2["Kaynağı siler; gün kopyası birleştirmesi ya da Tanılama onu ele alır"]
+  H --> K{"journal/ boş mu?"}
+  I --> K
+  H2 --> K
+  K -- Evet --> L["Klasörü siler"]
+  K -- Hayır --> M["Klasörü bırakır"]
+```
+
+| Konu | Kural |
+|---|---|
+| Kapsam | Yalnız `journal/` klasörünün hemen altındaki gün dosyaları ve gün kopyaları. Notlar, alt klasörler ve öteki adlar yerinde kalır. |
+| Değişen baytlar | Tanınan başlık `## Journal` ise yalnız ad `Diary` olur. Sondaki boşluklar ve satır sonu kalır. |
+| `type` alanı | Okunabilen frontmatter'daki `type: journal` değeri tek alan kuralıyla `diary` olur. |
+| Değişmeyen dosya | UTF-8 olarak çözülemeyen dosya ve eski adı olmayan dosya bayt bayt taşınır. |
+| Değişiklik zamanı | Yeni dosya kaynağın değişiklik zamanını alır. Gün kopyası birleştirmesi bu zamanı karşılaştırır. |
+| Var olan hedef | Uygulama var olan dosyanın üzerine yazmaz. Yer tutucusu olan ad da dolu sayılır. |
+| Koordinasyon | Boş hedef tek `.move(kaynak → hedef)` sınırıdır. Hazır hedef tek `.merge(kaynak → hedef)` sınırıdır. Klasör silme tek silme sınırıdır. |
+| Hata | Hata o dosyayı eski klasörde bırakır. Öteki dosyalar sürer. Uygulama sayıyı ana ekranın bandında gösterir. |
+| Yalnız harfi farklı yeni klasör | `Diary/` varsa geçiş hiçbir dosyayı taşımaz. Uygulama bandda bildirir. |
+| Bağlantılar | Uygulama gün dosyasına bağlantı yazmaz. Adla yazılan `[[2026-10-02]]` taşımadan sonra da aynı günü bulur. Yol taşıyan `[[journal/…]]` bağlantısına uygulama dokunmaz. |
+| Format sürümü | `formatVersion` değişmez. Eski adlar okunduğu için eski kasa açılır. |
+
+Uygulama eski klasörün listesini her geçişten sonra saklar. Aynı liste yeni geçiş başlatmaz; başka cihazın eklediği dosya listeyi değiştirir. Kasa yeniden açılınca saklanan liste silinir.
 
 ### Hedef gün kayıtları
 
@@ -810,7 +873,7 @@ Gün dosyasının kimliği yoludur. `journal/` altında adı geçerli bir tarih 
 | `0` ya da yokluk | İlerleme sağlamaz. |
 
 - Kaldırma ilgili anahtarı siler; uygulama `false` yazmaz.
-- Gün dosyası yoksa kaldırma hiçbir şey yazmaz. Değer yazarken uygulama gün dosyasını `type: journal` ve `date` ile oluşturur.
+- Gün dosyası yoksa kaldırma hiçbir şey yazmaz. Değer yazarken uygulama gün dosyasını `type: diary` ve `date` ile oluşturur.
 - Yalnız hedef eşlem kaydı değişir. Komşu değerler, yorumlar ve gövde baytları aynı kalır.
 - Aynı anlamdaki değeri yazmak hiçbir şey değiştirmez.
 - Eksik `goals` alanını ya da değersiz `goals:` alanını uygulama eşlem olarak açar.
@@ -827,7 +890,7 @@ Gün dosyasının kimliği yoludur. `journal/` altında adı geçerli bir tarih 
 | Öğe | Tanım |
 |---|---|
 | Başlık satırı | Satır başında en çok 3 boşluktan sonra 1 ile 6 arası `#` ve ardından boşluk, sekme ya da satır sonu. Altı çizili başlıkları uygulama tanımaz. |
-| Tanınan bölüm başlığı | Tam olarak `## Tasks`, `## Events` ya da `## Journal` satırı. `##` ile ad arasında tek boşluk bulunur. Uygulama sondaki boşlukları yok sayar. |
+| Tanınan bölüm başlığı | Tam olarak `## Tasks`, `## Events` ya da `## Diary` satırı. `##` ile ad arasında tek boşluk bulunur. Uygulama sondaki boşlukları yok sayar. |
 | Bölüm sınırı | Bölüm, aynı ya da daha üst düzeydeki bir sonraki başlığa kadar sürer. |
 | Yinelenen başlık | Aynı başlık birden çok geçerse ilki geçerlidir. |
 | Tanınmayan başlık ve ilk başlıktan önceki içerik | Uygulama korur ve düz metin olarak gösterir. |
@@ -840,7 +903,7 @@ Gün dosyasının kimliği yoludur. `journal/` altında adı geçerli bir tarih 
 | Kural | Ayrıntı |
 |---|---|
 | Açılma zamanı | Uygulama bölümü ilk gerektiğinde açar. Uygulama boş bölüm yazmaz. İçi sonradan boşalan bölümün başlığını uygulama silmez. |
-| Sıra | Tasks, Events, Journal. Uygulama yeni bölümü bu sırada kendinden sonra gelen ilk mevcut bölümün önüne açar. Öyle bir bölüm yoksa dosyanın sonuna açar. |
+| Sıra | Tasks, Events, Diary. Uygulama yeni bölümü bu sırada kendinden sonra gelen ilk mevcut bölümün önüne açar. Öyle bir bölüm yoksa dosyanın sonuna açar. |
 | Önceki boş satır | Uygulama yeni bölümden önce 1 boş satır bırakır. Bölüm frontmatter'dan hemen sonra açılıyorsa da bırakır. Bölüm dosyanın ilk içeriğiyse bırakmaz. |
 | Bölüm sonuna ekleme | Uygulama yeni satırı bölümdeki son boş olmayan satırın ardına yazar. |
 | Boş ekleme | Uygulama yalnız boş satırlardan oluşan ekleme yapmaz. |
@@ -849,9 +912,9 @@ Gün dosyasının kimliği yoludur. `journal/` altında adı geçerli bir tarih 
 | Yapı değiştiren metin | 1. ya da 2. düzey başlık, kapanmayan kod çiti, frontmatter sınırı. |
 | İzin verilen yapı | Alt başlık: `###` ve aşağısı. Kapalı kod bloğu. |
 
-### Journal bölümüne ekleme
+### Diary bölümüne ekleme
 
-**Journal bölümünün sonuna metin ekleme akışı.**
+**Diary bölümünün sonuna metin ekleme akışı.**
 
 ```mermaid
 flowchart TD
@@ -861,13 +924,13 @@ flowchart TD
   C -- Hayır --> R["Reddeder; dosyaya dokunmaz"]
   C -- Evet --> D{"Kapanmamış bir kod çiti ekleme yerini kapsıyor mu?"}
   D -- Evet --> R
-  D -- Hayır --> E{"Frontmatter çözülemiyor ve Journal bölümü bloğun dışında okunamıyor mu?"}
+  D -- Hayır --> E{"Frontmatter çözülemiyor ve Diary bölümü bloğun dışında okunamıyor mu?"}
   E -- Evet --> R
   E -- Hayır --> F["Metni satırlara böler; satır başı boşluklarını ve uçtaki boş satırları atar"]
   F --> G["Yapı gibi okunacak satırın başına orta nokta ve boşluk koyar"]
   G --> H{"Gün dosyası var mı?"}
-  H -- Hayır --> H1["Gün dosyasını type: journal ve date ile oluşturur"]
-  H -- Evet --> I{"Journal bölümü var mı?"}
+  H -- Hayır --> H1["Gün dosyasını type: diary ve date ile oluşturur"]
+  H -- Evet --> I{"Diary bölümü var mı?"}
   H1 --> I
   I -- Hayır --> I1["Bölümü bölüm açma yerinde açar; başlıktan sonra 1 boş satır koyar"]
   I -- Evet --> J["Son boş olmayan satırın ardına 1 boş satır ve bloğu ekler"]
@@ -885,22 +948,22 @@ flowchart TD
 - `· ` öneki içeriği korur. Satır düz yazı olur.
 - Var olan baytların hiçbiri değişmez. Yeni baytlar tek bir yere girer.
 - Ekleme yeri: bölümün son boş olmayan satırının ardı. Boş bölümde ekleme yeri başlığın ardıdır. Ekleme yeri bölümün sondaki boş satırlarından, sonraki bölümden ve dosyanın kalanından öncedir.
-- Journal başlığı 2 kez geçiyorsa uygulama ilkine ekler.
-- `## journal` ya da `##Journal` bölüm başlığı değildir. Böyle dosyada Journal bölümü yoktur.
+- Diary başlığı 2 kez geçiyorsa uygulama ilkine ekler.
+- `## diary` ya da `##Diary` bölüm başlığı değildir. Böyle dosyada Diary bölümü yoktur.
 - Uygulama bloktan önce tam 1 boş satır koyar. Uygulama bölümün eski sondaki boş satırlarını silmez; satırlar bloğun ardında aynen kalır.
 - Satır sonu olmayan son satıra uygulama önce satır sonu ekler. Yeni satırlar dosyanın ilk satır sonu biçimini kullanır; yoksa LF. BOM yerinde kalır.
-- Gün dosyası yoksa uygulama dosyayı normal oluşturma yoluyla `type: journal` ve `date` alanlarıyla açar. Var olan boş dosyaya uygulama frontmatter eklemez.
+- Gün dosyası yoksa uygulama dosyayı normal oluşturma yoluyla `type: diary` ve `date` alanlarıyla açar. Var olan boş dosyaya uygulama frontmatter eklemez.
 - Satır bölme: uygulama her dizgiyi şu satır sonlarında böler: LF, CRLF, CR, U+000B, U+000C, U+0085, U+2028, U+2029.
 - Uygulama her satırın başındaki boşluk ve sekmeleri atar. Gerekçe: girintili satır üstündeki görevin devam satırı olurdu.
 - Uygulama bloğun başındaki ve sonundaki boş satırları atar. Aradaki boş satırlar kalır.
-- Frontmatter'ı çözülemeyen dosyada öteki bölüm eklemelerinin kuralı geçerlidir. Journal bölümü bloğun dışında okunabiliyorsa uygulama ekler. Okunamıyorsa uygulama reddeder.
+- Frontmatter'ı çözülemeyen dosyada öteki bölüm eklemelerinin kuralı geçerlidir. Diary bölümü bloğun dışında okunabiliyorsa uygulama ekler. Okunamıyorsa uygulama reddeder.
 - Kapanmamış `%%` ya da `<!--` yorumu uygulama için yazıdır. Ardına eklenen metin Obsidian'da gizli görünebilir.
 
 ### Haftalık inceleme
 
 | Kural | Ayrıntı |
 |---|---|
-| Yer | Uygulama haftalık incelemeyi, incelemenin yapıldığı günün Journal bölümüne Journal ekleme kuralıyla yazar. |
+| Yer | Uygulama haftalık incelemeyi, incelemenin yapıldığı günün Diary bölümüne Diary ekleme kuralıyla yazar. |
 | Biçim | `### <yerelleştirilmiş başlık>` ve düz gövde satırları. |
 | İkinci yazma | İkinci yazma ikinci bir blok ekler. Önceki bloğun üzerine yazmaz. |
 | Dil | Çağıran taraf başlığı ve sayı cümlelerini kullanıcının dilinde verir. Core dil seçmez ve sayı cümlesi kurmaz. |
@@ -911,7 +974,7 @@ flowchart TD
 | Başlık | Uygulama başlığı aynı temizlikten sonra tek satırda birleştirir. Başlık boşsa uygulama alt başlık yazmaz. |
 | Boş gövde | Gövde boşsa uygulama başlık dahil hiçbir şey yazmaz. |
 
-### Journal yazısını değiştirme
+### Diary yazısını değiştirme
 
 | Durum | Uygulamanın davranışı |
 |---|---|
@@ -920,7 +983,7 @@ flowchart TD
 | Bölüm yok, metin boş olmayan | Uygulama bölümü açar. |
 | Bölüm yok, metin boş ya da yalnız boşluk | Uygulama dosyaya dokunmaz. Eksik gün dosyasını oluşturmaz. |
 | Metnin sondaki boş satırları | Uygulama yazmaz. Yalnız boşluk ya da sekme içeren satırlar da dahildir. |
-| Yapı kısıtları | Journal eklemedeki yapı kısıtları burada da geçerlidir. |
+| Yapı kısıtları | Diary eklemedeki yapı kısıtları burada da geçerlidir. |
 | `---` yatay çizgisi | Gövdedeki `---` frontmatter oluşturmaz. Bu nedenle uygulama kabul eder. |
 | Değişmeyen satırın satır sonu | Uygulama satırı eski satır sonuyla yazar. Uygulama eski ve yeni satırları içerik sırasıyla eşler. |
 | Yeni ya da değişen satırın satır sonu | Satır dosyanın ilk satır sonunu alır. |
@@ -1036,7 +1099,7 @@ flowchart TD
 
 | Yer | Tarihsiz görev |
 |---|---|
-| Oluşturulduğu günün ekranı | Görünür. Gün ekranı, o günün `journal/` dosyasında yazılı tarihsiz görevleri listeler. |
+| Oluşturulduğu günün ekranı | Görünür. Gün ekranı, o günün `diary/` dosyasında yazılı tarihsiz görevleri listeler. |
 | Sonraki günlerin ekranı | Görünmez. |
 | Görevler ekranı, "Tarihsiz" listesi | Görev açık kaldıkça, oluşturulduğu günden başlayarak görünür. |
 | `notes/` altındaki tarihsiz görev | Hiçbir gün ekranında görünmez. "Tarihsiz" listesinde görünür. |
@@ -1330,7 +1393,7 @@ flowchart TD
 
 | Satır | Taranan | Taranmayan |
 |---|---|---|
-| Görev satırı: hangi dosyada ya da bölümde olursa olsun, Journal bölümü dahil | Yalnız görevin metni | Liste işareti, kutu, tanınan alanlar, uygulamanın okumadığı `⏳` ve `➕` tarihleri, sondaki `^kimlik` |
+| Görev satırı: hangi dosyada ya da bölümde olursa olsun, Diary bölümü dahil | Yalnız görevin metni | Liste işareti, kutu, tanınan alanlar, uygulamanın okumadığı `⏳` ve `➕` tarihleri, sondaki `^kimlik` |
 | Events bölümündeki olay satırı | Olay metni | Liste işareti, baştaki saat, kimlik |
 
 - Tanınan alanlar: `📅`, `🛫`, `✅` ile tarihleri, öncelik işaretleri, `#project/...`, `🔁` ile kuralı.
@@ -1631,8 +1694,8 @@ flowchart TD
 
 | Alan | Kural |
 |---|---|
-| `id` | `[a-z][a-z0-9_-]*` biçiminde ve benzersiz. Ayrılmış: `person`, `place`, `goal`, `journal` ve indeksin iç türleri `day`, `note`. Düzenlemede id değişmez; yeni id yeni tiptir. |
-| `folder` | Kasa köküne göre göreli, boş olmayan dizin yolu. Boş bileşen, `.`, `..`, noktayla başlayan bileşen, ters bölü ve kontrol karakterleri geçersizdir. Kökte `templates`, `conflicts`, `journal` hedef klasör olamaz. Uygulama sembolik bağlantıları izlemez. |
+| `id` | `[a-z][a-z0-9_-]*` biçiminde ve benzersiz. Ayrılmış: `person`, `place`, `goal`, `diary`, eski gün türü `journal` ve indeksin iç türleri `day`, `note`. Düzenlemede id değişmez; yeni id yeni tiptir. |
+| `folder` | Kasa köküne göre göreli, boş olmayan dizin yolu. Boş bileşen, `.`, `..`, noktayla başlayan bileşen, ters bölü ve kontrol karakterleri geçersizdir. Kökte `templates`, `conflicts`, `diary` ve eski `journal` hedef klasör olamaz. Uygulama sembolik bağlantıları izlemez. |
 | `name`, `plural` | Türkçe ve İngilizce, boş olmayan görünen adlar. |
 | `icon` | Boş olmayan SF Symbol adı. Arayüz tanınmayan simgeyi genel simgeyle gösterebilir. |
 | `fields` | Sıralı, benzersiz anahtarlı arayüz tanımları. `kind`: `text`, `date`, `number`, `boolean`, `link`. |
@@ -1667,7 +1730,7 @@ flowchart TD
 flowchart TD
   A["Aynı dosyayı 2 cihaz eşitlemeden düzenler"] --> A1["iCloud bir sürümü geçerli sayar, diğerini çakışan sürüm olarak saklar"]
   A1 --> T["Uygulama çakışan sürümü Tanılama'da listeler; birleştirme yok"]
-  B["Aynı gün dosyasını 2 cihaz eşitlemeden oluşturur"] --> B1["iCloud ikinci dosyanın adına sayı ekler: journal/2026-10-02 2.md"]
+  B["Aynı gün dosyasını 2 cihaz eşitlemeden oluşturur"] --> B1["iCloud ikinci dosyanın adına sayı ekler: diary/2026-10-02 2.md"]
   B1 --> M["Uygulama 2 sürümü tek içerikte birleştirir"]
   M --> C["Birleştirilemeyen sürüm: conflicts/ altında çakışma kopyası"]
   C --> L["Uygulama çakışma kopyasını Tanılama'da listeler"]
@@ -1684,7 +1747,7 @@ Uygulama 2 sürümü tek içerikte birleştirir. Uygulama gün kopyasını birle
 | Konu | Kural |
 |---|---|
 | Kapsam | Yalnız iCloud Drive'daki kasa. Öteki kasada uygulama hiçbir dosyaya sormaz ve liste boştur. |
-| Sorulan dosyalar | İndeksteki her dosya ve `journal/` altındaki her gün kopyası. `conflicts/` ve `templates/` sorulmaz. |
+| Sorulan dosyalar | İndeksteki her dosya ve `diary/` altındaki her gün kopyası. `conflicts/` ve `templates/` sorulmaz. |
 | Okuma | Uygulama önce dosyanın "çözülmemiş çakışma var" bayrağına bakar. Yalnız bayraklı dosyanın sürümlerini koordineli okumayla okur. Uygulama kasaya hiçbir şey yazmaz. |
 | Satır | Dosyanın yolu, sürüm sayısı, en yeni sürümün kayıt zamanı ve sürümü kaydeden cihazların adları. Zamanı bilinmeyen sürümün satırında zaman yoktur. |
 | Sıra | Dosyalar yolun bayt sırasıyla gelir. Sürümler yeniden eskiye gelir. Aynı saniyedeki sürümler cihaz adına göre gelir; adsız sürüm sondadır. |
@@ -1695,16 +1758,17 @@ Uygulama 2 sürümü tek içerikte birleştirir. Uygulama gün kopyasını birle
 
 | Ad | Gün kopyası mı | Neden |
 |---|---|---|
-| `journal/2026-10-02 2.md` | Evet | Geçerli gün, tek boşluk, 2. |
-| `journal/2026-10-02 10.md` | Evet | Geçerli gün, tek boşluk, 10. |
+| `diary/2026-10-02 2.md` | Evet | Geçerli gün, tek boşluk, 2. |
+| `diary/2026-10-02 10.md` | Evet | Geçerli gün, tek boşluk, 10. |
 | `2026-10-02 2 2.md` | Hayır | İkinci sayı. |
 | `2026-10-02-2.md` | Hayır | Boşluk yerine tire. |
 | `2026-10-02 02.md` | Hayır | Sayının başında sıfır. |
 | `2026-10-02 1.md` | Hayır | Sayı 2'den küçük. |
 | `2026-13-40 2.md` | Hayır | Geçersiz gün. |
-| Alt klasördeki ve `journal/` dışındaki benzer adlar | Hayır | Yer `journal/` klasörünün hemen altı değil. |
+| Alt klasördeki ve `diary/` dışındaki benzer adlar | Hayır | Yer `diary/` klasörünün hemen altı değil. |
+| `journal/2026-10-02 2.md` | Hayır | Eski gün klasörü. Geçiş onu `diary/` altına taşır. |
 
-- Gün kopyası adı `journal/` klasörünün hemen altındadır. Biçim: `YYYY-MM-DD` biçiminde geçerli bir gün, tek boşluk ve başında sıfır olmayan, 2 ya da daha büyük bir ASCII sayı. Örnek: `2026-10-02 2.md`, `2026-10-02 10.md`.
+- Gün kopyası adı `diary/` klasörünün hemen altındadır. Biçim: `YYYY-MM-DD` biçiminde geçerli bir gün, tek boşluk ve başında sıfır olmayan, 2 ya da daha büyük bir ASCII sayı. Örnek: `2026-10-02 2.md`, `2026-10-02 10.md`.
 - Gün kopyası olmayan benzer adlar sıradan not olarak kalır.
 - Uygulama gün kopyasını indekslemez. Gün kopyasındaki satırlar olay ya da görev değildir. Satırlar gün dosyasına ancak birleştirmeyle girer.
 - Bir günün birden çok gün kopyası varsa uygulama sayısı küçük olandan başlar ve kopyaları birer birer birleştirir: `2026-10-02 2.md`, sonra `2026-10-02 3.md`. Böylece 2 cihaz sürümleri aynı sırayla birleştirir.
@@ -1793,7 +1857,7 @@ Yakınsama iki cihazın kopyaları aynı numara sırasıyla birleştirmesine ve 
 ```mermaid
 flowchart TD
   A["Gövdeyi bölgelere böler"] --> B{"Bölge 2 sürümde de var mı?"}
-  B -- "Yalnız bir sürümde" --> C{"Tanınan bölüm mü: Tasks, Events, Journal ilk geçişi"}
+  B -- "Yalnız bir sürümde" --> C{"Tanınan bölüm mü: Tasks, Events, Diary ilk geçişi"}
   C -- Evet --> C1["Bölüm açma yerine ekler"]
   C -- Hayır --> C2["Kendi sürümünde önce gelen ve sonuçta bulunan en yakın bölgenin ardına; yoksa sona"]
   B -- "2 sürümde de" --> D["Blokları Satırlar, serbest yazıyı Serbest yazı kurallarıyla birleştirir"]

@@ -44,7 +44,7 @@ import VaultIndex
         model.mode = .event
         model.text = "! Note every week"
         #expect(await model.submit(time: nil))
-        let eventFile = context.root.appendingPathComponent("journal/\(LocalDay.today()).md")
+        let eventFile = context.root.appendingPathComponent("diary/\(LocalDay.today()).md")
         let document = RawDocument(bytes: try Data(contentsOf: eventFile))
         #expect(document.bodyLines.events.last?.block.text == "! Note every week")
     }

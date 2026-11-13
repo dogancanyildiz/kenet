@@ -1,4 +1,0 @@
-## Journal
-Kitap
-
-Su

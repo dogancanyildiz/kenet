@@ -6,7 +6,7 @@ import SwiftUI
 
 /// Keyboard shortcuts of the app, one table for the menu bar, the quick-entry box and tests.
 /// The menu items are Mac-only; ⌘⇧T in the quick-entry box also works on iPad (hardware keyboard).
-enum JournalShortcut: CaseIterable {
+enum KenetShortcut: CaseIterable {
     case search
     case quickSwitch
     case today
@@ -60,6 +60,11 @@ struct KenetApp: App {
     #endif
 
     init() {
+        // Before any service reads its settings: values stored under the old code name move once.
+        LegacyDefaults.migrate()
+        if let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
+            LegacyDefaults.removeOldIndexes(applicationSupport: support)
+        }
         let appLock = AppLockService()
         _appLock = State(initialValue: appLock)
         let location = LocationService()
@@ -107,19 +112,19 @@ struct KenetApp: App {
                     // the sheet with the typed query. ⌘K still opens an empty search sheet.
                     Button("Ara") { focusSidebarSearch?() }
                         .keyboardShortcut(
-                            JournalShortcut.search.key, modifiers: JournalShortcut.search.modifiers
+                            KenetShortcut.search.key, modifiers: KenetShortcut.search.modifiers
                         )
                         .disabled(focusSidebarSearch == nil || appLock.shouldCover)
                     Button("Hızlı geçiş") { openSearch?() }
                         .keyboardShortcut(
-                            JournalShortcut.quickSwitch.key,
-                            modifiers: JournalShortcut.quickSwitch.modifiers
+                            KenetShortcut.quickSwitch.key,
+                            modifiers: KenetShortcut.quickSwitch.modifiers
                         )
                         .disabled(openSearch == nil || appLock.shouldCover)
                 }
                 CommandMenu("Git") {
                     Button("Bugüne git") { goToToday?() }
-                        .keyboardShortcut(JournalShortcut.today.key, modifiers: JournalShortcut.today.modifiers)
+                        .keyboardShortcut(KenetShortcut.today.key, modifiers: KenetShortcut.today.modifiers)
                         .disabled(goToToday == nil || appLock.shouldCover)
                 }
             }

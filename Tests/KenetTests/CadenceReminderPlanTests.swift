@@ -201,7 +201,7 @@ struct CadenceReminderServiceTests {
         service.update(isOpen: true, vaultID: vault)
         service.preferences.tasksEnabled = false
         service.preferences.goalsEnabled = false
-        service.preferences.journalEnabled = false
+        service.preferences.diaryEnabled = false
         service.preferences.peopleEnabled = true
         service.useCadencePeople(people)
         return service
@@ -396,7 +396,7 @@ struct CadenceReminderServiceTests {
         #expect(NotificationRoute(.people) == .unseenPeople)
         #expect(NotificationRoute(.tasks) == .tasks)
         #expect(NotificationRoute(.goals) == .today)
-        #expect(NotificationRoute(.journal) == .today)
+        #expect(NotificationRoute(.diary) == .today)
     }
 }
 
@@ -406,13 +406,13 @@ struct CadenceReminderVaultTests {
         let context = try TaskTestContext(sample: false)
         defer { context.clean() }
         let people = context.root.appendingPathComponent("people")
-        let journal = context.root.appendingPathComponent("journal")
+        let diary = context.root.appendingPathComponent("diary")
         try FileManager.default.createDirectory(at: people, withIntermediateDirectories: true)
-        try FileManager.default.createDirectory(at: journal, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: diary, withIntermediateDirectories: true)
         try Data("---\ntype: person\nname: Lale Mor\ncadence_days: 7\n---\n".utf8).write(
             to: people.appendingPathComponent("Lale Mor.md"))
-        try Data("---\ntype: journal\ndate: 2026-09-20\n---\n\n## Events\n- [[Lale Mor]]\n".utf8).write(
-            to: journal.appendingPathComponent("2026-09-20.md"))
+        try Data("---\ntype: diary\ndate: 2026-09-20\n---\n\n## Events\n- [[Lale Mor]]\n".utf8).write(
+            to: diary.appendingPathComponent("2026-09-20.md"))
         await context.start()
         let today = CalendarDate("2026-10-11")!
         let path = try #require(context.store.content.entities.first { $0.name == "Lale Mor" }?.id)
@@ -430,7 +430,7 @@ struct CadenceReminderVaultTests {
         service.attach(to: context.store)
         service.preferences.tasksEnabled = false
         service.preferences.goalsEnabled = false
-        service.preferences.journalEnabled = false
+        service.preferences.diaryEnabled = false
         service.preferences.peopleEnabled = true
         service.update(isOpen: context.store.lastUpdated != nil, vaultID: context.store.vaultURL?.path)
         await service.replanNow()

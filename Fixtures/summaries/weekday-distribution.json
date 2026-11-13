@@ -53,12 +53,12 @@
   {
     "id": "tie-on-ratio-and-events-picks-earlier-weekday",
     "days": [
-      { "date": "2026-01-31", "events": 5, "hasJournal": true },
-      { "date": "2026-02-04", "events": 1, "hasJournal": false },
-      { "date": "2026-02-04", "events": 1, "hasJournal": true },
-      { "date": "2026-02-06", "events": 2, "hasJournal": false },
-      { "date": "2026-02-10", "events": -1, "hasJournal": false },
-      { "date": "2026-03-01", "events": 4, "hasJournal": true }
+      { "date": "2026-01-31", "events": 5, "hasDiary": true },
+      { "date": "2026-02-04", "events": 1, "hasDiary": false },
+      { "date": "2026-02-04", "events": 1, "hasDiary": true },
+      { "date": "2026-02-06", "events": 2, "hasDiary": false },
+      { "date": "2026-02-10", "events": -1, "hasDiary": false },
+      { "date": "2026-03-01", "events": 4, "hasDiary": true }
     ],
     "period": "month",
     "containing": "2026-02-15",
@@ -72,7 +72,7 @@
   {
     "id": "period-not-begun",
     "days": [
-      { "date": "2026-11-02", "events": 2, "hasJournal": false }
+      { "date": "2026-11-02", "events": 2, "hasDiary": false }
     ],
     "period": "month",
     "containing": "2026-11-01",

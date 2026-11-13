@@ -33,7 +33,7 @@ struct SectionModelTests {
         let document = RawDocument(bytes: "## Tasks\n".utf8)
         #expect(throws: EditError.emptySectionAppend) { try document.appendingLines([], toSection: .tasks) }
         #expect(throws: EditError.lineBreakInContent) { try document.appendingLines(["not", "\n"], toSection: .tasks) }
-        #expect(throws: EditError.lineBreakInContent) { try document.appendingLines(["\r"], toSection: .journal) }
+        #expect(throws: EditError.lineBreakInContent) { try document.appendingLines(["\r"], toSection: .diary) }
         #expect(document.serialized() == Array("## Tasks\n".utf8))
     }
 
@@ -44,17 +44,17 @@ struct SectionModelTests {
     }
 
     @Test func blankContentIsRefused() {
-        let document = RawDocument(bytes: "## Journal\nnot\n".utf8)
+        let document = RawDocument(bytes: "## Diary\nnot\n".utf8)
         for contents in [[""], [" ", "\t", ""]] {
-            #expect(throws: EditError.emptySectionAppend) { try document.appendingLines(contents, toSection: .journal) }
+            #expect(throws: EditError.emptySectionAppend) { try document.appendingLines(contents, toSection: .diary) }
         }
-        #expect(document.serialized() == Array("## Journal\nnot\n".utf8))
+        #expect(document.serialized() == Array("## Diary\nnot\n".utf8))
     }
 
     @Test func arbitraryBytesHaveLosslessSectionCoverage() {
         var random = SeededGenerator(seed: 0xB17E_5EC7)
         let fragments: [[UInt8]] = [
-            Array("## Tasks\n".utf8), Array("## Events\r".utf8), Array("## Journal\r\n".utf8),
+            Array("## Tasks\n".utf8), Array("## Events\r".utf8), Array("## Diary\r\n".utf8),
             Array("### Notes\n".utf8), Array("~~~\n".utf8), Array("# Other\n".utf8),
             [0xFF, 0x0A], [0x00, 0x0A], [], Array("---\n".utf8),
         ]

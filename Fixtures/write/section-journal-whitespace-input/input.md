@@ -1,5 +1,0 @@
-## Journal
-Su
-
-## Other
-Deniz

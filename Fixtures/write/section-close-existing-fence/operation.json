@@ -1,7 +1,7 @@
 {
   "sections": {
     "operation": "append",
-    "kind": "Journal",
+    "kind": "Diary",
     "lines": [
       "```",
       "not"

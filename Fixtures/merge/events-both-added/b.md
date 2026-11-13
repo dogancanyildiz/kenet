@@ -4,5 +4,5 @@
 - 15:00 Toplantı ^e3x002
 - 17:00 Spor ^e3b002
 
-## Journal
+## Diary
 Gün.

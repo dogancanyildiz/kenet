@@ -1,6 +1,6 @@
 ---
-type: journal
+type: diary
 bozuk satır
 ---
-## Journal
+## Diary
 Gün.

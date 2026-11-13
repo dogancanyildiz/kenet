@@ -1,4 +1,4 @@
-## Journal
+## Diary
 GeÃ§erli satÄ±r: ÅŸ ğŸ›«
 Bozuk bayt: ÿş burada
 YarÄ±m kalan dizi: Å

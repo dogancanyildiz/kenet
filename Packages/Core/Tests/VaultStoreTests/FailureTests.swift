@@ -15,7 +15,7 @@ struct FailureTests {
         try vault.index.refresh(vaultRoot: vault.root)
         let original = try vault.bytes()
         let snapshot = try vault.index.snapshot()
-        let directory = vault.root.appendingPathComponent("journal")
+        let directory = vault.root.appendingPathComponent("diary")
         try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: directory.path)
         defer { try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: directory.path) }
         await #expect(throws: (any Error).self) { try await vault.store.addingEvent(on: storeDate, text: "Su") }
@@ -37,7 +37,7 @@ struct FailureTests {
             return path == storePath && underlying is DatabaseError
         }
         #expect(
-            try vault.bytes() == Data("---\ntype: journal\ndate: 2026-09-27\n---\n\n## Events\n- Su ^aaaaaa\n".utf8))
+            try vault.bytes() == Data("---\ntype: diary\ndate: 2026-09-27\n---\n\n## Events\n- Su ^aaaaaa\n".utf8))
         #expect(try vault.index.files().isEmpty)
         try await vault.index.database.write { try $0.execute(sql: "DROP TRIGGER fail_store") }
         try vault.index.refresh(vaultRoot: vault.root)
@@ -66,7 +66,7 @@ struct FailureTests {
         try FileManager.default.createDirectory(at: outside, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: outside) }
         try FileManager.default.createSymbolicLink(
-            at: vault.root.appendingPathComponent("journal"), withDestinationURL: outside)
+            at: vault.root.appendingPathComponent("diary"), withDestinationURL: outside)
         await #expect(throws: VaultStoreError.invalidPath) {
             try await vault.store.addingEvent(on: storeDate, text: "Su")
         }

@@ -71,7 +71,7 @@ struct DayCopyMergeWiringTests {
         #expect(context.store.sync.mergeReport == nil)
         #expect(context.store.syncStatus == .idle)
         // Diagnostics lists the copies as before.
-        let listed = try await context.store.computeCopyFiles().filter { $0.folder == "journal" }.map(\.copy)
+        let listed = try await context.store.computeCopyFiles().filter { $0.folder == "diary" }.map(\.copy)
         #expect(listed == context.cases.dayCopies)
     }
 
@@ -90,7 +90,7 @@ struct DayCopyMergeWiringTests {
         #expect(context.store.sync.mergingCopies == 0)
 
         // Each merge published its day file: the copy that took a missing day's name is on screen.
-        #expect(context.store.content.fragments["journal/2026-10-03.md"] != nil)
+        #expect(context.store.content.fragments["diary/2026-10-03.md"] != nil)
         // The index follows the merged files: as an index built from them alone.
         let fresh = try VaultIndex(databaseURL: context.cloud.directory.appendingPathComponent("fresh.sqlite"))
         try fresh.rebuild(vaultRoot: context.cloud.root)
@@ -166,8 +166,8 @@ struct DayCopyMergeWiringTests {
     @Test func aCopyWaitingForItsDayMergesOnceTheDayArrives() async throws {
         let context = try DayCopyVaultContext(policy: SyncPolicy(mergesDayCopies: true))
         defer { context.clean() }
-        let copy = "journal/2026-10-03 2.md"
-        let placeholder = context.cloud.url("journal/.2026-10-03.md.icloud")
+        let copy = "diary/2026-10-03 2.md"
+        let placeholder = context.cloud.url("diary/.2026-10-03.md.icloud")
         try Data().write(to: placeholder)
         await context.start()
 
@@ -176,14 +176,14 @@ struct DayCopyMergeWiringTests {
         #expect(FileManager.default.fileExists(atPath: context.cloud.url(copy).path))
 
         try FileManager.default.removeItem(at: placeholder)
-        let arrived = "---\ntype: journal\ndate: 2026-10-03\n---\n\n## Events\n- 07:00 Koşu ^e3z001\n"
-        try Data(arrived.utf8).write(to: context.cloud.url("journal/2026-10-03.md"))
+        let arrived = "---\ntype: diary\ndate: 2026-10-03\n---\n\n## Events\n- 07:00 Koşu ^e3z001\n"
+        try Data(arrived.utf8).write(to: context.cloud.url("diary/2026-10-03.md"))
         await context.cloud.refresh()
         await context.store.waitForDayCopyMerges()
 
         #expect(!FileManager.default.fileExists(atPath: context.cloud.url(copy).path))
         #expect(context.store.sync.mergeReport == DayCopyMergeReport(merged: others + 1, failed: 0))
-        let day = try String(contentsOf: context.cloud.url("journal/2026-10-03.md"), encoding: .utf8)
+        let day = try String(contentsOf: context.cloud.url("diary/2026-10-03.md"), encoding: .utf8)
         #expect(day.contains("^e3z001") && day.contains("^e3b001"))
     }
 
@@ -197,7 +197,7 @@ struct DayCopyMergeWiringTests {
         // day files, copies and conflict copies are compared.
         func merged() throws -> [String: Data] {
             try DayCopyVaultContext.tree(cloud.root).filter {
-                $0.key.hasPrefix("journal/") || $0.key.hasPrefix("conflicts/")
+                $0.key.hasPrefix("diary/") || $0.key.hasPrefix("conflicts/")
             }
         }
         let before = try merged()
@@ -210,16 +210,16 @@ struct DayCopyMergeWiringTests {
     }
 
     /// The day editor read the day before a merge reached it; the merge took the write queue first.
-    /// The editor's write must not replace the merged Journal: it is refused, its draft stays.
+    /// The editor's write must not replace the merged Diary: it is refused, its draft stays.
     @Test func editorDoesNotOverwriteAMergeQueuedBeforeIt() async throws {
         let context = try DayCopyVaultContext(policy: SyncPolicy(mergesDayCopies: true))
         defer { context.clean() }
-        let copy = "journal/2026-10-01 2.md"
+        let copy = "diary/2026-10-01 2.md"
         let aside = context.cloud.directory.appendingPathComponent("aside.md")
         try FileManager.default.moveItem(at: context.cloud.url(copy), to: aside)
         await context.start()
         let day = try #require(CalendarDate("2026-10-01"))
-        let editor = JournalEditorModel(store: context.store, day: day)
+        let editor = DiaryEditorModel(store: context.store, day: day)
         await editor.load()
         #expect(editor.isLoaded)
         editor.text = "Akşam kitap okudum.\n"
@@ -237,8 +237,8 @@ struct DayCopyMergeWiringTests {
         #expect(merged)
         #expect(!FileManager.default.fileExists(atPath: context.cloud.url(copy).path))
 
-        let expected = DayCopyVaultContext.fixture.appendingPathComponent("expected/journal/2026-10-01.md")
-        #expect(try Data(contentsOf: context.cloud.url("journal/2026-10-01.md")) == Data(contentsOf: expected))
+        let expected = DayCopyVaultContext.fixture.appendingPathComponent("expected/diary/2026-10-01.md")
+        #expect(try Data(contentsOf: context.cloud.url("diary/2026-10-01.md")) == Data(contentsOf: expected))
         #expect(editor.text == "Akşam kitap okudum.\n")
         #expect(editor.errorText == DayEditError.message(for: VaultStoreError.staleTarget))
     }
@@ -251,8 +251,8 @@ struct DayCopyMergeWiringTests {
         let merged = context.cases.dayCopies.count
         #expect(context.store.sync.mergeReport?.merged == merged)
 
-        let copy = "journal/2026-10-04 2.md"
-        try Data(contentsOf: context.cloud.url("journal/2026-10-04.md")).write(to: context.cloud.url(copy))
+        let copy = "diary/2026-10-04 2.md"
+        try Data(contentsOf: context.cloud.url("diary/2026-10-04.md")).write(to: context.cloud.url(copy))
         await context.cloud.refresh()
         await context.store.waitForDayCopyMerges()
         #expect(!FileManager.default.fileExists(atPath: context.cloud.url(copy).path))

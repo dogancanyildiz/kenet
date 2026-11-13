@@ -2,5 +2,5 @@
 tags:
 - günlük
 - iş
-type: journal
+type: diary
 ---

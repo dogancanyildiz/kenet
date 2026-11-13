@@ -1,18 +1,18 @@
 {
   "times": {
-    "journal/2026-10-02.md": 1790928000,
-    "journal/2026-10-02 2.md": 1790933400,
-    "journal/2026-10-02 3.md": 1790937900
+    "diary/2026-10-02.md": 1790928000,
+    "diary/2026-10-02 2.md": 1790933400,
+    "diary/2026-10-02 3.md": 1790937900
   },
-  "dayPath": "journal/2026-10-02.md",
+  "dayPath": "diary/2026-10-02.md",
   "orders": [
     [
-      "journal/2026-10-02 2.md",
-      "journal/2026-10-02 3.md"
+      "diary/2026-10-02 2.md",
+      "diary/2026-10-02 3.md"
     ],
     [
-      "journal/2026-10-02 3.md",
-      "journal/2026-10-02 2.md"
+      "diary/2026-10-02 3.md",
+      "diary/2026-10-02 2.md"
     ]
   ],
   "conflicts": [

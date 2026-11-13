@@ -120,12 +120,12 @@
             )
         }
 
-        /// Empty journal day + no open carried-over tasks/goals so EmptyState is visible.
+        /// Empty diary day + no open carried-over tasks/goals so EmptyState is visible.
         private static func writeEmptyDay(in root: URL) throws {
-            let file = root.appendingPathComponent("journal/2026-09-20.md")
+            let file = root.appendingPathComponent("diary/2026-09-20.md")
             let body = """
                 ---
-                type: journal
+                type: diary
                 date: 2026-09-20
                 ---
 
@@ -133,7 +133,7 @@
 
                 ## Events
 
-                ## Journal
+                ## Diary
 
                 """
             try body.write(to: file, atomically: true, encoding: .utf8)
@@ -149,7 +149,7 @@
             in root: URL, includePriorityExtras: Bool
         ) throws {
             try stripOpenTasksDueBeforeSnapshotDay(in: root)
-            let file = root.appendingPathComponent("journal/2026-09-18.md")
+            let file = root.appendingPathComponent("diary/2026-09-18.md")
             var text = try String(contentsOf: file, encoding: .utf8)
             var block = "\n"
             for index in 1...10 {
@@ -187,9 +187,9 @@
         }
 
         private static func stripOpenTasksDueBeforeSnapshotDay(in root: URL) throws {
-            let journal = root.appendingPathComponent("journal")
+            let diary = root.appendingPathComponent("diary")
             let files = try FileManager.default.contentsOfDirectory(
-                at: journal, includingPropertiesForKeys: nil)
+                at: diary, includingPropertiesForKeys: nil)
             let openTask = try NSRegularExpression(
                 pattern: #"^- \[[ /]\] .*(?:📅|🛫) 2026-09-(0[1-9]|1[0-9])\b.*$"#,
                 options: .anchorsMatchLines)

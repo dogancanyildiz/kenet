@@ -124,11 +124,11 @@ struct CalendarDraftTests {
         let question = try #require(model.pendingAmbiguity)
         model.choose(try #require(question.candidates.first { $0.qualifier == "iş" }), for: question)
         #expect(await model.submit(time: model.entryTime))
-        let bytes = try Data(contentsOf: context.root.appendingPathComponent("journal/2026-10-01.md"))
+        let bytes = try Data(contentsOf: context.root.appendingPathComponent("diary/2026-10-01.md"))
         let event = try #require(RawDocument(bytes: bytes).bodyLines.events.last)
         let id = try #require(event.block.id)
         let expected =
-            "---\ntype: journal\ndate: 2026-10-01\n---\n\n## Events\n"
+            "---\ntype: diary\ndate: 2026-10-01\n---\n\n## Events\n"
             + "- 09:15 Proje toplantısı [[Deniz Arıkan]] [[Mert Aksu (iş)|Mert Aksu]] ^\(id)\n"
         #expect(bytes == Data(expected.utf8))
         #expect(model.text.isEmpty)

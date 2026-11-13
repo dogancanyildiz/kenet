@@ -1,4 +1,4 @@
-## Journal
+## Diary
 A
 B
 

@@ -11,6 +11,8 @@ final class TaskRowTapUITests: XCTestCase {
     private let textLineTask = "Eski doküman arşivini temizle"
     private let dateLineTask = "Haftalık sprint hedeflerini belirle"
     private let dateLineDue = "14 Eyl"
+    // A completed fixture task without links ("Tamamlanan", newest first).
+    private let completedTask = "Haftalık kod dondurma sürecini tamamla"
 
     override func setUpWithError() throws {
         continueAfterFailure = false
@@ -75,6 +77,29 @@ final class TaskRowTapUITests: XCTestCase {
         XCTAssertTrue(done.waitForExistence(timeout: 10), "the row menu has no \"Bitti\"")
         done.tap()
         XCTAssertTrue(row.waitForNonExistence(timeout: 15), "\"Bitti\" in the row menu did not complete the task")
+    }
+
+    /// A closed row's menu offers "Görevi yeniden aç" in place of "Bitti"; the reopened task
+    /// leaves "Tamamlanan" (screens.md, Tamamlama).
+    @MainActor
+    func testRowMenuReopensCompletedTask() throws {
+        let app = UITestSupport.launchApp(
+            vaultURL: vaultURL, quickEntryText: nil,
+            extraArguments: ["-tasks.view.mode", "list", "-tasks.view.list.section", "completed"]
+                + ScreenTourDriver.turkish)
+        UITestSupport.waitForExistence(UITestSupport.element(in: app, identifier: "screen.today"), timeout: 30)
+        UITestSupport.openTab(app, identifier: "tab.tasks", screen: "screen.tasks")
+
+        let row = try taskText(completedTask, in: app)
+        row.press(forDuration: 1.2)
+        let reopen = app.buttons.matching(NSPredicate(format: "label == %@", "Görevi yeniden aç")).firstMatch
+        XCTAssertTrue(reopen.waitForExistence(timeout: 10), "the closed row's menu has no \"Görevi yeniden aç\"")
+        XCTAssertFalse(
+            app.buttons.matching(NSPredicate(format: "label == %@", "Bitti")).firstMatch.exists,
+            "the closed row's menu still offers \"Bitti\"")
+        reopen.tap()
+        XCTAssertTrue(
+            row.waitForNonExistence(timeout: 15), "\"Görevi yeniden aç\" did not take the task out of Tamamlanan")
     }
 
     @MainActor

@@ -137,4 +137,57 @@ struct GoalListPresentationTests {
         let ordered = GoalListPresentation.ordered([b, a]) { $0.key == "b" ? done : open }
         #expect(ordered.map(\.key) == ["a", "b"])
     }
+
+    @Test func listRowCompleteAndBooleanMark() throws {
+        let goal = try numberGoal()
+        let open = GoalStatus(
+            periodStart: day, periodEnd: day, progress: GoalAmount(done: 12, target: 20),
+            streak: 3, longestStreak: 5, isPendingToday: true, score: 87, yearDone: 12,
+            yearProgress: nil)
+        let done = GoalStatus(
+            periodStart: day, periodEnd: day, progress: GoalAmount(done: 20, target: 20),
+            streak: 3, longestStreak: 5, isPendingToday: false, score: 87, yearDone: 20,
+            yearProgress: nil)
+        #expect(GoalListPresentation.isComplete(goal: goal, status: open) == false)
+        #expect(GoalListPresentation.isComplete(goal: goal, status: done) == true)
+        #expect(GoalListPresentation.isBooleanMark(.boolean))
+        #expect(GoalListPresentation.isBooleanMark(.milestone))
+        #expect(GoalListPresentation.isBooleanMark(.number) == false)
+    }
+
+    @Test func listRowAccessibilityLabelAndOpenHint() throws {
+        let turkish = try languageBundle("tr")
+        let english = try languageBundle("en")
+        let goal = try numberGoal()
+        let open = GoalStatus(
+            periodStart: day, periodEnd: day, progress: GoalAmount(done: 12, target: 20),
+            streak: 3, longestStreak: 5, isPendingToday: true, score: 87, yearDone: 12,
+            yearProgress: nil)
+        let labelTR = GoalListPresentation.accessibilityLabel(
+            goal: goal, status: open, bundle: turkish, locale: tr)
+        #expect(labelTR.hasPrefix("Kitap, 12/20 sayfa"))
+        let labelEN = GoalListPresentation.accessibilityLabel(
+            goal: goal, status: open, bundle: english, locale: en)
+        #expect(labelEN.hasPrefix("Kitap, 12/20 sayfa"))
+
+        #expect(
+            GoalListPresentation.listOpenHint(kind: .number, bundle: turkish, locale: tr)
+                == "Ayrıntıları göster")
+        #expect(
+            GoalListPresentation.listOpenHint(kind: .number, bundle: english, locale: en)
+                == "Show details")
+        #expect(
+            GoalListPresentation.listOpenHint(kind: .milestone, markedToday: false, bundle: turkish, locale: tr)
+                == "Bugünü işaretle")
+        #expect(
+            GoalListPresentation.listOpenHint(kind: .milestone, markedToday: true, bundle: turkish, locale: tr)
+                == "İşareti kaldır")
+        #expect(
+            GoalListPresentation.listOpenHint(kind: .milestone, markedToday: true, bundle: english, locale: en)
+                == "Clear mark")
+        // Column omits markedToday: always the mark hint.
+        #expect(
+            GoalListPresentation.listOpenHint(kind: .milestone, bundle: turkish, locale: tr)
+                == "Bugünü işaretle")
+    }
 }

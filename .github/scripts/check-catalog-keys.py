@@ -5,7 +5,8 @@ Kullanım: check-catalog-keys.py [kök]   (varsayılan: deponun kökü)
 
 `App/**/*.swift`, `Widgets/**/*.swift`, `ShareExtension/**/*.swift` ve `Shared/**/*.swift` içinde
 yerelleştirilen çağrıların ilk sabit metin argümanı çıkarılır
-(`Text("…")`, `Button("…")`, `Label("…", …)`, `String(localized: "…")`, `LocalizedStringKey("…")`, …)
+(`Text("…")`, `Button("…")`, `Label("…", …)`, `String(localized: "…")`, `LocalizedStringKey("…")`,
+`NotificationText.localized("…", …)`, …)
 ve `App/Resources/Localizable.xcstrings` anahtar kümesiyle karşılaştırılır. Eksik anahtar hatadır.
 Widget ve paylaşım uzantısı hedefleri aynı kataloğu derler (`project.yml`, `KenetWidgets`, `KenetShare`).
 
@@ -43,6 +44,8 @@ CALLS = (
     re.compile(r"(?<![\w.])(?:" + "|".join(INITIALIZERS) + r")\(\s*" + STRING),
     re.compile(r"\.(?:" + "|".join(MODIFIERS) + r")\(\s*" + STRING),
     re.compile(r"String\(\s*localized:\s*" + STRING),
+    # Bildirim metni: `NotificationText.localized("…", …)` ve bağlamdan çıkarılan `.localized("…", …)`.
+    re.compile(r"\.localized\(\s*" + STRING),
 )
 
 

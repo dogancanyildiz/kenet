@@ -27,22 +27,39 @@ final class SystemNotificationScheduler: NSObject, NotificationScheduling, UNUse
         try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound])
     }
     func pendingRequests() async -> [NotificationRequest] {
-        await UNUserNotificationCenter.current().pendingNotificationRequests().compactMap { request in
-            guard let destination = NotificationDestination.from(identifier: request.identifier),
-                let date = (request.trigger as? UNCalendarNotificationTrigger)?.nextTriggerDate()
-                    ?? (request.content.userInfo["fireDate"] as? Double).map(Date.init(timeIntervalSince1970:))
-            else { return nil }
-            return NotificationRequest(
-                id: request.identifier, date: date, title: request.content.title, body: request.content.body,
-                destination: destination)
-        }
+        await UNUserNotificationCenter.current().pendingNotificationRequests().compactMap(Self.planned)
+    }
+    /// Title and body as delivery-time strings; `userInfo` keeps their keys and arguments.
+    static func content(for request: NotificationRequest) -> UNMutableNotificationContent {
+        let content = UNMutableNotificationContent()
+        content.title = request.titleText.deliveryString
+        content.body = request.bodyText.deliveryString
+        content.sound = .default
+        content.userInfo = [
+            "fireDate": request.date.timeIntervalSince1970, "title": request.titleText.stored,
+            "body": request.bodyText.stored,
+        ]
+        return content
+    }
+    /// The pending request as planned; nil when it is not one of the planner's.
+    static func planned(_ request: UNNotificationRequest) -> NotificationRequest? {
+        guard let destination = NotificationDestination.from(identifier: request.identifier),
+            let date = (request.trigger as? UNCalendarNotificationTrigger)?.nextTriggerDate()
+                ?? (request.content.userInfo["fireDate"] as? Double).map(Date.init(timeIntervalSince1970:))
+        else { return nil }
+        // A request without its stored text (a build before 2026-11-13) reads as verbatim: it
+        // differs from the planned one, so the next plan replaces it.
+        let info = request.content.userInfo
+        return NotificationRequest(
+            id: request.identifier, date: date,
+            title: (info["title"] as? [String]).flatMap(NotificationText.init(stored:))
+                ?? .verbatim(request.content.title),
+            body: (info["body"] as? [String]).flatMap(NotificationText.init(stored:))
+                ?? .verbatim(request.content.body),
+            destination: destination)
     }
     func add(_ request: NotificationRequest) async throws {
-        let content = UNMutableNotificationContent()
-        content.title = request.title
-        content.body = request.body
-        content.sound = .default
-        content.userInfo = ["fireDate": request.date.timeIntervalSince1970]
+        let content = Self.content(for: request)
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = .current
         var components = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: request.date)
@@ -86,5 +103,13 @@ final class SystemNotificationScheduler: NSObject, NotificationScheduling, UNUse
             if let destination { Task { @MainActor [weak self] in self?.response?(destination) } }
         }
         completionHandler()
+    }
+}
+
+extension NotificationText {
+    /// Resolved by the system at delivery, in the language set then.
+    var deliveryString: String {
+        guard let key else { return arguments.first ?? "" }
+        return NSString.localizedUserNotificationString(forKey: key, arguments: arguments)
     }
 }

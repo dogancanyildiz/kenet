@@ -50,6 +50,8 @@ class CatalogKeyTests(unittest.TestCase):
             ('let s = String(localized: "Eksik")', "Eksik"),
             ('.accessibilityLabel("Eksik")', "Eksik"),
             ('let k = LocalizedStringKey("Eksik")', "Eksik"),
+            ('let t = NotificationText.localized("Eksik %@", "3")', "Eksik %@"),
+            ('title = count == 1 ? .localized("Eksik") : .localized("Kayıtlı")', "Eksik"),
             ('Toggle(\n    "Eksik", isOn: $x)', "Eksik"),
             ('Text("Satır \\"tırnaklı\\"")', 'Satır "tırnaklı"'),
         ]
@@ -66,6 +68,10 @@ class CatalogKeyTests(unittest.TestCase):
             'Text("")\n'
             'let x = myText("Eksik")\n'
             'Button(action: {}) { Text(model.title) }\n'
+            "let n = type.name.localized(language: language)\n"
+            "let l = FrontmatterKeyLabel.localized(field.key)\n"
+            'let t = NotificationText.localized("Kayıtlı")\n'
+            'let v = NotificationText.verbatim("Eksik")\n'
         )
 
     def test_comments_do_not_fail(self):

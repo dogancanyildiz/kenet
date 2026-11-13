@@ -28,7 +28,7 @@ struct NotificationPlannerTests {
         let requests = plan(try notificationSample())
         let morning = try #require(requests.first { $0.id == "task-2026-09-27" })
         #expect(morning.title == String(localized: "Bugünkü görevler"))
-        #expect(morning.body == String(localized: "Önceki günlerden \(10) açık görev."))
+        #expect(morning.bodyText == .localized("Önceki günlerden %@ açık görev.", "10"))
         let goals = try #require(requests.first { $0.id == "goals-2026-09-27" })
         #expect(goals.body == String(localized: "Bugün bekleyen hedefler: \("Kitap, Su")"))
         #expect(!requests.contains { $0.id == "diary-2026-09-27" })
@@ -43,7 +43,7 @@ struct NotificationPlannerTests {
             "- [ ] first 📅 2026-09-27 ^a\n- [ ] second 📅 2026-09-27 ^b\n- [ ] third 📅 2026-09-27 ^c\n- [x] done 📅 2026-09-27 ^d\n- [-] cancelled 📅 2026-09-27 ^e\n- [ ] undated ^f\n"
         )
         let request = try #require(plan(snapshot).first { $0.id == "task-2026-09-27" })
-        #expect(request.title == String(localized: "\(3) görev bugün"))
+        #expect(request.titleText == .localized("%@ görev bugün", "3"))
         #expect(request.body.isEmpty)
     }
 
@@ -112,7 +112,7 @@ struct NotificationPlannerTests {
         settings.hideContent = true
         let requests = plan(snapshot, preferences: settings)
         let morning = try #require(requests.first { $0.id == "task-2026-09-27" })
-        #expect(morning.title == String(localized: "\(2) görev bugün"))
+        #expect(morning.titleText == .localized("%@ görev bugün", "2"))
         #expect(!morning.title.contains("secret"))
         #expect(!morning.body.contains("secret"))
         let goals = try #require(requests.first { $0.id == "goals-2026-09-27" })
@@ -122,7 +122,7 @@ struct NotificationPlannerTests {
         settings.hideContent = false
         let visible = plan(snapshot, preferences: settings)
         let visibleMorning = try #require(visible.first { $0.id == "task-2026-09-27" })
-        #expect(visibleMorning.title == String(localized: "\(2) görev bugün"))
+        #expect(visibleMorning.titleText == .localized("%@ görev bugün", "2"))
         let visibleGoals = try #require(visible.first { $0.id == "goals-2026-09-27" })
         #expect(visibleGoals.body == String(localized: "Bugün bekleyen hedefler: \("Kitap, Su")"))
     }
@@ -137,12 +137,12 @@ struct NotificationPlannerTests {
         let people = [cadencePerson("people/a.md", name: "Deniz", last: "2026-08-01", days: 7)]
         let requests = plan(snapshot, preferences: settings, people: people)
         let morning = try #require(requests.first { $0.id == "task-2026-09-27" })
-        #expect(morning.title == String(localized: "\(1) görev bugün"))
+        #expect(morning.titleText == .localized("1 görev bugün"))
         let goals = try #require(requests.first { $0.id == "goals-2026-09-27" })
         #expect(goals.title == String(localized: "Günlük hedefler"))
         #expect(goals.body == String(localized: "Bugün bekleyen hedefler var"))
         let reminder = try #require(requests.first { $0.id == "people-2026-09-27" })
-        #expect(reminder.body == String(localized: "Görüşme zamanı gelen \(1) kişi var"))
+        #expect(reminder.bodyText == .localized("Görüşme zamanı gelen 1 kişi var"))
         for request in requests {
             for secret in ["private errand", "Kitap", "Su", "Deniz"] {
                 #expect(!request.title.contains(secret) && !request.body.contains(secret), "\(request.id)")
@@ -156,7 +156,7 @@ struct NotificationPlannerTests {
         var settings = NotificationPreferences()
         settings.hideContent = true
         let hidden = try #require(plan(snapshot, preferences: settings).first { $0.id == "task-2026-09-27" })
-        #expect(hidden.title == String(localized: "\(1) görev bugün"))
+        #expect(hidden.titleText == .localized("1 görev bugün"))
         #expect(!hidden.title.contains("private"))
         settings.hideContent = false
         let visible = try #require(plan(snapshot, preferences: settings).first { $0.id == "task-2026-09-27" })
@@ -221,9 +221,7 @@ struct NotificationPlannerTests {
         #expect(notice.destination == .people)
         #expect(notice.title == String(localized: "Görüşme zamanı"))
         #expect(notice.date == notificationDate(hour: 10))
-        #expect(
-            notice.body
-                == String(localized: "\("Deniz"), \("Ada"), \("Bora") ve \(1) kişi daha"))
+        #expect(notice.bodyText == .localized("%@, %@, %@ ve 1 kişi daha", "Deniz", "Ada", "Bora"))
         #expect(!notice.body.contains("Cem"))
         #expect(requests.contains { $0.id == "people-2026-09-30" })
         #expect(requests.contains { $0.id == "people-2026-10-03" })
@@ -251,7 +249,7 @@ struct NotificationPlannerTests {
                 timeZone: notificationUTC,
                 people: people
             ).first { $0.id == "people-2026-09-27" })
-        #expect(notice.body == String(localized: "Görüşme zamanı gelen \(3) kişi var"))
+        #expect(notice.bodyText == .localized("Görüşme zamanı gelen %@ kişi var", "3"))
         #expect(notice.title == String(localized: "Görüşme zamanı"))
         for name in ["Deniz", "Ada", "Bora"] {
             #expect(!notice.title.contains(name))

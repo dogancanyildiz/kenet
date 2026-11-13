@@ -67,11 +67,11 @@ enum NotificationPlanner {
                 if !remaining.isEmpty {
                     let body =
                         preferences.hideContent
-                        ? String(localized: "Bugün bekleyen hedefler var")
-                        : String(localized: "Bugün bekleyen hedefler: \(remaining.joined(separator: ", "))")
+                        ? NotificationText.localized("Bugün bekleyen hedefler var")
+                        : .localized("Bugün bekleyen hedefler: %@", remaining.joined(separator: ", "))
                     result.append(
                         NotificationRequest(
-                            id: "goals-\(day)", date: date, title: String(localized: "Günlük hedefler"),
+                            id: "goals-\(day)", date: date, title: .localized("Günlük hedefler"),
                             body: body, destination: .goals))
                 }
             }
@@ -81,8 +81,8 @@ enum NotificationPlanner {
                 if !days.writtenDays.contains(day) {
                     result.append(
                         NotificationRequest(
-                            id: "diary-\(day)", date: date, title: String(localized: "Gününden bir an"),
-                            body: String(localized: "Bugünden bir an yazmak ister misin?"), destination: .diary))
+                            id: "diary-\(day)", date: date, title: .localized("Gününden bir an"),
+                            body: .localized("Bugünden bir an yazmak ister misin?"), destination: .diary))
                 }
             }
             if preferences.peopleEnabled, let date = fireDate(day, time: preferences.peopleTime, timeZone: timeZone),
@@ -137,19 +137,23 @@ enum NotificationPlanner {
 
     private static func taskMessage(
         _ days: NotificationVaultDays, on day: CalendarDate, hideContent: Bool
-    ) -> (title: String, body: String)? {
+    ) -> (title: NotificationText, body: NotificationText)? {
         let due = days.dueTasks.filter { $0.due == day }.sorted { $0.id < $1.id }
         let overdue = days.openTaskCounts.reduce(0) { $1.key < day ? $0 + $1.value : $0 }
         guard !due.isEmpty || overdue > 0 else { return nil }
-        let title: String
+        let title: NotificationText
         if due.isEmpty {
-            title = String(localized: "Bugünkü görevler")
-        } else if hideContent || due.count > 1 {
-            title = String(localized: "\(due.count) görev bugün")
+            title = .localized("Bugünkü görevler")
+        } else if hideContent {
+            // One hidden task still reads as a count; its own key carries the singular.
+            title = due.count == 1 ? .localized("1 görev bugün") : .localized("%@ görev bugün", "\(due.count)")
+        } else if due.count > 1 {
+            title = .localized("%@ görev bugün", "\(due.count)")
         } else {
-            title = due[0].text.plainText
+            title = .verbatim(due[0].text.plainText)
         }
-        let body = overdue > 0 ? String(localized: "Önceki günlerden \(overdue) açık görev.") : ""
+        let body: NotificationText =
+            overdue > 0 ? .localized("Önceki günlerden %@ açık görev.", "\(overdue)") : .verbatim("")
         return (title, body)
     }
 }

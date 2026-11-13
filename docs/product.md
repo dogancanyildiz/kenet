@@ -248,7 +248,7 @@ Tarama sekiz alanın hepsini Ekim 2026'da eksik buldu.
 | Cihaz | iOS hedefi iPhone ve iPad içindir. Karar günlüğü, 2026-10-16. |
 | Repo | Herkese açık. |
 | Lisans | Tüm hakları saklıdır. Karar günlüğü, 2026-10-07. |
-| Gelir modeli | Karar açıktır, [açık soru 3](decisions.md#açık-sorular). |
+| Gelir modeli | Gönüllü destek: üç tüketilebilir uygulama içi satın alma. Uygulama hiçbir özelliği kilitlemez. Karar günlüğü, 2026-11-13. |
 | Arayüz dili | Kullanıcının dili. Başlangıçta Türkçe ve İngilizce. |
 
 ## En büyük riskler

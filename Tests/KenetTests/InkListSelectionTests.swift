@@ -1,0 +1,595 @@
+import Foundation
+import Testing
+
+@testable import Kenet
+
+/// Mac list-column selection: the selected row on paper is a `surface` card with an accent
+/// bar inside its leading edge, a row inside a section card takes `accentSoft`, and a sheet
+/// row does not inherit the column selection.
+struct InkListSelectionTests {
+    private static let bodyMinimum = 4.5
+
+    @Test func fillAndMarkArePaletteTokens() {
+        #expect(InkListSelectionChrome.fill == .surface)
+        #expect(InkListSelectionChrome.cardFill == .accentSoft)
+        #expect(InkListSelectionChrome.mark == .accent)
+        // Şafak `c-mac` `.tm-sel::before`: 3 px bar, 4 px inside the card, 12 px short of its ends.
+        #expect(InkListSelectionChrome.markWidth == 3)
+        #expect(InkListSelectionChrome.markInset == 4)
+        #expect(InkListSelectionChrome.markVerticalInset == 12)
+        #expect(InkListSelectionChrome.cornerRadius == InkSize.listSelectionCorner)
+        #expect(InkListSelectionChrome.horizontalInset == InkSpacing.listSelectionHorizontal)
+        #expect(InkListSelectionChrome.verticalInset == InkSpacing.listSelectionVertical)
+    }
+
+    /// Text on the selected row inside a section card keeps the body minimum on `accentSoft`.
+    @Test func textTokensReadOnTheCardFill() {
+        for appearance in [InkPalette.Appearance.light, .dark] {
+            let background = InkListSelectionChrome.cardFill.variant.hex(for: appearance)
+            for token in InkListSelectionChrome.textTokens {
+                let ratio = InkPalette.contrastRatio(
+                    foreground: token.variant.hex(for: appearance), background: background)
+                #expect(ratio + 0.000_1 >= Self.bodyMinimum, "\(token.rawValue) on accentSoft \(appearance): \(ratio)")
+            }
+        }
+    }
+
+    @Test func keepingDropsAnIdThatLeftTheList() {
+        #expect(TaskListSelection.keeping("a", listedIDs: ["a", "b"]) == "a")
+        #expect(TaskListSelection.keeping("a", listedIDs: ["b"]) == nil)
+        #expect(TaskListSelection.keeping(nil, listedIDs: ["a"]) == nil)
+    }
+}
+
+#if os(macOS)
+    import AppKit
+    import Observation
+    import SwiftUI
+    import VaultFormat
+
+    @MainActor @Suite(.timeLimit(.minutes(1)))
+    struct InkListSelectionMacTests {
+        private let watchdog = HostedTestWatchdog()
+        @Test func drawnSelectionUsesFillAndMark() async throws {
+            for appearance in [AppearanceCase.light, AppearanceCase.dark] {
+                let bitmap = try await SelectionBitmap.render(
+                    SelectionSwatches(scheme: appearance.scheme),
+                    size: SelectionSwatches.size,
+                    appearance: appearance.name)
+                let swatches = SelectionSwatches.samples(in: bitmap)
+                let center = try #require(bitmap.color(x: Int(SelectionSwatches.size.width) / 2, y: 24))
+                #expect(
+                    center.nearest(among: swatches) == .fill,
+                    "center \(center) on \(appearance.scheme) is not the fill swatch \(swatches.fill)")
+                let markX =
+                    InkListSelectionChrome.horizontalInset + InkListSelectionChrome.markInset
+                    + InkListSelectionChrome.markWidth / 2
+                let mark = try #require(bitmap.color(x: Int(markX), y: 24))
+                #expect(
+                    mark.nearest(among: swatches) == .mark,
+                    "leading rule \(mark) on \(appearance.scheme) is not the mark swatch \(swatches.mark)")
+                for token in InkListSelectionChrome.textTokens {
+                    let foreground = try #require(swatches.text[token])
+                    let ratio = InkPalette.contrastRatio(foreground: foreground.hex, background: center.hex)
+                    #expect(
+                        ratio + 0.000_1 >= 4.5,
+                        "\(token.rawValue) on drawn fill \(appearance.scheme): \(ratio)")
+                }
+            }
+        }
+
+        @Test func sheetRowDoesNotPaintColumnSelection() async throws {
+            let size = CGSize(width: 280, height: 160)
+            let bitmap = try await SelectionBitmap.render(SheetSelectionProbe(), size: size)
+            let fill = try await SelectionBitmap.fillSwatch()
+            let row = SelectionBitmap.wellCount(in: bitmap, yRange: 0..<160, fill: fill)
+            #expect(row < 150, "sheet row painted \(row) fill pixels")
+        }
+
+        @Test func journalDayRowDrawsColumnSelection() async throws {
+            let context = try TaskTestContext(sample: true)
+            defer { context.clean() }
+            await context.start()
+            let days = try await context.store.computeDaySummaries()
+            let id = try #require(days.first?.id)
+            let size = CGSize(width: 320, height: 360)
+            let bitmap = try await SelectionBitmap.render(
+                MacDayList(days: days, selection: .constant(id))
+                    .frame(width: size.width, height: size.height),
+                size: size)
+            let fill = try await SelectionBitmap.fillSwatch()
+            let wells = SelectionBitmap.wellCount(in: bitmap, yRange: 0..<120, fill: fill)
+            #expect(wells > 200, "journal row fill pixels \(wells)")
+        }
+
+        /// CI runs this one (the Mac snapshot suites are skipped there). A control stacked under
+        /// the task row inside `TasksView` makes the list row taller than the row itself.
+        @Test func macTaskListRowHoldsOnlyTheTaskRow() async throws {
+            let context = try TaskTestContext(sample: true)
+            defer { context.clean() }
+            await context.start()
+            let day = CalendarDate("2026-09-20")!
+            let model = TasksModel(store: context.store, today: { day })
+            await model.loadList()
+            let tasks = model.agenda.flatMap(\.rows)
+            let size = CGSize(width: 420, height: 900)
+            let host = MacHost(
+                TasksView(store: context.store, selection: .constant(nil), tasks: model),
+                size: size)
+            await host.settle()
+            let table = try #require(host.descendant(NSTableView.self), "the task list is not table backed")
+            var listed = (0..<table.numberOfRows).map { table.rect(ofRow: $0).height }
+            // The rows' own width: the cells are narrower than the window (the table's inset),
+            // and a card row's text wraps by the width it is given.
+            let cellWidth =
+                (0..<table.numberOfRows).compactMap {
+                    table.view(atColumn: 0, row: $0, makeIfNecessary: false)?.frame.width
+                }.max() ?? size.width
+            host.close()
+            #expect(!tasks.isEmpty)
+            // `inkListRow` insets the content 6 pt above and below.
+            let insets: CGFloat = 12
+            let contentWidth = cellWidth - InkSpacing.margin * 2
+            for task in tasks {
+                let alone = await Self.rowHeight(task, context: context, day: day, width: contentWidth)
+                let match = listed.firstIndex { abs($0 - (alone + insets)) < 1.5 }
+                #expect(
+                    match != nil,
+                    "no \(alone + insets) pt list row for \(task.sourceText); list rows are \(listed)")
+                if let match { listed.remove(at: match) }
+            }
+        }
+
+        private static func rowHeight(
+            _ row: TaskRow, context: TaskTestContext, day: CalendarDate, width: CGFloat
+        ) async -> CGFloat {
+            let sink = HostedLayout.Sink()
+            let view = TasksListRow(
+                store: context.store, row: row, day: day, isOverdue: row.due.map { $0 < day } ?? false,
+                isBusy: false, allowsReopening: true
+            ) {}
+            .background {
+                GeometryReader { proxy in
+                    Color.clear.preference(key: RowHeightKey.self, value: proxy.size.height)
+                }
+            }
+            .frame(width: width)
+            .fixedSize(horizontal: false, vertical: true)
+            .onPreferenceChange(RowHeightKey.self) { sink.values = [$0] }
+            await HostedLayout.settle(view, size: CGSize(width: width, height: 400))
+            return sink.values.first ?? 0
+        }
+
+        @Test func macRowClickDoesNotComplete() async throws {
+            let context = try TaskTestContext(sample: true)
+            defer { context.clean() }
+            await context.start()
+            let row = try #require(
+                try await context.store.allTasks().first {
+                    $0.sourceText.contains("Hafta sonu dinlenme planı yap")
+                })
+            let clicks = ClickCount()
+            let size = CGSize(width: 360, height: 72)
+            let host = MacHost(
+                TasksListRow(
+                    store: context.store, row: row, day: context.today, isOverdue: false, isBusy: false,
+                    allowsReopening: true
+                ) { clicks.value += 1 }
+                .frame(width: size.width, height: size.height),
+                size: size)
+            await host.settle()
+            var boxPoint: CGPoint?
+            for x in stride(from: CGFloat(12), to: 40, by: 8) {
+                for y in stride(from: CGFloat(20), to: 52, by: 8) {
+                    let before = clicks.value
+                    host.click(at: CGPoint(x: x, y: y))
+                    if clicks.value > before {
+                        boxPoint = CGPoint(x: x, y: y)
+                        break
+                    }
+                }
+                if boxPoint != nil { break }
+            }
+            let afterBox = clicks.value
+            host.click(at: CGPoint(x: 220, y: 28))
+            host.click(at: CGPoint(x: 100, y: 48))
+            host.close()
+            #expect(boxPoint != nil, "no point in the gutter completed the task")
+            #expect(clicks.value == afterBox, "text or date click completed the task")
+        }
+
+        @Test func sectionFilterAndCompletionClearSelection() async throws {
+            let context = try TaskTestContext(sample: true)
+            defer { context.clean() }
+            await context.start()
+            let day = CalendarDate("2026-09-20")!
+            let model = TasksModel(store: context.store, today: { day })
+            await model.loadList()
+            let project = try #require(
+                model.agenda.flatMap(\.rows).first { $0.project != nil })
+            let dated = try #require(
+                model.agenda.flatMap(\.rows).first { $0.due != nil && $0.project == nil })
+            let box = SelectionBox()
+            box.value = project.id
+            let host = MacHost(
+                SelectionHarness(store: context.store, model: model, box: box),
+                size: CGSize(width: 420, height: 640))
+            await host.settle()
+            #expect(box.value == project.id)
+
+            model.projectFilter = project.project
+            await host.settle()
+            #expect(
+                model.agenda.flatMap(\.rows).contains { $0.id == project.id },
+                "filter removed the task; the test needs a filter that still lists it")
+            #expect(box.value == nil, "filter change left the selection")
+
+            model.projectFilter = nil
+            await host.settle()
+            box.value = dated.id
+            await host.settle()
+            #expect(box.value == dated.id)
+            model.viewState.listSection = .undated
+            await host.settle()
+            #expect(box.value == nil, "section change left the selection")
+
+            model.viewState.listSection = .upcoming
+            await host.settle()
+            box.value = dated.id
+            await host.settle()
+            #expect(box.value == dated.id)
+            let completed = await model.toggle(dated)
+            #expect(completed)
+            for _ in 0..<20 {
+                await host.settle()
+                if box.value == nil { break }
+            }
+            host.close()
+            #expect(box.value == nil, "completed task stayed selected")
+            #expect(!model.agenda.flatMap(\.rows).contains { $0.id == dated.id })
+        }
+    }
+
+    private struct SelectionHarness: View {
+        let store: IndexStore
+        let model: TasksModel
+        let box: SelectionBox
+
+        var body: some View {
+            let _ = box.value
+            TasksView(
+                store: store,
+                selection: Binding(get: { box.value }, set: { box.value = $0 }),
+                tasks: model)
+        }
+    }
+
+    private enum AppearanceCase {
+        case light, dark
+
+        var scheme: ColorScheme {
+            switch self {
+            case .light: .light
+            case .dark: .dark
+            }
+        }
+
+        var name: NSAppearance.Name {
+            switch self {
+            case .light: .aqua
+            case .dark: .darkAqua
+            }
+        }
+    }
+
+    private struct SelectionSwatches: View {
+        var scheme: ColorScheme
+        static let size = CGSize(width: 220, height: 88)
+
+        var body: some View {
+            VStack(spacing: 0) {
+                InkListSelectionBackground(isSelected: true)
+                    .frame(width: Self.size.width, height: 48)
+                HStack(spacing: 0) {
+                    swatch(InkListSelectionChrome.fillColor)
+                    swatch(InkListSelectionChrome.markColor)
+                    swatch(Color.ink.paper)
+                    swatch(Color.ink.accent)
+                    ForEach(InkListSelectionChrome.textTokens, id: \.rawValue) { token in
+                        swatch(Color(token.assetName))
+                    }
+                }
+                .frame(width: Self.size.width, height: 40, alignment: .leading)
+            }
+            .frame(width: Self.size.width, height: Self.size.height)
+            .environment(\.colorScheme, scheme)
+        }
+
+        private func swatch(_ color: Color) -> some View {
+            color.frame(width: 20, height: 40)
+        }
+    }
+
+    private struct SheetSelectionProbe: View {
+        var body: some View {
+            List {
+                Text(verbatim: "Her gün")
+                    .inkListRow()
+            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .frame(width: 280, height: 160)
+            .background(Color.ink.paper)
+        }
+    }
+
+    private enum SwatchKind: Equatable {
+        case fill, mark, paper, accent, text
+    }
+
+    private struct SwatchSet {
+        var fill: SampledRGB
+        var mark: SampledRGB
+        var paper: SampledRGB
+        var accent: SampledRGB
+        var text: [InkPalette.Token: SampledRGB]
+
+        func kind(of color: SampledRGB) -> SwatchKind {
+            let pairs: [(SwatchKind, SampledRGB)] = [
+                (.fill, fill), (.mark, mark), (.paper, paper), (.accent, accent),
+            ]
+            return pairs.min { color.distance(to: $0.1) < color.distance(to: $1.1) }?.0 ?? .paper
+        }
+    }
+
+    extension SelectionSwatches {
+        fileprivate static func samples(in bitmap: SelectionBitmap) -> SwatchSet {
+            func at(_ index: Int) -> SampledRGB {
+                bitmap.color(x: index * 20 + 8, y: 68) ?? SampledRGB(r: 0, g: 0, b: 0)
+            }
+            var text: [InkPalette.Token: SampledRGB] = [:]
+            for (offset, token) in InkListSelectionChrome.textTokens.enumerated() {
+                text[token] = at(4 + offset)
+            }
+            return SwatchSet(fill: at(0), mark: at(1), paper: at(2), accent: at(3), text: text)
+        }
+    }
+
+    extension SampledRGB {
+        fileprivate func nearest(among swatches: SwatchSet) -> SwatchKind {
+            swatches.kind(of: self)
+        }
+    }
+
+    struct SampledRGB: Equatable {
+        var r: CGFloat
+        var g: CGFloat
+        var b: CGFloat
+
+        var hex: UInt32 {
+            let red = UInt32((Double(r) * 255).rounded())
+            let green = UInt32((Double(g) * 255).rounded())
+            let blue = UInt32((Double(b) * 255).rounded())
+            return (red << 16) | (green << 8) | blue
+        }
+
+        func distance(to other: SampledRGB) -> CGFloat {
+            max(abs(r - other.r), abs(g - other.g), abs(b - other.b))
+        }
+    }
+
+    struct SelectionBitmap {
+        let rep: NSBitmapImageRep
+
+        func color(x: Int, y: Int) -> SampledRGB? {
+            guard x >= 0, y >= 0, x < rep.pixelsWide, y < rep.pixelsHigh, let color = rep.colorAt(x: x, y: y) else {
+                return nil
+            }
+            let converted = color.usingColorSpace(.sRGB) ?? color
+            return SampledRGB(
+                r: converted.redComponent, g: converted.greenComponent, b: converted.blueComponent)
+        }
+
+        @MainActor
+        static func render<V: View>(
+            _ view: V, size: CGSize, appearance: NSAppearance.Name = .aqua
+        ) async throws -> SelectionBitmap {
+            let host = NSHostingView(rootView: view.environment(\.locale, Locale(identifier: "tr_TR")))
+            host.appearance = NSAppearance(named: appearance)
+            host.frame = NSRect(origin: .zero, size: size)
+            let window = NSWindow(
+                contentRect: NSRect(x: -20_000, y: -20_000, width: size.width, height: size.height),
+                styleMask: [.borderless], backing: .buffered, defer: false)
+            window.contentView = host
+            host.layoutSubtreeIfNeeded()
+            for _ in 0..<6 {
+                await Task.yield()
+                // Frame pump: SwiftUI and AppKit draw on a later run-loop turn and report no event to await.
+                try? await Task.sleep(for: .milliseconds(20))
+                host.layoutSubtreeIfNeeded()
+            }
+            guard
+                let rep = NSBitmapImageRep(
+                    bitmapDataPlanes: nil,
+                    pixelsWide: Int(size.width),
+                    pixelsHigh: Int(size.height),
+                    bitsPerSample: 8,
+                    samplesPerPixel: 4,
+                    hasAlpha: true,
+                    isPlanar: false,
+                    colorSpaceName: .deviceRGB,
+                    bytesPerRow: 0,
+                    bitsPerPixel: 0)
+            else {
+                window.contentView = nil
+                throw SelectionBitmapError.unreadable
+            }
+            rep.size = size
+            host.cacheDisplay(in: host.bounds, to: rep)
+            window.contentView = nil
+            return SelectionBitmap(rep: rep)
+        }
+
+        @MainActor
+        static func fillSwatch() async throws -> SampledRGB {
+            let bitmap = try await render(
+                InkListSelectionBackground(isSelected: true).frame(width: 80, height: 40),
+                size: CGSize(width: 80, height: 40))
+            return try #require(bitmap.color(x: 40, y: 20))
+        }
+
+        static func wellCount(in bitmap: SelectionBitmap, yRange: Range<Int>, fill: SampledRGB) -> Int {
+            var count = 0
+            for y in yRange {
+                for x in 0..<bitmap.rep.pixelsWide {
+                    guard let color = bitmap.color(x: x, y: y) else { continue }
+                    if color.distance(to: fill) < 0.04 { count += 1 }
+                }
+            }
+            return count
+        }
+    }
+
+    private enum SelectionBitmapError: Error { case unreadable }
+
+    private struct RowHeightKey: PreferenceKey {
+        static let defaultValue: CGFloat = 0
+        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+            value = max(value, nextValue())
+        }
+    }
+
+    @MainActor
+    private final class ClickCount {
+        var value = 0
+    }
+
+    @MainActor @Observable
+    private final class SelectionBox {
+        var value: String?
+    }
+
+    private final class ClickWindow: NSWindow {
+        override var canBecomeKey: Bool { true }
+        override var canBecomeMain: Bool { true }
+    }
+
+    @MainActor
+    final class MacHost {
+        private let window: ClickWindow
+        private let host: NSHostingView<AnyView>
+
+        init<V: View>(_ view: V, size: CGSize) {
+            let hosting = NSHostingView(rootView: AnyView(view))
+            hosting.frame = NSRect(origin: .zero, size: size)
+            let window = ClickWindow(
+                contentRect: NSRect(x: -20_000, y: -20_000, width: size.width, height: size.height),
+                styleMask: [.borderless], backing: .buffered, defer: false)
+            window.isReleasedWhenClosed = false
+            window.alphaValue = 0.01
+            window.contentView = hosting
+            self.window = window
+            self.host = hosting
+        }
+
+        func settle() async {
+            host.needsLayout = true
+            host.layoutSubtreeIfNeeded()
+            for _ in 0..<8 {
+                await Task.yield()
+                // Frame pump: SwiftUI and AppKit draw on a later run-loop turn and report no event to await.
+                try? await Task.sleep(for: .milliseconds(40))
+                host.layoutSubtreeIfNeeded()
+            }
+        }
+
+        /// Puts the nearly invisible window on the visible desktop so hit-testing works, then
+        /// removes it. `point` is measured from the top-left of the hosted view.
+        private func placeOnScreen() {
+            guard let screen = NSScreen.main else { return }
+            let visible = screen.visibleFrame
+            window.setFrame(
+                NSRect(
+                    x: visible.maxX - window.frame.width - 4,
+                    y: visible.minY + 4,
+                    width: window.frame.width,
+                    height: window.frame.height),
+                display: true)
+            window.makeKeyAndOrderFront(nil)
+            window.displayIfNeeded()
+        }
+
+        private func windowPoint(for point: CGPoint) -> NSPoint {
+            let local =
+                host.isFlipped
+                ? NSPoint(x: point.x, y: point.y)
+                : NSPoint(x: point.x, y: host.bounds.height - point.y)
+            return host.convert(local, to: nil)
+        }
+
+        func click(at point: CGPoint) {
+            placeOnScreen()
+            send(at: windowPoint(for: point))
+        }
+
+        /// A mouse down and up at `windowPoint` (window coordinates), delivered as a real click
+        /// is: the up waits in the event queue while the down is handled. A down that reaches the
+        /// list's table view (macOS 26: a SwiftUI row hands it on) starts a tracking loop that
+        /// reads the up from the queue; an up sent only after the down returned never reached
+        /// that loop, and the test hung until its time limit.
+        private func send(at windowPoint: NSPoint) {
+            func make(_ type: NSEvent.EventType) -> NSEvent {
+                NSEvent.mouseEvent(
+                    with: type, location: windowPoint, modifierFlags: [],
+                    timestamp: ProcessInfo.processInfo.systemUptime,
+                    windowNumber: window.windowNumber, context: nil,
+                    eventNumber: 0, clickCount: 1, pressure: 1)!
+            }
+            NSApp.postEvent(make(.leftMouseUp), atStart: false)
+            NSApp.sendEvent(make(.leftMouseDown))
+            RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+            // No tracking loop took the up: deliver it now, as the event loop would.
+            if let up = NSApp.nextEvent(matching: .leftMouseUp, until: Date(), inMode: .default, dequeue: true) {
+                NSApp.sendEvent(up)
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        }
+
+        /// Clicks the middle of the first accessibility element `matches` picks, read once the
+        /// window is on screen (where a real click lands). False when no such element shows.
+        func clickElement(
+            offset: CGVector = .zero, where matches: (HostedControls.Node) -> Bool
+        ) async -> Bool {
+            placeOnScreen()
+            HostedControls.enableTree()
+            var node: HostedControls.Node?
+            for _ in 0..<40 where node == nil {
+                await settle()
+                node = HostedControls.nodes(under: host).first(where: matches)
+            }
+            guard let node else { return false }
+            let point = NSPoint(x: node.frame.midX + offset.dx, y: node.frame.midY + offset.dy)
+            send(at: window.convertPoint(fromScreen: point))
+            return true
+        }
+
+        /// The window the view is hosted in (sheets attach to it).
+        var hostWindow: NSWindow { window }
+
+        /// First AppKit view of the given type under the hosted SwiftUI content.
+        func descendant<T: NSView>(_ type: T.Type) -> T? {
+            var queue: [NSView] = [host]
+            while !queue.isEmpty {
+                let view = queue.removeFirst()
+                if let match = view as? T { return match }
+                queue.append(contentsOf: view.subviews)
+            }
+            return nil
+        }
+
+        func close() {
+            window.orderOut(nil)
+            window.contentView = nil
+        }
+    }
+#endif

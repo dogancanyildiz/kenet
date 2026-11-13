@@ -1,7 +1,7 @@
 #if DEBUG
     import Foundation
 
-    /// A calendar in memory: UI tests (`JOURNAL_UITEST_CALENDAR=memory`) and unit tests use it in
+    /// A calendar in memory: UI tests (`KENET_UITEST_CALENDAR=memory`) and unit tests use it in
     /// place of EventKit. It models what the writes depend on: repeating series with their
     /// occurrences, "this event" and "this and following" spans, read-only events, and it finds the
     /// picked occurrence with the same `CalendarWritePlan` rules as the EventKit source.

@@ -105,7 +105,7 @@ class ChangesTests(unittest.TestCase):
             "Fixtures/vaults/sample/2026-01-02.md", "project.yml", "VERSION", ".github/workflows/ci.yml",
             ".github/scripts/x.sh", "App/Resources/Localizable.xcstrings", "Config/Signing.xcconfig",
             "App/README.md", "Packages/Core/docs/a.md", "docs.md/x.swift", "docsx/a.md", "LICENSE.txt",
-            "notes.txt", "BENIOKU.MD", ".gitignore", "Tests/JournalTests/Snapshots/__Snapshots__/a.png",
+            "notes.txt", "BENIOKU.MD", ".gitignore", "Tests/KenetTests/Snapshots/__Snapshots__/a.png",
             "bilinmeyen/yol", "docs ek/a.md", "satır\nsonu.md/x",
         ]:
             with self.subTest(path=path):

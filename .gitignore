@@ -16,7 +16,7 @@ xcuserdata/
 *.xccheckout
 
 # XcodeGen ile üretilir: `xcodegen generate` (tanım project.yml içinde)
-Journal.xcodeproj/
+Kenet.xcodeproj/
 
 # Derleme çıktıları
 build/

@@ -93,7 +93,7 @@ struct SystemWidgetTimelines: WidgetTimelineReloading {
         running = nil
     }
 
-    /// The scene left the foreground; `JournalApp` hands every inactive and background phase here,
+    /// The scene left the foreground; `KenetApp` hands every inactive and background phase here,
     /// so the lock and the snapshot move together. The lock service covers the app and, in the
     /// background, starts its timeout. A lock that engaged just now ("immediately", in the
     /// background) removes the file (`lockEngaged`); otherwise the file learns when the lock

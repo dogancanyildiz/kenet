@@ -1418,7 +1418,7 @@ flowchart TD
 | Hedefi işaretle | Seçim listesi güncel tanımları gösterir. Boolean hedefe true yazar. Sayısal hedefe miktarı bugünün toplam kaydı olarak yazar; artırma değildir. |
 | Bugünü aç | Uygulamayı öne getirir ve Bugün sekmesini ya da bölümünü seçer. Ayrıntı, arama ve telefondaki Ayarlar kapanır. Ana gezinme değişmez. |
 
-"Journal ile" başlayan cümleler Türkçe ve İngilizce App Shortcuts olarak gelir. Kasa eksikse ya da erişilemiyorsa kısayol uygulamadan kasayı açmasını isteyen hata verir. Yazma işlemleri uygulamayı öne getirmez ve kısa onay metni döndürür. Uygulama kesin anmaları hızlı girişteki gibi bağlar. Belirsiz ya da bilinmeyen `@` anmasında kısayol soru soramaz. Uygulama `@` işaretini kaldırır, metin düz kalır ve yeni varlık oluşmaz.
+"Kenet ile" başlayan cümleler Türkçe ve İngilizce App Shortcuts olarak gelir. Kasa eksikse ya da erişilemiyorsa kısayol uygulamadan kasayı açmasını isteyen hata verir. Yazma işlemleri uygulamayı öne getirmez ve kısa onay metni döndürür. Uygulama kesin anmaları hızlı girişteki gibi bağlar. Belirsiz ya da bilinmeyen `@` anmasında kısayol soru soramaz. Uygulama `@` işaretini kaldırır, metin düz kalır ve yeni varlık oluşmaz.
 
 ## Giriş noktaları
 

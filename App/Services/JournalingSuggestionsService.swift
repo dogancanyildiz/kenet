@@ -27,7 +27,7 @@ enum JournalingSuggestionsAvailability {
     #if os(iOS)
         /// The picker opens only on an iPhone that has the framework: iPad has it too, but leaving
         /// it out there is a product decision. The entitlement is in the iOS signature
-        /// (`Journal-iOS.entitlements`) of every build that has the framework.
+        /// (`Kenet-iOS.entitlements`) of every build that has the framework.
         @MainActor static func current(
             idiom: UIUserInterfaceIdiom = UIDevice.current.userInterfaceIdiom,
             frameworkPresent: Bool = isFrameworkPresent

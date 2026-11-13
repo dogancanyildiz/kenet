@@ -35,7 +35,7 @@ jobs:
         run: xcodegen generate
       - name: Derle
         timeout-minutes: 20
-        run: xcodebuild build-for-testing -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS,arch=arm64' CODE_SIGNING_ALLOWED=NO -quiet
+        run: xcodebuild build-for-testing -project Kenet.xcodeproj -scheme Kenet_macOS -destination 'platform=macOS,arch=arm64' CODE_SIGNING_ALLOWED=NO -quiet
       - name: Mac görüntü kümeleri
         id: mac_snapshots
         timeout-minutes: 15
@@ -43,12 +43,12 @@ jobs:
           SNAPSHOT_TESTING_RECORD: never
           TEST_RUNNER_SNAPSHOT_TESTING_RECORD: never
         run: |
-          only=$(sh .github/scripts/snapshot-suites.sh --mac | grep -v Duo | sed 's#^#-only-testing:JournalTests_macOS/#' | tr '\n' ' ')
+          only=$(sh .github/scripts/snapshot-suites.sh --mac | grep -v Duo | sed 's#^#-only-testing:KenetTests_macOS/#' | tr '\n' ' ')
           if [ -z "$only" ]; then
             echo "::error::Mac görüntü kümesi bulunamadı"
             exit 1
           fi
-          xcodebuild test-without-building -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS,arch=arm64' $only -resultBundlePath MacSnapshots.xcresult CODE_SIGNING_ALLOWED=NO -quiet
+          xcodebuild test-without-building -project Kenet.xcodeproj -scheme Kenet_macOS -destination 'platform=macOS,arch=arm64' $only -resultBundlePath MacSnapshots.xcresult CODE_SIGNING_ALLOWED=NO -quiet
       - name: Mac görüntü farkları (yalnız düşünce)
         if: failure() && steps.mac_snapshots.outcome == 'failure'
         uses: actions/upload-artifact@v7
@@ -56,6 +56,6 @@ jobs:
           name: mac-snapshot-diffs
           path: |
             MacSnapshots.xcresult
-            Tests/JournalTests/Snapshots/__Snapshots__
+            Tests/KenetTests/Snapshots/__Snapshots__
           if-no-files-found: warn
           retention-days: 14

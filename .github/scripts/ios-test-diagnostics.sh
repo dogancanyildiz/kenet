@@ -1,6 +1,6 @@
 #!/bin/sh
 # iOS test adımı asıldığında nerede beklediğini kayda geçirir: süreç listesi, simülatör durumu,
-# test konağının (Journal) ve xcodebuild'in yığın örnekleri, simülatörün son günlükleri.
+# test konağının (Kenet) ve xcodebuild'in yığın örnekleri, simülatörün son günlükleri.
 # CI iki kez çağırır: adımın içinde arka planda (adım zaman aşımından ÖNCE, süreçler hâlâ asılıyken)
 # ve adım düştükten sonra. Hiçbir sürece sinyal göndermez; her komut en iyi çabadır, betik hep 0 döner.
 # Kullanım: sh .github/scripts/ios-test-diagnostics.sh <çıktı klasörü> <simülatör UDID> [bekleme sn]
@@ -23,7 +23,7 @@ xcrun simctl spawn "$udid" launchctl list >"$dir/sim-launchctl.txt" 2>&1 || true
 
 # Test konağı simülatörde koşsa da macOS'ta sıradan bir süreçtir; yığını asılan testi adlandırır.
 # xcodebuild ve testmanagerd örnekleri asılma testten ÖNCEyse (kurulum, başlatma) nerede olduğunu gösterir.
-for pattern in 'Journal\.app/Journal' 'JournalUITests-Runner' '/xcodebuild ' 'testmanagerd'; do
+for pattern in 'Kenet\.app/Kenet' 'KenetUITests-Runner' '/xcodebuild ' 'testmanagerd'; do
   for pid in $(pgrep -f "$pattern" 2>/dev/null); do
     name=$(ps -o comm= -p "$pid" 2>/dev/null | awk -F/ '{print $NF}')
     [ -e "$dir/sample-$name-$pid.txt" ] && continue
@@ -33,7 +33,7 @@ done
 
 # Simülatörün birleşik günlüğü: test konağı, test hizmeti ve uygulamayı başlatan süreçler.
 xcrun simctl spawn "$udid" log show --last 15m --style compact \
-  --predicate 'process == "Journal" OR process == "testmanagerd" OR process == "SpringBoard" OR process == "runningboardd"' \
+  --predicate 'process == "Kenet" OR process == "testmanagerd" OR process == "SpringBoard" OR process == "runningboardd"' \
   2>&1 | tail -n 4000 >"$dir/sim-log.txt" || true
 
 ls -l "$dir" 2>/dev/null || true

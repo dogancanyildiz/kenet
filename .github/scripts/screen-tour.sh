@@ -1,6 +1,6 @@
 #!/bin/sh
 # Ekran turu: uygulamayı kurgusal örnek kasayla simülatörde gezer, her ekranın PNG'sini verilen
-# klasöre yazar (Tests/JournalUITests/ScreenTourUITests.swift). Tasarım işinde önce / sonra
+# klasöre yazar (Tests/KenetUITests/ScreenTourUITests.swift). Tasarım işinde önce / sonra
 # karşılaştırması içindir; CI'da koşmaz.
 # iOS ve iPad turu iki koşudur: açık görünümde bütün ekranlar, sonra simülatör koyuya alınıp
 # 20-koyu-* görüntüleri. Koşu bitince simülatör açık görünüme döner.
@@ -17,7 +17,7 @@
 # bitince aygıt dik yöne döndürülür.
 #
 # --mac (ya da SCREEN_TOUR_PLATFORM=mac) Mac uygulamasını gezer ve her ekranın pencere görüntüsünü
-# yazar (Tests/JournalMacUITests/ScreenTourMacUITests.swift). Tur sürerken fare ve klavye testin
+# yazar (Tests/KenetMacUITests/ScreenTourMacUITests.swift). Tur sürerken fare ve klavye testin
 # elindedir; bitene kadar bilgisayara dokunma. Gerçek kasaya ve ayarlara dokunulmaz: uygulama ayrı
 # bir bundle kimliğiyle (….screentour) derlenir, ev klasörü olarak geçici bir klasör görür ve
 # koşu bitince o kimliğin ayarları silinir. Sistem görünümü değiştirilmez. Pencere ana ekranda
@@ -86,7 +86,7 @@ if [ "$PLATFORM" = "mac" ]; then
   # Ayrı kimlik: UserDefaults (pencere konumu, kısayol, kasa yer imi) gerçek uygulamanınkine karışmaz.
   TOUR_APP="$APP.screentour"
   # Ayrı derleme klasörü: olağan derlemenin ürünü tur kimliğiyle ezilmez.
-  DERIVED="$HOME/Library/Developer/Xcode/DerivedData/Journal-mac-screen-tour"
+  DERIVED="$HOME/Library/Developer/Xcode/DerivedData/Kenet-mac-screen-tour"
   WATCH=""
   WINDOW="${SCREEN_TOUR_WINDOW:-}"
   # Mağaza Mac görüntüsü 16:10 ister: 1440x900 pencere Retina'da 2880x1800 piksel verir.
@@ -113,13 +113,13 @@ if [ "$PLATFORM" = "mac" ]; then
   # hazırladığı kasa kopyasını okuyamaz. Koşucu kum havuzludur ve çıktı klasörüne yazamaz;
   # görüntüler sonuç paketinden çıkarılır (aşağıda).
   set +e
-  TEST_RUNNER_JOURNAL_SCREEN_TOUR_DIR="$OUT" \
-  TEST_RUNNER_JOURNAL_SCREEN_TOUR_TREE="${SCREEN_TOUR_TREE:-}" \
-  TEST_RUNNER_JOURNAL_SCREEN_TOUR_ONLY="${SCREEN_TOUR_ONLY:-}" \
-  TEST_RUNNER_JOURNAL_SCREEN_TOUR_WINDOW="$WINDOW" \
+  TEST_RUNNER_KENET_SCREEN_TOUR_DIR="$OUT" \
+  TEST_RUNNER_KENET_SCREEN_TOUR_TREE="${SCREEN_TOUR_TREE:-}" \
+  TEST_RUNNER_KENET_SCREEN_TOUR_ONLY="${SCREEN_TOUR_ONLY:-}" \
+  TEST_RUNNER_KENET_SCREEN_TOUR_WINDOW="$WINDOW" \
   xcodebuild test \
-    -project Journal.xcodeproj \
-    -scheme Journal_macOS_ScreenTour \
+    -project Kenet.xcodeproj \
+    -scheme Kenet_macOS_ScreenTour \
     -destination "platform=macOS,arch=$(uname -m)" \
     -derivedDataPath "$DERIVED" \
     -resultBundlePath "$RESULT" \
@@ -205,8 +205,8 @@ ORIENTATION="${SCREEN_TOUR_ORIENTATION:-}"
 # TEST_RUNNER_ önekli değişkenler test koşucusuna öneksiz iletilir; şemaya eklemek gerekmez.
 set +e
 xcodebuild build-for-testing \
-  -project Journal.xcodeproj \
-  -scheme Journal_iOS \
+  -project Kenet.xcodeproj \
+  -scheme Kenet_iOS \
   -destination "platform=iOS Simulator,id=$ID" \
   -derivedDataPath "$DERIVED" \
   CODE_SIGNING_ALLOWED=NO \
@@ -216,16 +216,16 @@ status=$?
 # Görünümü betik değiştirir: XCUIDevice.appearance simülatörü koyuya çevirmedi (koyu görüntüler
 # açık çıktı). Koyu koşu kendi atlananlar listesini yazar; liste aşağıda birleştirilir.
 run_pass() {
-  TEST_RUNNER_JOURNAL_SCREEN_TOUR_DIR="$OUT" \
-  TEST_RUNNER_JOURNAL_SCREEN_TOUR_TREE="${SCREEN_TOUR_TREE:-}" \
-  TEST_RUNNER_JOURNAL_SCREEN_TOUR_ORIENTATION="$ORIENTATION" \
-  TEST_RUNNER_JOURNAL_SCREEN_TOUR_PASS="$1" \
+  TEST_RUNNER_KENET_SCREEN_TOUR_DIR="$OUT" \
+  TEST_RUNNER_KENET_SCREEN_TOUR_TREE="${SCREEN_TOUR_TREE:-}" \
+  TEST_RUNNER_KENET_SCREEN_TOUR_ORIENTATION="$ORIENTATION" \
+  TEST_RUNNER_KENET_SCREEN_TOUR_PASS="$1" \
   xcodebuild test-without-building \
-    -project Journal.xcodeproj \
-    -scheme Journal_iOS \
+    -project Kenet.xcodeproj \
+    -scheme Kenet_iOS \
     -destination "platform=iOS Simulator,id=$ID" \
     -derivedDataPath "$DERIVED" \
-    -only-testing:JournalUITests/ScreenTourUITests \
+    -only-testing:KenetUITests/ScreenTourUITests \
     -resultBundlePath "$2" \
     CODE_SIGNING_ALLOWED=NO \
     -quiet

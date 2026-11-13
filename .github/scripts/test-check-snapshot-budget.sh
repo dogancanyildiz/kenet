@@ -21,7 +21,7 @@ run() { # ad beklenen-çıkış kök [ortam...]
 }
 
 mk() { # kök sayı bayt
-  d="$1/Tests/JournalTests/Snapshots/__Snapshots__/FooSnapshotTests"
+  d="$1/Tests/KenetTests/Snapshots/__Snapshots__/FooSnapshotTests"
   mkdir -p "$d"
   i=0
   while [ "$i" -lt "$2" ]; do

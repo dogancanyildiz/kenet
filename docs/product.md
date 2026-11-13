@@ -14,7 +14,7 @@ Modüllerin durumunu [yol haritası](roadmap.md) izler; bu belge durum tutmaz.
 
 | Öğe | İçerik |
 |---|---|
-| Ad | Kenet. "Journal" çalışma adıdır ve mağazada görünmez. |
+| Ad | Kenet. Kod adı da Kenet'tir. |
 | Tek cümle | Gün içinde yazdığın kısa olayları kişilere, konumlara ve zamana kendiliğinden bağlayan; görevleri ve hedefleri de aynı yerde tutan, verisi düz Markdown olan kişisel günlük. |
 | Platform | iPhone, iPad ve Mac. iPad kararı 2026-10-16'dadır; mağaza listesinin iPad ekran görüntüleri sürümde gelir. Mac uygulaması mağazaya sonra girer. |
 | Veri | Obsidian uyumlu Markdown kasa. SQLite yalnız indekstir. |

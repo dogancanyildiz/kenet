@@ -23,11 +23,11 @@ DOCUMENT = {
     "testNodes": [
         {
             "nodeType": "Test Plan",
-            "name": "Journal_iOS",
+            "name": "Kenet_iOS",
             "children": [
                 {
                     "nodeType": "Unit test bundle",
-                    "name": "JournalUITests",
+                    "name": "KenetUITests",
                     "children": [
                         {
                             "nodeType": "Test Suite",

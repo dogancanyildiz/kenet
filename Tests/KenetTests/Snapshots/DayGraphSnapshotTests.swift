@@ -1,0 +1,74 @@
+#if os(iOS)
+    import Foundation
+    import SnapshotTesting
+    import SwiftUI
+    import Testing
+    import VaultFormat
+
+    @testable import Kenet
+
+    /// The day's own graph on the graph fixture vault (`Fixtures/vaults/graph`, 2026-10-01: two
+    /// people, two places and a custom type book around the day), and the day page's manşet with
+    /// its Graph icon. Light theme at the default size only: dark and AX3 belong to the
+    /// representative suites (docs/architecture.md, reference budget).
+    enum DayGraphSnapshotCase: String, CaseIterable, Sendable {
+        case dayGraphLight
+        case dayMastheadLight
+        case dayScheduleLight = "day.scheduleLight"
+    }
+
+    @MainActor @Suite("Day graph snapshots")
+    struct DayGraphSnapshotTests {
+        static let day = CalendarDate("2026-10-01")!
+
+        @Test(arguments: DayGraphSnapshotCase.allCases)
+        func dayGraph(_ snapshotCase: DayGraphSnapshotCase) async throws {
+            let context = try TaskTestContext()
+            defer { context.clean() }
+            let fixture = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+                .deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("Fixtures/vaults/graph")
+            try FileManager.default.copyItem(at: fixture, to: context.root)
+            await context.start()
+            #expect(context.store.lastUpdated != nil)
+
+            let defaults = context.defaults.defaults
+            let notifications = NotificationService(
+                center: FakeNotificationCenter(), defaults: defaults, now: { snapshotNow },
+                timeZone: { snapshotTimeZone })
+            let calendar = CalendarService(source: SnapshotCalendarSource())
+            let location = LocationService(source: FakeLocationSource(), defaults: defaults)
+            let store = context.store
+            // Waited for below: the graph loads after the index goes idle (GraphScreenModel.load).
+            let graph = GraphView.makeModel(store: store, scope: .day(Self.day))
+            let root = NavigationStack {
+                switch snapshotCase {
+                case .dayMastheadLight:
+                    DayView(store: store, date: Self.day, isToday: true)
+                case .dayScheduleLight:
+                    DayView(store: store, date: Self.day, isToday: false)
+                case .dayGraphLight:
+                    GraphView(model: graph, liveMotion: false)
+                }
+            }
+            .environment(notifications)
+            .environment(calendar)
+            .environment(location)
+            .environment(\.locale, snapshotLocale)
+            .environment(\.calendar, makeSnapshotCalendar())
+            .environment(\.timeZone, snapshotTimeZone)
+            .environment(\.clockNow, { snapshotNow })
+            .environment(\.openSearch, .nothing)
+            .environment(\.openSettings, {})
+            await SnapshotHost.assertView(
+                colorScheme: .light,
+                dynamicType: .medium,
+                increaseContrast: false,
+                named: snapshotCase.rawValue,
+                store: store,
+                isReady: { snapshotCase != .dayGraphLight || (graph.hasLoaded && !graph.isLoading) },
+                testName: "dayGraph",
+                content: { root }
+            )
+        }
+    }
+#endif

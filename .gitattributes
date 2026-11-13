@@ -2,4 +2,4 @@
 Fixtures/** -text
 
 # Ekran görüntüsü referansları ikili dosyadır; satır sonu dönüşümü uygulanmaz.
-Tests/JournalTests/Snapshots/**/*.png binary
+Tests/KenetTests/Snapshots/**/*.png binary

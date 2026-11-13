@@ -72,8 +72,8 @@ runs:
       shell: bash
       run: |
         xcodebuild build-for-testing \
-          -project Journal.xcodeproj \
-          -scheme Journal_iOS \
+          -project Kenet.xcodeproj \
+          -scheme Kenet_iOS \
           -destination "generic/platform=iOS Simulator" \
           ARCHS=arm64 \
           CODE_SIGNING_ALLOWED=NO \

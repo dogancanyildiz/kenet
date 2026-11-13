@@ -11,7 +11,7 @@
 #   sh .github/scripts/testflight.sh            arşivle, özeti göster, onay alınca yükle
 #   sh .github/scripts/testflight.sh --yes      onay sormadan yükle
 #   sh .github/scripts/testflight.sh --check    imzasız arşivle ve içini denetle; yükleme yok
-#   sh .github/scripts/testflight.sh --mac      Mac uygulamasını (Journal_macOS) arşivle ve yükle;
+#   sh .github/scripts/testflight.sh --mac      Mac uygulamasını (Kenet_macOS) arşivle ve yükle;
 #                                               --check ve --ci ile birleşir; öteki seçenekler iOS
 #   sh .github/scripts/testflight.sh --ci --keychain <yol> --api-key <.p8> --api-key-id <kimlik> \
 #     --api-issuer <kimlik>                      CI'da (testflight.yml) onaysız arşivle ve yükle
@@ -22,7 +22,7 @@
 # yayıncı kimliği yer tutucuyla değiştirilir (repo herkese açık). HEAD origin/dev geçmişinde
 # olmalı ve kopya tam olmalı (soy denetimi geçmiş ister).
 #
-# --mac kipi: Journal_macOS şeması generic/platform=macOS için arşivlenir ve aynı app-store-connect
+# --mac kipi: Kenet_macOS şeması generic/platform=macOS için arşivlenir ve aynı app-store-connect
 # dışa aktarımıyla yüklenir (Mac App Store paketi .pkg; Xcode "Mac Installer Distribution"
 # sertifikasını otomatik imzada kendisi oluşturur). Denetimler Mac paketine göredir: Contents/
 # Info.plist, en düşük macOS sürümü, imzalı pakette App Sandbox ve iCloud kapsayıcı yetkisi.
@@ -160,11 +160,11 @@ xcodegen generate >/dev/null
 ARCHIVE="$WORK/Kenet.xcarchive"
 LOG="$WORK/arsiv.log"
 if [ "$PLATFORM" = mac ]; then
-  SCHEME=Journal_macOS
+  SCHEME=Kenet_macOS
   DESTINATION='generic/platform=macOS'
   LABEL="Kenet (Mac)"
 else
-  SCHEME=Journal_iOS
+  SCHEME=Kenet_iOS
   DESTINATION='generic/platform=iOS'
   LABEL="Kenet"
 fi
@@ -178,7 +178,7 @@ if [ "$CI_MODE" -eq 1 ]; then
   set -- "$@" -authenticationKeyPath "$API_KEY" -authenticationKeyID "$API_KEY_ID" \
     -authenticationKeyIssuerID "$API_ISSUER" DEVELOPMENT_TEAM="$TEAM"
 fi
-if ! xcodebuild archive -project Journal.xcodeproj -scheme "$SCHEME" \
+if ! xcodebuild archive -project Kenet.xcodeproj -scheme "$SCHEME" \
   -destination "$DESTINATION" -archivePath "$ARCHIVE" \
   -derivedDataPath "$WORK/DerivedData" "$@" >"$LOG" 2>&1; then
   grep -E "error:|ARCHIVE FAILED" "$LOG" | head -20 | redact >&2

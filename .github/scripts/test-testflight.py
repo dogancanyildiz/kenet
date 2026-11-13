@@ -51,7 +51,7 @@ elif tool == "xcodebuild":
         app = archive / "Products/Applications/Kenet.app"
         app.mkdir(parents=True)
         # Mac bundles keep resources under Contents/; iOS bundles are flat.
-        if "Journal_macOS" in args:
+        if "Kenet_macOS" in args:
             (app / "Contents/Resources").mkdir(parents=True)
             (app / "Contents/Resources/PrivacyInfo.xcprivacy").touch()
         else:
@@ -132,7 +132,7 @@ class TestFlightCleanupTests(unittest.TestCase):
                 executable.chmod(0o755)
             temporary = root / "tmp"
             temporary.mkdir()
-            global_derived = root / "home/Library/Developer/Xcode/DerivedData/Journal-existing"
+            global_derived = root / "home/Library/Developer/Xcode/DerivedData/Kenet-existing"
             global_derived.mkdir(parents=True)
             sentinel = global_derived / "keep"
             sentinel.write_text("user build")
@@ -185,12 +185,12 @@ class TestFlightCleanupTests(unittest.TestCase):
     def test_upload_failure_cleanup(self):
         self.run_case("upload-failure", ["--yes"], 1)
 
-    # --mac: the Mac app (Journal_macOS) goes through the same archive, check and export path.
+    # --mac: the Mac app (Kenet_macOS) goes through the same archive, check and export path.
 
     def test_mac_check_archives_mac_scheme(self):
         def inspect(result, root):
             signing = (root / "signing").read_text()
-            self.assertIn("-scheme Journal_macOS", signing)
+            self.assertIn("-scheme Kenet_macOS", signing)
             self.assertIn("-destination generic/platform=macOS", signing)
             self.assertIn("Platform:      Mac (en düşük macOS 26.0)", result.stdout)
             self.assertNotIn("Cihaz ailesi", result.stdout)
@@ -202,7 +202,7 @@ class TestFlightCleanupTests(unittest.TestCase):
     def test_ios_check_keeps_ios_scheme(self):
         def inspect(result, root):
             signing = (root / "signing").read_text()
-            self.assertIn("-scheme Journal_iOS", signing)
+            self.assertIn("-scheme Kenet_iOS", signing)
             self.assertIn("-destination generic/platform=iOS", signing)
             self.assertIn("Cihaz ailesi", result.stdout)
         self.run_case("check", ["--check"], 0, inspect=inspect)
@@ -233,7 +233,7 @@ class TestFlightCleanupTests(unittest.TestCase):
 
     def test_mac_ci_upload_reports_platform(self):
         def inspect(result, root):
-            self.assertIn("-scheme Journal_macOS", (root / "signing").read_text())
+            self.assertIn("-scheme Kenet_macOS", (root / "signing").read_text())
             self.assertIn("version=0.9.0\nbuild=261111.53012\nplatform=mac\n", (root / "github-output").read_text())
         self.ci_case("upload", 0, inspect=inspect, arguments=self.CI_ARGUMENTS + ["--mac"])
 

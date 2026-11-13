@@ -85,87 +85,38 @@ import VaultFormat
 
         private func nextEventCard(_ event: EventRow) -> some View {
             let time = event.time
-            return HStack(alignment: .top, spacing: 10) {
-                if let time {
-                    Text(verbatim: EventTimeFormat.string(for: time, locale: locale))
-                        .font(.system(.largeTitle, design: .default, weight: .bold).monospacedDigit())
-                        .foregroundStyle(Color.ink.text)
-                        .frame(minWidth: 72, alignment: .leading)
-                }
-                Rectangle()
-                    .fill(TimelineEventColor.color(for: event, store: store))
-                    .frame(width: InkSize.timelineBar)
-                    .clipShape(Capsule())
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Sıradaki olay")
-                        .font(.ink.meta)
-                        .foregroundStyle(Color.ink.secondaryText)
-                    Text(verbatim: event.text.plainText)
-                        .font(.ink.content)
-                        .foregroundStyle(Color.ink.text)
-                        .lineLimit(3)
-                }
-                Spacer(minLength: 0)
-            }
-            .padding(14)
-            .background(
-                RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
-                    .fill(Color.ink.surface)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
-                            .stroke(Color.ink.rule, lineWidth: 1))
-            )
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(
-                Text(
-                    verbatim: [
-                        PresentationLocalization.string(localized: "Sıradaki olay", locale: locale),
-                        time.map { EventTimeFormat.string(for: $0, locale: locale) },
-                        event.text.plainText,
-                    ].compactMap { $0 }.joined(separator: ", ")))
+            let timeText = time.map { EventTimeFormat.string(for: $0, locale: locale) }
+            return DeskNextItemCard(
+                time: timeText,
+                timeFont: .system(.largeTitle, design: .default, weight: .bold).monospacedDigit(),
+                bar: TimelineEventColor.color(for: event, store: store),
+                meta: "Sıradaki olay",
+                title: event.text.plainText,
+                titleLineLimit: 3,
+                padding: EdgeInsets(top: 14, leading: 14, bottom: 14, trailing: 14),
+                accessibilityLabel: [
+                    PresentationLocalization.string(localized: "Sıradaki olay", locale: locale),
+                    timeText,
+                    event.text.plainText,
+                ].compactMap { $0 }.joined(separator: ", "))
         }
 
         private func nextTaskCard(_ task: TaskRow, time: EventTime) -> some View {
-            HStack(alignment: .top, spacing: 10) {
-                Text(verbatim: EventTimeFormat.string(for: time, locale: locale))
-                    .font(.system(.title2, design: .default, weight: .bold).monospacedDigit())
-                    .foregroundStyle(Color.ink.text)
-                    .frame(minWidth: 72, alignment: .leading)
-                Rectangle()
-                    .fill(ProjectColor.color(for: task.project))
-                    .frame(width: InkSize.timelineBar)
-                    .clipShape(Capsule())
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Sonraki görev")
-                        .font(.ink.meta)
-                        .foregroundStyle(Color.ink.secondaryText)
-                    Text(
-                        verbatim: DaySchedulePresentation.strippingLeadingTime(
-                            from: task.text.plainText)
-                    )
-                    .font(.ink.content)
-                    .foregroundStyle(Color.ink.text)
-                    .lineLimit(2)
-                }
-                Spacer(minLength: 0)
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-            .background(
-                RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
-                    .fill(Color.ink.surface)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
-                            .stroke(Color.ink.rule, lineWidth: 1))
-            )
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(
-                Text(
-                    verbatim: [
-                        PresentationLocalization.string(localized: "Sonraki görev", locale: locale),
-                        EventTimeFormat.string(for: time, locale: locale),
-                        DaySchedulePresentation.strippingLeadingTime(from: task.text.plainText),
-                    ].joined(separator: ", ")))
+            let timeText = EventTimeFormat.string(for: time, locale: locale)
+            let title = DaySchedulePresentation.strippingLeadingTime(from: task.text.plainText)
+            return DeskNextItemCard(
+                time: timeText,
+                timeFont: .system(.title2, design: .default, weight: .bold).monospacedDigit(),
+                bar: ProjectColor.color(for: task.project),
+                meta: "Sonraki görev",
+                title: title,
+                titleLineLimit: 2,
+                padding: EdgeInsets(top: 10, leading: 14, bottom: 10, trailing: 14),
+                accessibilityLabel: [
+                    PresentationLocalization.string(localized: "Sonraki görev", locale: locale),
+                    timeText,
+                    title,
+                ].joined(separator: ", "))
         }
 
         private var goalsSection: some View {
@@ -307,6 +258,53 @@ import VaultFormat
             .buttonStyle(.plain)
             .accessibilityIdentifier("button.closeDay")
             .padding(.top, 8)
+        }
+    }
+
+    /// Shared skeleton for the desk's next-event and next-task cards.
+    struct DeskNextItemCard: View {
+        var time: String?
+        var timeFont: Font
+        var bar: Color
+        var meta: LocalizedStringKey
+        var title: String
+        var titleLineLimit: Int
+        var padding: EdgeInsets
+        var accessibilityLabel: String
+
+        var body: some View {
+            HStack(alignment: .top, spacing: 10) {
+                if let time {
+                    Text(verbatim: time)
+                        .font(timeFont)
+                        .foregroundStyle(Color.ink.text)
+                        .frame(minWidth: 72, alignment: .leading)
+                }
+                Rectangle()
+                    .fill(bar)
+                    .frame(width: InkSize.timelineBar)
+                    .clipShape(Capsule())
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(meta)
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                    Text(verbatim: title)
+                        .font(.ink.content)
+                        .foregroundStyle(Color.ink.text)
+                        .lineLimit(titleLineLimit)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(padding)
+            .background(
+                RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
+                    .fill(Color.ink.surface)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
+                            .stroke(Color.ink.rule, lineWidth: 1))
+            )
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(Text(verbatim: accessibilityLabel))
         }
     }
 

@@ -118,6 +118,43 @@ enum GoalListPresentation {
         PresentationLocalization.string(localized: "zincir \(streak)", locale: locale)
     }
 
+    /// Period progress finished (milestone uses completion date via ``GoalRowPresentation/progress``).
+    static func isComplete(goal: GoalDefinition, status: GoalStatus) -> Bool {
+        GoalRowPresentation.progress(goal: goal, status: status) >= 1
+    }
+
+    /// Boolean or milestone: list trailing control is mark / unmark, not amount.
+    static func isBooleanMark(_ kind: GoalKind) -> Bool {
+        kind == .boolean || kind == .milestone
+    }
+
+    /// VoiceOver label for a list or column row: "name, value/meta, badge".
+    static func accessibilityLabel(
+        goal: GoalDefinition, status: GoalStatus, bundle: Bundle? = nil, locale: Locale = .current
+    ) -> String {
+        let detail =
+            GoalRowPresentation.valueText(goal: goal, status: status, locale: locale)
+            ?? GoalRowPresentation.meta(goal: goal, status: status, bundle: bundle, locale: locale)
+        let badge = GoalRowPresentation.graceBadge(goal: goal, status: status, locale: locale)?.label
+        return [goal.name, detail, badge].compactMap { $0 }.filter { !$0.isEmpty }
+            .joined(separator: ", ")
+    }
+
+    /// Open / mark hint for list card and column row. Pass `markedToday` on the phone card so a
+    /// marked milestone says "İşareti kaldır"; omit it in the column (always "Bugünü işaretle").
+    static func listOpenHint(
+        kind: GoalKind, markedToday: Bool? = nil, bundle: Bundle? = nil, locale: Locale = .current
+    ) -> String {
+        let key: String.LocalizationValue =
+            if kind == .milestone {
+                markedToday == true ? "İşareti kaldır" : "Bugünü işaretle"
+            } else {
+                "Ayrıntıları göster"
+            }
+        return String(
+            localized: key, bundle: bundle ?? PresentationLocalization.bundle(locale), locale: locale)
+    }
+
     /// Open goals first, then complete; each group by name (rule 6).
     static func ordered(
         _ goals: [GoalDefinition], status: (GoalDefinition) -> GoalStatus

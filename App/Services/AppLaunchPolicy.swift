@@ -5,11 +5,11 @@ enum AppLaunchPolicy {
     /// DEBUG-only path to a vault folder for XCUITest. When set, automatic indexing of the
     /// developer's real vault, app lock, notifications, and geofences stay off; `ContentView`
     /// opens this folder via `IndexStore.select` instead.
-    static let uiTestVaultEnvironmentKey = "JOURNAL_UITEST_VAULT"
+    static let uiTestVaultEnvironmentKey = "KENET_UITEST_VAULT"
 
     /// DEBUG-only text placed in quick entry at launch, so UI tests do not depend on the
     /// simulator's keyboard or paste menu (both vary between iOS versions).
-    static let uiTestQuickEntryTextKey = "JOURNAL_UITEST_QUICK_ENTRY_TEXT"
+    static let uiTestQuickEntryTextKey = "KENET_UITEST_QUICK_ENTRY_TEXT"
 
     static func uiTestQuickEntryText(
         environment: [String: String] = ProcessInfo.processInfo.environment
@@ -26,7 +26,7 @@ enum AppLaunchPolicy {
 
     /// DEBUG-only: `memory` puts an in-memory calendar with full access in place of EventKit;
     /// `sample` fills it with today's fictional events (the screen tour).
-    static let uiTestCalendarKey = "JOURNAL_UITEST_CALENDAR"
+    static let uiTestCalendarKey = "KENET_UITEST_CALENDAR"
 
     @MainActor static func calendarSource(
         environment: [String: String] = ProcessInfo.processInfo.environment
@@ -45,7 +45,7 @@ enum AppLaunchPolicy {
 
     /// DEBUG-only wall clock for the screen tour: `HH:mm` freezes `clockNow` at that time of
     /// today, so the quick-entry time and the greeting match the simulator's 9:41 status bar.
-    static let uiTestClockKey = "JOURNAL_UITEST_CLOCK"
+    static let uiTestClockKey = "KENET_UITEST_CLOCK"
 
     /// The app's `clockNow`: `Date()` unless a UI test with a vault asks for a frozen time.
     static func clockNow(
@@ -115,7 +115,7 @@ enum AppLaunchPolicy {
         /// Folder name, under the app's caches, of the copy a UI test vault is opened from. Only
         /// DEBUG builds open a UI test vault (``uiTestVaultPath(environment:arguments:)``). Each
         /// launch names its own copy, so a test reads the very files the app wrote.
-        static let uiTestVaultCopyKey = "JOURNAL_UITEST_VAULT_COPY"
+        static let uiTestVaultCopyKey = "KENET_UITEST_VAULT_COPY"
         static let uiTestVaultCopyDefaultName = "UITestVault"
 
         /// The copy's folder name: the test's name when it is a plain `UITestVault-…` name (letters,
@@ -138,7 +138,7 @@ enum AppLaunchPolicy {
     ) -> Bool {
         uiTestVaultPath(environment: environment, arguments: arguments) == nil
             && environment["XCTestConfigurationFilePath"] == nil
-            && environment["JOURNAL_NO_AUTOSTART"] == nil
-            && !arguments.contains("JOURNAL_NO_AUTOSTART")
+            && environment["KENET_NO_AUTOSTART"] == nil
+            && !arguments.contains("KENET_NO_AUTOSTART")
     }
 }

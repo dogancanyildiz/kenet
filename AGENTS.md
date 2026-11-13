@@ -11,7 +11,7 @@
 
 | Konu | Değer |
 |---|---|
-| Ad | Kenet. Şema, hedef ve modül adlarında kod adı `Journal` kalır. |
+| Ad | Kenet. Şema, hedef ve modül adları da `Kenet` taşır. Kasa biçimindeki `journal/` ve `## Journal` kod adı değildir. |
 | Platform | iPhone, iPad ve Mac, SwiftUI |
 | Temel iş | Kullanıcı gün içinde kısa olaylar yazar. Uygulama metindeki kişi ve konumları tanır. Uygulama tanıdığı adları olaya kendiliğinden bağlar. |
 | Ek özellikler | Görevler, hedefler ve zincir, widget'lar, kanban, zaman çizelgesi |
@@ -289,15 +289,15 @@ Packages/Core/            Ayrıştırıcı, modeller, indeksleyici (Apple'a bağ
                           VaultIndex, VaultStore, EntityRecognition, DateParsing, GoalTracking,
                           Summaries, ForceLayout
 Fixtures/                 Örnek kasalar (vaults/) ve test dosyaları
-Tests/JournalTests/       Uygulama katmanı birim testleri (macOS ve iOS simülatörü);
+Tests/KenetTests/       Uygulama katmanı birim testleri (macOS ve iOS simülatörü);
                           Snapshots/: ekran görüntüsü testleri; Mac referansları CI’da kaydedilir,
                           Mac kümeleri yerelde varsayılan atlanır (SNAPSHOT_MAC_LOCAL=1 ile açılır)
-Tests/JournalUITests/     XCUITest duman testi, erişilebilirlik denetimi, ekran turu (iOS)
-Tests/JournalMacUITests/  Mac ekran turu (yalnız screen-tour.sh --mac; CI'da koşmaz)
+Tests/KenetUITests/     XCUITest duman testi, erişilebilirlik denetimi, ekran turu (iOS)
+Tests/KenetMacUITests/  Mac ekran turu (yalnız screen-tour.sh --mac; CI'da koşmaz)
 Config/                   İmzalama ayarı (Signing.xcconfig); Local.xcconfig repoya girmez
 docs/                     Belgeler
 .github/                  CI iş akışları (workflows/), ortak eylem (actions/), betikler (scripts/)
-project.yml, VERSION      XcodeGen tanımı ve sürüm numarası; Journal.xcodeproj üretilir, repoya girmez
+project.yml, VERSION      XcodeGen tanımı ve sürüm numarası; Kenet.xcodeproj üretilir, repoya girmez
 ```
 
 | Denetim betiği | Ne denetler |

@@ -1,0 +1,585 @@
+import Foundation
+import Testing
+
+@testable import Kenet
+
+/// Guards the settings an App Store Connect upload depends on: the permanent bundle identifier,
+/// iCloud container and App Group, iPhone-only device family, the export compliance key, the
+/// privacy manifest, per-platform entitlements, and that no real team identifier is committed.
+struct ReleaseConfigurationTests {
+    private static let bundleIdentifier = "com.dogancanyildiz.kenet"
+    private static let iCloudContainer = "iCloud.com.dogancanyildiz.kenet"
+    private static let appGroup = "group.com.dogancanyildiz.kenet"
+    private static let teamPlaceholder = "XXXXXXXXXX"
+
+    // MARK: - Identity
+
+    @Test func bundleIdentifierIsPermanentAndDefinedOnce() throws {
+        let project = try Self.read("project.yml")
+        #expect(Self.values(of: "APP_BUNDLE_IDENTIFIER", in: project) == [Self.bundleIdentifier])
+        #expect(Self.values(of: "bundleIdPrefix", in: project) == [Self.bundleIdentifier])
+        #expect(
+            Self.values(of: "PRODUCT_BUNDLE_IDENTIFIER", in: project) == [
+                "$(APP_BUNDLE_IDENTIFIER)", "$(APP_BUNDLE_IDENTIFIER).testhost",
+                "$(APP_BUNDLE_IDENTIFIER).widgets", "$(APP_BUNDLE_IDENTIFIER).testhost.widgets",
+                "$(APP_BUNDLE_IDENTIFIER).share", "$(APP_BUNDLE_IDENTIFIER).testhost.share",
+                "$(APP_BUNDLE_IDENTIFIER).tests", "$(APP_BUNDLE_IDENTIFIER).uitests",
+                "$(APP_BUNDLE_IDENTIFIER).uitests",
+            ])
+        // Scripts read the identifier from project.yml instead of repeating it.
+        for path in [".github/scripts/record-screen-snapshots.sh", ".github/scripts/screen-tour.sh"] {
+            let script = try Self.read(path)
+            #expect(script.contains("APP_BUNDLE_IDENTIFIER"), "\(path) must read the identifier from project.yml")
+            #expect(!script.contains("com.dravcore"), "\(path) still names the temporary identifier")
+            #expect(!script.contains(Self.bundleIdentifier), "\(path) repeats the identifier")
+        }
+        #expect(!project.contains("com.dravcore"))
+    }
+
+    /// Release and Debug stay on the store identity. The running host is the test bundle, so this
+    /// reads those configurations from the generated project instead of the host Info.plist.
+    @Test func releaseAndDebugCarryProductionIdentity() throws {
+        for configuration in ["Release", "Debug"] {
+            let settings = try Self.buildSettings(configuration: configuration)
+            #expect(settings["PRODUCT_BUNDLE_IDENTIFIER"] == Self.bundleIdentifier)
+            #expect(settings["INFOPLIST_KEY_CFBundleDisplayName"] == "Kenet")
+            #expect(settings["INFOPLIST_KEY_ITSAppUsesNonExemptEncryption"] == "NO")
+        }
+        for name in ["Kenet_macOS", "Kenet_iOS"] {
+            let scheme = try Self.read("Kenet.xcodeproj/xcshareddata/xcschemes/\(name).xcscheme")
+            #expect(Self.actionConfiguration("TestAction", in: scheme) == "DebugTest")
+            #expect(Self.actionConfiguration("LaunchAction", in: scheme) == "Debug")
+            #expect(Self.actionConfiguration("ArchiveAction", in: scheme) == "Release")
+        }
+    }
+
+    /// iOS shows `CFBundleDisplayName`; Finder, the Dock and TestFlight on the Mac show the bundle
+    /// file name, so both products are `Kenet.app` and the module is `Kenet` too. No platform
+    /// override is left to bring the old code name back; the Mac test host is checked verbatim.
+    @Test func productAndModuleAreNamedKenet() throws {
+        let project = try Self.read("Kenet.xcodeproj/project.pbxproj")
+        // The widget and share targets also show "Kenet"; only the app carries the bare identifier.
+        let apps = Self.configurationBlocks(named: "Release", in: project).filter {
+            $0["PRODUCT_BUNDLE_IDENTIFIER"] == "$(APP_BUNDLE_IDENTIFIER)"
+        }
+        let mac = try #require(apps.first { $0["SDKROOT"] == "macosx" })
+        let ios = try #require(apps.first { $0["SDKROOT"] == "iphoneos" })
+        #expect(mac["PRODUCT_NAME"] == "Kenet")
+        #expect(mac["PRODUCT_MODULE_NAME"] == "Kenet")
+        #expect(ios["PRODUCT_NAME"] == "Kenet")
+        #expect(ios["PRODUCT_MODULE_NAME"] == "Kenet")
+        #expect(!project.contains("PRODUCT_NAME[sdk="))
+        let testHost = "TEST_HOST = \"$(BUILT_PRODUCTS_DIR)/Kenet.app/Contents/MacOS/Kenet\";"
+        #expect(project.contains(testHost))
+    }
+
+    /// The process actually under test, not the project file: a Debug scheme action would still
+    /// show the store identifier here.
+    @Test func testHostCarriesDerivedIdentityAndExportCompliance() throws {
+        let info = try #require(Self.hostAppInfoDictionary())
+        #expect(info["CFBundleIdentifier"] as? String == Self.bundleIdentifier + ".testhost")
+        #expect(info["CFBundleDisplayName"] as? String == "Kenet Test")
+        #expect(info["CFBundleName"] as? String == "Kenet Test")
+        #expect(info["ITSAppUsesNonExemptEncryption"] as? Bool == false)
+    }
+
+    /// Widget links (`kenet-widget://`) reach the app only from its own widget because the app
+    /// registers no URL scheme. A registered scheme would let any app open a mark link, and
+    /// `WidgetLinkHandler` would then need a source check.
+    @Test func builtAppRegistersNoURLScheme() throws {
+        let info = try #require(Self.hostAppInfoDictionary())
+        #expect(info["CFBundleURLTypes"] == nil)
+    }
+
+    @Test func exportComplianceIsDeclared() throws {
+        #expect(
+            try Self.values(of: "INFOPLIST_KEY_ITSAppUsesNonExemptEncryption", in: Self.read("project.yml")) == ["NO"])
+    }
+
+    @Test func builtAppPublishesTheDocumentContainer() throws {
+        let info = try #require(Self.hostAppInfoDictionary())
+        let containers = try #require(info["NSUbiquitousContainers"] as? [String: [String: Any]])
+        #expect(Set(containers.keys) == [Self.iCloudContainer])
+        let container = try #require(containers[Self.iCloudContainer])
+        #expect(container["NSUbiquitousContainerIsDocumentScopePublic"] as? Bool == true)
+        #expect(container["NSUbiquitousContainerSupportedFolderLevels"] as? String == "Any")
+        #expect(container["NSUbiquitousContainerName"] as? String == "Kenet")
+    }
+
+    // MARK: - Device family
+
+    #if os(iOS)
+        /// Read the built host's generated Info.plist: source settings alone do not prove
+        /// which orientations and device family are shipped in the application bundle.
+        @Test func builtAppKeepsThePhonePortraitLockAndRotatesOnIPad() throws {
+            let info = try #require(Self.hostAppInfoDictionary())
+            #expect(info["UISupportedInterfaceOrientations"] as? [String] == ["UIInterfaceOrientationPortrait"])
+            #expect(info["UISupportedInterfaceOrientations~ipad"] as? [String] == Self.iPadOrientations)
+            #expect(info["UIDeviceFamily"] as? [Int] == [1, 2])
+            // One window on iPad (docs/decisions.md): no multiple scenes.
+            let manifest = info["UIApplicationSceneManifest"] as? [String: Any]
+            #expect(manifest?["UIApplicationSupportsMultipleScenes"] as? Bool != true)
+        }
+    #endif
+
+    static let iPadOrientations = [
+        "UIInterfaceOrientationPortrait", "UIInterfaceOrientationPortraitUpsideDown",
+        "UIInterfaceOrientationLandscapeLeft", "UIInterfaceOrientationLandscapeRight",
+    ]
+
+    @Test func iOSTargetsIPhoneAndIPad() throws {
+        let project = try Self.read("project.yml")
+        #expect(Self.values(of: "TARGETED_DEVICE_FAMILY", in: project) == ["1,2"])
+        #expect(
+            Self.values(of: "INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad", in: project)
+                == [Self.iPadOrientations.joined(separator: " ")])
+        #expect(!project.contains("UIRequiresFullScreen"))
+        #expect(Self.values(of: "SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD", in: project) == ["NO"])
+        #expect(
+            Self.values(of: "INFOPLIST_KEY_UISupportedInterfaceOrientations", in: project)
+                == ["UIInterfaceOrientationPortrait"])
+    }
+
+    // MARK: - Privacy manifest
+
+    @Test func privacyManifestDeclaresNoTrackingAndTheUsedAPICategories() throws {
+        let manifest = try Self.plist("App/Resources/PrivacyInfo.xcprivacy")
+        #expect(manifest["NSPrivacyTracking"] as? Bool == false)
+        #expect((manifest["NSPrivacyTrackingDomains"] as? [String]) == [])
+        #expect((manifest["NSPrivacyCollectedDataTypes"] as? [Any])?.isEmpty == true)
+        #expect(
+            try Self.declaredReasons(manifest) == [
+                "NSPrivacyAccessedAPICategoryUserDefaults": ["CA92.1"],
+                "NSPrivacyAccessedAPICategoryFileTimestamp": ["3B52.1", "C617.1"],
+            ])
+    }
+
+    /// A required reason API that appears in the sources without a declaration gets the upload
+    /// rejected; one declared without use is noise. Both directions fail here.
+    @Test func privacyManifestMatchesRequiredReasonAPIsInSources() throws {
+        let used = try Self.requiredReasonCategories(in: ["App", "Packages/Core/Sources"])
+        let declared = try Self.declaredReasons(Self.plist("App/Resources/PrivacyInfo.xcprivacy")).keys
+        #expect(used == Set(declared))
+    }
+
+    /// Each extension binary ships its own manifest (ITMS-91053 scans every bundle). The source
+    /// lists mirror the targets' `sources` and Core products in `project.yml`. Extensions only
+    /// touch the App Group and the iCloud container, never a user-picked folder: C617.1 only.
+    @Test func extensionPrivacyManifestsMatchTheirSources() throws {
+        let core = ["VaultFormat", "VaultIndex", "VaultStore", "GoalTracking"].map { "Packages/Core/Sources/\($0)" }
+        let common = ["App/Support/AppIdentifiers.swift", "App/Services/SystemFileCoordination.swift"]
+        let extensions: [(manifest: String, sources: [String])] = [
+            ("Widgets/Support/PrivacyInfo.xcprivacy", ["Widgets"] + common + core),
+            (
+                "ShareExtension/Support/PrivacyInfo.xcprivacy",
+                ["ShareExtension", "Shared", "App/Model/LocalDay.swift"]
+                    + ["InkColors", "InkFonts", "InkMetrics", "Components/InkButtonChrome"].map {
+                        "App/Design/\($0).swift"
+                    }
+                    + common
+                    + core.filter { !$0.hasSuffix("GoalTracking") }
+            ),
+        ]
+        for item in extensions {
+            let manifest = try Self.plist(item.manifest)
+            #expect(manifest["NSPrivacyTracking"] as? Bool == false, "\(item.manifest)")
+            #expect((manifest["NSPrivacyCollectedDataTypes"] as? [Any])?.isEmpty == true, "\(item.manifest)")
+            let declared = try Self.declaredReasons(manifest)
+            #expect(Set(declared.keys) == (try Self.requiredReasonCategories(in: item.sources)), "\(item.manifest)")
+            #expect(declared.values.allSatisfy { $0 == ["C617.1"] }, "\(item.manifest)")
+        }
+    }
+
+    private static func requiredReasonCategories(in roots: [String]) throws -> Set<String> {
+        let patterns: [String: String] = [
+            "NSPrivacyAccessedAPICategoryUserDefaults": #"\bUserDefaults\b|@AppStorage\b"#,
+            "NSPrivacyAccessedAPICategoryFileTimestamp":
+                #"attributesOfItem|[cC]reationDate|[mM]odificationDate|\b[fl]?stat\(|getattrlist"#,
+            "NSPrivacyAccessedAPICategoryDiskSpace":
+                #"volumeAvailableCapacity|volumeTotalCapacity|systemFreeSize|systemSize|statv?fs\("#,
+            "NSPrivacyAccessedAPICategorySystemBootTime": #"systemUptime|mach_absolute_time|mach_continuous_time"#,
+            "NSPrivacyAccessedAPICategoryActiveKeyboards": #"activeInputModes"#,
+        ]
+        var sources = ""
+        for path in try swiftFiles(under: roots) {
+            sources += try read(path) + "\n"
+        }
+        return Set(patterns.filter { sources.range(of: $0.value, options: .regularExpression) != nil }.keys)
+    }
+
+    // MARK: - Entitlements
+
+    /// Registered with Apple and permanent: the Swift constants and the build settings the
+    /// entitlements read must name the same identifiers.
+    @Test func containerAndGroupIdentifiersAreDefinedOnceAndAgree() throws {
+        let project = try Self.read("project.yml")
+        #expect(Self.values(of: "KENET_ICLOUD_CONTAINER", in: project) == [Self.iCloudContainer])
+        #expect(Self.values(of: "KENET_APP_GROUP", in: project) == [Self.appGroup])
+        #expect(AppIdentifiers.bundle == Self.bundleIdentifier)
+        #expect(AppIdentifiers.iCloudContainer == Self.iCloudContainer)
+        #expect(AppIdentifiers.appGroup == Self.appGroup)
+    }
+
+    @Test func entitlementsAreSplitByPlatform() throws {
+        let project = try Self.read("project.yml")
+        #expect(
+            Self.values(of: "CODE_SIGN_ENTITLEMENTS", in: project) == [
+                "App/Support/Kenet-iOS.entitlements", "App/Support/Kenet-macOS.entitlements",
+                "Widgets/Support/KenetWidgets.entitlements", Self.shareEntitlements,
+            ])
+        // Mac Debug and DebugTest are signed ad hoc, which cannot carry iCloud or App Group.
+        #expect(
+            Self.values(of: "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]", in: project) == [
+                "App/Support/Kenet-macOS-AdHoc.entitlements", "App/Support/Kenet-macOS-AdHoc.entitlements",
+            ])
+
+        let iOS = try Self.plist("App/Support/Kenet-iOS.entitlements")
+        let sandboxKeys = iOS.keys.filter {
+            $0.hasPrefix("com.apple.security.") && $0 != "com.apple.security.application-groups"
+        }
+        #expect(sandboxKeys.isEmpty, "macOS sandbox keys in the iOS entitlements: \(sandboxKeys.sorted())")
+        #expect(Set(iOS.keys) == Self.containerKeys.union([Self.journalingSuggestionsKey]))
+        Self.expectContainerValues(iOS, file: "Kenet-iOS")
+        // The system's journaling suggestions picker (iPhone); the Mac has no such framework.
+        #expect(iOS[Self.journalingSuggestionsKey] as? [String] == ["suggestions"])
+
+        let mac = try Self.plist("App/Support/Kenet-macOS.entitlements")
+        #expect(Set(mac.keys) == Self.macSandboxKeys.union(Self.containerKeys))
+        #expect(Self.macSandboxKeys.allSatisfy { mac[$0] as? Bool == true })
+        Self.expectContainerValues(mac, file: "Kenet-macOS")
+
+        let adHoc = try Self.plist("App/Support/Kenet-macOS-AdHoc.entitlements")
+        #expect(Set(adHoc.keys) == Self.macSandboxKeys)
+        #expect(adHoc.values.allSatisfy { $0 as? Bool == true })
+    }
+
+    /// Every `$(SETTING)` an entitlements file reads is defined in `project.yml`; an undefined one
+    /// expands to an empty string at signing time.
+    @Test func entitlementsReadOnlyDefinedSettings() throws {
+        let project = try Self.read("project.yml")
+        let files = ["Kenet-iOS", "Kenet-macOS", "Kenet-macOS-AdHoc"].map { "App/Support/\($0).entitlements" }
+        for path in files + [Self.widgetEntitlements, Self.shareEntitlements] {
+            let source = try Self.read(path)
+            for setting in Self.captures(#"\$\(([A-Z_]+)\)"#, in: source) {
+                #expect(Self.values(of: setting, in: project).count == 1, "\(path) reads undefined $(\(setting))")
+            }
+        }
+    }
+
+    private static let widgetEntitlements = "Widgets/Support/KenetWidgets.entitlements"
+
+    /// The widget is the app's extension (its identifier extends the app's, also for the test
+    /// host) and carries the iOS app's container entitlements: it reads the snapshot in the App
+    /// Group and marks an iCloud vault's goal through the same iCloud container.
+    @Test func widgetExtendsTheAppAndCarriesTheGroupAndTheContainer() throws {
+        let project = try Self.read("project.yml")
+        let identifiers = Self.values(of: "PRODUCT_BUNDLE_IDENTIFIER", in: project)
+        #expect(
+            identifiers.filter { $0.hasSuffix(".widgets") } == [
+                "$(APP_BUNDLE_IDENTIFIER).widgets", "$(APP_BUNDLE_IDENTIFIER).testhost.widgets",
+            ])
+        let widget = try Self.plist(Self.widgetEntitlements)
+        #expect(Set(widget.keys) == Self.containerKeys)
+        Self.expectContainerValues(widget, file: "KenetWidgets")
+    }
+
+    private static let shareEntitlements = "ShareExtension/Support/KenetShare.entitlements"
+
+    /// The share extension is the app's extension too (`.share`, `.testhost.share` for the test
+    /// host). It carries the iCloud container (it writes the day file of an iCloud vault itself)
+    /// and the App Group (its queue), with the same values as the iOS app.
+    @Test func shareExtensionExtendsTheAppAndCarriesTheContainerAndGroup() throws {
+        let project = try Self.read("project.yml")
+        let identifiers = Self.values(of: "PRODUCT_BUNDLE_IDENTIFIER", in: project)
+        #expect(
+            identifiers.filter { $0.hasSuffix(".share") } == [
+                "$(APP_BUNDLE_IDENTIFIER).share", "$(APP_BUNDLE_IDENTIFIER).testhost.share",
+            ])
+        let share = try Self.plist(Self.shareEntitlements)
+        #expect(Set(share.keys) == Self.containerKeys)
+        Self.expectContainerValues(share, file: "KenetShare")
+    }
+
+    #if os(iOS)
+        /// The built iOS app embeds the extension: a share extension for text and one web link,
+        /// named after the test host, with the app's version and build number.
+        @Test func builtAppEmbedsTheShareExtension() throws {
+            let host = try #require(Self.hostAppInfoDictionary())
+            var app = Bundle.main.bundleURL
+            while app.pathExtension != "app" && app.pathComponents.count > 1 { app = app.deletingLastPathComponent() }
+            let plist = app.appendingPathComponent("PlugIns/KenetShare.appex/Info.plist")
+            let info = try #require(
+                try PropertyListSerialization.propertyList(from: Data(contentsOf: plist), format: nil) as? [String: Any]
+            )
+            #expect(info["CFBundleIdentifier"] as? String == Self.bundleIdentifier + ".testhost.share")
+            #expect(info["CFBundleShortVersionString"] as? String == host["CFBundleShortVersionString"] as? String)
+            #expect(info["CFBundleVersion"] as? String == host["CFBundleVersion"] as? String)
+            let extensionInfo = try #require(info["NSExtension"] as? [String: Any])
+            #expect(extensionInfo["NSExtensionPointIdentifier"] as? String == "com.apple.share-services")
+            #expect(extensionInfo["NSExtensionPrincipalClass"] as? String == "KenetShare.ShareViewController")
+            let rule = try #require(
+                (extensionInfo["NSExtensionAttributes"] as? [String: Any])?["NSExtensionActivationRule"]
+                    as? [String: Any])
+            #expect(rule["NSExtensionActivationSupportsText"] as? Bool == true)
+            #expect(rule["NSExtensionActivationSupportsWebURLWithMaxCount"] as? Int == 1)
+            #expect(rule.count == 2)
+        }
+    #endif
+
+    private static let macSandboxKeys: Set<String> = [
+        "com.apple.security.app-sandbox",
+        // The vault bookmark is created and resolved with `.withSecurityScope` (VaultBookmarks).
+        "com.apple.security.files.bookmarks.app-scope",
+        "com.apple.security.files.user-selected.read-write",
+        // Outgoing connections only: MapKit fetches the Map screen's tiles (docs/decisions.md).
+        "com.apple.security.network.client",
+        "com.apple.security.personal-information.calendars",
+        "com.apple.security.personal-information.location",
+    ]
+
+    private static let journalingSuggestionsKey = "com.apple.developer.journal.allow"
+
+    private static let containerKeys: Set<String> = [
+        "com.apple.developer.icloud-container-identifiers",
+        "com.apple.developer.icloud-services",
+        "com.apple.developer.ubiquity-container-identifiers",
+        "com.apple.security.application-groups",
+    ]
+
+    private static func expectContainerValues(_ entitlements: [String: Any], file: String) {
+        let expected: [String: [String]] = [
+            "com.apple.developer.icloud-container-identifiers": ["$(KENET_ICLOUD_CONTAINER)"],
+            "com.apple.developer.ubiquity-container-identifiers": ["$(KENET_ICLOUD_CONTAINER)"],
+            "com.apple.developer.icloud-services": ["CloudDocuments"],
+            "com.apple.security.application-groups": ["$(KENET_APP_GROUP)"],
+        ]
+        for (key, value) in expected {
+            #expect(entitlements[key] as? [String] == value, "\(file): \(key)")
+        }
+    }
+
+    // MARK: - Signing
+
+    @Test func teamIdentifierStaysOutOfTheRepository() throws {
+        let ignore = try Self.read(".gitignore").components(separatedBy: .newlines)
+        #expect(ignore.contains("Config/Local.xcconfig"), "the local signing file must be ignored")
+        #expect(try Self.read("Config/Signing.xcconfig").contains(#"#include? "Local.xcconfig""#))
+        #expect(try Self.read("project.yml").contains("Config/Signing.xcconfig"))
+        #expect(
+            try Self.teamIdentifiers(in: Self.read("Config/Local.xcconfig.example")) == [Self.teamPlaceholder],
+            "the example must carry the placeholder")
+
+        var offenders: [String] = []
+        for path in try Self.trackedTextFiles() where path != "Config/Local.xcconfig" {
+            let real = try Self.teamIdentifiers(in: Self.read(path)).filter { $0 != Self.teamPlaceholder }
+            if !real.isEmpty { offenders.append(path) }
+        }
+        #expect(offenders.isEmpty, "A real team identifier is written in: \(offenders.sorted())")
+    }
+
+    @Test func teamIdentifierScanRecognisesAssignments() {
+        #expect(Self.teamIdentifiers(in: "DEVELOPMENT_TEAM = AB12CD34EF") == ["AB12CD34EF"])
+        #expect(Self.teamIdentifiers(in: "DEVELOPMENT_TEAM: \"AB12CD34EF\"") == ["AB12CD34EF"])
+        #expect(Self.teamIdentifiers(in: "DEVELOPMENT_TEAM=\(Self.teamPlaceholder)") == [Self.teamPlaceholder])
+        #expect(Self.teamIdentifiers(in: "DEVELOPMENT_TEAM = $(TEAM)").isEmpty)
+    }
+
+    // MARK: - Build number
+
+    @Test func buildNumberComesFromGitHistoryAtBuildTime() throws {
+        let project = try Self.read("project.yml")
+        #expect(project.contains(".github/scripts/build-number.sh"))
+        #expect(project.contains("Set :CFBundleVersion $build"))
+        // Commit time, not commit count: main is not an ancestor of dev (docs/decisions.md).
+        #expect(try Self.read(".github/scripts/build-number.sh").contains("format-local:%y%m%d %H%M%S"))
+    }
+
+    // MARK: - Reading
+
+    /// Values of `key: value` lines in a YAML source, in file order (quotes stripped).
+    private static func values(of key: String, in source: String) -> [String] {
+        let pattern = #"(?m)^\s*"?\#(NSRegularExpression.escapedPattern(for: key))"?:[ \t]*(.+?)\s*$"#
+        return captures(pattern, in: source).map { $0.trimmingCharacters(in: CharacterSet(charactersIn: "\"")) }
+    }
+
+    private static func teamIdentifiers(in source: String) -> [String] {
+        captures(#"DEVELOPMENT_TEAM\s*[=:]\s*"?([A-Za-z0-9]{10})\b"#, in: source)
+    }
+
+    private static func captures(_ pattern: String, in source: String) -> [String] {
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
+        return regex.matches(in: source, range: NSRange(source.startIndex..., in: source)).compactMap {
+            Range($0.range(at: 1), in: source).map { String(source[$0]) }
+        }
+    }
+
+    private static func declaredReasons(_ manifest: [String: Any]) throws -> [String: [String]] {
+        let entries = try #require(manifest["NSPrivacyAccessedAPITypes"] as? [[String: Any]])
+        var result: [String: [String]] = [:]
+        for entry in entries {
+            let category = try #require(entry["NSPrivacyAccessedAPIType"] as? String)
+            let reasons = try #require(entry["NSPrivacyAccessedAPITypeReasons"] as? [String])
+            #expect(result[category] == nil, "\(category) is declared twice")
+            result[category] = reasons.sorted()
+        }
+        return result
+    }
+
+    private static func plist(_ path: String) throws -> [String: Any] {
+        let data = try Data(contentsOf: repositoryRoot().appendingPathComponent(path))
+        return try #require(try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any])
+    }
+
+    /// Configuration, scripts and documents that are committed; generated and vendored trees are skipped.
+    private static func trackedTextFiles() throws -> [String] {
+        let extensions: Set<String> = [
+            "yml", "yaml", "xcconfig", "example", "sh", "md", "plist", "entitlements", "json",
+        ]
+        let roots = ["project.yml", "README.md", "AGENTS.md", "Config", ".github", "docs", "App/Support"]
+        return try files(under: roots) { extensions.contains($0.pathExtension) }
+    }
+
+    private static func swiftFiles(under roots: [String]) throws -> [String] {
+        try files(under: roots) { $0.pathExtension == "swift" }
+    }
+
+    private static func files(under roots: [String], where include: (URL) -> Bool) throws -> [String] {
+        let root = repositoryRoot()
+        var result: [String] = []
+        for name in roots {
+            let url = root.appendingPathComponent(name)
+            var isDirectory: ObjCBool = false
+            guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) else { continue }
+            guard isDirectory.boolValue else {
+                result.append(name)
+                continue
+            }
+            let enumerator = FileManager.default.enumerator(at: url, includingPropertiesForKeys: nil)
+            while let file = enumerator?.nextObject() as? URL {
+                guard include(file) else { continue }
+                result.append(file.path.replacingOccurrences(of: root.path + "/", with: ""))
+            }
+        }
+        return result
+    }
+
+    private static func read(_ path: String) throws -> String {
+        try String(contentsOf: repositoryRoot().appendingPathComponent(path), encoding: .utf8)
+    }
+
+    /// `buildConfiguration` on the opening tag of a scheme action.
+    private static func actionConfiguration(_ action: String, in scheme: String) -> String? {
+        guard let start = scheme.range(of: "<\(action)") else { return nil }
+        let rest = scheme[start.lowerBound...]
+        guard let end = rest.range(of: ">") else { return nil }
+        let opening = String(rest[..<end.upperBound])
+        guard let match = opening.range(of: #"buildConfiguration = "([^"]+)""#, options: .regularExpression) else {
+            return nil
+        }
+        let value = opening[match]
+        guard let quote = value.range(of: "\"") else { return nil }
+        return String(value[quote.upperBound...].dropLast())
+    }
+
+    /// App-target settings from the generated project. `Process` is unavailable in the iOS
+    /// simulator, so this does not shell out to `xcodebuild`; both platforms read the same file
+    /// the build uses. `$(APP_BUNDLE_IDENTIFIER)` is resolved from that file.
+    private static func buildSettings(configuration: String) throws -> [String: String] {
+        let project = try read("Kenet.xcodeproj/project.pbxproj")
+        let appIdentifier = try appBundleIdentifier(in: project)
+        let blocks = configurationBlocks(named: configuration, in: project).filter {
+            $0["PRODUCT_NAME"] == "Kenet" && $0["INFOPLIST_KEY_CFBundleDisplayName"] != nil
+        }
+        guard blocks.count == 2 else {
+            throw BuildSettingsError(
+                message: "expected iOS and macOS app \(configuration) configurations, found \(blocks.count)")
+        }
+        let keys = [
+            "PRODUCT_BUNDLE_IDENTIFIER", "INFOPLIST_KEY_CFBundleDisplayName",
+            "INFOPLIST_KEY_ITSAppUsesNonExemptEncryption",
+        ]
+        var resolved: [[String: String]] = []
+        for block in blocks {
+            var settings: [String: String] = [:]
+            for key in keys {
+                guard var value = block[key] else {
+                    throw BuildSettingsError(message: "\(configuration) app configuration is missing \(key)")
+                }
+                value = value.replacingOccurrences(of: "$(APP_BUNDLE_IDENTIFIER)", with: appIdentifier)
+                settings[key] = value
+            }
+            resolved.append(settings)
+        }
+        guard resolved.allSatisfy({ $0 == resolved[0] }) else {
+            throw BuildSettingsError(message: "iOS and macOS \(configuration) app identities differ")
+        }
+        return resolved[0]
+    }
+
+    private static func appBundleIdentifier(in project: String) throws -> String {
+        let prefix = "APP_BUNDLE_IDENTIFIER = "
+        var values: [String] = []
+        for line in project.split(separator: "\n") {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            guard trimmed.hasPrefix(prefix), trimmed.hasSuffix(";") else { continue }
+            values.append(String(trimmed.dropFirst(prefix.count).dropLast()))
+        }
+        guard let identifier = values.first, values.allSatisfy({ $0 == identifier }) else {
+            throw BuildSettingsError(message: "APP_BUNDLE_IDENTIFIER missing or inconsistent in the generated project")
+        }
+        return identifier
+    }
+
+    private static func configurationBlocks(named name: String, in project: String) -> [[String: String]] {
+        var blocks: [[String: String]] = []
+        for part in project.components(separatedBy: "isa = XCBuildConfiguration;").dropFirst() {
+            guard let nameRange = part.range(of: "\n\t\t\tname = \(name);") else { continue }
+            let head = part[..<nameRange.lowerBound]
+            guard let settingsStart = head.range(of: "buildSettings = {") else { continue }
+            var settings: [String: String] = [:]
+            for line in head[settingsStart.upperBound...].split(separator: "\n") {
+                let trimmed = line.trimmingCharacters(in: .whitespaces)
+                guard let separator = trimmed.firstIndex(of: "=") else { continue }
+                let key = String(trimmed[..<separator].trimmingCharacters(in: .whitespaces))
+                guard key.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "_") }) else { continue }
+                var value = trimmed[trimmed.index(after: separator)...].trimmingCharacters(in: .whitespaces)
+                guard value.hasSuffix(";") else { continue }
+                value = String(value.dropLast()).trimmingCharacters(in: .whitespaces)
+                if value.hasPrefix("\""), value.hasSuffix("\""), value.count >= 2 {
+                    value = String(value.dropFirst().dropLast())
+                }
+                settings[key] = value
+            }
+            blocks.append(settings)
+        }
+        return blocks
+    }
+
+    private struct BuildSettingsError: Error, CustomStringConvertible {
+        let message: String
+        var description: String { message }
+    }
+
+    /// Unit tests run inside the `.xctest` plug-in; walk up to the host `.app`.
+    /// The host app's Info.plist as written: `Bundle.infoDictionary` resolves the `~ipad`
+    /// variants for the running device and drops the raw keys.
+    private static func hostAppInfoDictionary() -> [String: Any]? {
+        var url = Bundle.main.bundleURL
+        for _ in 0..<6 {
+            if url.pathExtension == "app" {
+                let plist = url.appendingPathComponent("Info.plist")
+                guard let data = try? Data(contentsOf: plist) else { return Bundle(url: url)?.infoDictionary }
+                return (try? PropertyListSerialization.propertyList(from: data, format: nil)) as? [String: Any]
+            }
+            url = url.deletingLastPathComponent()
+        }
+        return Bundle.main.infoDictionary
+    }
+
+    private static func repositoryRoot(filePath: String = #filePath) -> URL {
+        URL(fileURLWithPath: filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+    }
+}

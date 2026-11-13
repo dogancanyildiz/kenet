@@ -58,8 +58,8 @@ exit "$VERIFY_STATUS"
         self.assertGreater(len(suites), 0)
         for call in calls:
             selected = [arg for arg in call.split() if arg.startswith("-only-testing:")]
-            self.assertEqual(selected, ["-only-testing:JournalTests_macOS/" + s for s in suites])
-            self.assertIn("-scheme Journal_macOS", call)
+            self.assertEqual(selected, ["-only-testing:KenetTests_macOS/" + s for s in suites])
+            self.assertIn("-scheme Kenet_macOS", call)
             self.assertIn("-derivedDataPath .dd/mac-snapshots", call)
 
     def test_successful_record_still_verifies(self):

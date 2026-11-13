@@ -1,7 +1,7 @@
 name: Ekran görüntüsü referansları
 
 # Elle tetiklenir: yeni referans PNG'leri üretir ve artifact olarak yükler.
-# İndirip Tests/JournalTests/Snapshots/__Snapshots__/ altına koy; PR'da commit et.
+# İndirip Tests/KenetTests/Snapshots/__Snapshots__/ altına koy; PR'da commit et.
 on:
   workflow_dispatch:
     inputs:
@@ -47,7 +47,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: screen-snapshot-references
-          path: Tests/JournalTests/Snapshots/__Snapshots__
+          path: Tests/KenetTests/Snapshots/__Snapshots__
           retention-days: 14
 
   pad:
@@ -76,7 +76,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: pad-snapshot-references
-          path: Tests/JournalTests/Snapshots/__Snapshots__/Pad*
+          path: Tests/KenetTests/Snapshots/__Snapshots__/Pad*
           if-no-files-found: error
           retention-days: 14
 
@@ -108,17 +108,17 @@ jobs:
           TEST_RUNNER_SNAPSHOT_TESTING_RECORD: all
           TEST_RUNNER_CI: 'true'
         run: |
-          only=$(sh .github/scripts/snapshot-suites.sh --mac | sed 's#^#-only-testing:JournalTests_macOS/#' | tr '\n' ' ')
+          only=$(sh .github/scripts/snapshot-suites.sh --mac | sed 's#^#-only-testing:KenetTests_macOS/#' | tr '\n' ' ')
           if [ -z "$only" ]; then
             echo "::error::Mac görüntü kümesi bulunamadı"
             exit 1
           fi
           # Kayıt referans yazınca test düşer; doğrulama gerçek derleme/çizim hatasını da yakalar.
           status=0
-          xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS,arch=arm64' -derivedDataPath .dd/mac-snapshots $only CODE_SIGNING_ALLOWED=NO -quiet || status=$?
+          xcodebuild test -project Kenet.xcodeproj -scheme Kenet_macOS -destination 'platform=macOS,arch=arm64' -derivedDataPath .dd/mac-snapshots $only CODE_SIGNING_ALLOWED=NO -quiet || status=$?
           echo "Kayıt koşusu çıkış kodu: $status"
           SNAPSHOT_TESTING_RECORD=never TEST_RUNNER_SNAPSHOT_TESTING_RECORD=never \
-            xcodebuild test-without-building -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS,arch=arm64' -derivedDataPath .dd/mac-snapshots $only CODE_SIGNING_ALLOWED=NO -quiet
+            xcodebuild test-without-building -project Kenet.xcodeproj -scheme Kenet_macOS -destination 'platform=macOS,arch=arm64' -derivedDataPath .dd/mac-snapshots $only CODE_SIGNING_ALLOWED=NO -quiet
       - name: Mac referans artifact
         uses: actions/upload-artifact@v7
         with:
@@ -127,8 +127,8 @@ jobs:
           # "...Mac..." adıyla durur (snapshot-suites.sh ile aynı kural).
           # Mac vakaları ya dosya adında "Mac" taşır (karma kümeler) ya da "...MacSnapshotTests" klasöründedir.
           path: |
-            Tests/JournalTests/Snapshots/__Snapshots__/**/*Mac*.png
-            Tests/JournalTests/Snapshots/__Snapshots__/*MacSnapshotTests/*.png
+            Tests/KenetTests/Snapshots/__Snapshots__/**/*Mac*.png
+            Tests/KenetTests/Snapshots/__Snapshots__/*MacSnapshotTests/*.png
           if-no-files-found: error
           retention-days: 14
 
@@ -153,7 +153,7 @@ jobs:
         # gh run download var olan dosyanın üstüne yazmaz; önce boş klasöre indirilir, sonra kopyalanır.
         run: |
           gh run download "$RUN_ID" --name mac-snapshot-references --dir "$RUNNER_TEMP/mac-referanslar"
-          cp -R "$RUNNER_TEMP/mac-referanslar/." Tests/JournalTests/Snapshots/__Snapshots__/
+          cp -R "$RUNNER_TEMP/mac-referanslar/." Tests/KenetTests/Snapshots/__Snapshots__/
       - name: PR aç
         env:
           GH_TOKEN: ${{ github.token }}
@@ -162,7 +162,7 @@ jobs:
         run: |
           branch="chore/mac-referanslar-$RUN_ID"
           git switch -c "$branch"
-          git add 'Tests/JournalTests/Snapshots/__Snapshots__/**/*Mac*.png' 'Tests/JournalTests/Snapshots/__Snapshots__/*MacSnapshotTests/*.png'
+          git add 'Tests/KenetTests/Snapshots/__Snapshots__/**/*Mac*.png' 'Tests/KenetTests/Snapshots/__Snapshots__/*MacSnapshotTests/*.png'
           if git diff --cached --quiet; then
             echo "Mac referansları değişmedi; PR gerekmiyor."
             exit 0

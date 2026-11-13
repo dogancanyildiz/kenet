@@ -60,7 +60,7 @@ import SwiftUI
         }
     }
 
-    /// Bridge from `JournalApp`'s `MacQuickEntryController` into the sidebar card.
+    /// Bridge from `KenetApp`'s `MacQuickEntryController` into the sidebar card.
     struct MacQuickEntryBridge {
         var shortcutDisplay: String
         var open: @MainActor () -> Void

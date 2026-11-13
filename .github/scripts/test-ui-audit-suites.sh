@@ -5,7 +5,7 @@
 # her denetim kümesi bir denetim işine gider (adında Accessibility ya da Audit geçen, uygulamayı açan
 # sınıf ad kuralına uymuyorsa düşer). Üç adım birbirini tamamlar: iPhone denetim adımı listeyi ortak
 # küme hariç (--iphone) yalnız -only-testing ile, iPad denetim adımı yalnız ortak kümeyi (--shared)
-# -only-testing ile, akış adımı bütün JournalUITests'i tam liste -skip-testing ile koşar; her adım
+# -only-testing ile, akış adımı bütün KenetUITests'i tam liste -skip-testing ile koşar; her adım
 # kendi listesi boşsa xcodebuild'i çağırmadan düşer (boş -only-testing her şeyi koşturur, var olmayan
 # ad hiçbir şey koşturmaz).
 set -eu
@@ -17,9 +17,9 @@ trap 'rm -rf -- "$tmp"' 0
 fails=0
 fail() { echo "DÜŞTÜ: $1"; fails=$((fails + 1)); }
 
-# 1. Ad kuralı: yalnız JournalUITests içinde, yalnız sınıf bildirimi, yalnız iki son ek.
-ui="$tmp/fake/Tests/JournalUITests"
-mkdir -p "$ui" "$tmp/fake/Tests/JournalTests"
+# 1. Ad kuralı: yalnız KenetUITests içinde, yalnız sınıf bildirimi, yalnız iki son ek.
+ui="$tmp/fake/Tests/KenetUITests"
+mkdir -p "$ui" "$tmp/fake/Tests/KenetTests"
 cat > "$ui/A.swift" <<'SWIFT'
 import XCTest
 final class FooAccessibilityUITests: XCTestCase {}
@@ -42,7 +42,7 @@ mkdir -p "$ui/Sub/Deeper"
 echo 'final class DSubAuditUITests: XCTestCase {}' > "$ui/Sub/D.swift"
 echo 'final class EDeeperAccessibilityUITests: XCTestCase {}' > "$ui/Sub/Deeper/E.swift"
 echo 'final class NotSwiftAuditUITests: XCTestCase {}' > "$ui/Sub/F.txt"
-echo 'final class OtherAccessibilityUITests: XCTestCase {}' > "$tmp/fake/Tests/JournalTests/C.swift"
+echo 'final class OtherAccessibilityUITests: XCTestCase {}' > "$tmp/fake/Tests/KenetTests/C.swift"
 want="AccessibilityAuditUITests
 BarAuditUITests
 BazAccessibilityUITests
@@ -62,15 +62,15 @@ if out=$(sh "$script" --iphone --shared "$tmp/fake" 2>&1); then fail "iki kip bi
 if out=$(sh "$script" --bogus "$tmp/fake" 2>&1); then fail "bilinmeyen kip kabul edildi: $out"; fi
 
 # 2. Boş liste düşer: boş -only-testing xcodebuild'e her şeyi koşturur.
-mkdir -p "$tmp/empty/Tests/JournalUITests"
-echo 'final class SmokeUITests: XCTestCase {}' > "$tmp/empty/Tests/JournalUITests/A.swift"
+mkdir -p "$tmp/empty/Tests/KenetUITests"
+echo 'final class SmokeUITests: XCTestCase {}' > "$tmp/empty/Tests/KenetUITests/A.swift"
 if out=$(sh "$script" "$tmp/empty" 2>&1); then fail "eşleşme yokken çıkış sıfır: $out"; fi
 if out=$(sh "$script" "$tmp/yok" 2>&1); then fail "klasör yokken çıkış sıfır: $out"; fi
 # Ortak küme yoksa --shared düşer (iPad adımı var olmayan adla hiçbir şey koşturmasın); yalnız ortak
 # küme varsa --iphone düşer.
-mkdir -p "$tmp/noshared/Tests/JournalUITests" "$tmp/sharedonly/Tests/JournalUITests"
-echo 'final class FooAuditUITests: XCTestCase {}' > "$tmp/noshared/Tests/JournalUITests/A.swift"
-echo 'final class AccessibilityAuditUITests: XCTestCase {}' > "$tmp/sharedonly/Tests/JournalUITests/A.swift"
+mkdir -p "$tmp/noshared/Tests/KenetUITests" "$tmp/sharedonly/Tests/KenetUITests"
+echo 'final class FooAuditUITests: XCTestCase {}' > "$tmp/noshared/Tests/KenetUITests/A.swift"
+echo 'final class AccessibilityAuditUITests: XCTestCase {}' > "$tmp/sharedonly/Tests/KenetUITests/A.swift"
 if out=$(sh "$script" --shared "$tmp/noshared" 2>&1); then fail "ortak küme yokken --shared çıkış sıfır: $out"; fi
 if out=$(sh "$script" --iphone "$tmp/sharedonly" 2>&1); then fail "yalnız ortak küme varken --iphone çıkış sıfır: $out"; fi
 [ "$(sh "$script" --iphone "$tmp/noshared")" = "FooAuditUITests" ] || fail "ortak küme yokken --iphone tam listeyi vermeli"
@@ -79,11 +79,11 @@ if out=$(sh "$script" --iphone "$tmp/sharedonly" 2>&1); then fail "yalnız ortak
 # 3. Gerçek depo.
 list=$(sh "$script") || fail "gerçek depoda çıkış sıfır değil"
 [ -n "$list" ] || fail "gerçek depoda liste boş"
-classes=$(find "$repo/Tests/JournalUITests" -type f -name '*.swift' -exec cat {} + \
+classes=$(find "$repo/Tests/KenetUITests" -type f -name '*.swift' -exec cat {} + \
   | grep -oE '^[[:space:]]*((@[A-Za-z]+(\([^)]*\))?|[A-Za-z]+)[[:space:]]+)*class[[:space:]]+[A-Za-z0-9_]+[[:space:]]*:[[:space:]]*XCTestCase' \
   | sed -E 's/[[:space:]]*:.*//' | awk '{print $NF}' | sort -u)
 for name in $list; do
-  printf '%s\n' "$classes" | grep -qx "$name" || fail "$name Tests/JournalUITests içinde XCTestCase sınıfı değil"
+  printf '%s\n' "$classes" | grep -qx "$name" || fail "$name Tests/KenetUITests içinde XCTestCase sınıfı değil"
 done
 flow=$(printf '%s\n' "$classes" | grep -vxF "$list" || true)
 [ -n "$flow" ] || fail "akış işine küme kalmadı"
@@ -92,7 +92,7 @@ iphone=$(sh "$script" --iphone) || fail "gerçek depoda iPhone denetim listesi b
 [ "$(printf '%s\n%s\n' "$shared" "$iphone" | sort -u)" = "$list" ] || fail "--shared ve --iphone birlikte tam liste değil"
 # Adında Accessibility ya da Audit geçen ve uygulamayı açan sınıf denetim listesinde olmalı.
 for name in $(printf '%s\n' "$classes" | grep -E 'Accessibility|Audit' || true); do
-  file=$(grep -rlE --include='*.swift' "class[[:space:]]+$name[[:space:]]*:" "$repo/Tests/JournalUITests" | head -n 1)
+  file=$(grep -rlE --include='*.swift' "class[[:space:]]+$name[[:space:]]*:" "$repo/Tests/KenetUITests" | head -n 1)
   grep -qE 'launchApp\(|XCUIApplication\(\)' "$file" || continue
   printf '%s\n' "$list" | grep -qx "$name" \
     || fail "$name uygulamayı açan bir denetim kümesi ama listede yok (ad AccessibilityUITests ya da AuditUITests ile bitmeli)"
@@ -120,23 +120,23 @@ run_step() {
   (cd "$2" && bash -e "$tmp/$1.step" >/dev/null 2>&1)
 }
 make_repo() {
-  mkdir -p "$1/.github/scripts" "$1/Tests/JournalUITests"
+  mkdir -p "$1/.github/scripts" "$1/Tests/KenetUITests"
   cp "$script" "$1/.github/scripts/ui-audit-suites.sh"
   printf '#!/bin/sh\nfor arg do printf "%%s\\n" "$arg"; done > "%s/args"\n' "$1" > "$1/.github/scripts/xcodebuild-retry.sh"
 }
 make_repo "$tmp/steps"
 printf 'final class SmokeUITests: XCTestCase {}\nfinal class OneAuditUITests: XCTestCase {}\nfinal class TwoAccessibilityUITests: XCTestCase {}\nfinal class AccessibilityAuditUITests: XCTestCase {}\n' \
-  > "$tmp/steps/Tests/JournalUITests/A.swift"
+  > "$tmp/steps/Tests/KenetUITests/A.swift"
 make_repo "$tmp/nosuites"
-echo 'final class SmokeUITests: XCTestCase {}' > "$tmp/nosuites/Tests/JournalUITests/A.swift"
+echo 'final class SmokeUITests: XCTestCase {}' > "$tmp/nosuites/Tests/KenetUITests/A.swift"
 # Yalnız ortak küme: akış ve iPad adımları koşar, iPhone denetim adımı listesi boş diye düşer.
 make_repo "$tmp/sharedsteps"
 printf 'final class SmokeUITests: XCTestCase {}\nfinal class AccessibilityAuditUITests: XCTestCase {}\n' \
-  > "$tmp/sharedsteps/Tests/JournalUITests/A.swift"
+  > "$tmp/sharedsteps/Tests/KenetUITests/A.swift"
 suites=$(sh "$script" "$tmp/steps")
-only_iphone=$(sh "$script" --iphone "$tmp/steps" | sed 's#^#-only-testing:JournalUITests/#')
-only_shared=$(sh "$script" --shared "$tmp/steps" | sed 's#^#-only-testing:JournalUITests/#')
-skip_suites=$(printf '%s\n' $suites | sed 's#^#-skip-testing:JournalUITests/#')
+only_iphone=$(sh "$script" --iphone "$tmp/steps" | sed 's#^#-only-testing:KenetUITests/#')
+only_shared=$(sh "$script" --shared "$tmp/steps" | sed 's#^#-only-testing:KenetUITests/#')
+skip_suites=$(printf '%s\n' $suites | sed 's#^#-skip-testing:KenetUITests/#')
 for step in ios_audit ios_ui pad_a11y; do
   step_script "$step" > "$tmp/$step.step"
   grep -q 'ui-audit-suites\.sh' "$tmp/$step.step" || { fail "ci.yml: $step adımı ui-audit-suites.sh çağırmıyor"; continue; }
@@ -145,7 +145,7 @@ for step in ios_audit ios_ui pad_a11y; do
     case $step in
       ios_audit) want_selection=$(printf '%s\n' "$only_iphone" | sort) ;;
       pad_a11y) want_selection=$(printf '%s\n' "$only_shared" | sort) ;;
-      ios_ui) want_selection=$(printf '%s\n%s\n' "-only-testing:JournalUITests" "$skip_suites" | sort) ;;
+      ios_ui) want_selection=$(printf '%s\n%s\n' "-only-testing:KenetUITests" "$skip_suites" | sort) ;;
     esac
     [ "$selection" = "$want_selection" ] \
       || { fail "ci.yml: $step adımının test seçimi"; printf 'beklenen:\n%s\nalınan:\n%s\n' "$want_selection" "$selection"; }

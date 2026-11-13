@@ -62,7 +62,7 @@ final class IntentActions {
         languages = DateParsingLanguages.preferred(for: locale)
     }
 
-    /// Cold intent launch before JournalApp attaches the live service: enabled ⇒ unauthenticated.
+    /// Cold intent launch before KenetApp attaches the live service: enabled ⇒ unauthenticated.
     static func coldStartIsLocked(defaults: UserDefaults = .standard) -> Bool {
         defaults.bool(forKey: AppLockService.enabledKey)
     }

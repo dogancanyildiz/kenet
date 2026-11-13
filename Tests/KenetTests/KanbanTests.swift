@@ -1,0 +1,266 @@
+import Foundation
+import SwiftUI
+import Testing
+import VaultFormat
+
+@testable import Kenet
+
+struct KanbanBoardLayoutTests {
+    @Test func threeColumnsShareTheBoard() {
+        let width = KanbanBoardLayout.columnWidth(fitting: 1100, columns: 3)
+        #expect(width > 300)
+        let used =
+            width * 3 + KanbanBoardLayout.columnSpacing * 2 + KanbanBoardLayout.boardPadding * 2
+        #expect(abs(used - 1100) < 0.01)
+    }
+
+    @Test func crowdedBoardKeepsTheFloorAndScrolls() {
+        #expect(
+            KanbanBoardLayout.columnWidth(fitting: 1100, columns: 12) == KanbanBoardLayout.minimumColumnWidth)
+        #expect(KanbanBoardLayout.columnWidth(fitting: 0, columns: 4) == KanbanBoardLayout.minimumColumnWidth)
+        #expect(KanbanBoardLayout.columnWidth(fitting: .nan, columns: 2) == KanbanBoardLayout.minimumColumnWidth)
+    }
+
+    @Test func oneColumnFillsTheBoard() {
+        let width = KanbanBoardLayout.columnWidth(fitting: 500, columns: 1)
+        #expect(width == 500 - KanbanBoardLayout.boardPadding * 2)
+        #expect(KanbanBoardLayout.columnWidth(fitting: 500, columns: 0) == width)
+    }
+}
+
+@MainActor struct KanbanTests {
+    @Test func statusColumnsHideCancelledAndLimitDoneToThirtyDays() async throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        await context.start()
+        try """
+        ## Tasks
+        - [ ] Todo ^todo
+        - [?] Custom ^custom
+        - [/] Started ^started
+        - [x] Today ✅ 2026-10-03 ^today
+        - [X] Boundary ✅ 2026-09-04 ^boundary
+        - [x] Old ✅ 2026-09-03 ^old
+        - [x] Future ✅ 2026-10-04 ^future
+        - [x] No date ^nodate
+        - [-] Cancel ^cancel
+        """.write(to: context.file, atomically: true, encoding: .utf8)
+        await context.store.refresh()
+        let model = await board(context)
+        #expect(model.columns.map { $0.rows.count } == [2, 1, 2])
+        #expect(model.columns.map(\.destination) == [.status(.todo), .status(.inProgress), .status(.done)])
+        // The board already has the cancelled rows: the toggle draws the column without asking again.
+        model.showsCancelled = true
+        #expect(model.columns.map { $0.rows.count } == [2, 1, 2, 1])
+        #expect(model.columns.last?.destination == .status(.cancelled))
+    }
+
+    @Test func projectColumnsNormalizeNamesAndKeepUnassignedTarget() async throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        await context.start()
+        try """
+        ## Tasks
+        - [ ] One #project/Café ^one
+        - [/] Two #project/café ^two
+        - [ ] Child #project/Café/mobile ^child
+        - [ ] Free ^free
+        - [-] Cancel #project/empty ^cancel
+        """.write(to: context.file, atomically: true, encoding: .utf8)
+        await context.store.refresh()
+        let model = await board(context)
+        model.grouping = .project
+        #expect(model.columns.count == 4)
+        #expect(model.columns.first { $0.rows.count == 2 }?.rows.compactMap(\.sourceIdentifier) == ["one", "two"])
+        #expect(model.columns.last?.rows.compactMap(\.sourceIdentifier) == ["free"])
+        #expect(model.columns.first { $0.name == "empty" }?.rows.isEmpty == true)
+        model.tasks.projectFilter = "CAFÉ"
+        await model.load()
+        #expect(model.columns.flatMap(\.rows).count == 2)
+    }
+
+    @Test func multiplePeopleDuplicateCardsAndPlaceOrUnresolvedLinkDoesNotBecomePerson() async throws {
+        let context = try TaskTestContext(sample: true)
+        defer { context.clean() }
+        await context.start()
+        try """
+        ## Tasks
+        - [ ] [[Deniz Arıkan]] [[Ece Yalın]] Shared #project/board ^shared
+        - [ ] [[Liman Ofis]] Place #project/board ^place
+        - [ ] [[Unknown Person]] Unresolved #project/board ^unresolved
+        """.write(to: context.file, atomically: true, encoding: .utf8)
+        await context.store.refresh()
+        let model = await board(context)
+        model.tasks.projectFilter = "board"
+        await model.load()
+        model.grouping = .person
+        #expect(model.columns.count == 3)
+        #expect(model.columns.dropLast().map { $0.rows.compactMap(\.sourceIdentifier) } == [["shared"], ["shared"]])
+        #expect(Set(model.columns.last!.rows.compactMap(\.sourceIdentifier)) == ["place", "unresolved"])
+        model.tasks.entityFilter = "people/Deniz Arıkan.md"
+        await model.load()
+        #expect(model.columns.dropLast().flatMap(\.rows).count == 2)
+        #expect(model.columns.last?.rows.isEmpty == true)
+        model.tasks.entityFilter = "places/Liman Ofis.md"
+        await model.load()
+        #expect(model.columns.count == 1 && model.columns.first?.rows.first?.sourceIdentifier == "place")
+    }
+
+    @Test func columnsSortByDuePriorityTextWithoutReorderingFile() async throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        await context.start()
+        let source = """
+            ## Tasks
+            - [ ] Undated ⏫ ^undated
+            - [ ] Zebra 📅 2026-10-03 ^zebra
+            - [ ] Low 📅 2026-10-03 🔽 ^low
+            - [ ] Alpha 📅 2026-10-03 ^alpha
+            - [ ] Medium 📅 2026-10-03 🔼 ^medium
+            - [ ] High 📅 2026-10-03 ⏫ ^high
+            - [ ] Early 📅 2026-10-02 ^early
+            """
+        try source.write(to: context.file, atomically: true, encoding: .utf8)
+        await context.store.refresh()
+        let model = await board(context)
+        #expect(
+            model.columns.first?.rows.compactMap(\.sourceIdentifier) == [
+                "early", "high", "medium", "alpha", "zebra", "low", "undated",
+            ])
+        model.grouping = .project
+        #expect(try Data(contentsOf: context.file) == Data(source.utf8))
+    }
+
+    @Test func statusMovePreservesSurroundingBytesBOMAndCRLF() async throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        await context.start()
+        let source =
+            "\u{feff}---\r\ntype: journal\r\ndate: 2026-10-03\r\ncustom: 'keep'\r\n---\r\n\r\n## Tasks\r\n- [ ] Plan 📅 2026-10-06 #project/Alpha ^task\r\n  Note untouched\r\n\r\n## Other\r\nCustom bytes  \r\n"
+        try Data(source.utf8).write(to: context.file)
+        await context.store.refresh()
+        let model = await board(context)
+        let row = try #require(try await context.store.allTasks().first)
+        #expect(await model.move(row, to: try #require(model.columns.first { $0.destination == .status(.inProgress) })))
+        #expect(try Data(contentsOf: context.file) == Data(source.replacingOccurrences(of: "[ ]", with: "[/]").utf8))
+        #expect(try await context.store.allTasks().first?.rawStatus == "/")
+    }
+
+    @Test func projectMoveChangesAndRemovesOnlyTargetTag() async throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        await context.start()
+        let source = "## Tasks\n- [ ] Plan 📅 2026-10-06 #project/Alpha ^task\n- [ ] Other #project/Beta ^other\n"
+        try source.write(to: context.file, atomically: true, encoding: .utf8)
+        await context.store.refresh()
+        let model = await board(context)
+        model.grouping = .project
+        let row = try #require(try await context.store.allTasks().first { $0.sourceIdentifier == "task" })
+        let beta = try #require(model.columns.first { $0.name == "Beta" })
+        #expect(await model.move(row, to: beta))
+        let moved = source.replacingOccurrences(of: "#project/Alpha", with: "#project/Beta")
+        #expect(try Data(contentsOf: context.file) == Data(moved.utf8))
+        let changed = try #require(try await context.store.allTasks().first { $0.sourceIdentifier == "task" })
+        #expect(await model.move(changed, to: try #require(model.columns.last)))
+        #expect(
+            try Data(contentsOf: context.file)
+                == Data(moved.replacingOccurrences(of: " #project/Beta ^task", with: " ^task").utf8))
+        #expect(try await context.store.allTasks().first { $0.sourceIdentifier == "task" }?.project == nil)
+    }
+
+    @Test func doneDropCompletesRecurrenceAndReopeningDoesNotGenerateAnotherRow() async throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        await context.start()
+        let source = "## Tasks\n- [/] Plan 📅 2026-10-03 🔁 every week ^original\n"
+        try source.write(to: context.file, atomically: true, encoding: .utf8)
+        await context.store.refresh()
+        let model = await board(context)
+        let row = try #require(try await context.store.allTasks().first)
+        let done = try #require(model.columns.first { $0.destination == .status(.done) })
+        let token = model.beginDrag(row)
+        #expect(model.acceptsDrop(token, into: done))
+        #expect(await model.drop(token, into: done))
+        let document = try context.document()
+        #expect(document.bodyLines.tasks.count == 2)
+        let next = try #require(document.bodyLines.tasks.first)
+        #expect(next.status == .todo && next.doneDate == nil && next.dueDate == context.today.addingDays(7))
+        #expect(next.block.id != "original" && next.block.id != nil)
+        #expect(document.bodyLines.tasks.last?.block.id == "original")
+        #expect(document.bodyLines.tasks.last?.doneDate == context.today)
+        let completed = try #require(try await context.store.allTasks().first { $0.sourceIdentifier == "original" })
+        #expect(await model.move(completed, to: try #require(model.columns.first)))
+        #expect(try context.document().bodyLines.tasks.count == 2)
+        #expect(try await context.store.allTasks().first { $0.sourceIdentifier == "original" }?.done == nil)
+    }
+
+    @Test func staleDragReportsErrorRefreshesAndLeavesEditedDiskUntouched() async throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        await context.start()
+        try "## Tasks\n- [ ] Plan ^task\n".write(to: context.file, atomically: true, encoding: .utf8)
+        await context.store.refresh()
+        let model = await board(context)
+        let token = model.beginDrag(try #require(try await context.store.allTasks().first))
+        let target = try #require(model.columns.first { $0.destination == .status(.inProgress) })
+        let external = "## Tasks\n- [ ] Plan ⏫ ^task\n"
+        try external.write(to: context.file, atomically: true, encoding: .utf8)
+        #expect(await !model.drop(token, into: target))
+        #expect(model.errorText != nil && model.busy.isEmpty)
+        #expect(try await context.store.allTasks().first?.priority == .high)
+        #expect(try Data(contentsOf: context.file) == Data(external.utf8))
+        #expect(await !model.drop(token, into: target))
+        #expect(!model.acceptsDrop("untrusted text", into: target))
+    }
+
+    @Test func personGroupingRejectsMovesAndSameColumnIsNoOp() async throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        await context.start()
+        let source = "## Tasks\n- [?] Plan #project/demo ^task\n"
+        try source.write(to: context.file, atomically: true, encoding: .utf8)
+        await context.store.refresh()
+        let model = await board(context)
+        let row = try #require(try await context.store.allTasks().first)
+        #expect(await !model.move(row, to: try #require(model.columns.first)))
+        model.grouping = .person
+        #expect(await !model.move(row, to: try #require(model.columns.first)))
+        let token = model.beginDrag(row)
+        #expect(!model.acceptsDrop(token, into: try #require(model.columns.first)))
+        #expect(try Data(contentsOf: context.file) == Data(source.utf8))
+    }
+
+    #if os(macOS)
+        /// The hosted board's columns are the shared width, so a hardcoded `.frame(width: 300)` fails.
+        @Test func macColumnsUseTheSharedBoardWidth() async throws {
+            let context = try TaskTestContext()
+            defer { context.clean() }
+            await context.start()
+            try "## Tasks\n- [ ] Plan ^task\n".write(to: context.file, atomically: true, encoding: .utf8)
+            await context.store.refresh()
+            let tasks = TasksModel(store: context.store, today: { context.today })
+            for hostWidth in [CGFloat(900), CGFloat(1400)] {
+                let sink = HostedLayout.Sink()
+                let board = KanbanView(tasks: tasks)
+                    .onPreferenceChange(KanbanColumnWidthPreference.self) { sink.values = $0 }
+                // The columns are drawn once the board's first answer has come.
+                let mount = HostedLayout.Mount(board, size: CGSize(width: hostWidth, height: 640))
+                defer { mount.close() }
+                for _ in 0..<40 where sink.values.count != 3 { await mount.settle(rounds: 1) }
+                await mount.settle()
+                let expected = KanbanBoardLayout.columnWidth(fitting: hostWidth, columns: 3)
+                #expect(sink.values.count == 3, "host \(hostWidth) reported \(sink.values)")
+                #expect(
+                    sink.values.allSatisfy { abs($0 - expected) < 1 },
+                    "host \(hostWidth): \(sink.values) vs \(expected)")
+            }
+        }
+    #endif
+
+    /// The board once its query has answered, as the view loads it.
+    private func board(_ context: TaskTestContext) async -> KanbanModel {
+        let model = KanbanModel(tasks: TasksModel(store: context.store, today: { context.today }))
+        await model.load()
+        return model
+    }
+}

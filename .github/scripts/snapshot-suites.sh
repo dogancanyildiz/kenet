@@ -1,6 +1,6 @@
 #!/bin/sh
 # Ekran görüntüsü test kümelerini listeler (satır başına bir ad).
-# Kural: Tests/JournalTests/Snapshots altında adı "SnapshotTests" ile biten her küme görüntü
+# Kural: Tests/KenetTests/Snapshots altında adı "SnapshotTests" ile biten her küme görüntü
 # testidir. Adı "MacSnapshotTests" ile bitenler yalnız macOS'ta derlenir. Adı "DuoSnapshotTests"
 # ile bitenler iPhone Duo tuvallerini çizer (SnapshotSupport.swift: ShellCanvas). Adı "Pad" ile
 # başlayanlar iPad tuvallerini çizer ve yalnız iPad simülatöründe koşar (iPhone'da kendini atlar).
@@ -15,7 +15,7 @@
 set -eu
 cd "$(dirname "$0")/../.."
 all=$(grep -hoE '(struct|class) +[A-Za-z0-9_]+SnapshotTests\b' \
-  Tests/JournalTests/Snapshots/*.swift | awk '{print $NF}' | sort -u)
+  Tests/KenetTests/Snapshots/*.swift | awk '{print $NF}' | sort -u)
 case "${1:-}" in
   --mac) echo "$all" | grep 'MacSnapshotTests$' || true ;;
   --duo) echo "$all" | grep 'DuoSnapshotTests$' || true ;;

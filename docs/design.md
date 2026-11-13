@@ -36,7 +36,7 @@ Bu belge yönü, kuralları ve belirteçleri tutar. Ekranların içeriği `scree
 
 Tek cümleyle: koyu bir sabah sayfası; sol üstte doğan mürdüm ışık günü işaretler, bölümler sessiz kartlarda durur.
 
-Ad "Şafak"tır, çünkü parıltı günün başlangıcını gösterir. Kod adları `Ink` önekini korur, `Journal` kod adı gibi.
+Ad "Şafak"tır, çünkü parıltı günün başlangıcını gösterir. Kod adları `Ink` önekini korur.
 
 ## Kısıtlar
 

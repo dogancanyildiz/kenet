@@ -1,6 +1,6 @@
 #!/bin/sh
 # Arayüz testlerinde erişilebilirlik denetimi kümelerini listeler (satır başına bir ad).
-# Kural: Tests/JournalUITests altında (alt klasörler dahil) adı "AccessibilityUITests" ya da
+# Kural: Tests/KenetUITests altında (alt klasörler dahil) adı "AccessibilityUITests" ya da
 # "AuditUITests" ile biten her sınıf denetim kümesidir. Sınıf bildirimi satır başında olur; önünde
 # değiştiriciler ve parantezli öznitelikler (`@available(iOS 26, *) final class …`) bulunabilir.
 # Üç kip:
@@ -24,16 +24,16 @@ esac
 root=${1:-$(cd "$(dirname "$0")/../.." && pwd)}
 # iPad işinin de koştuğu ortak kümeler (boşlukla ayrılır).
 shared="AccessibilityAuditUITests"
-list=$(find "$root/Tests/JournalUITests" -type f -name '*.swift' -exec cat {} + 2>/dev/null \
+list=$(find "$root/Tests/KenetUITests" -type f -name '*.swift' -exec cat {} + 2>/dev/null \
   | grep -oE '^[[:space:]]*((@[A-Za-z]+(\([^)]*\))?|[A-Za-z]+)[[:space:]]+)*class[[:space:]]+[A-Za-z0-9_]+' \
   | awk '{print $NF}' | grep -E '(Accessibility|Audit)UITests$' | sort -u) || true
-[ -n "$list" ] || { echo "arayüz denetim kümesi bulunamadı ($root/Tests/JournalUITests)" >&2; exit 1; }
+[ -n "$list" ] || { echo "arayüz denetim kümesi bulunamadı ($root/Tests/KenetUITests)" >&2; exit 1; }
 shared_patterns=
 for name in $shared; do shared_patterns="$shared_patterns -e $name"; done
 case $mode in
   shared) list=$(printf '%s\n' "$list" | grep -xF $shared_patterns) \
-    || { echo "ortak denetim kümesi yok ($shared; $root/Tests/JournalUITests)" >&2; exit 1; } ;;
+    || { echo "ortak denetim kümesi yok ($shared; $root/Tests/KenetUITests)" >&2; exit 1; } ;;
   iphone) list=$(printf '%s\n' "$list" | grep -vxF $shared_patterns) \
-    || { echo "ortak küme dışında denetim kümesi yok ($root/Tests/JournalUITests)" >&2; exit 1; } ;;
+    || { echo "ortak küme dışında denetim kümesi yok ($root/Tests/KenetUITests)" >&2; exit 1; } ;;
 esac
 echo "$list"

@@ -18,7 +18,7 @@ enum EntryPointsTipPreference {
         defaults.set(true, forKey: key)
     }
 
-    /// Hidden once dismissed, and whenever automatic start is off (UI tests, `JOURNAL_NO_AUTOSTART`).
+    /// Hidden once dismissed, and whenever automatic start is off (UI tests, `KENET_NO_AUTOSTART`).
     static func shouldPresent(
         dismissed: Bool,
         environment: [String: String] = ProcessInfo.processInfo.environment,

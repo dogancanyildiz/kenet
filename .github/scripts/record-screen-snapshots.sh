@@ -1,5 +1,5 @@
 #!/bin/sh
-# Regenerates screen-snapshot reference PNGs under Tests/JournalTests/Snapshots/.
+# Regenerates screen-snapshot reference PNGs under Tests/KenetTests/Snapshots/.
 # Local: sh .github/scripts/record-screen-snapshots.sh
 # CI: workflow_dispatch on "Ekran görüntüsü referansları" — download the artifact into Tests/.
 # Derleme ve koşu ayrıdır: build-for-testing, DerivedData SNAPSHOT_DERIVED_DATA
@@ -42,9 +42,9 @@ NAME=${DEVICE#* }
 
 # Görüntü test kümeleri ad kuralından bulunur (bkz. snapshot-suites.sh).
 if [ -n "${SNAPSHOT_SUITES:-}" ]; then
-  ONLY=$(printf '%s\n' $SNAPSHOT_SUITES | sed 's#^#-only-testing:JournalTests_iOS/#' | tr '\n' ' ')
+  ONLY=$(printf '%s\n' $SNAPSHOT_SUITES | sed 's#^#-only-testing:KenetTests_iOS/#' | tr '\n' ' ')
 else
-  ONLY=$(sh .github/scripts/snapshot-suites.sh $SUITES_FLAG | sed 's#^#-only-testing:JournalTests_iOS/#' | tr '\n' ' ')
+  ONLY=$(sh .github/scripts/snapshot-suites.sh $SUITES_FLAG | sed 's#^#-only-testing:KenetTests_iOS/#' | tr '\n' ' ')
 fi
 [ -n "$ONLY" ] || { echo "Görüntü test kümesi bulunamadı" >&2; exit 1; }
 
@@ -75,8 +75,8 @@ DERIVED="${SNAPSHOT_DERIVED_DATA:-.dd/snapshots}"
 # Her referans eşleşirse ilk koşu geçer ve ikinci koşu gerekmez.
 set +e
 xcodebuild build-for-testing \
-  -project Journal.xcodeproj \
-  -scheme Journal_iOS \
+  -project Kenet.xcodeproj \
+  -scheme Kenet_iOS \
   -destination "platform=iOS Simulator,id=$ID" \
   -derivedDataPath "$DERIVED" \
   CODE_SIGNING_ALLOWED=NO \
@@ -84,8 +84,8 @@ xcodebuild build-for-testing \
 status=$?
 if [ "$status" -eq 0 ]; then
   xcodebuild test-without-building \
-    -project Journal.xcodeproj \
-    -scheme Journal_iOS \
+    -project Kenet.xcodeproj \
+    -scheme Kenet_iOS \
     -destination "platform=iOS Simulator,id=$ID" \
     -derivedDataPath "$DERIVED" \
     $ONLY \
@@ -98,8 +98,8 @@ if [ "$status" -eq 0 ]; then
     echo "İlk kayıt koşusu düştü (beklenen); doğrulama koşusu…"
     unset SNAPSHOT_TESTING_RECORD
     xcodebuild test-without-building \
-      -project Journal.xcodeproj \
-      -scheme Journal_iOS \
+      -project Kenet.xcodeproj \
+      -scheme Kenet_iOS \
       -destination "platform=iOS Simulator,id=$ID" \
       -derivedDataPath "$DERIVED" \
       $ONLY \
@@ -110,5 +110,5 @@ if [ "$status" -eq 0 ]; then
   fi
 fi
 set -e
-echo "Referanslar: Tests/JournalTests/Snapshots/__Snapshots__/"
+echo "Referanslar: Tests/KenetTests/Snapshots/__Snapshots__/"
 exit "$status"

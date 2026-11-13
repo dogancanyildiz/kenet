@@ -119,22 +119,22 @@ Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru 
 | `write/relations/` | `VaultStoreTests/RelationsWriteTests.swift` | 86 iç klasörde elle yazılmış önce/sonra baytları ve `operation.json`: `related` tek değerlerinin her türü, boş alanlar, liste biçimleri, kırpılan/geçersiz/türe ayrılmış etiketler, çözülen hedefe göre değişmezlik, güvenli silme, hedef türü ve yol yazımı. `place-target`, `custom-target`, `place-source-label` ve `custom-source-label` konum ve özel tipi hedef ve kaynak olarak yazar. `label-zwj` emoji birleştiricili etiketi kabul eder; `invalid-label-nel` (U+0085) ve `invalid-label-only-newline` reddedilir. `remove-unreadable` çözülemeyen blokta kaldırmayı reddeder. `related-remove-all-block` çok satırlı listenin bütün öğelerini kaldırır, aradaki yorum kalır. `label-unresolved-link` çözülmeyen bağlantılı etiket alanına ekler. |
 | `write/mention-*` | ek olarak `VaultStoreTests/UnlinkedMentionTests.swift` | Klasör tarama |
 | `write/task-recur-trailing-text` | ek olarak `VaultFormatTests/RecurrenceTests.swift` | Ad kodda |
-| `write/cadence-*` | ek olarak `Tests/JournalTests/CadenceTests.swift` | Ad kodda |
+| `write/cadence-*` | ek olarak `Tests/KenetTests/CadenceTests.swift` | Ad kodda |
 | `merge/` | `VaultFormatTests/MergeFixtureTests.swift`, `VaultStoreTests/DayCopyMergeCaseTests.swift` | Klasör tarama |
 | `recognition/<ad>/` | `EntityRecognitionTests/Fixtures.swift` | Ad listesi |
 | `recognition/attendees/` | `EntityRecognitionTests/AttendeeMatchingTests.swift` | Ad kodda |
-| `recognition/unlinked-mentions/` | `VaultStoreTests/UnlinkedMentionTests.swift`, `Tests/JournalTests/UnlinkedMentionsTests.swift` | Ad kodda |
+| `recognition/unlinked-mentions/` | `VaultStoreTests/UnlinkedMentionTests.swift`, `Tests/KenetTests/UnlinkedMentionsTests.swift` | Ad kodda |
 | `recognition/unlinked-mentions-hostile/` | `VaultStoreTests/UnlinkedMentionAdversarialTests.swift` | Ad kodda |
 | `index/sample/` | `VaultIndexTests/IndexTests.swift` | Ad kodda |
 | `index/continuation/` | `VaultIndexTests/IncrementalTests.swift` | Ad kodda |
 | `index/entity-fields/` | `VaultIndexTests/EntityFieldTests.swift` | Ad kodda |
 | `index/cadence/` | `VaultIndexTests/CadenceFieldTests.swift` | Ad kodda |
-| `journal/edit/` | `Tests/JournalTests/JournalEditingTests.swift` | Ad kodda |
-| `journal/weekly-review/` | `Tests/JournalTests/WeeklyReviewTests.swift` | Ad kodda |
-| `entities/fields/` | `Tests/JournalTests/EntityPageTests.swift` | Ad kodda |
+| `journal/edit/` | `Tests/KenetTests/JournalEditingTests.swift` | Ad kodda |
+| `journal/weekly-review/` | `Tests/KenetTests/WeeklyReviewTests.swift` | Ad kodda |
+| `entities/fields/` | `Tests/KenetTests/EntityPageTests.swift` | Ad kodda |
 | `entity-types/` | `VaultIndexTests/EntityTypeTests.swift`, `VaultStoreTests/EntityTypeStoreTests.swift` | Ad listesi |
 | `rename/` | `VaultStoreTests/RenameTests.swift` | Ad listesi |
-| `import/` | `Tests/JournalTests/VaultImportFixtureTests.swift` | Ad listesi |
+| `import/` | `Tests/KenetTests/VaultImportFixtureTests.swift` | Ad listesi |
 | `dates/cases.json` | `DateParsingTests/DateFixtureTests.swift` | JSON vaka |
 | `dates/quick-entry.json` | `DateParsingTests/QuickEntryTests.swift` | JSON vaka |
 | `dates/recurrence.json` | `DateParsingTests/RecurrenceTests.swift` | JSON vaka |
@@ -142,12 +142,12 @@ Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru 
 | `goals/cases.json` | `GoalTrackingTests/GoalFixtures.swift` | JSON vaka |
 | `goals/series.json` | `GoalTrackingTests/GoalSeriesTests.swift` | JSON vaka |
 | `goals/writes/` | `VaultStoreTests/GoalStoreFixtures.swift` | JSON vaka |
-| `goals/creation/` | `VaultStoreTests/GoalCreationTests.swift`, `MilestoneStoreTests.swift`, `Tests/JournalTests/GoalDefinitionTests.swift` | JSON vaka |
+| `goals/creation/` | `VaultStoreTests/GoalCreationTests.swift`, `MilestoneStoreTests.swift`, `Tests/KenetTests/GoalDefinitionTests.swift` | JSON vaka |
 | `goal-chain/cases.json` | `GoalTrackingTests/GraceDayTests.swift`, `SummariesTests/GraceDaySummaryTests.swift` | JSON vaka |
 | `goal-chain/query/` | `VaultIndexTests/GraceDayQueryTests.swift` | Markdown kasa, ad kodda |
 | `summaries/cases.json` | `SummariesTests/PeriodSummaryTests.swift`, `SummariesTests/TaskFlowSeriesTests.swift` | JSON vaka |
 | `summaries/weekly-review-text.json` | `SummariesTests/WeeklyReviewTextTests.swift` | JSON vaka |
-| `summaries/cadence.json` | `SummariesTests/MeetingCadenceTests.swift`, `Tests/JournalTests/CadenceTests.swift` | JSON vaka |
+| `summaries/cadence.json` | `SummariesTests/MeetingCadenceTests.swift`, `Tests/KenetTests/CadenceTests.swift` | JSON vaka |
 | `summaries/important-dates.json` | `SummariesTests/ImportantDatesTests.swift` | JSON vaka |
 | `summaries/on-this-day.json` | `SummariesTests/OnThisDayTests.swift` | JSON vaka |
 | `summaries/period-rhythm.json` | `SummariesTests/PeriodRhythmTests.swift` | JSON vaka |
@@ -157,17 +157,17 @@ Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru 
 | `summaries/entity-density.json` | `SummariesTests/EntityMentionDensityTests.swift` | JSON vaka |
 | `summaries/weekday-distribution.json` | `SummariesTests/WeekdayDistributionTests.swift` | JSON vaka |
 | `vaults/sample/` | `IndexTests`, `PeriodSummaryTests`, `WikiLinkTests`, `MergeTests` ve uygulama testlerinin çoğu | Ad kodda |
-| `vaults/typed/` | `EntityTypeTests`, `EntityTypeStoreTests`, `InitialIndexTests`, `Tests/JournalTests/CustomEntityTypeTests.swift` | Ad kodda |
-| `vaults/gallery/` | `VaultStoreTests/EntityTypeGalleryTests.swift`, `Tests/JournalTests/EntityTypeGalleryTests.swift` | Ad kodda |
+| `vaults/typed/` | `EntityTypeTests`, `EntityTypeStoreTests`, `InitialIndexTests`, `Tests/KenetTests/CustomEntityTypeTests.swift` | Ad kodda |
+| `vaults/gallery/` | `VaultStoreTests/EntityTypeGalleryTests.swift`, `Tests/KenetTests/EntityTypeGalleryTests.swift` | Ad kodda |
 | `vaults/backlinks/` | `VaultIndexTests/DayBacklinksTests.swift` | Ad kodda |
-| `vaults/placeholder/` | `VaultStoreTests/PlaceholderTests.swift`, `Tests/JournalTests/CloudDownloadTests.swift`, `Tests/JournalTests/SyncStatusTests.swift` | Ad kodda |
-| `vaults/day-copies/` | `VaultStoreTests/DayCopyTests.swift`, `VaultStoreTests/ConflictCopyListingTests.swift`, `Tests/JournalTests/DayCopyMergeWiringTests.swift` | Ad kodda |
-| `vaults/copy-files/` | `VaultIndexTests/CopyFileTests.swift`, `Tests/JournalTests/SyncedFolderNoticeTests.swift` | Ad kodda |
-| `vaults/conflict-copies/` | `VaultIndexTests/ConflictCopyTests.swift`, `Tests/JournalTests/SyncConflictTests.swift`, `Tests/JournalTests/DiagnosticsConflictWiringTests.swift`, `Tests/JournalTests/Snapshots/ConflictVersionsSnapshotTests.swift` | Ad kodda |
+| `vaults/placeholder/` | `VaultStoreTests/PlaceholderTests.swift`, `Tests/KenetTests/CloudDownloadTests.swift`, `Tests/KenetTests/SyncStatusTests.swift` | Ad kodda |
+| `vaults/day-copies/` | `VaultStoreTests/DayCopyTests.swift`, `VaultStoreTests/ConflictCopyListingTests.swift`, `Tests/KenetTests/DayCopyMergeWiringTests.swift` | Ad kodda |
+| `vaults/copy-files/` | `VaultIndexTests/CopyFileTests.swift`, `Tests/KenetTests/SyncedFolderNoticeTests.swift` | Ad kodda |
+| `vaults/conflict-copies/` | `VaultIndexTests/ConflictCopyTests.swift`, `Tests/KenetTests/SyncConflictTests.swift`, `Tests/KenetTests/DiagnosticsConflictWiringTests.swift`, `Tests/KenetTests/Snapshots/ConflictVersionsSnapshotTests.swift` | Ad kodda |
 | `vaults/nfd-names/` | `VaultIndexTests/ChangeDetectionTests.swift` | Ad kodda |
 | `vaults/turkce-buyuk-harf/` | `VaultStoreTests/TurkishCapitalTests.swift` | Ad kodda |
 
-Tablodaki göreli yollar `Packages/Core/Tests/` altındadır; `Tests/JournalTests/` ile başlayanlar uygulama testleridir. **Klasör tarama** yeni klasörü kendiliğinden bulur. **Ad listesi** yeni klasörü yalnız test dosyasındaki `@Test(arguments:)` listesine eklenince koşar. **JSON vaka** yeni vakayı JSON dizisine eklenince koşar.
+Tablodaki göreli yollar `Packages/Core/Tests/` altındadır; `Tests/KenetTests/` ile başlayanlar uygulama testleridir. **Klasör tarama** yeni klasörü kendiliğinden bulur. **Ad listesi** yeni klasörü yalnız test dosyasındaki `@Test(arguments:)` listesine eklenince koşar. **JSON vaka** yeni vakayı JSON dizisine eklenince koşar.
 
 ## Yeni fixture ekleme
 
@@ -908,7 +908,7 @@ Tam ve artımlı eşdeğerlik, dosya silme ve yeniden kurulum aynı kasayı kull
 
 ## Tek dosyalı uygulama kümeleri
 
-`journal/edit/input.md` bir gün dosyasıdır; `expected.md` Journal bölümü değiştikten sonraki tam dosyadır. Frontmatter ve Events bölümü bayt bayt aynı kalır; testi `Tests/JournalTests/JournalEditingTests.swift` koşar. `journal/weekly-review/input.md` haftalık incelemeden önceki gün dosyasıdır; `expected.md` soru kartları yazıldıktan sonraki tam dosyadır. Her dolu kart soru ve cevabı birlikte taşıyan tek serbest not satırıdır: "Ne iyi gitti: …". Görev gibi görünen cevap yazı olarak kalır. Testi `Tests/JournalTests/WeeklyReviewTests.swift` koşar. `entities/fields/input.md` kurgusal bir kişi dosyasıdır. `value.md` bir alan değeri değiştikten, `aliases.md` takma ad listesi yazıldıktan sonraki tam dosyadır. Yalnız hedef anahtarın satırı değişir; testi `Tests/JournalTests/EntityPageTests.swift` koşar.
+`journal/edit/input.md` bir gün dosyasıdır; `expected.md` Journal bölümü değiştikten sonraki tam dosyadır. Frontmatter ve Events bölümü bayt bayt aynı kalır; testi `Tests/KenetTests/JournalEditingTests.swift` koşar. `journal/weekly-review/input.md` haftalık incelemeden önceki gün dosyasıdır; `expected.md` soru kartları yazıldıktan sonraki tam dosyadır. Her dolu kart soru ve cevabı birlikte taşıyan tek serbest not satırıdır: "Ne iyi gitti: …". Görev gibi görünen cevap yazı olarak kalır. Testi `Tests/KenetTests/WeeklyReviewTests.swift` koşar. `entities/fields/input.md` kurgusal bir kişi dosyasıdır. `value.md` bir alan değeri değiştikten, `aliases.md` takma ad listesi yazıldıktan sonraki tam dosyadır. Yalnız hedef anahtarın satırı değişir; testi `Tests/KenetTests/EntityPageTests.swift` koşar.
 
 ## `entity-types/` kümesi
 
@@ -1173,12 +1173,12 @@ Kasa 20 Eylül'ü 4 yılda taşır. 2023 bağlantısızdır: not bağlantısı, 
 | `history` | 19 | Bu gün geçmişte | `summaries/on-this-day.json` |
 | `backlinks` | 5 | Bu güne bağlananlar sorgusu | `DayBacklinksTests` |
 | `typed` | 4 | Özel kitap tipi; ayrıntı [`entity-types/` kümesi](#entity-types-kümesi) bölümünde | `entity-types/` |
-| `placeholder` | 12 | İndirilmeyi bekleyen yer tutucular | `PlaceholderTests`, `Tests/JournalTests/CloudDownloadTests`, `Tests/JournalTests/SyncStatusTests` |
-| `day-copies` | 41 | Gün kopyası birleştirme | `DayCopyTests`, `Tests/JournalTests/DayCopyMergeWiringTests` |
+| `placeholder` | 12 | İndirilmeyi bekleyen yer tutucular | `PlaceholderTests`, `Tests/KenetTests/CloudDownloadTests`, `Tests/KenetTests/SyncStatusTests` |
+| `day-copies` | 41 | Gün kopyası birleştirme | `DayCopyTests`, `Tests/KenetTests/DayCopyMergeWiringTests` |
 | `rhythm` | 16 | Özetler'in yıl, süren dönem ve ritim hesabı | `summaries/period-rhythm.json`, `summaries/year-writing.json`, `summaries/weekly-rhythm.json`, `summaries/weekday-distribution.json` |
-| `copy-files` | 19 | Varlık kopyası ve gün kopyası listesi; birleştirme yok | `VaultIndexTests/CopyFileTests`, `Tests/JournalTests/SyncedFolderNoticeTests` |
+| `copy-files` | 19 | Varlık kopyası ve gün kopyası listesi; birleştirme yok | `VaultIndexTests/CopyFileTests`, `Tests/KenetTests/SyncedFolderNoticeTests` |
 | `gallery` | 21 | Hazır tip galerisi: 10 tip, şablonları ve her şablondan bir varlık; ayrıntı [`entity-types/` kümesi](#entity-types-kümesi) bölümünde | `EntityTypeGalleryTests` |
-| `conflict-copies` | 20 | Çakışma kopyası ad kuralı ve `conflicts/` listesi; çakışan sürüm sorgusunun kasası | `VaultIndexTests/ConflictCopyTests`, `Tests/JournalTests/SyncConflictTests` |
+| `conflict-copies` | 20 | Çakışma kopyası ad kuralı ve `conflicts/` listesi; çakışan sürüm sorgusunun kasası | `VaultIndexTests/ConflictCopyTests`, `Tests/KenetTests/SyncConflictTests` |
 | `nfd-names` | 4 | Ayrışmış (NFD) dosya adı, ad, takma ad ve bağlantı yazımı | `DecomposedNameTests` |
 | `turkce-buyuk-harf` | 6 | Türkçe büyük harf eşlemesi: anahtar, bağlantı, tanıma, ad çakışması | `TurkishCapitalTests` |
 | `graph` | 18 | Olay, alt satır, görev ve paragraf bağları; Journal madde listesi, devam satırı, alıntı öbeği ve numaralı liste; başlık, frontmatter, özel tip ve indekslenmeyen gün kopyası; tek günün grafiği | `GraphMentionsTests`, `GraphMapTests`, `DayGraphMentionsTests`, `DayGraphTests`, `GraphCustomTypeTests`, `DayGraphSnapshotTests` |

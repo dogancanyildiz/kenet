@@ -138,7 +138,7 @@ jobs:
           TEST_RUNNER_KENET_REQUIRE_AX: "1"
           TZ: UTC
         # Mac görüntü kümeleri yalnız yerelde koşar (bkz. snapshot-suites.sh).
-        run: xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS,arch=arm64' $(sh .github/scripts/snapshot-suites.sh --mac | sed 's#^#-skip-testing:JournalTests_macOS/#' | tr '\n' ' ') -resultBundlePath MacTests.xcresult CODE_SIGNING_ALLOWED=NO -quiet
+        run: xcodebuild test -project Kenet.xcodeproj -scheme Kenet_macOS -destination 'platform=macOS,arch=arm64' $(sh .github/scripts/snapshot-suites.sh --mac | sed 's#^#-skip-testing:KenetTests_macOS/#' | tr '\n' ' ') -resultBundlePath MacTests.xcresult CODE_SIGNING_ALLOWED=NO -quiet
       # PR kapısında da koşar: gün kayması hatası yalnız dev'e itmede yakalanıyordu (2026-10-20 incelemesi).
       # PR'da yalnız saat dilimine duyarlı kümeler (timezone-suites.sh, ~2 dk); dev'e itmede tam küme
       # (~8 dk): kaçan bir gün kayması dev'de yine görülür.
@@ -150,11 +150,11 @@ jobs:
           TEST_RUNNER_KENET_REQUIRE_AX: "1"
         run: |
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
-            SELECTION=$(sh .github/scripts/timezone-suites.sh | sed 's#^#-only-testing:JournalTests_macOS/#' | tr '\n' ' ')
+            SELECTION=$(sh .github/scripts/timezone-suites.sh | sed 's#^#-only-testing:KenetTests_macOS/#' | tr '\n' ' ')
           else
-            SELECTION=$(sh .github/scripts/snapshot-suites.sh --mac | sed 's#^#-skip-testing:JournalTests_macOS/#' | tr '\n' ' ')
+            SELECTION=$(sh .github/scripts/snapshot-suites.sh --mac | sed 's#^#-skip-testing:KenetTests_macOS/#' | tr '\n' ' ')
           fi
-          xcodebuild test-without-building -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS,arch=arm64' $SELECTION -resultBundlePath MacTestsAuckland.xcresult CODE_SIGNING_ALLOWED=NO -quiet
+          xcodebuild test-without-building -project Kenet.xcodeproj -scheme Kenet_macOS -destination 'platform=macOS,arch=arm64' $SELECTION -resultBundlePath MacTestsAuckland.xcresult CODE_SIGNING_ALLOWED=NO -quiet
       # Düşen beklentinin ölçülen değerleri -quiet günlüğünde görünmez; paket gösterir. İptal edilen
       # koşuda yüklenmez (boş paket üretiyordu).
       - name: macOS test sonuç paketi (yalnız düşünce)
@@ -219,11 +219,11 @@ jobs:
           WATCH=$!
           trap 'kill "$WATCH" 2>/dev/null || true' EXIT
           sh .github/scripts/xcodebuild-retry.sh "${{ steps.build.outputs.udid }}" test-without-building \
-            -project Journal.xcodeproj \
-            -scheme Journal_iOS \
+            -project Kenet.xcodeproj \
+            -scheme Kenet_iOS \
             -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }},arch=arm64" \
-            -only-testing:JournalTests_iOS \
-            $(sh .github/scripts/snapshot-suites.sh | sed 's#^#-skip-testing:JournalTests_iOS/#' | tr '\n' ' ') \
+            -only-testing:KenetTests_iOS \
+            $(sh .github/scripts/snapshot-suites.sh | sed 's#^#-skip-testing:KenetTests_iOS/#' | tr '\n' ' ') \
             -resultBundlePath IOSTests.xcresult \
             -test-timeouts-enabled YES \
             -default-test-execution-time-allowance 300 \
@@ -272,10 +272,10 @@ jobs:
             xcrun simctl uninstall "${{ steps.build.outputs.udid }}" "$bundle" >/dev/null 2>&1 || true
           done
           sh .github/scripts/xcodebuild-retry.sh "${{ steps.build.outputs.udid }}" test-without-building \
-            -project Journal.xcodeproj \
-            -scheme Journal_iOS \
+            -project Kenet.xcodeproj \
+            -scheme Kenet_iOS \
             -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }},arch=arm64" \
-            $(sh .github/scripts/snapshot-suites.sh | sed 's#^#-only-testing:JournalTests_iOS/#' | tr '\n' ' ') \
+            $(sh .github/scripts/snapshot-suites.sh | sed 's#^#-only-testing:KenetTests_iOS/#' | tr '\n' ' ') \
             -testLanguage tr -testRegion TR \
             -resultBundlePath ScreenSnapshots.xcresult \
             CODE_SIGNING_ALLOWED=NO \
@@ -293,11 +293,11 @@ jobs:
           name: screen-snapshot-diffs
           path: |
             ScreenSnapshots.xcresult
-            Tests/JournalTests/Snapshots/__Snapshots__
+            Tests/KenetTests/Snapshots/__Snapshots__
           if-no-files-found: warn
           retention-days: 7
 
-  # iPhone arayüz testleri (JournalUITests) iki işte, ikisi de kendi runner'ında kendi derlemesi ve
+  # iPhone arayüz testleri (KenetUITests) iki işte, ikisi de kendi runner'ında kendi derlemesi ve
   # simülatörüyle. Tek iş 28 dk sürüyordu ve kritik yoldu (koşu 40385010425: derleme 6,2 + açılış
   # 2,4 + test 18,4 dk; 24 vaka 906 sn). Bölme ad kuralıyla yapılır: .github/scripts/ui-audit-suites.sh
   # denetim kümelerini listeler (adı AccessibilityUITests/AuditUITests ile biten sınıflar); akış işi
@@ -335,11 +335,11 @@ jobs:
         run: |
           AUDIT=$(sh .github/scripts/ui-audit-suites.sh)
           sh .github/scripts/xcodebuild-retry.sh "${{ steps.build.outputs.udid }}" test-without-building \
-            -project Journal.xcodeproj \
-            -scheme Journal_iOS \
+            -project Kenet.xcodeproj \
+            -scheme Kenet_iOS \
             -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }},arch=arm64" \
-            -only-testing:JournalUITests \
-            $(printf '%s\n' $AUDIT | sed 's#^#-skip-testing:JournalUITests/#' | tr '\n' ' ') \
+            -only-testing:KenetUITests \
+            $(printf '%s\n' $AUDIT | sed 's#^#-skip-testing:KenetUITests/#' | tr '\n' ' ') \
             -resultBundlePath UIFlowTests.xcresult \
             -test-timeouts-enabled YES \
             -default-test-execution-time-allowance 300 \
@@ -391,10 +391,10 @@ jobs:
         run: |
           AUDIT=$(sh .github/scripts/ui-audit-suites.sh --iphone)
           sh .github/scripts/xcodebuild-retry.sh "${{ steps.build.outputs.udid }}" test-without-building \
-            -project Journal.xcodeproj \
-            -scheme Journal_iOS \
+            -project Kenet.xcodeproj \
+            -scheme Kenet_iOS \
             -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }},arch=arm64" \
-            $(printf '%s\n' $AUDIT | sed 's#^#-only-testing:JournalUITests/#' | tr '\n' ' ') \
+            $(printf '%s\n' $AUDIT | sed 's#^#-only-testing:KenetUITests/#' | tr '\n' ' ') \
             -resultBundlePath UIAuditTests.xcresult \
             -test-timeouts-enabled YES \
             -default-test-execution-time-allowance 300 \
@@ -445,10 +445,10 @@ jobs:
         timeout-minutes: 20
         run: |
           sh .github/scripts/xcodebuild-retry.sh "${{ steps.build.outputs.udid }}" test-without-building \
-            -project Journal.xcodeproj \
-            -scheme Journal_iOS \
+            -project Kenet.xcodeproj \
+            -scheme Kenet_iOS \
             -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }},arch=arm64" \
-            $(sh .github/scripts/snapshot-suites.sh --pad | sed 's#^#-only-testing:JournalTests_iOS/#' | tr '\n' ' ') \
+            $(sh .github/scripts/snapshot-suites.sh --pad | sed 's#^#-only-testing:KenetTests_iOS/#' | tr '\n' ' ') \
             -testLanguage tr -testRegion TR \
             -resultBundlePath PadSnapshots.xcresult \
             CODE_SIGNING_ALLOWED=NO \
@@ -466,10 +466,10 @@ jobs:
           name: pad-snapshot-diffs
           path: |
             PadSnapshots.xcresult
-            Tests/JournalTests/Snapshots/__Snapshots__/Pad*
+            Tests/KenetTests/Snapshots/__Snapshots__/Pad*
           if-no-files-found: warn
           retention-days: 7
-      # Aynı derleme ürünü UI test koşucusunu da taşır (ios-build: build-for-testing, Journal_iOS).
+      # Aynı derleme ürünü UI test koşucusunu da taşır (ios-build: build-for-testing, Kenet_iOS).
       # Ortak denetim kümesi (ui-audit-suites.sh --shared: AccessibilityAuditUITests) yalnız burada
       # koşar; iPhone denetim işi onu atlar. Denetim bölünmüş kabukta kenar çubuğuyla gezer ve aygıtı
       # yatay döndürür; bitince dik bırakır. Dil ayarı iPhone arayüz işleriyle aynı (verilmez). Yerelde
@@ -482,10 +482,10 @@ jobs:
         run: |
           AUDIT=$(sh .github/scripts/ui-audit-suites.sh --shared)
           sh .github/scripts/xcodebuild-retry.sh "${{ steps.build.outputs.udid }}" test-without-building \
-            -project Journal.xcodeproj \
-            -scheme Journal_iOS \
+            -project Kenet.xcodeproj \
+            -scheme Kenet_iOS \
             -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }},arch=arm64" \
-            $(printf '%s\n' $AUDIT | sed 's#^#-only-testing:JournalUITests/#' | tr '\n' ' ') \
+            $(printf '%s\n' $AUDIT | sed 's#^#-only-testing:KenetUITests/#' | tr '\n' ' ') \
             -resultBundlePath PadAccessibility.xcresult \
             -test-timeouts-enabled YES \
             -default-test-execution-time-allowance 300 \

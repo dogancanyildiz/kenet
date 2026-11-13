@@ -7,7 +7,7 @@ Kullanım: check-catalog-keys.py [kök]   (varsayılan: deponun kökü)
 yerelleştirilen çağrıların ilk sabit metin argümanı çıkarılır
 (`Text("…")`, `Button("…")`, `Label("…", …)`, `String(localized: "…")`, `LocalizedStringKey("…")`, …)
 ve `App/Resources/Localizable.xcstrings` anahtar kümesiyle karşılaştırılır. Eksik anahtar hatadır.
-Widget ve paylaşım uzantısı hedefleri aynı kataloğu derler (`project.yml`, `JournalWidgets`, `JournalShare`).
+Widget ve paylaşım uzantısı hedefleri aynı kataloğu derler (`project.yml`, `KenetWidgets`, `KenetShare`).
 
 İkinci kural: `locale:` alıp `bundle:` almayan `String(localized:)` çağrısı hatadır. Bu çağrı dili
 süreçten seçer, `locale` yalnız biçimi etkiler. Yerine `PresentationLocalization.string(localized:locale:)`

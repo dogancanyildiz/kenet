@@ -32,7 +32,7 @@ Ajan kuralları, okuma sırası ve belge kuralları [AGENTS.md](AGENTS.md) için
 | Konu | Bilgi |
 |---|---|
 | Uygulama adı | Kenet |
-| Kod adı | `Journal`: Xcode şemaları, hedefler ve modül bu adı taşır |
+| Kod adı | `Kenet`: Xcode şemaları, hedefler ve modül de bu adı taşır |
 | Depo | `github.com/dogancanyildiz/kenet` |
 | Arayüz | SwiftUI; iPhone, iPad ve Mac |
 | Veri | Obsidian uyumlu düz Markdown dosyaları; SQLite yalnız indeks |
@@ -78,9 +78,9 @@ Kenet, kişiler, konumlar ve olaylar üzerine kurulu bir kişisel günlük uygul
 
 | Şema | İçerik |
 |---|---|
-| `Journal_iOS` | iPhone ve iPad uygulaması; test eylemi `JournalTests_iOS` ve `JournalUITests` hedeflerini koşar |
-| `Journal_macOS` | Mac uygulaması; test eylemi `JournalTests_macOS` hedefini koşar |
-| `Journal_macOS_ScreenTour` | Mac ekran turu; yalnız `screen-tour.sh --mac` kullanır |
+| `Kenet_iOS` | iPhone ve iPad uygulaması; test eylemi `KenetTests_iOS` ve `KenetUITests` hedeflerini koşar |
+| `Kenet_macOS` | Mac uygulaması; test eylemi `KenetTests_macOS` hedefini koşar |
+| `Kenet_macOS_ScreenTour` | Mac ekran turu; yalnız `screen-tour.sh --mac` kullanır |
 | `VaultFormat` | Core testleri |
 | `VaultIndex`, `VaultStore`, `EntityRecognition`, `DateParsing`, `GoalTracking`, `Summaries`, `ForceLayout` | Core paketinin öteki ürün şemaları; Xcode yerel paketten üretir |
 
@@ -100,12 +100,12 @@ flowchart LR
   F --> G[Biçim ve belge denetimi]
 ```
 
-1. Xcode projesini üret. XcodeGen, projeyi `project.yml` dosyasından üretir. `Journal.xcodeproj` repoya girmez.
+1. Xcode projesini üret. XcodeGen, projeyi `project.yml` dosyasından üretir. `Kenet.xcodeproj` repoya girmez.
 
 ```sh
 brew install xcodegen
 xcodegen generate
-open Journal.xcodeproj
+open Kenet.xcodeproj
 ```
 
 2. Komut satırı için Xcode'u seç.
@@ -115,18 +115,18 @@ export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 ```
 
 3. Core testlerini koş: `swift test --package-path Packages/Core -Xswiftc -warnings-as-errors`
-4. Mac uygulama testlerini koş: `xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO`
+4. Mac uygulama testlerini koş: `xcodebuild test -project Kenet.xcodeproj -scheme Kenet_macOS -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO`
 5. iOS birim testlerini koş. Komut, CI gibi ekran görüntüsü kümelerini atlar.
 
 ```sh
-xcodebuild test -project Journal.xcodeproj -scheme Journal_iOS \
+xcodebuild test -project Kenet.xcodeproj -scheme Kenet_iOS \
   -destination 'platform=iOS Simulator,name=iPhone 17' \
-  -only-testing:JournalTests_iOS \
-  $(sh .github/scripts/snapshot-suites.sh | sed 's#^#-skip-testing:JournalTests_iOS/#' | tr '\n' ' ') \
+  -only-testing:KenetTests_iOS \
+  $(sh .github/scripts/snapshot-suites.sh | sed 's#^#-skip-testing:KenetTests_iOS/#' | tr '\n' ' ') \
   CODE_SIGNING_ALLOWED=NO
 ```
 
-6. iOS arayüz testlerini koş: `Journal_iOS` şemasına `-only-testing:JournalUITests` ekle.
+6. iOS arayüz testlerini koş: `Kenet_iOS` şemasına `-only-testing:KenetUITests` ekle.
 7. Biçimi denetle: `swift format lint --strict --recursive Packages App Tests Widgets ShareExtension Shared`
 8. Belgeleri denetle: `sh .github/scripts/check-docs.sh`
 
@@ -152,7 +152,7 @@ Küme kuralları, tavanlar, Mac kayıt ortamı ve ortam değişkenleri [Mimari](
 |---|---|---|---|
 | Komut | `sh .github/scripts/screen-tour.sh <çıktı klasörü> [simülatör kimliği]` | `sh .github/scripts/screen-tour.sh --pad <çıktı klasörü> [simülatör kimliği]` | `sh .github/scripts/screen-tour.sh --mac <çıktı klasörü>` |
 | Test | `ScreenTourUITests` | `ScreenTourUITests`; sekme yerine kenar çubuğu satırları (`sidebar.<key>`) | `ScreenTourMacUITests` |
-| Şema | `Journal_iOS` | `Journal_iOS` | `Journal_macOS_ScreenTour` |
+| Şema | `Kenet_iOS` | `Kenet_iOS` | `Kenet_macOS_ScreenTour` |
 | Aygıt | En eski iOS runtime'ındaki iPhone 17 | `record-screen-snapshots.sh --pad` ile aynı: iPad Pro 13 inç (M5) önce; yatay | Ana ekranda 1280x800 pencere |
 | Çıktı | Her ekran için `NN-ekran-durum.png` | iPhone ile aynı adlar; ayrı klasöre yaz | Aynı adlarla pencere görüntüleri; yalnız Mac'te olan ekranlar 30'dan başlar |
 | Ulaşılamayan adım | `atlananlar.txt` dosyasına düşer; test düşmez | Aynı | Aynı |
@@ -169,7 +169,7 @@ Küme kuralları, tavanlar, Mac kayıt ortamı ve ortam değişkenleri [Mimari](
 | `SCREEN_TOUR_DERIVED_DATA` | iPhone ve iPad turunun derleme klasörü; varsayılan `.dd/screen-tour` |
 | `SCREEN_TOUR_WINDOW=1000x700` | Mac penceresinin boyutu; varsayılan 1280x800 |
 | `SCREEN_TOUR_ONLY=ayarlar,koyu` | Mac turunda yalnız adı verilen bölümleri koşar |
-| `JOURNAL_UITEST_CLOCK=09:41` | Tur kendisi verir; uygulama saati durum çubuğuyla aynıdır, selam sabahtır |
+| `KENET_UITEST_CLOCK=09:41` | Tur kendisi verir; uygulama saati durum çubuğuyla aynıdır, selam sabahtır |
 | `SCREEN_TOUR_TREE=1` | Her görüntünün yanına erişilebilirlik ağacını `<çıktı>/agac/` altına yazar |
 
 Tur, tasarım işinde önce ve sonra karşılaştırması içindir. iPhone turu uygulamayı örnek kasayla simülatörde gezer. Mac turunda uygulama ayrı bir bundle kimliği ve geçici bir ev klasörü kullanır. Mac turu gerçek kasaya ve ayarlara dokunmaz.
@@ -184,7 +184,7 @@ Tur, tasarım işinde önce ve sonra karşılaştırması içindir. iPhone turu 
 flowchart TD
   A[Local.xcconfig oluştur] --> B[xcodegen generate]
   B --> C{Hedef}
-  C -->|iPhone, geliştirme| D[Xcode: Journal_iOS, Çalıştır]
+  C -->|iPhone, geliştirme| D[Xcode: Kenet_iOS, Çalıştır]
   C -->|iPhone, TestFlight| E[testflight.sh]
   C -->|Mac| F[install-mac.sh]
   E --> G[App Store Connect dahili test]
@@ -194,9 +194,9 @@ flowchart TD
 1. Yerel imza dosyasını oluştur: `cp Config/Local.xcconfig.example Config/Local.xcconfig`. Dosyada `XXXXXXXXXX` yerine kendi takım kimliğini yaz. Takım kimliği repoya girmez; dosya `.gitignore`'dadır.
 2. Projeyi üret: `xcodegen generate`. Bundle kimliği `project.yml` içindeki `APP_BUNDLE_IDENTIFIER` değeridir. Xcode takımı yerel dosyadan okur. XcodeGen projeyi yeniden üretince takım seçimi kaybolmaz.
 
-   **DİKKAT:** Xcode'da takımı elle seçme; Xcode seçimi `Journal.xcodeproj` içine yazar ve XcodeGen seçimi siler.
+   **DİKKAT:** Xcode'da takımı elle seçme; Xcode seçimi `Kenet.xcodeproj` içine yazar ve XcodeGen seçimi siler.
 
-3. Cihaza kur. `Journal_iOS` şemasını seç. Hedef olarak iPhone'u seç. Çalıştır'a bas. Xcode imzalamayı otomatik yapar.
+3. Cihaza kur. `Kenet_iOS` şemasını seç. Hedef olarak iPhone'u seç. Çalıştır'a bas. Xcode imzalamayı otomatik yapar.
 4. TestFlight'a yükle: `dev` dalında `sh .github/scripts/testflight.sh` komutunu çalıştır.
 
    | Seçenek | Ne yapar |
@@ -204,12 +204,12 @@ flowchart TD
    | Seçeneksiz | Arşivler, özeti gösterir, onay gelince yükler |
    | `--yes` | Onay sormadan yükler |
    | `--check` | İmzasız arşivler ve yalnız denetler; yükleme yok |
-   | `--mac` | Mac uygulamasını (`Journal_macOS`) arşivler ve yükler; `--check` ve `--ci` ile birleşir |
+   | `--mac` | Mac uygulamasını (`Kenet_macOS`) arşivler ve yükler; `--check` ve `--ci` ile birleşir |
    | `--ci` | CI'da API anahtarıyla onaysız yükler; "CI'dan TestFlight (CD)" bölümü |
 
    Betik HEAD'i geçici bir kopyaya çıkarır ve arşivi oradan alır. Xcode'un çalışma klasöründe yeniden yazdığı dosyalar böylece yapıya girmez. Betik paketteki kimliği, sürümü, yapı numarasını ve belge paylaşımı anahtarlarını denetler. Koşullar: yerel `dev`, `origin/dev` ile aynıdır; Xcode'da aynı Apple hesabıyla oturum açıktır. `dev` dalına itme olunca `.github/workflows/testflight-check.yml` aynı `--check` denetimini koşar ve yükleme yapmaz.
 
-   Elle yol: `Journal_iOS` şeması, hedef "Any iOS Device", Product → Archive, Organizer'da Distribute App → TestFlight Internal Only.
+   Elle yol: `Kenet_iOS` şeması, hedef "Any iOS Device", Product → Archive, Organizer'da Distribute App → TestFlight Internal Only.
 
    **DİKKAT:** Elle yolda Xcode'un değiştirdiği dosyalar arşive girer; önce `git status` çıktısının temiz olduğunu denetle.
 
@@ -217,7 +217,7 @@ flowchart TD
 
    | Konu | Bilgi |
    |---|---|
-   | Betiğin işi | `Journal_macOS` şemasını Mac App Store paketi olarak arşivler ve aynı hesapla yükler |
+   | Betiğin işi | `Kenet_macOS` şemasını Mac App Store paketi olarak arşivler ve aynı hesapla yükler |
    | Paket denetimi | İmzalı pakette App Sandbox ve iCloud kapsayıcı yetkisi |
    | Hazırlık 1 | App Store Connect'te uygulama kaydına macOS platformunu ekle: uygulama sayfası → platform ekle |
    | Hazırlık 2 | Takımda en az bir Mac kayıtlı olsun: Certificates, Identifiers & Profiles → Devices → macOS |

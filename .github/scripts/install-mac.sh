@@ -70,7 +70,7 @@ cd "$TREE"
 xcodegen generate >/dev/null
 LOG="$WORK/derleme.log"
 echo "Derleniyor ($(git rev-parse --short HEAD))…"
-if ! xcodebuild build -project Journal.xcodeproj -scheme Journal_macOS -configuration Release \
+if ! xcodebuild build -project Kenet.xcodeproj -scheme Kenet_macOS -configuration Release \
   -destination 'platform=macOS' -derivedDataPath "$WORK/DerivedData" \
   -allowProvisioningUpdates >"$LOG" 2>&1; then
   grep -E "error:|BUILD FAILED" "$LOG" | head -20 >&2

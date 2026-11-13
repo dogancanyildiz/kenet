@@ -149,6 +149,10 @@ struct TasksListRow: View {
 
     /// A carried-over task's whole meta line is in the warning color:
     /// "→ mobil · 14 Eyl'den devretti".
+    /// On one line only the date text gives way ("14 Eyl'den dev…"). Without the priority the
+    /// stack shaved fractions of a point off the project name as well: in the iPad list column
+    /// a row with the low-priority mark drew "Projesiz" at 63.5 pt, and the audit reported it as
+    /// clipped (run 43325184188).
     @ViewBuilder private var overdueLine: some View {
         if let date = row.due {
             let carried = TodayPresentation.carriedOverDate(date, today: day, locale: locale, calendar: calendar)
@@ -157,7 +161,10 @@ struct TasksListRow: View {
                     .accessibilityHidden(true)
                 if let projectName {
                     projectName
-                    Text(verbatim: "·").accessibilityHidden(true)
+                        .layoutPriority(1)
+                    Text(verbatim: "·")
+                        .layoutPriority(1)
+                        .accessibilityHidden(true)
                 }
                 Text("\(carried) devretti")
             }

@@ -47,19 +47,16 @@ final class TasksRefreshUITests: XCTestCase {
         }
         let send = UITestSupport.element(in: app, identifier: "button.quickEntrySend")
         UITestSupport.waitForExistence(send)
-        for _ in 0..<40 where !send.isEnabled {
+        // `for … where` queried all 40 times (25 s on a CI runner); this loop stops once enabled.
+        let enabled = Date().addingTimeInterval(4)
+        while !send.isEnabled, Date() < enabled {
             RunLoop.current.run(until: Date().addingTimeInterval(0.1))
         }
         XCTAssertTrue(send.isEnabled, "send stayed disabled")
         send.tap()
         // The field empties once the line is written (a task due tomorrow is not on Bugün's list).
-        let sent = Date().addingTimeInterval(30)
-        while ((field.value as? String) ?? "").contains(taskTitle), Date() < sent {
-            RunLoop.current.run(until: Date().addingTimeInterval(0.3))
-        }
-        XCTAssertFalse(
-            ((field.value as? String) ?? "").contains(taskTitle),
-            "the quick entry kept its text: the task was not written")
+        XCTAssertTrue(
+            waitUntilCleared(field, seconds: 30), "the quick entry kept its text: the task was not written")
 
         UITestSupport.openTab(app, identifier: "tab.tasks", screen: "screen.tasks")
         let deadline = Date().addingTimeInterval(10)
@@ -69,6 +66,16 @@ final class TasksRefreshUITests: XCTestCase {
             after = try openCount(in: app)
         }
         XCTAssertEqual(after, before + 1, "Görevler kept its count from before the quick entry task")
+    }
+
+    /// Waits until the quick entry no longer holds the task's text.
+    @MainActor
+    private func waitUntilCleared(_ field: XCUIElement, seconds: TimeInterval) -> Bool {
+        let deadline = Date().addingTimeInterval(seconds)
+        while ((field.value as? String) ?? "").contains(taskTitle), Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.3))
+        }
+        return !((field.value as? String) ?? "").contains(taskTitle)
     }
 
     /// The leading number of the künye: the manşet element reads "Görevler, 14 açık · 11 devreden".

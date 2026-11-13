@@ -42,7 +42,7 @@ struct DayView: View {
     @State var isTasksExpanded = false
     /// Nil until the first query returns; a reload keeps the previous day until then.
     @State var loadedDay: DaySummary?
-    /// The request the page's main load last finished for (``DayPageReadyKey``).
+    /// The request the page's main load last finished for (``PageReadyKey``).
     @State var loadedRequest: DayRequest?
     /// Goal definitions and statuses as of the day they were queried for, loaded with the day.
     @State var loadedGoals: (day: CalendarDate, goals: [GoalDefinition], statuses: [String: GoalStatus])?
@@ -263,11 +263,8 @@ struct DayView: View {
         .accessibilityIdentifier(isToday ? "screen.today" : "screen.day")
         // The strip draws nothing until its model has the goals; hosts wait for this, goals or none.
         .preference(key: GoalsStripReadyKey.self, value: goalModel.hasLoaded && !goalModel.isLoading)
-        .preference(
-            key: DayPageReadyKey.self,
-            value: loadedRequest == DayRequest(date: date, updated: store.lastUpdated)
-                && tasksModel.isCurrent
-        )
+        // The day, its goals, the week strip and insight chips, and its tasks answered this publish.
+        .pageReady(loadedRequest == DayRequest(date: date, updated: store.lastUpdated) && tasksModel.isCurrent)
         .task(id: date) {
             if AppLaunchPolicy.allowsCalendarLoad() { await calendar.load(date) }
         }

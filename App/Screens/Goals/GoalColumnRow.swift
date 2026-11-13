@@ -5,7 +5,8 @@ import VaultFormat
 /// One goal in the split shell's Hedefler column (Mac and iPad drawing): a small ring, the name
 /// with its period chip and the value on one line; under it the last 7 days and "zincir 12"
 /// (daily), the year's bar and percent (yearly) or the milestone's state. The whole card selects
-/// the goal; marking stays in the context menu and on the detail page.
+/// the goal; marking stays in the context menu and on the detail page. A milestone has no page:
+/// its card marks or unmarks today (``GoalListContent``).
 struct GoalColumnRow: View {
     let goal: GoalDefinition
     let status: GoalStatus
@@ -13,6 +14,8 @@ struct GoalColumnRow: View {
     let logs: [GoalLog]
     let locale: Locale
     let isDisabled: Bool
+    /// Today's own mark: a milestone's card toggles it, so its hint names the direction.
+    let markedToday: Bool
     var isSelected = false
     let onOpen: () -> Void
     @ScaledMetric(relativeTo: .body) private var ringSide: CGFloat = 28
@@ -42,7 +45,9 @@ struct GoalColumnRow: View {
         .disabled(isDisabled)
         .accessibilityLabel(Text(verbatim: accessibilityLabelText))
         .accessibilityHint(
-            Text(verbatim: GoalListPresentation.listOpenHint(kind: goal.kind, locale: locale)))
+            Text(
+                verbatim: GoalListPresentation.listOpenHint(
+                    kind: goal.kind, markedToday: markedToday, locale: locale)))
     }
 
     private var titleLine: some View {

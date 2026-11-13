@@ -54,7 +54,7 @@
                         ProjectView(store: store, name: project)
                     case .detailSheet:
                         TaskDetailView(store: store, row: row) { _ in }
-                            .inkSheet("Görev", onClose: {})
+                            .inkSheet("Görev", onClose: {}, titleInBar: false)
                     case .recurrenceSheet, .recurrenceInterval, .recurrenceUnknown:
                         TaskRecurrenceEditor(model: recurrence)
                     case .dateSheet:

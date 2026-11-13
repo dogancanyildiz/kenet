@@ -69,7 +69,7 @@
                 named: snapshotCase.rawValue, testName: "shell", canvas: snapshotCase.canvas,
                 colorScheme: snapshotCase.colorScheme, dynamicType: snapshotCase.dynamicType, clock: clock,
                 shellKind: snapshotCase.screen == .goalDetail ? .split : nil,
-                masks: snapshotCase.masks
+                masks: snapshotCase.masks, awaitsPage: true
             ) { scene in
                 let store = scene.store
                 switch snapshotCase.screen {
@@ -178,6 +178,9 @@
             inspect: (@MainActor (UIHostingController<AnyView>) -> Void)? = nil,
             /// A page's own load on top of the index going idle (a board's rows, its byline counts).
             isReady: @MainActor () -> Bool = { true },
+            /// The content holds a page that reports ``PageReadyKey``: a tree that never reports
+            /// is not ready either (the preference did not reach the host), instead of captured.
+            awaitsPage: Bool = false,
             draws: Bool = true,
             file: StaticString = #filePath,
             line: UInt = #line,
@@ -195,12 +198,13 @@
             let root = try await content(
                 PadSnapshotScene(store: store, defaults: defaults, notifications: notifications))
             let shellRoot = shellKind.map { AnyView(root.environment(\.shellKind, $0)) } ?? root
-            // A day page in the tree (Bugün in the shell, behind a sheet) loads its day, chips and
-            // tasks after the index goes idle; the capture waits for them (nil: no day page).
-            let dayPage = DayPageReadiness()
+            // The pages in the tree (a day page, Görevler, a board, Kişiler and an entity page,
+            // Hedefler and a goal page) load after the index goes idle and report it; the capture
+            // waits for all of them (nil: no reporting page, ready unless `awaitsPage`).
+            let page = PageReadiness(isReady: !awaitsPage)
             let view =
                 shellRoot
-                .onPreferenceChange(DayPageReadyKey.self) { dayPage.isReady = $0 ?? true }
+                .onPreferenceChange(PageReadyKey.self) { page.isReady = $0 ?? !awaitsPage }
                 .environment(notifications)
                 .environment(CalendarService(source: SnapshotCalendarSource()))
                 .environment(location)
@@ -265,10 +269,10 @@
                     host.view.layoutIfNeeded()
                     host.presentedViewController?.view.layoutIfNeeded()
                     let sheetReady = !presentsSheet || host.presentedViewController?.view.window != nil
-                    let ready = isReady() && dayPage.isReady
+                    let ready = isReady() && page.isReady
                     idleFrames = !store.isProcessing && sheetReady && ready ? idleFrames + 1 : 0
                 }
-                if !isReady() || !dayPage.isReady {
+                if !isReady() || !page.isReady {
                     Issue.record("Snapshot \(name): the page never reported ready before capture.")
                 }
                 if presentsSheet && host.presentedViewController == nil {
@@ -311,8 +315,9 @@
                 line: line)
         }
     }
-    /// What ``DayPageReadyKey`` last said; true until a day page reports.
-    @MainActor final class DayPageReadiness {
-        var isReady = true
+    /// What ``PageReadyKey`` last said; until a page reports, ready unless the case awaits one.
+    @MainActor final class PageReadiness {
+        var isReady: Bool
+        init(isReady: Bool) { self.isReady = isReady }
     }
 #endif

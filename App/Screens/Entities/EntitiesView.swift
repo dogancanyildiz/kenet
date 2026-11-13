@@ -395,14 +395,20 @@ private struct EntityListActivityLoader: ViewModifier {
     let store: IndexStore
     @Binding var activity: [String: EntityListActivity]
     @Environment(\.clockNow) private var clockNow
+    /// The request `activity` answers (``PageReadyKey``).
+    @State private var loadedRequest: LastEncountersRequest?
 
     func body(content: Content) -> some View {
         let today = LocalDay.today(at: clockNow())
-        content.task(id: LastEncountersRequest(asOf: today, updated: store.lastUpdated)) {
+        let request = LastEncountersRequest(asOf: today, updated: store.lastUpdated)
+        content.task(id: request) {
             guard let loaded = try? await store.computeEntityListActivity(today: today), !Task.isCancelled
             else { return }
             activity = loaded
+            loadedRequest = request
         }
+        // The rows themselves come with the published index; their activity line is this query.
+        .pageReady(loadedRequest == request)
     }
 }
 

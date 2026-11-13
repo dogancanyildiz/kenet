@@ -47,6 +47,21 @@ struct NotificationPlannerTests {
         #expect(request.body.isEmpty)
     }
 
+    /// One overdue task reads in the singular: the count format would say "1 open tasks".
+    @Test func singleOverdueTaskUsesItsOwnSingularKey() throws {
+        var snapshot = try notificationSample()
+        snapshot.tasks = try notificationTasks("- [ ] late 📅 2026-09-26 ^a\n- [x] done 📅 2026-09-25 ^b\n")
+        let one = try #require(plan(snapshot).first { $0.id == "task-2026-09-27" })
+        #expect(one.titleText == .localized("Bugünkü görevler"))
+        #expect(one.bodyText == .localized("Önceki günlerden 1 açık görev."))
+        #expect(
+            one.bodyText.resolved(in: PresentationLocalization.bundle(Locale(identifier: "en")))
+                == "1 open task from previous days.")
+        snapshot.tasks = try notificationTasks("- [ ] late 📅 2026-09-26 ^a\n- [ ] later 📅 2026-09-25 ^b\n")
+        let two = try #require(plan(snapshot).first { $0.id == "task-2026-09-27" })
+        #expect(two.bodyText == .localized("Önceki günlerden %@ açık görev.", "2"))
+    }
+
     @Test func completedDailyGoalsSuppressOnlyTheirDayAndWeeklyYearlyGoalsNeverNotify() throws {
         var snapshot = try notificationSample()
         snapshot.goals.logs["kitap", default: []].append(GoalLog(day: today, value: .number(20)))

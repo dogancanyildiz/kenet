@@ -181,6 +181,12 @@ struct EntityView: View {
             value: !showsImportantDates || (model.isLoaded && importantDates.hasLoaded)
         )
         .preference(key: UnlinkedMentionsReadyKey.self, value: unlinkedMentions.hasLoaded)
+        // The page draws its head once the file is read and its body once the timeline answers;
+        // the anniversary chip and the unlinked mentions come from loads of their own.
+        .pageReady(
+            model.isLoaded && timeline != nil && (!showsImportantDates || importantDates.hasLoaded)
+                && unlinkedMentions.hasLoaded
+        )
     }
 
     @ViewBuilder private var headRows: some View {

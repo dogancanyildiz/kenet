@@ -12,6 +12,7 @@ struct TaskSelectionRequest: Hashable {
 struct TaskSelectionAnswer {
     private var id: String?
     private var row: TaskRow?
+    private var request: TaskSelectionRequest?
 
     init() {}
 
@@ -23,6 +24,11 @@ struct TaskSelectionAnswer {
         return listed?.id == id ? listed : nil
     }
 
+    /// Whether this is the index's answer to `request` (no task selected asks nothing).
+    func answers(_ request: TaskSelectionRequest) -> Bool {
+        request.id == nil || self.request == request
+    }
+
     /// Asks the index for `request`'s task. A query cancelled or outlived by its vault answers
     /// nothing, so the previous answer stays.
     static func load(_ request: TaskSelectionRequest, store: IndexStore) async -> Self? {
@@ -31,6 +37,7 @@ struct TaskSelectionAnswer {
             var answer = Self()
             answer.row = try await store.computeTask(id: id)
             answer.id = id
+            answer.request = request
             return answer
         } catch {
             return nil

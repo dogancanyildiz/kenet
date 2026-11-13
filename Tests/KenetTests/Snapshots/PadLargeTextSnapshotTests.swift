@@ -37,7 +37,7 @@
         func largeText(_ snapshotCase: PadLargeTextCase) async throws {
             try await PadSnapshotHost.assertWindow(
                 named: snapshotCase.rawValue, testName: "largeText", canvas: .pad13Landscape,
-                dynamicType: snapshotCase.dynamicType, masks: snapshotCase.masks
+                dynamicType: snapshotCase.dynamicType, masks: snapshotCase.masks, awaitsPage: true
             ) { scene in
                 let navigation = ShellNavigationState()
                 if snapshotCase == .tasksLandscapeAX3 {

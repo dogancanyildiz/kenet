@@ -9,6 +9,7 @@ struct GoalDefinitionForm: View {
     @State private var draft: GoalDefinitionDraft
     @State private var isSaved = false
     @State private var leavePrompt = false
+    @FocusState private var focusedField: GoalEditableField?
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
 
@@ -139,11 +140,13 @@ struct GoalDefinitionForm: View {
         labeled(field) {
             TextField(prompt ?? field.title, text: text)
                 .font(font)
+                .focused($focusedField, equals: field)
                 .accessibilityLabel(Text(verbatim: field.title))
                 .accessibilityIdentifier("goal.form." + field.rawValue)
                 #if os(iOS)
                     .keyboardType(isDecimal ? .decimalPad : .default)
                 #endif
+                .modifier(InkFieldBox(isFocused: focusedField == field))
         }
     }
 
@@ -158,11 +161,13 @@ struct GoalDefinitionForm: View {
                 .accessibilityHidden(true)
             TextField(prompt ?? field.title, text: text)
                 .font(font)
+                .focused($focusedField, equals: field)
                 .accessibilityLabel(Text(verbatim: field.title))
                 .accessibilityIdentifier("goal.form." + field.rawValue)
                 #if os(iOS)
                     .keyboardType(isDecimal ? .decimalPad : .default)
                 #endif
+                .modifier(InkFieldBox(isFocused: focusedField == field))
             if let error = model.error(for: field, in: draft) {
                 Text(verbatim: error)
                     .font(.ink.meta)

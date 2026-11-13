@@ -137,12 +137,17 @@ extension View {
     }
 
     /// Read-only sheet chrome: same background and title rules, one button: "Kapat" on the
-    /// right (also Esc). `onClose: nil` dismisses.
+    /// right (also Esc). `onClose: nil` dismisses. `titleInBar: false` leaves the bar to "Kapat":
+    /// the page draws its own title under it (task detail: the task's text).
     func inkSheet(
-        _ title: LocalizedStringKey, closeIdentifier: String? = nil, onClose: (() -> Void)? = nil
+        _ title: LocalizedStringKey, closeIdentifier: String? = nil, onClose: (() -> Void)? = nil,
+        titleInBar: Bool = true
     ) -> some View {
-        modifier(InkSheetModifier(kind: .reading(closeIdentifier: closeIdentifier, onClose: onClose)))
-            .inkSheetNavigationTitle(title, titleInBar: true)
+        modifier(
+            InkSheetModifier(
+                kind: .reading(closeIdentifier: closeIdentifier, onClose: onClose), allowsBarTitle: titleInBar)
+        )
+        .inkSheetNavigationTitle(title, titleInBar: titleInBar)
     }
 
     /// Read-only sheet chrome with a non-localized title. `titleInBar: false` keeps the title

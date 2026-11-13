@@ -331,7 +331,11 @@ private enum LegacyNotificationPlanner {
             title = .verbatim(due[0].text.plainText)
         }
         let body: NotificationText =
-            overdue > 0 ? .localized("Önceki günlerden %@ açık görev.", "\(overdue)") : .verbatim("")
+            switch overdue {
+            case 0: .verbatim("")
+            case 1: .localized("Önceki günlerden 1 açık görev.")
+            default: .localized("Önceki günlerden %@ açık görev.", "\(overdue)")
+            }
         return (title, body)
     }
 }

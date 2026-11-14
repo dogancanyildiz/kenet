@@ -831,10 +831,11 @@ Manşetin altında görünüm sekmesi durur. Sekmenin altında görünüme göre
 |---|---|---|
 | 1 | Manşet, künye ve çip satırı | Manşet ekranın içindedir: ad. Künye tip, takma adlar ve son görülme tarihini yazar: "Kişi · takma ad Baran · son görülme 19 Eyl". Yıl yalnız başka yıldaysa yazar. Sağda "Düzenle" ve arama durur. Gezinme çubuğunda büyük başlık yoktur. Künyenin altındaki çip satırında yıl dönümü çipi ve "Graph'ta göster" çipi durur. |
 | 2 | Son görüşme ya da Son ziyaret kartı | Yalnız kişi ve konumda, manşetin hemen altında. Kartta 12 aylık geçiş çubuğu ve 90 günlük şerit durur. Ayrıntı [Kişi ve konum içgörüleri](#kişi-ve-konum-içgörüleri-6) bölümündedir. |
-| 3 | Alanlar kartı | Tek kart, anahtar solda, değer sağda: ayırt edici, şablon alanları, öteki alanlar (ikincil renkte) ve en altta gelen bağlantı sayısı. |
+| 3 | Alanlar kartı | Tek kart, anahtar solda, değer sağda: ayırt edici, takma adlar, şablon alanları, öteki alanlar (ikincil renkte) ve en altta gelen bağlantı sayısı. |
+| 3a | Takma adlar satırı | Kişi, konum ve özel tipte, Alanlar kartında. Değer takma adları virgülle yazar; sağda küçük "Ekle" bağlantısı durur. "Ekle" takma ad sheet'ini açar. Erişilebilirlik yazı boyutlarında adlar başlığın altına iner. Uygulama `aliases` alanını yazamıyorsa satır çizilmez; alanın ham metni kartın altında kalır. |
 | 4 | Yıl dönümü | Çip satırında. Kişide ve özel tipte, tarih alanı varsa sıradaki yıl dönümü tek çiptir: "doğum günü · 12 Nis · 31 yıl". Pencere yoktur. Konumda bu çip yoktur. |
 | 5 | Graph'ta göster | Çip satırında vurgu çipi. Kişide, konumda ve özel tipte. Graph o düğümü seçer ve ortaya alır. Özel tipte Graph o tipi süzgeçte açarak açılır. |
-| 6 | Bağlar | Kişi, konum ve özel tipte; kart üstünde başlık ve "Bağ kur" düğmesi. Giden satır "eşi · Selin Korkmaz", etiketsizde yalnız addır. Gelen satır "Mert Aksu'nun sayfasında · iş arkadaşı", etiketsizde yalnız kaynak sayfadır. Dokunma karşı varlığı açar. Uzun basma / Mac ikincil tık yalnız giden bağda "Bağı kaldır" sunar; özel tipin şema alanından gelen bağda kaldırma yoktur, o bağ Alanlar’da düzenlenir. Bağ kur sheet’i üstte isteğe bağlı etiketi ve kasadaki etiket önerilerini, altında aramalı listeyle kendisi hariç kişi, konum ve özel tip seçimini içerir; çubukta solda Vazgeç, sağda Kaydet durur (hedef seçilince etkin). Çakışan alan ve ayrılmış ad hatası sheet’te kalır; kaldırma hatası bölümde bilgi bandıdır. |
+| 6 | Bağlar | Kişi, konum ve özel tipte; kart üstünde başlık ve "Bağ kur" düğmesi. Satır yalnız karşı varlığın adını yazar; yön ifadesi yoktur. Etiketli giden satır "eşi · Selin Korkmaz", etiketli gelen satır "Mert Aksu · iş arkadaşı" biçimindedir. Karşı varlık geri bağ kurduysa bir kez görünür: sayfa aynı varlığa etiketsiz ya da aynı etiketle gelen bağı ayrı satır yapmaz. VoiceOver satırı aynı metinle okur. Dokunma karşı varlığı açar. Uzun basma / Mac ikincil tık yalnız giden bağda "Bağı kaldır" sunar; özel tipin şema alanından gelen bağda kaldırma yoktur, o bağ Alanlar’da düzenlenir. Bağ kur sheet’i üstte isteğe bağlı etiketi ve kasadaki etiket önerilerini, altında aramalı listeyle kendisi hariç kişi, konum ve özel tip seçimini içerir; çubukta solda Vazgeç, sağda Kaydet durur (hedef seçilince etkin). Çakışan alan ve ayrılmış ad hatası sheet’te kalır; kaldırma hatası bölümde bilgi bandıdır. |
 | 7 | Alanlar ve Diğer alanlar | 3. sıradaki Alanlar kartındadır; ayrı başlık yoktur. Şablon alanları anahtar-değer satırlarıdır. Yalnız çözülen, uygulamanın yazdığı biçimdeki wikilinklerden (`[[Ad]]`) oluşan şema dışı bağ anahtarları okuma ve serbest alan düzenleyicisinde tekrar görünmez. Görünen metin (`[[Ad|metin]]`) ya da çapa (`[[Ad#başlık]]`) taşıyan, karışık metinli, çözülmeyen ya da sayfanın kendisine bağlanan değeri olan alan Alanlar’da kalır; şemadaki `link` alanı da kalır. Tanınmayan ön bilgi anahtarları şablon alanlarının altında ham adıyla, ikincil renkte durur. Uygulama frontmatter'ı okuyamıyorsa "Frontmatter okunamıyor." yazar. |
 | 8 | Açık görevler (2) | Bu varlığa bağlı tamamlanmamış görevler; başlık "Açık işler" ve sayı, satırlar ayraçlı tek kartta. |
 | 8a | Yaklaşan etkinlikler (11) | Yalnız kişide ve takvim okuma izni varken. Bugünden sonraki 365 günde kişiyle eşleşen etkinlikler, en çok 5. Çok sözcüklü ad ya da takma ad başlıkta bitişik tam sözcüklerle ya da katılımcının tam adıyla eşleşir. Tek sözcüklü ad yalnız katılımcının tam adıyla eşleşir. Harf boyuna bakılmaz; Türkçe `İ`/`ı` kuralı geçerlidir. Satır etkinlik ayrıntısını açar. Doğum günü etkinliği yoksa başlığın sağında küçük "Doğum günü ekle" bağlantısı durur; eşleşen etkinlik yoksa bölüm yalnız bu düğmedir. Bağlantı yoksa başlığın sağında sayı durur: "2 etkinlik". Her etkinlik Zaman akışı satırı gibi ayrı karttır: solda takvim simgesi, sağda ok. |
@@ -863,6 +864,22 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Koordinat yazma | Dosyaya yalnız Kaydet yazar. Değişiklik yoksa yazmaz. Kullanıcının dokunmadığı alanda dosyadaki sayı yazımı aynı kalır. |
 | Ölçüm yok | Ölçüm gelmezse ya da izin yoksa bunu söyler. Elle giriş açık kalır. Kullanıcı alana elle yazınca bekleyen ölçüm alanı doldurmaz. |
 | Okunamayan değer | Okunamayan kayıtlı değer dosyadaki haliyle görünür. |
+
+**Takma ad sheet'i.**
+
+| Konu | Davranış |
+|---|---|
+| Giriş | Varlık ekranındaki "Takma adlar" satırının "Ekle" bağlantısı. Düzenleme sheet'indeki takma ad düzenleyicisi de kalır. |
+| Kalıp | Ortak sheet kalıbı, tek "Kapat". Her ekleme ve kaldırma dosyaya o anda yazar. |
+| Ekleme | Üstte odaklı tek alan ve "Ekle". Klavyenin onay tuşu da ekler. Başarılı eklemeden sonra alan boşalır ve odak kalır. |
+| Kaldırma | Mevcut takma adlar alanın altında çiptir. Çipin çarpısı o takma adı kaldırır. |
+| Reddedilen | Boş ya da yalnız boşluk olan metin, varlığın kendi adı ve var olan takma ad. Karşılaştırma [ad anahtarıyla](vault-format.md#adlar-ve-karşılaştırma) yapılır. Hata alanın altında bilgi bandıdır. |
+| Reddedilen karakterler | `\|`, `[`, `]`. Kontrol karakterleri: satır sonu, sekme, U+0000. Satır ve paragraf ayırıcı: U+2028, U+2029. Görünmez biçim karakterleri: U+200B, U+FEFF, U+200E, U+200F, U+00AD ve Unicode `Cf` sınıfının geri kalanı. |
+| Emoji | İki emoji arasındaki birleştirici (U+200D) ve siyah bayraktan (U+1F3F4) sonraki bayrak etiket harfleri geçerlidir. Başka yerdeki birleştirici reddedilir. |
+| Art arda işlem | Yazma sürerken istenen ekleme ya da kaldırma bekler ve sırayla yazar. Alan yalnız eklenen metni hâlâ taşıyorsa boşalır. |
+| Kaldırılan öğe | Uygulama değeri bayt bayt karşılaştırır ve yalnız o çipin öğesini siler. Aynı adın NFC ve NFD yazımı iki ayrı çiptir. |
+| Başka kayıtla eşleşme | Uygulama eklemeyi engellemez. Bilgi bandı öteki kaydı adıyla söyler. Tanıma o adı kullanıcı seçmeden bağlamaz. |
+| Yazılan | Yalnız `aliases` alanı; uygulama dosyayı yazma anında yeniden okur. Geçmiş olay satırları değişmez. |
 
 **Bağlanmamış anmalar.**
 

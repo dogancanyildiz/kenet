@@ -84,15 +84,20 @@ extension DayView {
                             remaining: TodayDayRing.remaining(completed: completed, total: total),
                             locale: locale)))
             }
+            // The widest date that fits; none is cut with an ellipsis at a large text size.
             ViewThatFits(in: .horizontal) {
                 compactTitle(instant).fixedSize()
-                    .font(.ink.section)
-                Text(verbatim: presented.shortHeadline)
-                    .font(.ink.section)
-                    .foregroundStyle(Color.ink.text)
-                    .lineLimit(1)
+                ForEach(compactTitleFallbacks(presented, instant: instant), id: \.self) { title in
+                    Text(verbatim: title)
+                        .foregroundStyle(Color.ink.text)
+                        .lineLimit(1)
+                        .fixedSize()
+                }
             }
-            .accessibilityElement(children: .combine)
+            .font(.ink.section)
+            // VoiceOver reads the full date whichever one is drawn.
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(verbatim: presented.headline))
             .accessibilityAddTraits(.isHeader)
             Spacer(minLength: 0)
             SearchButton()
@@ -100,6 +105,16 @@ extension DayView {
                 .environment(\.inkHeaderActionChrome, .bare)
         }
         .accessibilityElement(children: .contain)
+    }
+
+    /// Shorter dates for the pinned row, widest first: "19 Eyl Cumartesi", "19 Eyl", "19".
+    func compactTitleFallbacks(_ presented: TodayPresentation, instant: Date) -> [String] {
+        let resolved = PresentationLocalization.resolvedLocale(locale)
+        let style = Date.FormatStyle(locale: resolved, calendar: calendarValue, timeZone: calendarValue.timeZone)
+        return TodayCompactTitle.fallbacks(
+            shortHeadline: presented.shortHeadline,
+            dayAndMonth: instant.formatted(style.day().month(.abbreviated)),
+            day: instant.formatted(style.day()))
     }
 
     func compactTitle(_ instant: Date) -> some View {
@@ -362,5 +377,17 @@ extension DayView {
                 .foregroundStyle(.ink.secondaryText)
                 .lineLimit(1)
         }
+    }
+}
+
+/// The dates the pinned Today row falls back to (unit-tested).
+enum TodayCompactTitle {
+    /// Widest first, without repeats: a locale whose forms coincide offers each once.
+    static func fallbacks(shortHeadline: String, dayAndMonth: String, day: String) -> [String] {
+        var titles: [String] = []
+        for title in [shortHeadline, dayAndMonth, day] where !title.isEmpty && !titles.contains(title) {
+            titles.append(title)
+        }
+        return titles
     }
 }

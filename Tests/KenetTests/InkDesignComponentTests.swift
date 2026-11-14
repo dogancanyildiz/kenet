@@ -33,6 +33,32 @@ struct InkDesignComponentTests {
         #expect(names.drawn.last == stripName)
     }
 
+    /// Large text never keeps the phone manşet on one row; the iPad page and the collapsed header do.
+    @Test func dayHeaderLayoutFollowsTextSizeAndWidth() {
+        for size in [DynamicTypeSize.xSmall, .large, .xxxLarge] {
+            #expect(InkDayHeaderLayout.resolve(compact: false, dynamicTypeSize: size, isWide: false) == .fitted)
+            #expect(InkDayHeaderLayout.resolve(compact: false, dynamicTypeSize: size, isWide: true) == .fitted)
+        }
+        for size in [DynamicTypeSize.accessibility1, .accessibility3, .accessibility5] {
+            #expect(InkDayHeaderLayout.resolve(compact: false, dynamicTypeSize: size, isWide: false) == .stacked)
+            #expect(InkDayHeaderLayout.resolve(compact: false, dynamicTypeSize: size, isWide: true) == .singleRow)
+        }
+        #expect(InkDayHeaderLayout.resolve(compact: true, dynamicTypeSize: .large, isWide: false) == .singleRow)
+        #expect(
+            InkDayHeaderLayout.resolve(compact: true, dynamicTypeSize: .accessibility5, isWide: false) == .singleRow)
+        #expect(InkDayHeaderLayout.largestActionSize == .accessibility2)
+    }
+
+    /// The pinned Today row tries shorter dates in order and offers a repeated form once.
+    @Test func compactTitleFallbacksRunWidestFirstWithoutRepeats() {
+        #expect(
+            TodayCompactTitle.fallbacks(shortHeadline: "19 Eyl Cumartesi", dayAndMonth: "19 Eyl", day: "19")
+                == ["19 Eyl Cumartesi", "19 Eyl", "19"])
+        #expect(
+            TodayCompactTitle.fallbacks(shortHeadline: "19 Eyl", dayAndMonth: "19 Eyl", day: "19") == ["19 Eyl", "19"])
+        #expect(TodayCompactTitle.fallbacks(shortHeadline: "", dayAndMonth: "19", day: "19") == ["19"])
+    }
+
     @Test func weekStripDaysFollowMondayFirstWeekday() {
         var calendar = Calendar(identifier: .gregorian)
         calendar.firstWeekday = 2  // Monday

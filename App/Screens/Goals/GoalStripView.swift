@@ -110,24 +110,14 @@ struct GoalStripView: View {
                 // One small card per goal (the drawing's three cards), equal heights in a row.
                 Group {
                     if columns.count <= 3 {
-                        HStack(alignment: .top, spacing: 8) {
-                            ForEach(columns, id: \.id) { goal in
-                                goalCard(goal)
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                            }
+                        // Large text on a narrow screen: the ring and the plus of three cards
+                        // need more than the row has, so the cards scroll like a longer strip.
+                        ViewThatFits(in: .horizontal) {
+                            NarrowestWidthAsIdeal { cardRow(columns) }
+                            scrollingCards(columns)
                         }
-                        .fixedSize(horizontal: false, vertical: true)
                     } else {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(alignment: .top, spacing: 8) {
-                                ForEach(columns, id: \.id) { goal in
-                                    goalCard(goal)
-                                        .frame(width: scrollColumnWidth, alignment: .topLeading)
-                                        .frame(maxHeight: .infinity, alignment: .top)
-                                }
-                            }
-                            .fixedSize(horizontal: false, vertical: true)
-                        }
+                        scrollingCards(columns)
                     }
                 }
                 if let error = model.errorText {
@@ -145,6 +135,30 @@ struct GoalStripView: View {
             }
             .onChange(of: model.hasLoaded, initial: true) { keepOrder() }
             .onChange(of: model.goals.map(\.id)) { keepOrder() }
+        }
+    }
+
+    /// Up to three cards share the row's width.
+    private func cardRow(_ columns: [GoalDefinition]) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            ForEach(columns, id: \.id) { goal in
+                goalCard(goal)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            }
+        }
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func scrollingCards(_ columns: [GoalDefinition]) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(alignment: .top, spacing: 8) {
+                ForEach(columns, id: \.id) { goal in
+                    goalCard(goal)
+                        .frame(width: scrollColumnWidth, alignment: .topLeading)
+                        .frame(maxHeight: .infinity, alignment: .top)
+                }
+            }
+            .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -462,5 +476,23 @@ private struct GoalStripDoneLabelStyle: LabelStyle {
             configuration.icon.accessibilityHidden(true)
             configuration.title
         }
+    }
+}
+
+/// Reports its content's narrowest width as the ideal one, so `ViewThatFits` keeps a row that can
+/// still shrink to the offered width (its texts wrap) and drops only one that cannot. Laid out,
+/// the content gets the offered size unchanged.
+private struct NarrowestWidthAsIdeal: Layout {
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard let content = subviews.first else { return .zero }
+        guard proposal.width == nil else { return content.sizeThatFits(proposal) }
+        return content.sizeThatFits(ProposedViewSize(width: 0, height: proposal.height))
+    }
+
+    func placeSubviews(
+        in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()
+    ) {
+        subviews.first?.place(
+            at: bounds.origin, proposal: ProposedViewSize(width: bounds.width, height: bounds.height))
     }
 }

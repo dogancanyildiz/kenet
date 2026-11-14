@@ -227,7 +227,7 @@ Varsayılan boyutta hızlı giriş iki satırlı karttır: üstte kip, çipler v
 | Gezinme çubuğu | Bugün sekmesi gezinme çubuğunu gizler. |
 | Arama ve Ayarlar | iPhone'da gün başlığının sağında önce arama, sonra Ayarlar durur. iPad'de sıra Günün grafiği, Ayarlar, aramadır; simgeler çerçevesizdir. Kimlik `button.settings`. |
 | Günün grafiği | Gün başlığında Graph simgesi: arama ve Ayarlar'ın solunda. Satırda en çok 3 simge durur. Simge yalnız gün dosyası en az bir kişi, konum ya da özel tip varlığına çözülen bağlantı içerirken görünür. iPad Bugün manşetinde simge hep yerindedir; bağlantı yokken soluk ve kapalıdır. Mac'te sabit manşet şeridindedir. Dokunma o günün grafiğini açar: [Günün grafiği](#günün-grafiği). Kimlik `button.dayGraph`. |
-| Büyük yazı boyutları | Erişilebilirlik yazı boyutlarında düğmeler ayrı satırdadır. Gün halkası gün rakamının üstüne çıkar. Hafta şeridi 2 satıra iner: 4 + 3 gün. |
+| Büyük yazı boyutları | iPhone'da erişilebilirlik yazı boyutlarında gün halkası ve düğmeler üst satırdadır; gün rakamı ve gün adı alt satırdadır. Halka ile düğmeler yan yana sığmazsa düğmeler kendi satırına çıkar. Düğmeler AX2 boyutundan sonra büyümez. Öteki boyutlarda gün rakamı düğmelerin yanına sığmazsa başlık aynı düzene geçer. Hafta şeridi 2 satıra iner: 4 + 3 gün. Hücreler ekrana sığacak kadar daralır. Üç hedef kartı sığmazsa kartlar yana kayar. Kaydırılmış tek satır sığana göre kısalır: "19 Eyl Cumartesi", "19 Eyl", "19". Sayfa hiçbir yazı boyutunda ekrandan geniş olmaz. |
 | VoiceOver | Künye cümlesi tek öğedir. Hafta şeridi her günü "20 Eylül Pazar, bugün, 3 olay" biçiminde okur. `navigationTitle` VoiceOver ve geçmiş için tarih metnidir. |
 
 #### Hedefler bölümü

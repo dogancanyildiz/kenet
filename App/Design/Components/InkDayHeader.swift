@@ -19,6 +19,9 @@ struct InkDayHeader<Actions: View>: View {
     @Environment(\.calendar) private var calendar
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    #if os(iOS)
+        @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    #endif
     /// Design table: 48 on iPhone, 34 on Mac; scales with Dynamic Type.
     #if os(macOS)
         @ScaledMetric(relativeTo: .largeTitle) private var dayNumberSize: CGFloat = 34
@@ -29,44 +32,102 @@ struct InkDayHeader<Actions: View>: View {
 
     var body: some View {
         Group {
-            if compact || dynamicTypeSize.isAccessibilitySize {
-                compactLayout
-            } else {
-                expandedLayout
+            switch InkDayHeaderLayout.resolve(
+                compact: compact, dynamicTypeSize: dynamicTypeSize, isWide: isWide)
+            {
+            case .singleRow: compactLayout
+            case .fitted: fittedLayout(triesOneRow: true)
+            case .stacked: fittedLayout(triesOneRow: false)
             }
         }
         .accessibilityElement(children: .contain)
     }
 
+    private var isWide: Bool {
+        #if os(iOS)
+            horizontalSizeClass == .regular
+        #else
+            false
+        #endif
+    }
+
+    /// The first arrangement that fits the row's width, so the page never grows wider than the
+    /// screen. One row gives way title first: the full day name ("19 Cumartesi"), then the week
+    /// strip's short name ("19 Cmt"), then the number alone. When the icons leave no room even
+    /// for the number, or at an accessibility text size, the icons move to a row above the title.
+    /// The number never wraps and no name is cut with an ellipsis.
+    private func fittedLayout(triesOneRow: Bool) -> some View {
+        let names = InkDayHeaderTitle.names(for: date, calendar: calendar, locale: locale)
+        return ViewThatFits(in: .horizontal) {
+            if triesOneRow {
+                ForEach(names.drawn, id: \.self) { name in
+                    expandedRow { numberAndName(name, spokenAs: names.full) }
+                }
+                expandedRow { numberAlone(spokenAs: names.full) }
+            }
+            stackedLayout(names)
+        }
+    }
+
     /// Ring, then day number and day name on one baseline ("20 Pazar"), icons on the right.
-    private var expandedLayout: some View {
+    private func expandedRow(@ViewBuilder title: () -> some View) -> some View {
         HStack(alignment: .center, spacing: 12) {
             if showsRing { ring }
-            expandedTitle
-                // Offered the row's free width before the spacer, so the widest fitting title wins.
-                .layoutPriority(1)
+            title()
             Spacer(minLength: 0)
             actionGroup
         }
     }
 
-    /// The title gives way before the icons do: the full day name ("19 Cumartesi"), then the week
-    /// strip's short name ("19 Cmt"), then the number alone. The number never wraps and no name is
-    /// cut with an ellipsis. VoiceOver reads the full name whichever one is drawn.
-    private var expandedTitle: some View {
-        let names = InkDayHeaderTitle.names(for: date, calendar: calendar, locale: locale)
-        return ViewThatFits(in: .horizontal) {
-            ForEach(names.drawn, id: \.self) { name in
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    dayNumberText.fixedSize()
-                    dayNameText(name, spokenAs: names.full).fixedSize()
+    /// Large text: the ring and the icons above, the day number and its name below at the row's
+    /// full width. The icons stop growing at ``InkDayHeaderLayout/largestActionSize`` so three of
+    /// them fit the narrowest phone; when the ring leaves them no room they take their own row.
+    private func stackedLayout(_ names: InkDayHeaderTitle.Names) -> some View {
+        VStack(alignment: .leading, spacing: InkSpacing.row) {
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .center, spacing: 12) {
+                    if showsRing { ring }
+                    Spacer(minLength: 0)
+                    stackedActions
+                }
+                VStack(alignment: .leading, spacing: InkSpacing.row) {
+                    HStack(spacing: 0) {
+                        Spacer(minLength: 0)
+                        stackedActions
+                    }
+                    if showsRing { ring }
                 }
             }
+            ViewThatFits(in: .horizontal) {
+                ForEach(names.drawn, id: \.self) { name in
+                    numberAndName(name, spokenAs: names.full)
+                }
+                numberAlone(spokenAs: names.full)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var stackedActions: some View {
+        HStack(spacing: InkHeaderActionChrome.spacing) { actionGroup }
+            .dynamicTypeSize(...InkDayHeaderLayout.largestActionSize)
+    }
+
+    private func numberAndName(_ name: String, spokenAs full: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
             dayNumberText.fixedSize()
-                .accessibilityLabel(Text(verbatim: "\(dayNumber) \(names.full)"))
+            dayNameText(name, spokenAs: full).fixedSize()
         }
     }
 
+    /// VoiceOver reads the full name whichever title is drawn.
+    private func numberAlone(spokenAs full: String) -> some View {
+        dayNumberText.fixedSize()
+            .accessibilityLabel(Text(verbatim: "\(dayNumber) \(full)"))
+    }
+
+    /// One row with the compact title ("20 Eyl Pazar"): the collapsed header, and the iPad page at
+    /// an accessibility text size.
     private var compactLayout: some View {
         HStack(alignment: .center, spacing: 10) {
             if showsRing { ring }
@@ -143,6 +204,27 @@ extension InkDayHeader where Actions == EmptyView {
             date: date, progress: progress, remainingCount: remainingCount, showsRing: showsRing,
             compact: compact, compactTitle: compactTitle
         ) { EmptyView() }
+    }
+}
+
+/// Which arrangement the day manşet draws (unit-tested).
+enum InkDayHeaderLayout: Equatable, Sendable {
+    /// One row with the compact title; a title too long for it is cut.
+    case singleRow
+    /// One row while the day number fits beside the icons, else ``stacked``.
+    case fitted
+    /// The icons on a row above the day number.
+    case stacked
+
+    /// The manşet icons stop growing here once they sit on their own row (the app's cap for
+    /// controls, as in the quick entry): three chips then fit a 320 pt screen.
+    static let largestActionSize = DynamicTypeSize.accessibility2
+
+    /// - Parameter isWide: regular-width iOS page (iPad), whose row has room for the compact title.
+    static func resolve(compact: Bool, dynamicTypeSize: DynamicTypeSize, isWide: Bool) -> Self {
+        if compact { return .singleRow }
+        guard dynamicTypeSize.isAccessibilitySize else { return .fitted }
+        return isWide ? .singleRow : .stacked
     }
 }
 

@@ -1301,9 +1301,12 @@ stateDiagram-v2
     Hata --> Bosta: sayfa yeniden açıldı
     Iptal --> Suruyor: satıra dokunma
     Hata --> Suruyor: satıra dokunma
+    Dogrulanamadi --> Suruyor: satıra dokunma
+    Tesekkur --> Suruyor: satıra dokunma
+    Suruyor --> Tesekkur: iptal, onay bekliyor ya da hata; o sırada gelen onay bekliyordu
 ```
 
-Uygulama satın almayı hiçbir yere yazmaz: dosya, indeks ve UserDefaults değişmez. Destekçi seviyesi her okumada App Store geçmişinden gelir: `Transaction.all`. Info.plist anahtarı `SKIncludeConsumableInAppPurchaseHistory` bitmiş tüketilebilirleri geçmişe katar; anahtar iOS 18 ve macOS 15 ister, dağıtım hedefi `26.0`. Uygulama yalnız test ekibi rozetini saklar: UserDefaults `support.testerBadge`; bir kez yazılır, silinmez. `SupportService` destek ürünlerinin her işlemini `finish()` ile kapatır; kapanmayan işlemi mağaza her açılışta yeniden yollar. Dinleme uygulama açılışında başlar (`KenetApp`); kapalıyken onaylanan satın alma böyle kapanır.
+Satın alma hiçbir yere yazılmaz: uygulama satın alma için dosyaya, indekse ve UserDefaults'a dokunmaz. Destekçi seviyesi her okumada App Store geçmişinden gelir: `Transaction.all`. Info.plist anahtarı `SKIncludeConsumableInAppPurchaseHistory` bitmiş tüketilebilirleri geçmişe katar; anahtar iOS 18 ve macOS 15 ister, dağıtım hedefi `26.0`. Geçmiş okuması seviyeyi yalnız yükseltir; seviyeyi yalnız iade düşürür. Satın almadan bağımsız tek kayıt test ekibi rozetidir: UserDefaults `support.testerBadge`; uygulama anahtarı bir kez yazar ve silmez. `SupportService` destek ürünlerinin her işlemini `finish()` ile kapatır; kapanmayan işlemi mağaza her açılışta yeniden yollar. Dinleme uygulama açılışında başlar (`KenetApp`); kapalıyken onaylanan satın alma böyle kapanır.
 
 Satın alma sürerken ikinci dokunuş mağazaya gitmez. Doğrulanmamış satın almada ödeme alınmıştır; ekran hata demez ve yeniden satın almaya çağırmaz. İade edilmiş işlem kapanır ve teşekkür göstermez. Satın alma sürerken gelen onay bekler; satın alma bitince teşekkür olur.
 

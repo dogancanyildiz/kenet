@@ -36,7 +36,8 @@ enum AppLaunchPolicy {
     ) -> SupportService {
         #if DEBUG
             if uiTestVaultPath(environment: environment) != nil, let value = environment[uiTestSupportKey] {
-                let words = Set(value.split(separator: ",").map(String.init))
+                // In the order written: the first outcome word decides the next purchase.
+                let words = value.split(separator: ",").map(String.init)
                 let storefront = InMemorySupportStorefront(
                     catalog: words.contains("offline") ? nil : InMemorySupportStorefront.sampleCatalog,
                     purchaseOutcome: words.compactMap(InMemorySupportStorefront.PurchaseOutcome.init(rawValue:)).first

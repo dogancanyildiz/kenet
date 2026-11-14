@@ -173,8 +173,14 @@ enum SupportPurchaseState: Equatable, Sendable {
 
     /// Reads the supporter level from the purchase history and, once per run and only until it
     /// is earned, asks whether this run earns the test team badge.
+    ///
+    /// The read only raises the level. It can be stale: a purchase that ends while the history is
+    /// being read is not in it, and an empty answer must not take the new badge (and the
+    /// thank-you under it) away. Only a refund lowers the level (``receive(_:)``).
     func refreshBadges() async {
-        supporterLevel = SupporterLevel.level(history: await storefront.purchaseHistory())
+        if let read = SupporterLevel.level(history: await storefront.purchaseHistory()) {
+            raiseSupporterLevel(to: read)
+        }
         guard !isTester, !hasProbedTester else { return }
         hasProbedTester = true
         if await testerProbe() {
@@ -265,7 +271,7 @@ enum SupportPurchaseState: Equatable, Sendable {
         guard let tier = SupportTier(productID: transaction.productID) else { return }
         await transaction.finish()
         if transaction.isRevoked {
-            // A refund can lower the level: the history decides.
+            // A refund can lower the level: the history, read after the refund, decides alone.
             supporterLevel = SupporterLevel.level(history: await storefront.purchaseHistory())
         }
         guard transaction.isVerified, !transaction.isRevoked else { return }

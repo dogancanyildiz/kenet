@@ -51,8 +51,26 @@ private final class FinishCounter: @unchecked Sendable {
     }
 
     var history: [SupportHistoryEntry] = []
+    /// When set, the next history read waits until the test resumes it, and then answers with
+    /// what the history was when the read began (a stale read).
+    var holdsNextHistory = false
+    private(set) var historyRequests = 0
+    private var heldHistory: [CheckedContinuation<Void, Never>] = []
 
-    func purchaseHistory() async -> [SupportHistoryEntry] { history }
+    func purchaseHistory() async -> [SupportHistoryEntry] {
+        historyRequests += 1
+        let read = history
+        if holdsNextHistory {
+            holdsNextHistory = false
+            await withCheckedContinuation { heldHistory.append($0) }
+        }
+        return read
+    }
+
+    func releaseHistory() {
+        for continuation in heldHistory { continuation.resume() }
+        heldHistory = []
+    }
 
     func transactionUpdates() -> AsyncStream<SupportStoreTransaction> {
         updateStreams += 1
@@ -237,6 +255,10 @@ private final class FinishCounter: @unchecked Sendable {
         store.releasePurchases()
         await buying.value
         #expect(service.purchase == .thanked)
+
+        // The kept approval is used once: the next purchase reports its own result.
+        await service.buy(.small)
+        #expect(service.purchase == .cancelled)
         service.stop()
     }
 
@@ -389,9 +411,32 @@ extension SupportProductsState {
         store.history = [entry(.medium)]
         await service.refreshBadges()
         #expect(service.supporterLevel == .medium)
+        store.history = [entry(.medium), entry(.large)]
+        await service.refreshBadges()
+        #expect(service.supporterLevel == .large)
+        // A read never lowers the level: only a refund does.
         store.history = []
         await service.refreshBadges()
-        #expect(service.supporterLevel == nil)
+        #expect(service.supporterLevel == .large)
+    }
+
+    @Test func aStaleHistoryReadDoesNotTakeAwayTheBadgeOfAPurchaseThatEndedMeanwhile() async {
+        let service = SupportService(storefront: store)
+        store.holdsNextHistory = true
+        let reading = Task { await service.refreshBadges() }
+        for _ in 0..<200 where store.historyRequests == 0 { try? await Task.sleep(for: .milliseconds(5)) }
+        #expect(store.historyRequests == 1)
+
+        store.purchaseResult = .success(.completed(store.transaction(.medium)))
+        await service.buy(.medium)
+        #expect(service.supporterLevel == .medium)
+        #expect(service.purchase == .thanked)
+
+        // The read began before the purchase: it answers with an empty history.
+        store.releaseHistory()
+        await reading.value
+        #expect(service.supporterLevel == .medium)
+        #expect(service.purchase == .thanked)
     }
 
     @Test func aVerifiedPurchaseRaisesTheLevelAndNeverLowersIt() async {

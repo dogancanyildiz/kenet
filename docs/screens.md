@@ -1397,7 +1397,7 @@ Adresler tek sabittedir: `AppLinks`. Karar: `docs/decisions.md` 2026-10-21 alan 
 | Başarı | Rozet canlanarak gelir: yaylanır ve çevresinden mürdüm bir ışık halkası açılıp söner; süre yaklaşık 1 saniye. iPhone ve iPad hafif dokunsal geri bildirim verir. Rozetin altında teşekkür yazar. Hareketi Azalt açıkken canlandırma yoktur; rozet doğrudan görünür. Uygulama başka hiçbir şeyi değiştirmez. |
 | İptal | Ekran ilk hâline döner; bant çıkmaz. |
 | Onay bekleyen | Bilgi bandı satın almanın onay beklediğini söyler. Onay gelince bant kalkar ve rozet teşekkürle gelir. Sayfa yeniden açılınca bant kalkar; sonradan gelen onay yine teşekkür gösterir. |
-| Hata | Hata bandı satın almanın tamamlanamadığını söyler. Kullanıcı satıra yeniden dokunur. Bu bant yalnız ödeme alınmadığında çıkar. |
+| Hata | Hata bandı satın almanın tamamlanamadığını söyler. Kullanıcı satıra yeniden dokunur. **Varsayım:** mağaza hata verdiğinde ödeme alınmamıştır; hatadan sonra aynı işlemin sonradan gelip gelmediği ölçülmedi. |
 | Doğrulanamadı | Mağaza ödemeyi aldı ama cihaz imzayı doğrulayamadı. Uyarı bandı ödemenin alındığını ve yeniden satın almanın gerekmediğini söyler. Uygulama teşekkür göstermez. |
 | Ürünler yüklenemedi | Kartın yerinde uyarı bandı ve "Yeniden dene" düğmesi durur. Çevrimdışı cihaz ve satışta olmayan ürün bu durumu verir. |
 | Dipnot | Ödemeyi App Store alır. Destek tek seferliktir ve yenilenmez. |

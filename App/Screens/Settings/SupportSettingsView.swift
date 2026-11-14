@@ -53,8 +53,10 @@ struct SupportSettingsView: View {
         .inkPage()
         .accessibilityIdentifier("screen.settings.support")
         .task {
-            await service.refreshBadges()
+            // Side by side: the products do not wait for the purchase history.
+            async let badges: Void = service.refreshBadges()
             await service.pageAppeared()
+            await badges
         }
         .onChange(of: service.purchase) { _, purchase in
             guard purchase == .thanked else { return }

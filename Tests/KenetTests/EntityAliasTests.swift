@@ -79,6 +79,15 @@ struct EntityAliasTests {
         let refused: [(String, EntityAliasRules.Rejection)] = [
             ("", .empty), (" \t\n", .empty), ("Ece|Ecoş", .invalidCharacter), ("[Ece", .invalidCharacter),
             ("Ece]", .invalidCharacter), ("Ece\nYalın", .invalidCharacter), ("Ece\u{0}", .invalidCharacter),
+            ("Ece\u{2028}Yalın", .invalidCharacter), ("Ece\u{2029}Yalın", .invalidCharacter),
+            // Characters that draw nothing: zero-width space, byte order mark, direction marks, soft hyphen.
+            ("E\u{200B}ce", .invalidCharacter), ("\u{FEFF}Ecoş", .invalidCharacter),
+            ("Ecoş\u{200E}", .invalidCharacter),
+            ("Ecoş\u{200F}", .invalidCharacter), ("Eco\u{00AD}ş", .invalidCharacter),
+            // A joiner with no emoji on both sides joins nothing.
+            ("Eco\u{200D}ş", .invalidCharacter), ("Ecoş\u{200D}", .invalidCharacter),
+            ("\u{200D}Ecoş", .invalidCharacter),
+            ("1\u{200D}2", .invalidCharacter), ("Ecoş\u{E0067}", .invalidCharacter),
             ("ece yalın", .sameAsName), ("ECE YALIN", .sameAsName), ("ece", .alreadyAlias), ("E. YALIN", .alreadyAlias),
         ]
         for (text, rejection) in refused {
@@ -160,28 +169,143 @@ struct EntityAliasTests {
         #expect(context.store.content.entities.first { $0.id == Self.path }?.aliases == ["Ece", "Ecoş"])
     }
 
-    @Test func theFileIsWrittenBeforeTheIndexIsPublished() async throws {
+    @Test func emojiSequencesKeepTheirJoinersAndTags() async throws {
+        let (context, model, file) = try await Self.context("alias-add-single-value")
+        defer { context.clean() }
+        // Family (joiners), rainbow flag (variation selector before the joiner), a skin tone before
+        // the joiner, and a flag spelled with tag letters.
+        let emoji = [
+            "\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467} Ailem", "\u{1F3F3}\u{FE0F}\u{200D}\u{1F308}",
+            "\u{1F469}\u{1F3FD}\u{200D}\u{1F4BB}",
+            "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}",
+        ]
+        for alias in emoji {
+            #expect(!EntityAliasRules.hasRefusedCharacter(alias), "\(alias.unicodeScalars.map(\.value))")
+            #expect(await model.addAlias(alias, name: "Ece Yalın"))
+        }
+        #expect(model.aliases == ["Ece"] + emoji)
+        // The file reads back the same scalars.
+        let written = RawDocument(bytes: try Data(contentsOf: file))
+        guard case .parsed(let frontmatter) = written.frontmatter else {
+            Issue.record("frontmatter unreadable")
+            return
+        }
+        let items = frontmatter.field(named: "aliases")?.value.listItems?.map { Array($0.text.unicodeScalars) }
+        #expect(items == (["Ece"] + emoji).map { Array($0.unicodeScalars) })
+    }
+
+    @Test func removingComparesBytesAndTakesOneItem() async throws {
+        let composed = "\u{015E}ule"  // Ş as one scalar
+        let decomposed = "S\u{0327}ule"  // S + combining cedilla: equal to Swift, other bytes
+        #expect(composed == decomposed && !composed.utf8.elementsEqual(decomposed.utf8))
+        func bytes(_ list: [String]) -> [[UInt8]] { list.map { Array($0.utf8) } }
+        #expect(
+            bytes(EntityAliasRules.removing(decomposed, from: [composed, decomposed, "Ece"]))
+                == bytes([composed, "Ece"]))
+        #expect(
+            bytes(EntityAliasRules.removing(composed, from: [decomposed, composed, "Ece"]))
+                == bytes([decomposed, "Ece"]))
+        // Byte-equal items: only the first goes. A spelling that is not there removes nothing.
+        #expect(EntityAliasRules.removing("Ece", from: ["Ece", "Ecoş", "Ece"]) == ["Ecoş", "Ece"])
+        #expect(bytes(EntityAliasRules.removing(decomposed, from: [composed])) == bytes([composed]))
+        // Each chip has its own identity, so each removes its own item.
+        let chips = EntityAliasRules.chips([composed, " ", decomposed, "Ece", "Ece"])
+        #expect(chips.count == 4 && Set(chips.map(\.id)).count == 4)
+        #expect(bytes(chips.map(\.text)) == bytes([composed, decomposed, "Ece", "Ece"]))
+
+        let (context, model, file) = try await Self.context("alias-add-single-value")
+        defer { context.clean() }
+        let head = "---\ntype: person\nname: Ece Yalın\naliases: ["
+        try Data((head + composed + ", " + decomposed + ", Ece]\n---\n").utf8).write(to: file)
+        await context.store.refreshAndSettle(rebuild: true)
+        await model.load()
+        #expect(bytes(model.aliases) == bytes([composed, decomposed, "Ece"]))
+        #expect(await model.removeAlias(decomposed))
+        #expect(try Data(contentsOf: file) == Data((head + composed + ", Ece]\n---\n").utf8))
+        #expect(bytes(model.aliases) == bytes([composed, "Ece"]))
+    }
+
+    @Test func aChangeAskedForDuringAWriteWaitsAndIsWritten() async throws {
+        let (context, model, file) = try await Self.context("alias-add-single-value")
+        defer { context.clean() }
+        // The second and third changes are asked for while the first write holds its turn.
+        let later = LaterChanges()
+        context.store.testingEditTurnDidArrive = {
+            guard later.tasks.isEmpty else { return }
+            #expect(model.isWriting)
+            later.tasks = [
+                Task { await model.addAlias("Ece Hanım", name: "Ece Yalın") },
+                Task { await model.removeAlias("Ece") },
+            ]
+            // Let both reach the model before the first write goes on.
+            for _ in 0..<10 { await Task.yield() }
+        }
+        #expect(await model.addAlias("Ecoş", name: "Ece Yalın"))
+        #expect(later.tasks.count == 2)
+        for task in later.tasks { #expect(await task.value) }
+        context.store.testingEditTurnDidArrive = nil
+        #expect(model.aliasErrorText == nil)
+        #expect(model.aliases == ["Ecoş", "Ece Hanım"])
+        let expected = "---\ntype: person\nname: Ece Yalın\naliases: [Ecoş, Ece Hanım]\n---\n"
+        #expect(try Data(contentsOf: file) == Data(expected.utf8))
+    }
+
+    @Test func theFieldKeepsWhatWasTypedDuringTheWrite() {
+        #expect(EntityAliasSheet.draft("Ecoş", afterAdding: "Ecoş", added: true) == "")
+        // The user went on typing the next alias while the first was written.
+        #expect(EntityAliasSheet.draft("Ece Hanım", afterAdding: "Ecoş", added: true) == "Ece Hanım")
+        #expect(EntityAliasSheet.draft("Ecoş", afterAdding: "Ecoş", added: false) == "Ecoş")
+    }
+
+    @Test func aChangeThatCannotStartSaysSo() async throws {
+        let (context, _, file) = try await Self.context("alias-add-single-value")
+        defer { context.clean() }
+        let input = try Data(contentsOf: file)
+        // A model that never loaded cannot edit: the refusal is told, not dropped.
+        let unloaded = EntityDetailModel(store: context.store, path: Self.path)
+        #expect(await unloaded.addAlias("Ecoş", name: "Ece Yalın") == false)
+        #expect(unloaded.aliasErrorText != nil)
+        #expect(try Data(contentsOf: file) == input)
+    }
+
+    @Test func theFileHasTheAliasWhileTheIndexStillHasTheOldList() async throws {
         let (context, model, file) = try await Self.context("alias-add-crlf-bom")
         defer { context.clean() }
         let expected = try Data(contentsOf: Self.writeCase("alias-add-crlf-bom", "expected.md"))
-        // `onChange` runs just before the published index content is replaced: the file is already written.
-        let seen = SeenBytes()
+        let store = context.store
+        // `onChange` runs just before the published index content is replaced. At that moment the
+        // file must already be the new one and the published index still the old one: file first.
+        let seen = SeenWrite()
         withObservationTracking {
-            _ = context.store.content
+            _ = store.content
         } onChange: {
-            seen.set(try? Data(contentsOf: file))
+            let indexed = MainActor.assumeIsolated { store.content.entities.first { $0.id == Self.path }?.aliases }
+            seen.set(file: try? Data(contentsOf: file), indexed: indexed)
         }
         #expect(await model.addAlias("Ecoş", name: "Ece Yalın"))
-        #expect(seen.value == expected)
+        #expect(seen.file == expected)
+        #expect(seen.indexed == ["Ece"])
+        #expect(store.content.entities.first { $0.id == Self.path }?.aliases == ["Ece", "Ecoş"])
         // The index can always be rebuilt from the file alone.
-        await context.store.refreshAndSettle(rebuild: true)
-        #expect(context.store.content.entities.first { $0.id == Self.path }?.aliases == ["Ece", "Ecoş"])
+        await store.refreshAndSettle(rebuild: true)
+        #expect(store.content.entities.first { $0.id == Self.path }?.aliases == ["Ece", "Ecoş"])
     }
 }
 
-private final class SeenBytes: @unchecked Sendable {
+@MainActor private final class LaterChanges {
+    var tasks: [Task<Bool, Never>] = []
+}
+
+private final class SeenWrite: @unchecked Sendable {
     private let lock = NSLock()
     private var bytes: Data?
-    var value: Data? { lock.withLock { bytes } }
-    func set(_ data: Data?) { lock.withLock { bytes = data } }
+    private var aliases: [String]?
+    var file: Data? { lock.withLock { bytes } }
+    var indexed: [String]? { lock.withLock { aliases } }
+    func set(file: Data?, indexed: [String]?) {
+        lock.withLock {
+            bytes = file
+            aliases = indexed
+        }
+    }
 }

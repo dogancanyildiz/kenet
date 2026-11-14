@@ -873,7 +873,11 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Kalıp | Ortak sheet kalıbı, tek "Kapat". Her ekleme ve kaldırma dosyaya o anda yazar. |
 | Ekleme | Üstte odaklı tek alan ve "Ekle". Klavyenin onay tuşu da ekler. Başarılı eklemeden sonra alan boşalır ve odak kalır. |
 | Kaldırma | Mevcut takma adlar alanın altında çiptir. Çipin çarpısı o takma adı kaldırır. |
-| Reddedilen | Boş metin, `\|`, `[`, `]` ya da satır sonu içeren metin, varlığın kendi adı ve var olan takma ad. Karşılaştırma [ad anahtarıyla](vault-format.md#adlar-ve-karşılaştırma) yapılır. Hata alanın altında bilgi bandıdır. |
+| Reddedilen | Boş ya da yalnız boşluk olan metin, varlığın kendi adı ve var olan takma ad. Karşılaştırma [ad anahtarıyla](vault-format.md#adlar-ve-karşılaştırma) yapılır. Hata alanın altında bilgi bandıdır. |
+| Reddedilen karakterler | `\|`, `[`, `]`. Kontrol karakterleri: satır sonu, sekme, U+0000. Satır ve paragraf ayırıcı: U+2028, U+2029. Görünmez biçim karakterleri: U+200B, U+FEFF, U+200E, U+200F, U+00AD ve Unicode `Cf` sınıfının geri kalanı. |
+| Emoji | İki emoji arasındaki birleştirici (U+200D) ve siyah bayraktan (U+1F3F4) sonraki bayrak etiket harfleri geçerlidir. Başka yerdeki birleştirici reddedilir. |
+| Art arda işlem | Yazma sürerken istenen ekleme ya da kaldırma bekler ve sırayla yazar. Alan yalnız eklenen metni hâlâ taşıyorsa boşalır. |
+| Kaldırılan öğe | Uygulama değeri bayt bayt karşılaştırır ve yalnız o çipin öğesini siler. Aynı adın NFC ve NFD yazımı iki ayrı çiptir. |
 | Başka kayıtla eşleşme | Uygulama eklemeyi engellemez. Bilgi bandı öteki kaydı adıyla söyler. Tanıma o adı kullanıcı seçmeden bağlamaz. |
 | Yazılan | Yalnız `aliases` alanı; uygulama dosyayı yazma anında yeniden okur. Geçmiş olay satırları değişmez. |
 

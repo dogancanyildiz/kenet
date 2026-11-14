@@ -29,23 +29,74 @@ enum EntityAliasRules {
     }
 
     /// The list with the trimmed alias at its end. An alias is the visible text of a link
-    /// (`[[Ad|takma ad]]`), so the characters that end or split a link are refused.
+    /// (`[[Ad|takma ad]]`), so the characters that end or split a link are refused, and so are the
+    /// ones nobody can see in a name.
     static func adding(_ text: String, to aliases: [String], name: String) throws(Rejection) -> [String] {
         let alias = cleaned(text)
         guard !alias.isEmpty else { throw .empty }
-        let breaksLink = alias.unicodeScalars.contains {
-            "|[]".unicodeScalars.contains($0) || $0.properties.generalCategory == .control
-                || $0 == "\u{2028}" || $0 == "\u{2029}"
-        }
-        guard !breaksLink else { throw .invalidCharacter }
+        guard !hasRefusedCharacter(alias) else { throw .invalidCharacter }
         let key = nameComparisonFold(alias)
         guard key != nameComparisonFold(cleaned(name)) else { throw .sameAsName }
         guard !aliases.contains(where: { nameComparisonFold(cleaned($0)) == key }) else { throw .alreadyAlias }
         return aliases + [alias]
     }
 
-    /// The list without that spelling; every other item keeps its place.
-    static func removing(_ alias: String, from aliases: [String]) -> [String] { aliases.filter { $0 != alias } }
+    /// `|`, `[`, `]`; control characters and the line and paragraph separators (U+2028, U+2029);
+    /// format characters, which draw nothing: zero-width space, byte order mark, direction marks,
+    /// soft hyphen. Two kinds of format character belong to an emoji and stay: the joiner (U+200D)
+    /// between two emoji, and the tag letters of a flag after the black flag (U+1F3F4).
+    static func hasRefusedCharacter(_ text: String) -> Bool {
+        let scalars = Array(text.unicodeScalars)
+        return scalars.indices.contains { index in
+            let scalar = scalars[index]
+            if "|[]".unicodeScalars.contains(scalar) { return true }
+            switch scalar.properties.generalCategory {
+            case .control, .lineSeparator, .paragraphSeparator: return true
+            case .format: return !isEmojiFormat(at: index, in: scalars)
+            default: return false
+            }
+        }
+    }
+
+    private static func isEmojiFormat(at index: Int, in scalars: [Unicode.Scalar]) -> Bool {
+        let scalar = scalars[index]
+        if scalar == "\u{200D}" {
+            guard index > 0, index + 1 < scalars.count else { return false }
+            // The variation selector and a skin tone sit between an emoji and its joiner.
+            let before = scalars[index - 1]
+            return (isPictograph(before) || before == "\u{FE0F}") && isPictograph(scalars[index + 1])
+        }
+        guard (0xE0020...0xE007F).contains(scalar.value), index > 0 else { return false }
+        let before = scalars[index - 1]
+        return before == "\u{1F3F4}" || (0xE0020...0xE007E).contains(before.value)
+    }
+
+    /// An emoji that is not also a digit or a sign of plain text (`0`–`9`, `#`, `*`, `©`, `®`).
+    private static func isPictograph(_ scalar: Unicode.Scalar) -> Bool {
+        scalar.properties.isEmoji && scalar.value > 0xFF
+    }
+
+    /// The list without that item. Values compare byte for byte, as the file does
+    /// (docs/vault-format.md): a composed and a decomposed spelling are two items, and only the
+    /// first item with these bytes goes.
+    static func removing(_ alias: String, from aliases: [String]) -> [String] {
+        guard let index = aliases.firstIndex(where: { $0.utf8.elementsEqual(alias.utf8) }) else { return aliases }
+        var kept = aliases
+        kept.remove(at: index)
+        return kept
+    }
+
+    /// One chip per shown alias, identified by the item's bytes and its turn among equal ones, so
+    /// two spellings of one name are two chips and each removes itself.
+    static func chips(_ aliases: [String]) -> [(id: [UInt8], text: String)] {
+        var seen: [[UInt8]: UInt8] = [:]
+        return aliases.filter { !cleaned($0).isEmpty }.map { alias in
+            let bytes = Array(alias.utf8)
+            let turn = seen[bytes, default: 0]
+            seen[bytes] = turn &+ 1
+            return (bytes + [0xFF, turn], alias)
+        }
+    }
 
     /// Other records the text also names. Recognition then finds two candidates and links none
     /// until the user chooses (docs/vault-format.md, "Otomatik tanıma ve belirsizlik").

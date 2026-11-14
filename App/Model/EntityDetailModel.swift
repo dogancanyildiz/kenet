@@ -28,6 +28,8 @@ final class EntityDetailModel {
     private(set) var aliasesSource = ""
     /// A refused or failed quick alias change: shown in the alias sheet, never on the page.
     private(set) var aliasErrorText: String?
+    /// The last alias change asked for; the next one waits for it.
+    @ObservationIgnored private var aliasChange: Task<Bool, Never>?
     private(set) var unreadableFrontmatter = false
     /// The place's valid `coordinates`, the value the map shows.
     private(set) var coordinate: PlaceCoordinate?
@@ -183,9 +185,25 @@ final class EntityDetailModel {
 
     func clearAliasError() { aliasErrorText = nil }
 
+    /// Alias changes run one after another: one asked for while another is being written waits
+    /// for it instead of being dropped, and then changes the list that write left in the file.
     private func changeAliases(_ change: @escaping @Sendable ([String]) throws -> [String]) async -> Bool {
+        let previous = aliasChange
+        let task = Task { @MainActor in
+            _ = await previous?.value
+            return await self.writeAliases(change)
+        }
+        aliasChange = task
+        return await task.value
+    }
+
+    private func writeAliases(_ change: @escaping @Sendable ([String]) throws -> [String]) async -> Bool {
         aliasErrorText = nil
-        guard canEdit else { return false }
+        guard canEdit else {
+            // Never silent: another editor's write, a read-only file or a vault selected meanwhile.
+            aliasErrorText = String(localized: "Değişiklik kaydedilemedi. Kasayı kontrol edip yeniden dene.")
+            return false
+        }
         isWriting = true
         defer { isWriting = false }
         do {

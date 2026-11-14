@@ -63,10 +63,10 @@ struct EntityAliasSheet: View {
                 }
                 if !shown.isEmpty {
                     InkFlowLayout {
-                        ForEach(Array(shown.enumerated()), id: \.offset) { _, alias in
+                        ForEach(EntityAliasRules.chips(model.aliases), id: \.id) { chip in
                             TagChip(
-                                title: alias, onDismiss: { Task { await model.removeAlias(alias) } },
-                                dismissLabel: Text("Takma adı kaldır: \(alias)"))
+                                title: chip.text, onDismiss: { Task { await model.removeAlias(chip.text) } },
+                                dismissLabel: Text("Takma adı kaldır: \(chip.text)"))
                         }
                     }
                     .disabled(!model.canEdit)
@@ -83,10 +83,18 @@ struct EntityAliasSheet: View {
         }
     }
 
+    /// The field empties only when it still holds the text that was added: what the user typed
+    /// while the write ran stays.
+    static func draft(_ current: String, afterAdding text: String, added: Bool) -> String {
+        added && current == text ? "" : current
+    }
+
     private func add() {
         let text = draft
+        guard !EntityAliasRules.cleaned(text).isEmpty else { return }
         Task {
-            if await model.addAlias(text, name: name) { draft = "" }
+            let added = await model.addAlias(text, name: name)
+            draft = Self.draft(draft, afterAdding: text, added: added)
             isFocused = true
         }
     }

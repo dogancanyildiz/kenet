@@ -26,6 +26,10 @@
         /// draws the short name ("19 Cmt") instead of wrapping the number or cutting the name.
         /// Every other case sits on a Sunday ("Pazar"), which fits and so never showed the overflow.
         case todayLongDayName
+        /// A 320 pt screen at AX3, three manşet icons: the page stays as wide as the screen. The
+        /// icons take a row above the day number, the week strip's cells narrow, the goal cards
+        /// scroll, and the quick entry's time chip and send drop under the mode words.
+        case todayNarrowAX3
 
         var colorScheme: SnapshotColorScheme {
             self == .todayDark ? .dark : .light
@@ -33,7 +37,7 @@
 
         var dynamicType: SnapshotDynamicType {
             switch self {
-            case .todayAX3: .accessibility3
+            case .todayAX3, .todayNarrowAX3: .accessibility3
             case .todayAX5: .accessibility5
             default: .medium
             }
@@ -49,11 +53,14 @@
         var usesIncompleteBooleanGoal: Bool { self == .todayGoals }
         /// Saturday 2026-09-19 of the sample vault links a person and a place, so its graph icon shows.
         var day: CalendarDate {
-            self == .todayLongDayName ? CalendarDate("2026-09-19")! : snapshotDay
+            usesSaturday ? CalendarDate("2026-09-19")! : snapshotDay
         }
+        private var usesSaturday: Bool { self == .todayLongDayName || self == .todayNarrowAX3 }
+        /// Width of the narrowest supported screen (Display Zoom on a 375 pt phone).
+        var canvasWidth: CGFloat { self == .todayNarrowAX3 ? 320 : snapshotCanvasSize.width }
         /// 09:41 on the case's day.
         var clock: Date {
-            guard self == .todayLongDayName else { return snapshotNow }
+            guard usesSaturday else { return snapshotNow }
             var calendar = Calendar(identifier: .gregorian)
             calendar.timeZone = snapshotTimeZone
             return calendar.date(from: DateComponents(year: 2026, month: 9, day: 19, hour: 9, minute: 41))!
@@ -105,7 +112,9 @@
             // The goal strip loads in a `.task`; without this the reference can catch its spinner.
             let goalsReady = GoalsReadyBox()
             let store = context.store
-            let size: CGSize = snapshotCase.usesTallCanvas ? CGSize(width: 390, height: 1600) : snapshotCanvasSize
+            let size = CGSize(
+                width: snapshotCase.canvasWidth,
+                height: snapshotCase.usesTallCanvas ? 1600 : snapshotCanvasSize.height)
             let root = NavigationStack {
                 DayView(store: store, date: day, isToday: true)
             }

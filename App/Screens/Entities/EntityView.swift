@@ -17,6 +17,7 @@ struct EntityView: View {
     @State private var importantDates: ImportantDatesModel
     @State private var unlinkedMentions: UnlinkedMentionsModel
     @State private var isEditing = false
+    @State private var isEditingAliases = false
     /// Nil until the first query returns; a reload keeps the previous days until then.
     @State private var timeline: [EntityTimelineDay]?
     /// The last encounter's day, loaded with `timeline` so the insight card opens complete.
@@ -140,6 +141,9 @@ struct EntityView: View {
             }
         ) {
             EntityEditSheet(store: store, model: model, entity: current, deletion: deletion)
+        }
+        .sheet(isPresented: $isEditingAliases) {
+            EntityAliasSheet(model: model, name: current.name).inkAdaptiveSheetPresentation()
         }
         .onChange(of: model.path) { _, path in onRenamed(path) }
         .task(id: store.lastUpdated) { await model.load() }
@@ -287,6 +291,7 @@ struct EntityView: View {
                         .frame(minHeight: 40, alignment: .leading)
                     InkCardDivider()
                 } else {
+                    aliasRow
                     ForEach(grouped.known) { row in
                         kvRow(
                             row.label, row.value.isEmpty ? "\u{2014}" : row.value,
@@ -314,6 +319,59 @@ struct EntityView: View {
             .padding(.horizontal, padding)
         }
         .inkListRow()
+    }
+
+    /// The aliases and the quick way to change them: "Ekle" opens the alias sheet. Shown for the
+    /// kinds recognition names (people, places, custom types); a list the app cannot write keeps
+    /// its raw text at the foot of the card instead.
+    @ViewBuilder private var aliasRow: some View {
+        let shown = model.aliases.filter { !EntityAliasRules.cleaned($0).isEmpty }
+        if isGraphNode, model.aliasesEditable {
+            let label = Text("Takma adlar")
+                .font(.subheadline)
+                .foregroundStyle(.ink.secondaryText)
+            let value = Text(verbatim: shown.joined(separator: ", "))
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.ink.text)
+                .accessibilityIdentifier("entity.aliases.value")
+            if dynamicTypeSize.isAccessibilitySize {
+                // Three columns leave a large-text name a few letters per line: the names go below.
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack(alignment: .firstTextBaseline, spacing: 12) {
+                        label
+                        Spacer(minLength: 12)
+                        aliasButton
+                    }
+                    if !shown.isEmpty { value.padding(.bottom, 10) }
+                }
+            } else {
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    label.fixedSize()
+                    Spacer(minLength: 12)
+                    if !shown.isEmpty { value.multilineTextAlignment(.trailing) }
+                    aliasButton
+                }
+            }
+            InkCardDivider()
+        }
+    }
+
+    /// A small link like "Bağ kur"; trailing in its 44 pt target so it ends on the card's value column.
+    private var aliasButton: some View {
+        Button {
+            isEditingAliases = true
+        } label: {
+            Text("Ekle")
+                .font(.subheadline.weight(.semibold))
+                .frame(
+                    minWidth: TapTarget.minimumLength, minHeight: TapTarget.minimumLength, alignment: .trailing
+                )
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(InkTextButtonStyle())
+        .disabled(!model.canEdit)
+        .accessibilityLabel("Takma ad ekle")
+        .accessibilityIdentifier("button.entity.alias")
     }
 
     @ScaledMetric(relativeTo: .body) private var padding = InkSpacing.cardPadding

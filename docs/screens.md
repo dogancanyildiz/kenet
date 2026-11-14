@@ -227,7 +227,7 @@ Varsayılan boyutta hızlı giriş iki satırlı karttır: üstte kip, çipler v
 | Gezinme çubuğu | Bugün sekmesi gezinme çubuğunu gizler. |
 | Arama ve Ayarlar | iPhone'da gün başlığının sağında önce arama, sonra Ayarlar durur. iPad'de sıra Günün grafiği, Ayarlar, aramadır; simgeler çerçevesizdir. Kimlik `button.settings`. |
 | Günün grafiği | Gün başlığında Graph simgesi: arama ve Ayarlar'ın solunda. Satırda en çok 3 simge durur. Simge yalnız gün dosyası en az bir kişi, konum ya da özel tip varlığına çözülen bağlantı içerirken görünür. iPad Bugün manşetinde simge hep yerindedir; bağlantı yokken soluk ve kapalıdır. Mac'te sabit manşet şeridindedir. Dokunma o günün grafiğini açar: [Günün grafiği](#günün-grafiği). Kimlik `button.dayGraph`. |
-| Büyük yazı boyutları | Erişilebilirlik yazı boyutlarında düğmeler ayrı satırdadır. Gün halkası gün rakamının üstüne çıkar. Hafta şeridi 2 satıra iner: 4 + 3 gün. |
+| Büyük yazı boyutları | iPhone'da erişilebilirlik yazı boyutlarında gün halkası ve düğmeler üst satırdadır; gün rakamı ve gün adı alt satırdadır. Halka ile düğmeler yan yana sığmazsa düğmeler kendi satırına çıkar. Düğmeler AX2 boyutundan sonra büyümez. Öteki boyutlarda gün rakamı düğmelerin yanına sığmazsa başlık aynı düzene geçer. Hafta şeridi 2 satıra iner: 4 + 3 gün. Hücreler ekrana sığacak kadar daralır. Üç hedef kartı sığmazsa kartlar yana kayar. Kaydırılmış tek satır sığana göre kısalır: "19 Eyl Cumartesi", "19 Eyl", "19". iPad'de başlık tek satırda kalır ve sığana göre kısalır: "20 Eyl Pazar", "20 Eyl Paz", "20 Eyl". Sayfa hiçbir yazı boyutunda ekrandan geniş olmaz. |
 | VoiceOver | Künye cümlesi tek öğedir. Hafta şeridi her günü "20 Eylül Pazar, bugün, 3 olay" biçiminde okur. `navigationTitle` VoiceOver ve geçmiş için tarih metnidir. |
 
 #### Hedefler bölümü
@@ -440,7 +440,7 @@ Uygulama önce dosyaya yazar, sonra indeksi günceller. Yazma hata verirse kutu 
 | Öğe | Yer | Davranış |
 |---|---|---|
 | Kip | iPhone'da üst satırın başı; Mac'te kutunun başı | İki sözcük: **Olay** ve **Görev**. Seçili olan yarı kalındır ve altında vurgu çizgisi taşır. Varsayılan Olay'dır. Mac'te ⌘⇧T kipi değiştirir. |
-| Saat | Olay kipinde üst satırın sonunda saat simgeli hap ("⏱ 09:41"); saatsizken "⏱ Saat". iPad ve Mac'te kipin yanında | Olay varsayılan olarak şu anki saati alır. Kullanıcı saati kaldırabilir ya da değiştirebilir. |
+| Saat | Olay kipinde üst satırın sonunda saat simgeli hap ("⏱ 09:41"); saatsizken "⏱ Saat". iPad ve Mac'te kipin yanında | Olay varsayılan olarak şu anki saati alır. Kullanıcı saati kaldırabilir ya da değiştirebilir. Erişilebilirlik boyutlarında kip, saat hapı ve gönder bir satıra sığmazsa kip üst satırda kalır; saat hapı ve gönder alt satıra iner. |
 | Çip satırı | iPhone'da kutunun üst satırı, kip ile saat ya da tarih arası; iPad'de, Mac'te ve erişilebilirlik boyutlarında kutunun üstü | Ad çipleri, öncelik ve tekrar çipleri, takvim katılımcı çipleri. Sığmayan çipler yana kayar. iPhone'da tarih denetimi tam görünür; yalnız çipler daralır ve kesilen çip sağda solar. Şerit sona kayınca son çip solmadan görünür. iPhone'da kutu satır eklemez; klavye açıkken sayfayı örtmez. Alanın içinde vurgu yoktur. |
 | Tarih denetimi | Görev kipinde; iPhone'da üst satırın sonunda, saat hapının yerinde; öteki düzenlerde çip satırının başında | Metinden okunan tarihi onay için gösterir. Kullanıcı dokunup düzeltir. |
 | Proje önerisi | Kutunun üstü | Görev kipinde `#project/` yazınca var olan proje adları çıkar. |
@@ -550,7 +550,7 @@ flowchart TD
 
 | Öğe | Davranış |
 |---|---|
-| Gezinme satırı | En üstte tek satır: solda yuvarlak "‹" geri çipi, ortada ay seçici (ay, yıl ve aşağı ok), sağda arama. Gün dosyası bağlantı içeriyorsa aramanın solunda günün grafiği simgesi durur. Ay seçici dokunmayla "Ay seç" sheet'ini açar; seçilen gün ekranı değiştirir. iPhone sekme kabuğunda sistem gezinme çubuğu gizlidir; iPad bölünmüş kabukta geri düğmesi sistem çubuğundadır. |
+| Gezinme satırı | En üstte tek satır: solda yuvarlak "‹" geri çipi, ortada ay seçici (ay, yıl ve aşağı ok), sağda arama. Gün dosyası bağlantı içeriyorsa aramanın solunda günün grafiği simgesi durur. Ay seçici dokunmayla "Ay seç" sheet'ini açar; seçilen gün ekranı değiştirir. iPhone sekme kabuğunda sistem gezinme çubuğu gizlidir; iPad bölünmüş kabukta geri düğmesi sistem çubuğundadır. Ay seçici ortaya sığmazsa geri çipi ile simgelerin arasına kayar; oraya da sığmazsa satırın altına iner. Geri çipi ve simgeler AX2 boyutundan sonra büyümez. |
 | Hafta şeridi | Bugün'deki şerit. Seçili gün metin renginde dolu hücredir. Bir güne dokunma o günü gösterir. |
 | Gün başlığı | Hafta şeridinin altında günün tam tarihi: "12 Ekim Pazartesi"; başka yılın gününde yıl da yazar. Sağında günün sayıları durur: "3 olay · 2 görev". Sıfır olan parça yazılmaz. Bugün'deki künye cümlesi ve çipler yoktur. |
 | Saatli program | Solda saat sütunu, sağda olay ve görev kartları saat sırasıyla. Kartın solunda simge kutusu, sağında "›" durur. Görev kartı görev kutusunu taşır. Renkli çubuk yoktur. |
@@ -831,10 +831,11 @@ Manşetin altında görünüm sekmesi durur. Sekmenin altında görünüme göre
 |---|---|---|
 | 1 | Manşet, künye ve çip satırı | Manşet ekranın içindedir: ad. Künye tip, takma adlar ve son görülme tarihini yazar: "Kişi · takma ad Baran · son görülme 19 Eyl". Yıl yalnız başka yıldaysa yazar. Sağda "Düzenle" ve arama durur. Gezinme çubuğunda büyük başlık yoktur. Künyenin altındaki çip satırında yıl dönümü çipi ve "Graph'ta göster" çipi durur. |
 | 2 | Son görüşme ya da Son ziyaret kartı | Yalnız kişi ve konumda, manşetin hemen altında. Kartta 12 aylık geçiş çubuğu ve 90 günlük şerit durur. Ayrıntı [Kişi ve konum içgörüleri](#kişi-ve-konum-içgörüleri-6) bölümündedir. |
-| 3 | Alanlar kartı | Tek kart, anahtar solda, değer sağda: ayırt edici, şablon alanları, öteki alanlar (ikincil renkte) ve en altta gelen bağlantı sayısı. |
+| 3 | Alanlar kartı | Tek kart, anahtar solda, değer sağda: ayırt edici, takma adlar, şablon alanları, öteki alanlar (ikincil renkte) ve en altta gelen bağlantı sayısı. |
+| 3a | Takma adlar satırı | Kişi, konum ve özel tipte, Alanlar kartında. Değer takma adları virgülle yazar; sağda küçük "Ekle" bağlantısı durur. "Ekle" takma ad sheet'ini açar. Erişilebilirlik yazı boyutlarında adlar başlığın altına iner. Uygulama `aliases` alanını yazamıyorsa satır çizilmez; alanın ham metni kartın altında kalır. |
 | 4 | Yıl dönümü | Çip satırında. Kişide ve özel tipte, tarih alanı varsa sıradaki yıl dönümü tek çiptir: "doğum günü · 12 Nis · 31 yıl". Pencere yoktur. Konumda bu çip yoktur. |
 | 5 | Graph'ta göster | Çip satırında vurgu çipi. Kişide, konumda ve özel tipte. Graph o düğümü seçer ve ortaya alır. Özel tipte Graph o tipi süzgeçte açarak açılır. |
-| 6 | Bağlar | Kişi, konum ve özel tipte; kart üstünde başlık ve "Bağ kur" düğmesi. Giden satır "eşi · Selin Korkmaz", etiketsizde yalnız addır. Gelen satır "Mert Aksu'nun sayfasında · iş arkadaşı", etiketsizde yalnız kaynak sayfadır. Dokunma karşı varlığı açar. Uzun basma / Mac ikincil tık yalnız giden bağda "Bağı kaldır" sunar; özel tipin şema alanından gelen bağda kaldırma yoktur, o bağ Alanlar’da düzenlenir. Bağ kur sheet’i üstte isteğe bağlı etiketi ve kasadaki etiket önerilerini, altında aramalı listeyle kendisi hariç kişi, konum ve özel tip seçimini içerir; çubukta solda Vazgeç, sağda Kaydet durur (hedef seçilince etkin). Çakışan alan ve ayrılmış ad hatası sheet’te kalır; kaldırma hatası bölümde bilgi bandıdır. |
+| 6 | Bağlar | Kişi, konum ve özel tipte; kart üstünde başlık ve "Bağ kur" düğmesi. Satır yalnız karşı varlığın adını yazar; yön ifadesi yoktur. Etiketli giden satır "eşi · Selin Korkmaz", etiketli gelen satır "Mert Aksu · iş arkadaşı" biçimindedir. Karşı varlık geri bağ kurduysa bir kez görünür: sayfa aynı varlığa etiketsiz ya da aynı etiketle gelen bağı ayrı satır yapmaz. VoiceOver satırı aynı metinle okur. Dokunma karşı varlığı açar. Uzun basma / Mac ikincil tık yalnız giden bağda "Bağı kaldır" sunar; özel tipin şema alanından gelen bağda kaldırma yoktur, o bağ Alanlar’da düzenlenir. Bağ kur sheet’i üstte isteğe bağlı etiketi ve kasadaki etiket önerilerini, altında aramalı listeyle kendisi hariç kişi, konum ve özel tip seçimini içerir; çubukta solda Vazgeç, sağda Kaydet durur (hedef seçilince etkin). Çakışan alan ve ayrılmış ad hatası sheet’te kalır; kaldırma hatası bölümde bilgi bandıdır. |
 | 7 | Alanlar ve Diğer alanlar | 3. sıradaki Alanlar kartındadır; ayrı başlık yoktur. Şablon alanları anahtar-değer satırlarıdır. Yalnız çözülen, uygulamanın yazdığı biçimdeki wikilinklerden (`[[Ad]]`) oluşan şema dışı bağ anahtarları okuma ve serbest alan düzenleyicisinde tekrar görünmez. Görünen metin (`[[Ad|metin]]`) ya da çapa (`[[Ad#başlık]]`) taşıyan, karışık metinli, çözülmeyen ya da sayfanın kendisine bağlanan değeri olan alan Alanlar’da kalır; şemadaki `link` alanı da kalır. Tanınmayan ön bilgi anahtarları şablon alanlarının altında ham adıyla, ikincil renkte durur. Uygulama frontmatter'ı okuyamıyorsa "Frontmatter okunamıyor." yazar. |
 | 8 | Açık görevler (2) | Bu varlığa bağlı tamamlanmamış görevler; başlık "Açık işler" ve sayı, satırlar ayraçlı tek kartta. |
 | 8a | Yaklaşan etkinlikler (11) | Yalnız kişide ve takvim okuma izni varken. Bugünden sonraki 365 günde kişiyle eşleşen etkinlikler, en çok 5. Çok sözcüklü ad ya da takma ad başlıkta bitişik tam sözcüklerle ya da katılımcının tam adıyla eşleşir. Tek sözcüklü ad yalnız katılımcının tam adıyla eşleşir. Harf boyuna bakılmaz; Türkçe `İ`/`ı` kuralı geçerlidir. Satır etkinlik ayrıntısını açar. Doğum günü etkinliği yoksa başlığın sağında küçük "Doğum günü ekle" bağlantısı durur; eşleşen etkinlik yoksa bölüm yalnız bu düğmedir. Bağlantı yoksa başlığın sağında sayı durur: "2 etkinlik". Her etkinlik Zaman akışı satırı gibi ayrı karttır: solda takvim simgesi, sağda ok. |
@@ -863,6 +864,22 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Koordinat yazma | Dosyaya yalnız Kaydet yazar. Değişiklik yoksa yazmaz. Kullanıcının dokunmadığı alanda dosyadaki sayı yazımı aynı kalır. |
 | Ölçüm yok | Ölçüm gelmezse ya da izin yoksa bunu söyler. Elle giriş açık kalır. Kullanıcı alana elle yazınca bekleyen ölçüm alanı doldurmaz. |
 | Okunamayan değer | Okunamayan kayıtlı değer dosyadaki haliyle görünür. |
+
+**Takma ad sheet'i.**
+
+| Konu | Davranış |
+|---|---|
+| Giriş | Varlık ekranındaki "Takma adlar" satırının "Ekle" bağlantısı. Düzenleme sheet'indeki takma ad düzenleyicisi de kalır. |
+| Kalıp | Ortak sheet kalıbı, tek "Kapat". Her ekleme ve kaldırma dosyaya o anda yazar. |
+| Ekleme | Üstte odaklı tek alan ve "Ekle". Klavyenin onay tuşu da ekler. Başarılı eklemeden sonra alan boşalır ve odak kalır. |
+| Kaldırma | Mevcut takma adlar alanın altında çiptir. Çipin çarpısı o takma adı kaldırır. |
+| Reddedilen | Boş ya da yalnız boşluk olan metin, varlığın kendi adı ve var olan takma ad. Karşılaştırma [ad anahtarıyla](vault-format.md#adlar-ve-karşılaştırma) yapılır. Hata alanın altında bilgi bandıdır. |
+| Reddedilen karakterler | `\|`, `[`, `]`. Kontrol karakterleri: satır sonu, sekme, U+0000. Satır ve paragraf ayırıcı: U+2028, U+2029. Görünmez biçim karakterleri: U+200B, U+FEFF, U+200E, U+200F, U+00AD ve Unicode `Cf` sınıfının geri kalanı. |
+| Emoji | İki emoji arasındaki birleştirici (U+200D) ve siyah bayraktan (U+1F3F4) sonraki bayrak etiket harfleri geçerlidir. Başka yerdeki birleştirici reddedilir. |
+| Art arda işlem | Yazma sürerken istenen ekleme ya da kaldırma bekler ve sırayla yazar. Alan yalnız eklenen metni hâlâ taşıyorsa boşalır. |
+| Kaldırılan öğe | Uygulama değeri bayt bayt karşılaştırır ve yalnız o çipin öğesini siler. Aynı adın NFC ve NFD yazımı iki ayrı çiptir. |
+| Başka kayıtla eşleşme | Uygulama eklemeyi engellemez. Bilgi bandı öteki kaydı adıyla söyler. Tanıma o adı kullanıcı seçmeden bağlamaz. |
+| Yazılan | Yalnız `aliases` alanı; uygulama dosyayı yazma anında yeniden okur. Geçmiş olay satırları değişmez. |
 
 **Bağlanmamış anmalar.**
 

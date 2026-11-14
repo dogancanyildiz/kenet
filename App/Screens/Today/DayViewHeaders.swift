@@ -30,7 +30,8 @@ extension DayView {
         InkDayHeader(
             date: instant, progress: progress, remainingCount: remaining,
             showsRing: TodayDayRing.showsRing(total: total), compact: compact,
-            compactTitle: presented.shortHeadline
+            compactTitle: presented.shortHeadline,
+            compactTitleFallbacks: rowTitleFallbacks(presented, instant: instant)
         ) {
             if usesWideMasthead {
                 // iPad drawing: bare icons, the day's graph, settings, then search.
@@ -84,15 +85,20 @@ extension DayView {
                             remaining: TodayDayRing.remaining(completed: completed, total: total),
                             locale: locale)))
             }
+            // The widest date that fits; none is cut with an ellipsis at a large text size.
             ViewThatFits(in: .horizontal) {
                 compactTitle(instant).fixedSize()
-                    .font(.ink.section)
-                Text(verbatim: presented.shortHeadline)
-                    .font(.ink.section)
-                    .foregroundStyle(Color.ink.text)
-                    .lineLimit(1)
+                ForEach(compactTitleFallbacks(presented, instant: instant), id: \.self) { title in
+                    Text(verbatim: title)
+                        .foregroundStyle(Color.ink.text)
+                        .lineLimit(1)
+                        .fixedSize()
+                }
             }
-            .accessibilityElement(children: .combine)
+            .font(.ink.section)
+            // VoiceOver reads the full date whichever one is drawn.
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(verbatim: presented.headline))
             .accessibilityAddTraits(.isHeader)
             Spacer(minLength: 0)
             SearchButton()
@@ -100,6 +106,31 @@ extension DayView {
                 .environment(\.inkHeaderActionChrome, .bare)
         }
         .accessibilityElement(children: .contain)
+    }
+
+    /// Shorter dates for the pinned row, widest first: "19 Eyl Cumartesi", "19 Eyl", "19".
+    func compactTitleFallbacks(_ presented: TodayPresentation, instant: Date) -> [String] {
+        let style = compactDateStyle
+        return TodayCompactTitle.distinct([
+            presented.shortHeadline, instant.formatted(style.day().month(.abbreviated)),
+            instant.formatted(style.day()),
+        ])
+    }
+
+    /// Shorter forms of the one-row manşet's "20 Eyl Pazar" (iPad at an accessibility text size),
+    /// widest first: the short day name, then no day name.
+    func rowTitleFallbacks(_ presented: TodayPresentation, instant: Date) -> [String] {
+        let style = compactDateStyle
+        return TodayCompactTitle.distinct([
+            instant.formatted(style.day().month(.abbreviated).weekday(.abbreviated)),
+            instant.formatted(style.day().month(.abbreviated)),
+        ]).filter { $0 != presented.shortHeadline }
+    }
+
+    private var compactDateStyle: Date.FormatStyle {
+        Date.FormatStyle(
+            locale: PresentationLocalization.resolvedLocale(locale), calendar: calendarValue,
+            timeZone: calendarValue.timeZone)
     }
 
     func compactTitle(_ instant: Date) -> some View {
@@ -207,6 +238,9 @@ extension DayView {
                     .foregroundStyle(.ink.secondaryText)
                     .accessibilityHidden(true)
             }
+            // On a row narrower than "Eylül 2026" the words shrink; they never wrap mid-word.
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
             .tapTarget()
         }
         .buttonStyle(.plain)
@@ -362,5 +396,18 @@ extension DayView {
                 .foregroundStyle(.ink.secondaryText)
                 .lineLimit(1)
         }
+    }
+}
+
+/// The dates a one-row Today title falls back to (unit-tested).
+enum TodayCompactTitle {
+    /// The given forms in order, without empty ones or repeats: a locale whose forms coincide
+    /// offers each once.
+    static func distinct(_ widestFirst: [String]) -> [String] {
+        var titles: [String] = []
+        for title in widestFirst where !title.isEmpty && !titles.contains(title) {
+            titles.append(title)
+        }
+        return titles
     }
 }

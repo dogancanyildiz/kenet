@@ -306,7 +306,8 @@
             let captured = try #require(image)
             assertSnapshot(
                 of: captured,
-                as: .image(precision: snapshotPrecision, perceptualPrecision: snapshotPerceptualPrecision),
+                as: .image(
+                    precision: snapshotPrecision(of: captured), perceptualPrecision: snapshotPerceptualPrecision),
                 named: name,
                 record: ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"]
                     .flatMap(SnapshotTestingConfiguration.Record.init(rawValue:)),

@@ -999,134 +999,6 @@
         }
       }
     },
-    "%@'in sayfasında" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "On %@'s page"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@'in sayfasında"
-          }
-        }
-      }
-    },
-    "%@'nin sayfasında" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "On %@'s page"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@'nin sayfasında"
-          }
-        }
-      }
-    },
-    "%@'nun sayfasında" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "On %@'s page"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@'nun sayfasında"
-          }
-        }
-      }
-    },
-    "%@'nün sayfasında" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "On %@'s page"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@'nün sayfasında"
-          }
-        }
-      }
-    },
-    "%@'nın sayfasında" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "On %@'s page"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@'nın sayfasında"
-          }
-        }
-      }
-    },
-    "%@'un sayfasında" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "On %@'s page"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@'un sayfasında"
-          }
-        }
-      }
-    },
-    "%@'ün sayfasında" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "On %@'s page"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@'ün sayfasında"
-          }
-        }
-      }
-    },
-    "%@'ın sayfasında" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "On %@'s page"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@'ın sayfasında"
-          }
-        }
-      }
-    },
     "%@, %@ ve %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2279,6 +2151,86 @@
         }
       }
     },
+    "Bu takma ad zaten var." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This alias already exists."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu takma ad zaten var."
+          }
+        }
+      }
+    },
+    "Bu, kaydın kendi adı." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is the record’s own name."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu, kaydın kendi adı."
+          }
+        }
+      }
+    },
+    "Takma ad boş olamaz." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An alias cannot be empty."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takma ad boş olamaz."
+          }
+        }
+      }
+    },
+    "Takma ad | [ ] ya da satır sonu içeremez." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An alias cannot contain | [ ] or a line break."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takma ad | [ ] ya da satır sonu içeremez."
+          }
+        }
+      }
+    },
+    "Takma adı kaldır: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove alias: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takma adı kaldır: %@"
+          }
+        }
+      }
+    },
     "Taşınamayanlar: %@" : {
       "localizations" : {
         "en" : {
@@ -2355,6 +2307,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gün dosyaları taşınsın mı?"
+          }
+        }
+      }
+    },
+    "Uygulama bu adları yazarken tanır ve %@ kaydına bağlar." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The app recognizes these names as you write and links them to %@."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uygulama bu adları yazarken tanır ve %@ kaydına bağlar."
           }
         }
       }
@@ -20466,6 +20434,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "— açık görev  ┄ %@"
+          }
+        }
+      }
+    },
+    "“%@” %@ ile de eşleşiyor. Uygulama bu adı sen seçmeden bağlamaz." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%1$@” also matches %2$@. The app does not link this name until you choose."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%1$@” %2$@ ile de eşleşiyor. Uygulama bu adı sen seçmeden bağlamaz."
           }
         }
       }

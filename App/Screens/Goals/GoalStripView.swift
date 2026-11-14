@@ -108,28 +108,7 @@ struct GoalStripView: View {
                         ?? "\(daily.filter { GoalStripPresentation.isPeriodComplete(status: model.status(for: $0)) }.count)/\(daily.count)"
                 )
                 // One small card per goal (the drawing's three cards), equal heights in a row.
-                Group {
-                    if columns.count <= 3 {
-                        HStack(alignment: .top, spacing: 8) {
-                            ForEach(columns, id: \.id) { goal in
-                                goalCard(goal)
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                            }
-                        }
-                        .fixedSize(horizontal: false, vertical: true)
-                    } else {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(alignment: .top, spacing: 8) {
-                                ForEach(columns, id: \.id) { goal in
-                                    goalCard(goal)
-                                        .frame(width: scrollColumnWidth, alignment: .topLeading)
-                                        .frame(maxHeight: .infinity, alignment: .top)
-                                }
-                            }
-                            .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
-                }
+                cardStrip(columns)
                 if let error = model.errorText {
                     InfoBand(kind: .error, verbatim: error)
                 }
@@ -146,6 +125,36 @@ struct GoalStripView: View {
             .onChange(of: model.hasLoaded, initial: true) { keepOrder() }
             .onChange(of: model.goals.map(\.id)) { keepOrder() }
         }
+    }
+
+    /// Up to three cards share the row's width. More than three, or three whose rings and plus
+    /// buttons need more than the row has (large text on a narrow screen), scroll sideways in
+    /// columns. Both arrangements are one layout over the same cards: a card keeps its identity
+    /// when the text size changes the arrangement, so its text is seen to grow (the accessibility
+    /// audit's Dynamic Type check follows each text through the size change).
+    private func cardStrip(_ columns: [GoalDefinition]) -> some View {
+        let sharesRow = columns.count <= GoalCardStripLayout.mostCardsInARow
+        // Cards that may share the row keep their whole outline: it is drawn half outside the
+        // card, where the scroll view would cut it, so the scroll view is this much larger than
+        // the strip on every side. A strip that always scrolls clips at its edge as before.
+        let room = sharesRow ? GoalCardStripLayout.outlineRoom : 0
+        return ScrollView(.horizontal, showsIndicators: false) {
+            GoalCardStripLayout(columnWidth: scrollColumnWidth, sharesRow: sharesRow) {
+                // The ruler: as wide as the strip's visible width (``GoalCardStripLayout``).
+                Color.clear
+                    .frame(height: 0)
+                    .containerRelativeFrame(.horizontal) { length, _ in length - 2 * room }
+                    .accessibilityHidden(true)
+                ForEach(columns, id: \.id) { goal in
+                    goalCard(goal)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                }
+            }
+            .padding(room)
+        }
+        // Cards that share the row do not scroll or bounce.
+        .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
+        .padding(-room)
     }
 
     private var dailySource: [GoalDefinition] {
@@ -461,6 +470,86 @@ private struct GoalStripDoneLabelStyle: LabelStyle {
         HStack(spacing: 3) {
             configuration.icon.accessibilityHidden(true)
             configuration.title
+        }
+    }
+}
+
+/// Lays the goal cards out in a horizontally scrolling strip. The first subview is a ruler as
+/// wide as the strip's visible width; the rest are the cards.
+struct GoalCardStripLayout: Layout {
+    /// The drawing's row holds up to three cards.
+    static let mostCardsInARow = 3
+    static let spacing: CGFloat = 8
+    /// Room around the strip for the cards' outline (1 pt line, centered on the card's edge).
+    static let outlineRoom: CGFloat = 1
+
+    /// A card's width in the scrolling arrangement.
+    var columnWidth: CGFloat
+    /// False for a strip that always scrolls (more than ``mostCardsInARow`` cards).
+    var sharesRow: Bool
+
+    /// Whether the cards share the visible width (unit-tested): they do when there are few enough
+    /// and their narrowest row is no wider than it.
+    static func sharesRow(allowed: Bool, narrowestRow: CGFloat, visibleWidth: CGFloat) -> Bool {
+        allowed && visibleWidth > 0 && narrowestRow <= visibleWidth
+    }
+
+    /// The system row does the sharing: the same sizes and pixel rounding as an `HStack`.
+    private var row: AnyLayout { AnyLayout(HStackLayout(alignment: .top, spacing: Self.spacing)) }
+
+    private struct Plan {
+        var cards: Subviews
+        /// The visible width while the cards share it; nil while they scroll in columns.
+        var rowWidth: CGFloat?
+    }
+
+    private func plan(_ subviews: Subviews) -> Plan {
+        // An empty strip has no ruler either: an empty range, not one past the end.
+        let cards = subviews[min(1, subviews.count)..<subviews.count]
+        guard sharesRow, let ruler = subviews.first, !cards.isEmpty else { return Plan(cards: cards) }
+        let visibleWidth = ruler.sizeThatFits(.unspecified).width
+        var cache = row.makeCache(subviews: cards)
+        let narrowest = row.sizeThatFits(
+            proposal: ProposedViewSize(width: 0, height: nil), subviews: cards, cache: &cache
+        ).width
+        let shares = Self.sharesRow(allowed: true, narrowestRow: narrowest, visibleWidth: visibleWidth)
+        return Plan(cards: cards, rowWidth: shares ? visibleWidth : nil)
+    }
+
+    private func columnsHeight(_ cards: Subviews) -> CGFloat {
+        cards.map { $0.sizeThatFits(ProposedViewSize(width: columnWidth, height: nil)).height }.max() ?? 0
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let plan = plan(subviews)
+        if let rowWidth = plan.rowWidth {
+            var rowCache = row.makeCache(subviews: plan.cards)
+            let size = row.sizeThatFits(
+                proposal: ProposedViewSize(width: rowWidth, height: nil), subviews: plan.cards, cache: &rowCache)
+            return CGSize(width: rowWidth, height: size.height)
+        }
+        let count = CGFloat(plan.cards.count)
+        return CGSize(
+            width: count * columnWidth + max(0, count - 1) * Self.spacing, height: columnsHeight(plan.cards))
+    }
+
+    func placeSubviews(
+        in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()
+    ) {
+        subviews.first?.place(at: bounds.origin, proposal: ProposedViewSize(width: nil, height: 0))
+        let plan = plan(subviews)
+        if plan.rowWidth != nil {
+            var rowCache = row.makeCache(subviews: plan.cards)
+            row.placeSubviews(
+                in: bounds, proposal: ProposedViewSize(bounds.size), subviews: plan.cards, cache: &rowCache)
+            return
+        }
+        var x = bounds.minX
+        for card in plan.cards {
+            card.place(
+                at: CGPoint(x: x, y: bounds.minY), anchor: .topLeading,
+                proposal: ProposedViewSize(width: columnWidth, height: bounds.height))
+            x += columnWidth + Self.spacing
         }
     }
 }

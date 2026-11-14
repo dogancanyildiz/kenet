@@ -12,6 +12,27 @@ struct InkDesignComponentTests {
         #expect(!InkGlowChrome.shouldDraw(contrast: .increased, reduceTransparency: true))
     }
 
+    /// The manşet title tries the full day name, then the week strip's short one; VoiceOver's
+    /// name stays the full one.
+    @Test(arguments: [
+        ("tr_TR", 19, "Cumartesi", "Cmt"), ("tr_TR", 16, "Çarşamba", "Çar"), ("tr_TR", 17, "Perşembe", "Per"),
+        ("en_US", 16, "Wednesday", "Wed"), ("en_US", 19, "Saturday", "Sat"),
+    ])
+    func dayHeaderTitleNamesShortenLikeTheWeekStrip(
+        localeID: String, day: Int, full: String, short: String
+    ) {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 3 * 3600)!
+        let locale = Locale(identifier: localeID)
+        let date = calendar.date(from: DateComponents(year: 2026, month: 9, day: day, hour: 9))!
+        let names = InkDayHeaderTitle.names(for: date, calendar: calendar, locale: locale)
+        #expect(names.full == full)
+        #expect(names.drawn == [full, short])
+        let stripName = InkWeekStrip.makeFormatter(template: "EEE", calendar: calendar, locale: locale)
+            .string(from: date)
+        #expect(names.drawn.last == stripName)
+    }
+
     @Test func weekStripDaysFollowMondayFirstWeekday() {
         var calendar = Calendar(identifier: .gregorian)
         calendar.firstWeekday = 2  // Monday

@@ -22,6 +22,10 @@
         case todayGoals
         /// Jury condition 4: first event visible without scrolling (iPhone portrait, default type).
         case firstEventVisibleLight
+        /// Three manşet icons beside a long day name ("19 Cumartesi") at phone width: the title
+        /// draws the short name ("19 Cmt") instead of wrapping the number or cutting the name.
+        /// Every other case sits on a Sunday ("Pazar"), which fits and so never showed the overflow.
+        case todayLongDayName
 
         var colorScheme: SnapshotColorScheme {
             self == .todayDark ? .dark : .light
@@ -43,6 +47,17 @@
         var usesCalendar: Bool { self == .todayTall }
         /// Incomplete boolean lives in `todayGoals` so the main light reference keeps first-event room.
         var usesIncompleteBooleanGoal: Bool { self == .todayGoals }
+        /// Saturday 2026-09-19 of the sample vault links a person and a place, so its graph icon shows.
+        var day: CalendarDate {
+            self == .todayLongDayName ? CalendarDate("2026-09-19")! : snapshotDay
+        }
+        /// 09:41 on the case's day.
+        var clock: Date {
+            guard self == .todayLongDayName else { return snapshotNow }
+            var calendar = Calendar(identifier: .gregorian)
+            calendar.timeZone = snapshotTimeZone
+            return calendar.date(from: DateComponents(year: 2026, month: 9, day: 19, hour: 9, minute: 41))!
+        }
         var snapshotName: String {
             self == .firstEventVisibleLight ? "today.firstEventVisibleLight" : rawValue
         }
@@ -75,11 +90,13 @@
                 ? TodaySnapshotCalendarSource(events: Self.sampleCalendarEvents())
                 : SnapshotCalendarSource()
             let defaults = context.defaults.defaults
+            let clock = snapshotCase.clock
             let notifications = NotificationService(
                 center: FakeNotificationCenter(), defaults: defaults,
-                now: { snapshotNow },
+                now: { clock },
                 timeZone: { snapshotTimeZone })
             let calendar = CalendarService(source: calendarSource)
+            let day = snapshotCase.day
             let location = LocationService(source: FakeLocationSource(), defaults: defaults)
             if snapshotCase.usesCalendar {
                 await calendar.load(snapshotDay, timeZone: snapshotTimeZone)
@@ -90,7 +107,7 @@
             let store = context.store
             let size: CGSize = snapshotCase.usesTallCanvas ? CGSize(width: 390, height: 1600) : snapshotCanvasSize
             let root = NavigationStack {
-                DayView(store: store, date: snapshotDay, isToday: true)
+                DayView(store: store, date: day, isToday: true)
             }
             .environment(notifications)
             .environment(calendar)
@@ -98,7 +115,7 @@
             .environment(\.locale, snapshotLocale)
             .environment(\.calendar, makeSnapshotCalendar())
             .environment(\.timeZone, snapshotTimeZone)
-            .environment(\.clockNow, { snapshotNow })
+            .environment(\.clockNow, { clock })
             .environment(\.openSearch, .nothing)
             // Without an action the masthead hides its Settings button.
             .environment(\.openSettings, {})
@@ -111,6 +128,7 @@
                 store: store,
                 size: size,
                 bottomSafeArea: Self.tabBarHeight,
+                clock: clock,
                 // Set by the day page once the strip's goals loaded, goals or none.
                 isReady: { goalsReady.isReady },
                 testName: "today",

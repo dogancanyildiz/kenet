@@ -70,7 +70,8 @@
                 }
                 assertSnapshot(
                     of: image,
-                    as: .image(precision: snapshotPrecision, perceptualPrecision: snapshotPerceptualPrecision),
+                    as: .image(
+                        precision: snapshotPrecision(of: image), perceptualPrecision: snapshotPerceptualPrecision),
                     named: screen.rawValue,
                     record: ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"]
                         .flatMap(SnapshotTestingConfiguration.Record.init(rawValue:)),

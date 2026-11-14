@@ -844,7 +844,8 @@ Ajanlar ekranı göremez; bu yüzden ekran görüntüsü testleri bu projede zor
 |---|---|---|
 | Destekçi, küçük | Çapraz duran tek halka | `accent` |
 | Destekçi, orta | Birbirine geçen iki halka | `text` ve `accent` |
-| Destekçi, büyük | Dolu daire üstünde iki halka, çevresinde hafif parıltı | Zemin `accent`; halkalar `onAccent`, alttaki yarı saydam |
+| Destekçi, büyük, açık tema | Dolu daire üstünde iki halka, çevresinde hafif parıltı | Zemin `accent`; halkalar `onAccent`, alttaki yarı saydam |
+| Destekçi, büyük, koyu tema | Çerçeveli dolu daire üstünde iki halka, çevresinde hafif parıltı | Zemin `accentSoft`, çerçeve `accent`; halkalar `text` ve `accent` |
 | Test ekibi | Kesik çizgili tek halka | `accent` |
 
 Hakkında'daki rozet `40 pt`, destek sayfasındaki `84 pt` kenarlıdır; ikisi de yazı boyutuyla büyür. Teşekkür anında rozet yaylanır ve `accent` ile `accentSoft` halkası açılıp söner. Hareketi Azalt bu canlandırmayı kapatır.

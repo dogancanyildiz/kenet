@@ -38,11 +38,12 @@ enum SupportBadgeKind: Hashable, Sendable {
 }
 
 /// The badge drawing, derived from the app icon's two interlocked links (halka). Small: one
-/// link. Medium: both links. Large: both links on a filled ground with a soft glow. Test team: one
-/// dashed link. Shapes only, no image file; colors are palette tokens.
+/// link. Medium: both links. Large: both links on a filled ground with a soft glow (the ground's
+/// tokens differ in dark, see below). Test team: one dashed link. Shapes only, no image file; colors are palette tokens.
 struct SupportBadgeView: View {
     let kind: SupportBadgeKind
     var side: CGFloat = 40
+    @Environment(\.colorScheme) private var colorScheme
 
     private var stroke: CGFloat { side * 0.11 }
 
@@ -54,6 +55,18 @@ struct SupportBadgeView: View {
             case .supporter(.medium):
                 link(angle: 45, color: Color.ink.text)
                 link(angle: -45, color: Color.ink.accent)
+            case .supporter(.large) where colorScheme == .dark:
+                // Dark: the accent is a light pink, and dark links on a pink disc run together.
+                // The ground is the dark plum with an accent rim; the links are opaque and take
+                // the medium badge's two tones, so the interlock reads at 40 pt. The glow is the
+                // disc's shadow: it lies outside the ground and never over the links.
+                Circle()
+                    .fill(Color.ink.accentSoft)
+                    .shadow(color: Color.ink.accent.opacity(0.45), radius: side * 0.14)
+                Circle()
+                    .strokeBorder(Color.ink.accent, lineWidth: max(1, side * 0.035))
+                link(angle: 45, color: Color.ink.text, inset: side * 0.1)
+                link(angle: -45, color: Color.ink.accent, inset: side * 0.1)
             case .supporter(.large):
                 Circle()
                     .fill(Color.ink.accent)

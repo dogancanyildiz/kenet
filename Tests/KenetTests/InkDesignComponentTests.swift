@@ -85,6 +85,17 @@ struct InkDesignComponentTests {
         #expect(InkNavigationRowArrangement.resolve(width: 100, leading: 44, center: 0, trailing: 92) == .centered)
     }
 
+    /// Goal cards share the row while their narrowest row fits it; a longer strip always scrolls.
+    @Test func goalCardsShareTheRowWhileTheyFit() {
+        #expect(GoalCardStripLayout.sharesRow(allowed: true, narrowestRow: 300, visibleWidth: 361))
+        #expect(GoalCardStripLayout.sharesRow(allowed: true, narrowestRow: 361, visibleWidth: 361))
+        #expect(!GoalCardStripLayout.sharesRow(allowed: true, narrowestRow: 362, visibleWidth: 361))
+        #expect(!GoalCardStripLayout.sharesRow(allowed: false, narrowestRow: 300, visibleWidth: 361))
+        // Before the strip knows its width it scrolls rather than squeeze the cards into nothing.
+        #expect(!GoalCardStripLayout.sharesRow(allowed: true, narrowestRow: 300, visibleWidth: 0))
+        #expect(GoalCardStripLayout.mostCardsInARow == 3)
+    }
+
     @Test func weekStripDaysFollowMondayFirstWeekday() {
         var calendar = Calendar(identifier: .gregorian)
         calendar.firstWeekday = 2  // Monday

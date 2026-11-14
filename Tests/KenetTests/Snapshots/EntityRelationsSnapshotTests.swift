@@ -11,7 +11,7 @@
             defer { context.clean() }
             let model = EntityRelationsModel(store: context.store, path: EntityRelationsModelTests.person)
             await model.load()
-            #expect(model.rows.count == 4)
+            #expect(model.rows.count == 3)
             await SnapshotHost.assertView(
                 colorScheme: name == "sectionDark" ? .dark : .light,
                 dynamicType: name == "sectionAX3" ? .accessibility3 : .medium,

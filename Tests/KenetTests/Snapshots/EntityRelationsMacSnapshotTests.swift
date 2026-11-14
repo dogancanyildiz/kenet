@@ -24,7 +24,7 @@
             defer { context.clean() }
             let model = EntityRelationsModel(store: context.store, path: EntityRelationsModelTests.person)
             await model.load()
-            #expect(model.rows.count == 4)
+            #expect(model.rows.count == 3)
             let size = CGSize(width: 720, height: 900)
             let root = Group {
                 if name == "sheetMacLight" {

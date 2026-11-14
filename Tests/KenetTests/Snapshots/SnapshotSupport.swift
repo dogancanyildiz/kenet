@@ -152,7 +152,6 @@
     /// Cross-machine render noise (antialiasing, font hinting). Tuned after sensitivity probes
     /// (color / spacing / glyph); see report for the measurement table.
     let snapshotPrecision: Float = 0.999
-    let snapshotPerceptualPrecision: Float = 0.995
 
     enum SnapshotColorScheme: String, CaseIterable, Sendable {
         case light, dark
@@ -571,9 +570,16 @@
     }
 #endif
 
+/// A pixel counts as different when its Lab ΔE against the reference exceeds
+/// (1 − this) × 100 = 0.5. Shared by the iOS and Mac references.
+let snapshotPerceptualPrecision: Float = 0.995
+
 #if os(macOS)
     import AppKit
     import Testing
+
+    /// Share of pixels that must match on a Mac reference: 1 in 10 000 may differ.
+    let macSnapshotPrecision: Float = 0.9999
 
     /// Window for Mac references. A hosted SwiftUI view takes two things from its window, and a
     /// plain `NSWindow` takes both from the main display, so docking the Mac to an external

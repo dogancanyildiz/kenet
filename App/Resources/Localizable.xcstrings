@@ -6861,6 +6861,22 @@
         }
       }
     },
+    "Büyük destek" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Large tip"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Büyük destek"
+          }
+        }
+      }
+    },
     "Bölüm" : {
       "localizations" : {
         "en" : {
@@ -6957,18 +6973,98 @@
         }
       }
     },
-    "Destek" : {
+    "Destek seçenekleri şu an yüklenemiyor." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Support"
+            "value" : "Tip options cannot be loaded right now."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Destek"
+            "value" : "Destek seçenekleri şu an yüklenemiyor."
+          }
+        }
+      }
+    },
+    "Destek seçenekleri yükleniyor…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading tip options…"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Destek seçenekleri yükleniyor…"
+          }
+        }
+      }
+    },
+    "Destekçi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supporter"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Destekçi"
+          }
+        }
+      }
+    },
+    "Destekçi rozeti, büyük" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supporter badge, large"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Destekçi rozeti, büyük"
+          }
+        }
+      }
+    },
+    "Destekçi rozeti, küçük" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supporter badge, small"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Destekçi rozeti, küçük"
+          }
+        }
+      }
+    },
+    "Destekçi rozeti, orta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supporter badge, medium"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Destekçi rozeti, orta"
           }
         }
       }
@@ -11684,6 +11780,70 @@
         }
       }
     },
+    "Kenet'i destekle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Support Kenet"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kenet'i destekle"
+          }
+        }
+      }
+    },
+    "Kenet'i destekledin. Teşekkürler." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You supported Kenet. Thank you."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kenet'i destekledin. Teşekkürler."
+          }
+        }
+      }
+    },
+    "Kenet'i yayından önce denedin. Teşekkürler." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You tried Kenet before launch. Thank you."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kenet'i yayından önce denedin. Teşekkürler."
+          }
+        }
+      }
+    },
+    "Kenet'in bütün özellikleri ücretsizdir. Destek gönüllüdür ve hiçbir özelliği açmaz; yalnız geliştirmenin sürmesine yardım eder." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every feature of Kenet is free. A tip is voluntary and unlocks nothing; it only helps development continue."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kenet'in bütün özellikleri ücretsizdir. Destek gönüllüdür ve hiçbir özelliği açmaz; yalnız geliştirmenin sürmesine yardım eder."
+          }
+        }
+      }
+    },
     "Kilit" : {
       "localizations" : {
         "en" : {
@@ -12580,6 +12740,22 @@
         }
       }
     },
+    "Küçük destek" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Small tip"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Küçük destek"
+          }
+        }
+      }
+    },
     "Kısayol kaydedilemedi. Başka bir tuş birleşimi dene." : {
       "localizations" : {
         "en" : {
@@ -13335,6 +13511,22 @@
         }
       }
     },
+    "Orta destek" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medium tip"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orta destek"
+          }
+        }
+      }
+    },
     "Orta öncelik" : {
       "localizations" : {
         "en" : {
@@ -13411,6 +13603,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Otomatik işaretle"
+          }
+        }
+      }
+    },
+    "Ödemeyi App Store alır. Destek tek seferliktir ve yenilenmez." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The App Store handles the payment. A tip is a one-time purchase and does not renew."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ödemeyi App Store alır. Destek tek seferliktir ve yenilenmez."
+          }
+        }
+      }
+    },
+    "Ödeme alındı ama doğrulanamadı. Yeniden satın alman gerekmez." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The payment went through but could not be verified. You do not need to buy again."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ödeme alındı ama doğrulanamadı. Yeniden satın alman gerekmez."
           }
         }
       }
@@ -13951,6 +14175,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Salı"
+          }
+        }
+      }
+    },
+    "Satın alma onay bekliyor. Onaylanınca tamamlanır." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The purchase is waiting for approval. It completes once approved."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Satın alma onay bekliyor. Onaylanınca tamamlanır."
+          }
+        }
+      }
+    },
+    "Satın alma tamamlanamadı. Yeniden deneyebilirsin." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The purchase could not be completed. You can try again."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Satın alma tamamlanamadı. Yeniden deneyebilirsin."
           }
         }
       }
@@ -14931,18 +15187,18 @@
         }
       }
     },
-    "Sürüm, gizlilik politikası, destek" : {
+    "Sürüm, gizlilik politikası, yardım" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Version, privacy policy, support"
+            "value" : "Version, privacy policy, help"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sürüm, gizlilik politikası, destek"
+            "value" : "Sürüm, gizlilik politikası, yardım"
           }
         }
       }
@@ -15895,6 +16151,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Temizlik yap"
+          }
+        }
+      }
+    },
+    "Test ekibi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Test team"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Test ekibi"
+          }
+        }
+      }
+    },
+    "Test ekibi rozeti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Test team badge"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Test ekibi rozeti"
+          }
+        }
+      }
+    },
+    "Teşekkürler. Desteğin Kenet'in gelişmesine yardım ediyor." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thank you. Your tip helps Kenet keep improving."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teşekkürler. Desteğin Kenet'in gelişmesine yardım ediyor."
           }
         }
       }
@@ -17008,6 +17312,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yapılmadı"
+          }
+        }
+      }
+    },
+    "Yardım" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yardım"
           }
         }
       }

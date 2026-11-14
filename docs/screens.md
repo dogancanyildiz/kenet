@@ -1224,6 +1224,7 @@ flowchart LR
     Kasa --> Hazirlik[Kasa hazırlığı]
     Tan --> Lisans[Üçüncü taraf lisansları]
     Hak --> Lisans
+    Hak --> Destekle[Kenet'i destekle]
 ```
 
 iPhone'da Ayarlar, Bugün gün başlığındaki düğmenin açtığı sheet'tir. Ekran adı ve alt ekran adları manşet olarak listenin içindedir. En üstte parıltı tonlu kasa kartı durur: kasa konumu (iCloud, Bu cihazda ya da Seçilen klasör) ve dosya sayısı; karta dokunma Kasa bölümünü açar. Altında 7 bölüm kart içinde satırdır. Her satırın altındaki kısa satır bölümün durumunu söyler; durumu olmayan bölümde içeriğini söyler. Mac'te aynı 7 bölüm Settings sekmeleridir ve Hızlı giriş ilk sekmedir. Hiçbir ayar kaybolmaz.
@@ -1235,7 +1236,7 @@ iPhone'da Ayarlar, Bugün gün başlığındaki düğmenin açtığı sheet'tir.
 | Gizlilik | "Uygulama kilidi açık · kişi hatırlatmaları" ya da "kapalı" |
 | Bildirimler | "Günlük hatırlatması 21:30" ya da "Günlük hatırlatması kapalı" |
 | Takvim ve Konum | "2 takvim · konuma girince kapalı"; izin yoksa "Takvim izni yok" |
-| Öteki bölümler | Bölümün içeriği: "Konum, varlık tipleri", "Sürüm, gizlilik politikası, destek" |
+| Öteki bölümler | Bölümün içeriği: "Konum, varlık tipleri", "Sürüm, gizlilik politikası, yardım" |
 
 **Alt ekran satır dili.**
 
@@ -1372,13 +1373,37 @@ stateDiagram-v2
 
 | Öğe | Davranış |
 |---|---|
+| Rozetler | Kartın üstünde ayrı kart; kullanıcının rozeti yoksa kart yoktur. Her rozet bir satırdır: çizim ve ad. Destekçi rozeti seviyesini çizimle gösterir. Test ekibi rozeti kesik çizgili halkadır. Satıra dokunma adın altında teşekkürü açar: "Kenet'i destekledin. Teşekkürler." ya da "Kenet'i yayından önce denedin. Teşekkürler." İki rozet alt alta durur. Rozet hiçbir özelliği açmaz. |
 | Sürüm | Paketin sürümü ve yapı numarası: `0.17.0 (383)`. Kullanıcı metni seçip kopyalar. |
-| Gizlilik politikası | Web bağlantısı, Safari'de açılır. Adres uygulama dilini izler: `kenet.app/gizlilik` ya da `kenet.app/en/privacy`. |
-| Destek | Web bağlantısı: `kenet.app/destek` ya da `kenet.app/en/support`. |
+| Gizlilik politikası | Web bağlantısı, Safari'de açılır. Adres uygulama dilini izler: `https://www.kenet.app/gizlilik` ya da `https://www.kenet.app/en/privacy`. |
+| Yardım | Web bağlantısı: `https://www.kenet.app/destek` ya da `https://www.kenet.app/en/support`. Satırın adı "Destek" değildir; "Kenet'i destekle" satırıyla karışmaz. |
 | Üçüncü taraf lisansları | Tanılama'daki lisans alt ekranının aynısı. Mac'te sekmenin içeriğinin yerine geçer; "Hakkında" düğmesi geri döndürür. |
+| Kenet'i destekle | Destek alt ekranını açar. Satır satın alma başlatmaz. Mac'te alt ekran sekmenin içeriğinin yerine geçer; "Hakkında" düğmesi geri döndürür. |
 | Dipnot | Kenet veri toplamaz; veri yalnız kullanıcının dosyalarındadır. |
 
 Adresler tek sabittedir: `AppLinks`. Karar: `docs/decisions.md` 2026-10-21 alan adı satırı. App Store 5.1.1(i) uygulama içinde gizlilik bağlantısı ister.
+
+### Ayarlar — Kenet'i destekle
+
+**Destek alt ekranı gönüllü desteği sunar; hiçbir özelliği açmaz.**
+
+| Öğe | Davranış |
+|---|---|
+| Açıklama | Bütün özellikler ücretsizdir. Destek gönüllüdür ve hiçbir özelliği açmaz. |
+| Seçenekler | Tek kartta üç satır, bu sırayla: Küçük destek, Orta destek, Büyük destek. Sıra ürün kimliğini izler, fiyatı izlemez. |
+| Satır | Solda uygulamanın kendi adı, sağda mağazanın döndürdüğü yerel fiyat. Uygulama fiyat yazmaz. Erişilebilirlik boyutlarında fiyat adın altına iner. |
+| Dokunma | Mağazanın satın alma penceresini açar. Satın alma sürerken üç satır da kapalıdır; dokunulan satır ilerleme gösterir. |
+| Destekçi rozeti | Açıklamanın altında, ortada. Kullanıcı hiç destek vermediyse yoktur. Altında "Destekçi" yazar. Seviye alınan en yüksek katmandır: küçük tek halka, orta çift halka, büyük çerçeve içinde çift halka. |
+| Başarı | Rozet canlanarak gelir: yaylanır ve çevresinden mürdüm bir ışık halkası açılıp söner; süre yaklaşık 1 saniye. iPhone ve iPad hafif dokunsal geri bildirim verir. Rozetin altında teşekkür yazar. Hareketi Azalt açıkken canlandırma yoktur; rozet doğrudan görünür. Uygulama başka hiçbir şeyi değiştirmez. |
+| İptal | Ekran ilk hâline döner; bant çıkmaz. |
+| Onay bekleyen | Bilgi bandı satın almanın onay beklediğini söyler. Onay gelince bant kalkar ve rozet teşekkürle gelir. Sayfa yeniden açılınca bant kalkar; sonradan gelen onay yine teşekkür gösterir. |
+| Hata | Hata bandı satın almanın tamamlanamadığını söyler. Kullanıcı satıra yeniden dokunur. **Varsayım:** mağaza hata verdiğinde ödeme alınmamıştır; hatadan sonra aynı işlemin sonradan gelip gelmediği ölçülmedi. |
+| Doğrulanamadı | Mağaza ödemeyi aldı ama cihaz imzayı doğrulayamadı. Uyarı bandı ödemenin alındığını ve yeniden satın almanın gerekmediğini söyler. Uygulama teşekkür göstermez. |
+| Ürünler yüklenemedi | Kartın yerinde uyarı bandı ve "Yeniden dene" düğmesi durur. Çevrimdışı cihaz ve satışta olmayan ürün bu durumu verir. |
+| Dipnot | Ödemeyi App Store alır. Destek tek seferliktir ve yenilenmez. |
+| Olmayanlar | Dış ödeme bağlantısı, "satın alımları geri yükle" düğmesi ve kilitli özellik yoktur. |
+
+Tüketilebilir ürün geri yüklenmez; bu yüzden geri yükleme düğmesi yoktur. Metinler "bağış" sözcüğünü kullanmaz: sözcük hayır kurumu çağrıştırır. Karar: `docs/decisions.md` 2026-11-13 gelir modeli satırı.
 
 ### Ayarlar — Konuma girince (4, iOS)
 

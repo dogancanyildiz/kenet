@@ -92,6 +92,7 @@ import Testing
                 .environment(location)
                 .environment(geofences)
                 .environment(lock)
+                .environment(SupportService(storefront: InMemorySupportStorefront()))
                 .environment(\.locale, snapshotLocale)
                 .environment(
                     \.calendar,

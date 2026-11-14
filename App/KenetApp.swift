@@ -43,6 +43,7 @@ struct KenetApp: App {
     @State private var notifications: NotificationService
     @State private var store: IndexStore
     @State private var appLock: AppLockService
+    @State private var support: SupportService
     @Environment(\.scenePhase) private var scenePhase
 
     #if os(iOS)
@@ -67,6 +68,13 @@ struct KenetApp: App {
         }
         let appLock = AppLockService()
         _appLock = State(initialValue: appLock)
+        let support = AppLaunchPolicy.supportService()
+        // Listens from launch on, so a purchase approved while the app was closed gets finished.
+        if AppLaunchPolicy.allowsAutomaticStart() {
+            support.start()
+            Task { await support.refreshBadges() }
+        }
+        _support = State(initialValue: support)
         let location = LocationService()
         _location = State(initialValue: location)
         let store = IntentActions.shared.store
@@ -155,6 +163,7 @@ struct KenetApp: App {
                     .environment(notifications)
                     .environment(intentNavigation)
                     .environment(appLock)
+                    .environment(support)
                     .appLockShield(appLock)
             }
         #else
@@ -172,6 +181,7 @@ struct KenetApp: App {
                 .environment(notifications)
                 .environment(intentNavigation)
                 .environment(appLock)
+                .environment(support)
                 #if os(iOS)
                     // What the share extension added or queued, once the app has taken it in.
                     .safeAreaInset(edge: .top, spacing: 0) { ShareImportBand(processor: shareQueue) }

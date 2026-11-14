@@ -6,12 +6,12 @@ import SwiftUI
 enum AppLinks {
     static func privacyPolicy(locale: Locale) -> URL {
         isEnglish(locale)
-            ? URL(string: "https://kenet.app/en/privacy")! : URL(string: "https://kenet.app/gizlilik")!
+            ? URL(string: "https://www.kenet.app/en/privacy")! : URL(string: "https://www.kenet.app/gizlilik")!
     }
 
     static func support(locale: Locale) -> URL {
         isEnglish(locale)
-            ? URL(string: "https://kenet.app/en/support")! : URL(string: "https://kenet.app/destek")!
+            ? URL(string: "https://www.kenet.app/en/support")! : URL(string: "https://www.kenet.app/destek")!
     }
 
     /// Turkish is the catalog's source language; every other app language gets the English page.
@@ -30,13 +30,18 @@ enum AppVersionText {
     }
 }
 
-/// Hakkında: version, privacy policy, support, and the third-party licenses. Pushed from the
+/// Hakkında: version, privacy policy, support, the third-party licenses, and voluntary support. Pushed from the
 /// iPhone and iPad hub; a Settings tab on Mac (``MacAboutSettingsPage``).
 struct AboutSettingsView: View {
     @Environment(\.locale) private var locale
+    /// Nil where no store is wired in (previews, snapshot hosts): the row is then left out.
+    @Environment(SupportService.self) private var support: SupportService?
+    /// Fixed in snapshots: the build number follows the commit time and would change every reference.
+    var versionText: String = AppVersionText.text()
     #if os(macOS)
         /// The Settings tab swaps its content; a push would shift the tab strip's highlight.
         var openLicenses: () -> Void = {}
+        var openSupport: () -> Void = {}
     #endif
 
     var body: some View {
@@ -45,10 +50,14 @@ struct AboutSettingsView: View {
                 InkPageTitleRow("Hakkında")
             #endif
             Section {
+                if let support, support.supporterLevel != nil || support.isTester {
+                    SupportBadgesCard(service: support)
+                        .inkListRow()
+                }
                 InkCard(padded: false) {
                     VStack(alignment: .leading, spacing: 0) {
                         LabeledContent("Sürüm") {
-                            Text(verbatim: AppVersionText.text())
+                            Text(verbatim: versionText)
                                 .font(.ink.value)
                                 .foregroundStyle(Color.ink.secondaryText)
                                 .textSelection(.enabled)
@@ -64,12 +73,16 @@ struct AboutSettingsView: View {
                         .accessibilityIdentifier("link.settings.about.privacy")
                         InkCardDivider()
                         Link(destination: AppLinks.support(locale: locale)) {
-                            InkDisclosureRowLabel("Destek", symbol: "arrow.up.right")
+                            InkDisclosureRowLabel("Yardım", symbol: "arrow.up.right")
                         }
-                        .inkDisclosureRow("Destek")
+                        .inkDisclosureRow("Yardım")
                         .accessibilityIdentifier("link.settings.about.support")
                         InkCardDivider()
                         licensesRow
+                        if let support {
+                            InkCardDivider()
+                            supportRow(support)
+                        }
                     }
                 }
                 .inkListRow()
@@ -83,6 +96,26 @@ struct AboutSettingsView: View {
         .inkPageNavigationTitle("Hakkında")
         .inkPageScrollColumn()
         .inkPage()
+        .task { await support?.refreshBadges() }
+    }
+
+    /// Opens the support page. The purchase itself happens there, never from this row.
+    @ViewBuilder private func supportRow(_ support: SupportService) -> some View {
+        #if os(macOS)
+            Button(action: openSupport) {
+                InkDisclosureRowLabel("Kenet'i destekle")
+            }
+            .inkDisclosureRow("Kenet'i destekle")
+            .accessibilityIdentifier("button.settings.about.supportKenet")
+        #else
+            NavigationLink {
+                SupportSettingsView(service: support)
+            } label: {
+                InkDisclosureRowLabel("Kenet'i destekle")
+            }
+            .inkDisclosureRow("Kenet'i destekle")
+            .accessibilityIdentifier("button.settings.about.supportKenet")
+        #endif
     }
 
     @ViewBuilder private var licensesRow: some View {

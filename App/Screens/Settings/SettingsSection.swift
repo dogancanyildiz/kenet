@@ -46,7 +46,7 @@ enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
         case .calendarAndLocation: "Takvim izni, konuma girince"
         case .vault: "Konum, varlık tipleri"
         case .diagnostics: "İndeks sayıları, kopya dosyalar"
-        case .about: "Sürüm, gizlilik politikası, destek"
+        case .about: "Sürüm, gizlilik politikası, yardım"
         }
     }
 }

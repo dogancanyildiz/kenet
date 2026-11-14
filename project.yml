@@ -33,6 +33,12 @@ packages:
     url: https://github.com/pointfreeco/swift-snapshot-testing
     exactVersion: 1.19.6
 
+# Yerel StoreKit yapılandırması (gönüllü destek ürünleri, docs/architecture.md "Gönüllü destek").
+# Yalnız dosya başvurusudur: hiçbir hedefin kaynağı değildir, uygulama paketine girmez. Şemaların
+# yalnız run eylemi (Debug) kullanır; arşiv (Release) ve TestFlight gerçek App Store'a gider.
+fileGroups:
+  - Config/Support.storekit
+
 # Takım kimliği repoya girmez: Config/Signing.xcconfig, varsa izlenmeyen Config/Local.xcconfig
 # dosyasını içerir (örnek: Config/Local.xcconfig.example). Dosya yoksa proje imzasız derlenir.
 configFiles:
@@ -132,6 +138,9 @@ targets:
       path: .dd/Kenet-${platform}-Info.plist
       properties:
         UIFileSharingEnabled: true
+        # Bitmiş tüketilebilir satın almalar Transaction.all içinde görünür (iOS 18, macOS 15):
+        # destekçi rozetinin seviyesi satın alma geçmişinden türetilir (docs/architecture.md).
+        SKIncludeConsumableInAppPurchaseHistory: true
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
         NSUbiquitousContainers:
@@ -393,6 +402,7 @@ schemes:
         Kenet_macOS: all
     run:
       config: Debug
+      storeKitConfiguration: Config/Support.storekit
     archive:
       config: Release
     test:
@@ -416,6 +426,7 @@ schemes:
         Kenet_iOS: all
     run:
       config: Debug
+      storeKitConfiguration: Config/Support.storekit
     archive:
       config: Release
     test:

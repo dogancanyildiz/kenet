@@ -52,7 +52,7 @@
                 store: context.store, testName: "about"
             ) {
                 NavigationStack {
-                    AboutSettingsView()
+                    AboutSettingsView(versionText: "0.9.0 (1)")
                 }
                 .environment(service)
                 .environment(\.locale, snapshotLocale)

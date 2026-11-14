@@ -36,6 +36,8 @@ struct AboutSettingsView: View {
     @Environment(\.locale) private var locale
     /// Nil where no store is wired in (previews, snapshot hosts): the row is then left out.
     @Environment(SupportService.self) private var support: SupportService?
+    /// Fixed in snapshots: the build number follows the commit time and would change every reference.
+    var versionText: String = AppVersionText.text()
     #if os(macOS)
         /// The Settings tab swaps its content; a push would shift the tab strip's highlight.
         var openLicenses: () -> Void = {}
@@ -55,7 +57,7 @@ struct AboutSettingsView: View {
                 InkCard(padded: false) {
                     VStack(alignment: .leading, spacing: 0) {
                         LabeledContent("Sürüm") {
-                            Text(verbatim: AppVersionText.text())
+                            Text(verbatim: versionText)
                                 .font(.ink.value)
                                 .foregroundStyle(Color.ink.secondaryText)
                                 .textSelection(.enabled)

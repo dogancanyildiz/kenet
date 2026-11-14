@@ -30,7 +30,8 @@ extension DayView {
         InkDayHeader(
             date: instant, progress: progress, remainingCount: remaining,
             showsRing: TodayDayRing.showsRing(total: total), compact: compact,
-            compactTitle: presented.shortHeadline
+            compactTitle: presented.shortHeadline,
+            compactTitleFallbacks: rowTitleFallbacks(presented, instant: instant)
         ) {
             if usesWideMasthead {
                 // iPad drawing: bare icons, the day's graph, settings, then search.
@@ -109,12 +110,27 @@ extension DayView {
 
     /// Shorter dates for the pinned row, widest first: "19 Eyl Cumartesi", "19 Eyl", "19".
     func compactTitleFallbacks(_ presented: TodayPresentation, instant: Date) -> [String] {
-        let resolved = PresentationLocalization.resolvedLocale(locale)
-        let style = Date.FormatStyle(locale: resolved, calendar: calendarValue, timeZone: calendarValue.timeZone)
-        return TodayCompactTitle.fallbacks(
-            shortHeadline: presented.shortHeadline,
-            dayAndMonth: instant.formatted(style.day().month(.abbreviated)),
-            day: instant.formatted(style.day()))
+        let style = compactDateStyle
+        return TodayCompactTitle.distinct([
+            presented.shortHeadline, instant.formatted(style.day().month(.abbreviated)),
+            instant.formatted(style.day()),
+        ])
+    }
+
+    /// Shorter forms of the one-row manşet's "20 Eyl Pazar" (iPad at an accessibility text size),
+    /// widest first: the short day name, then no day name.
+    func rowTitleFallbacks(_ presented: TodayPresentation, instant: Date) -> [String] {
+        let style = compactDateStyle
+        return TodayCompactTitle.distinct([
+            instant.formatted(style.day().month(.abbreviated).weekday(.abbreviated)),
+            instant.formatted(style.day().month(.abbreviated)),
+        ]).filter { $0 != presented.shortHeadline }
+    }
+
+    private var compactDateStyle: Date.FormatStyle {
+        Date.FormatStyle(
+            locale: PresentationLocalization.resolvedLocale(locale), calendar: calendarValue,
+            timeZone: calendarValue.timeZone)
     }
 
     func compactTitle(_ instant: Date) -> some View {
@@ -222,6 +238,9 @@ extension DayView {
                     .foregroundStyle(.ink.secondaryText)
                     .accessibilityHidden(true)
             }
+            // On a row narrower than "Eylül 2026" the words shrink; they never wrap mid-word.
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
             .tapTarget()
         }
         .buttonStyle(.plain)
@@ -380,12 +399,13 @@ extension DayView {
     }
 }
 
-/// The dates the pinned Today row falls back to (unit-tested).
+/// The dates a one-row Today title falls back to (unit-tested).
 enum TodayCompactTitle {
-    /// Widest first, without repeats: a locale whose forms coincide offers each once.
-    static func fallbacks(shortHeadline: String, dayAndMonth: String, day: String) -> [String] {
+    /// The given forms in order, without empty ones or repeats: a locale whose forms coincide
+    /// offers each once.
+    static func distinct(_ widestFirst: [String]) -> [String] {
         var titles: [String] = []
-        for title in [shortHeadline, dayAndMonth, day] where !title.isEmpty && !titles.contains(title) {
+        for title in widestFirst where !title.isEmpty && !titles.contains(title) {
             titles.append(title)
         }
         return titles

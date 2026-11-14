@@ -49,14 +49,40 @@ struct InkDesignComponentTests {
         #expect(InkDayHeaderLayout.largestActionSize == .accessibility2)
     }
 
-    /// The pinned Today row tries shorter dates in order and offers a repeated form once.
+    /// A one-row Today title tries shorter dates in order and offers a repeated form once.
     @Test func compactTitleFallbacksRunWidestFirstWithoutRepeats() {
         #expect(
-            TodayCompactTitle.fallbacks(shortHeadline: "19 Eyl Cumartesi", dayAndMonth: "19 Eyl", day: "19")
-                == ["19 Eyl Cumartesi", "19 Eyl", "19"])
+            TodayCompactTitle.distinct(["19 Eyl Cumartesi", "19 Eyl", "19"]) == ["19 Eyl Cumartesi", "19 Eyl", "19"])
+        #expect(TodayCompactTitle.distinct(["19 Eyl", "19 Eyl", "19"]) == ["19 Eyl", "19"])
+        #expect(TodayCompactTitle.distinct(["", "19", "19"]) == ["19"])
+    }
+
+    /// The navigation row's middle item stays centered while it clears both ends, then moves
+    /// between them, then takes its own row; it never sits under the back item or the icons.
+    @Test func navigationRowKeepsTheMiddleItemClearOfItsEnds() {
+        let gap = InkNavigationRowArrangement.gap
+        // 393 pt phone, default text: back chip 44, month picker 130, two icons 92.
+        #expect(InkNavigationRowArrangement.resolve(width: 361, leading: 44, center: 130, trailing: 92) == .centered)
+        // Exactly the gap left beside the wider end still centers; one point less does not.
         #expect(
-            TodayCompactTitle.fallbacks(shortHeadline: "19 Eyl", dayAndMonth: "19 Eyl", day: "19") == ["19 Eyl", "19"])
-        #expect(TodayCompactTitle.fallbacks(shortHeadline: "", dayAndMonth: "19", day: "19") == ["19"])
+            InkNavigationRowArrangement.resolve(width: 130 + 2 * (92 + gap), leading: 44, center: 130, trailing: 92)
+                == .centered)
+        #expect(
+            InkNavigationRowArrangement.resolve(width: 130 + 2 * (92 + gap) - 1, leading: 44, center: 130, trailing: 92)
+                == .between)
+        #expect(
+            InkNavigationRowArrangement.resolve(width: 44 + 130 + 92 + 2 * gap, leading: 44, center: 130, trailing: 92)
+                == .between)
+        #expect(
+            InkNavigationRowArrangement.resolve(
+                width: 44 + 130 + 92 + 2 * gap - 1, leading: 44, center: 130, trailing: 92)
+                == .below)
+        // No back item (split shell): its gap is not counted.
+        #expect(
+            InkNavigationRowArrangement.resolve(width: 130 + 92 + gap, leading: 0, center: 130, trailing: 92)
+                == .between)
+        // No middle item (iPad day page): nothing to move.
+        #expect(InkNavigationRowArrangement.resolve(width: 100, leading: 44, center: 0, trailing: 92) == .centered)
     }
 
     @Test func weekStripDaysFollowMondayFirstWeekday() {

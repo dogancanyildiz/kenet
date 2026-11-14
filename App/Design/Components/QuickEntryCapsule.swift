@@ -136,11 +136,24 @@ struct QuickEntryCapsule<Field: View, Accessory: View, Chips: View>: View {
                     }
                 case .stacked:
                     VStack(alignment: .leading, spacing: 8) {
-                        HStack(alignment: .center, spacing: 6) {
-                            modePicker
-                            accessory()
-                            Spacer(minLength: 0)
-                            sendButton
+                        // A narrow screen has no room for the mode words, the time chip and send
+                        // on one row: the words keep the first row, the chip and send take the
+                        // next, so no word runs under the chip.
+                        ViewThatFits(in: .horizontal) {
+                            HStack(alignment: .center, spacing: 6) {
+                                modePicker
+                                accessory()
+                                Spacer(minLength: 0)
+                                sendButton
+                            }
+                            VStack(alignment: .leading, spacing: 0) {
+                                modePicker
+                                HStack(alignment: .center, spacing: 6) {
+                                    accessory()
+                                    Spacer(minLength: 0)
+                                    sendButton
+                                }
+                            }
                         }
                         fieldSlot
                     }

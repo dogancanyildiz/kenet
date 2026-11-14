@@ -14,6 +14,9 @@ struct InkDayHeader<Actions: View>: View {
     var compact: Bool = false
     /// Compact title ("20 Eylül Pazar"); falls back to day number + day name when nil.
     var compactTitle: String? = nil
+    /// Shorter forms of `compactTitle`, widest first ("20 Eyl Paz", "20 Eyl"): the one row draws
+    /// the first that fits instead of cutting the title.
+    var compactTitleFallbacks: [String] = []
     @ViewBuilder var actions: () -> Actions
 
     @Environment(\.calendar) private var calendar
@@ -132,11 +135,20 @@ struct InkDayHeader<Actions: View>: View {
         HStack(alignment: .center, spacing: 10) {
             if showsRing { ring }
             if let compactTitle, !compactTitle.isEmpty {
-                Text(verbatim: compactTitle)
-                    .font(.ink.dayName)
-                    .foregroundStyle(Color.ink.text)
-                    .lineLimit(1)
-                    .accessibilityAddTraits(.isHeader)
+                ViewThatFits(in: .horizontal) {
+                    ForEach([compactTitle] + compactTitleFallbacks, id: \.self) { title in
+                        Text(verbatim: title)
+                            .font(.ink.dayName)
+                            .foregroundStyle(Color.ink.text)
+                            .lineLimit(1)
+                            .fixedSize()
+                    }
+                }
+                // Offered the row's free width before the spacer; VoiceOver reads the full title.
+                .layoutPriority(1)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text(verbatim: compactTitle))
+                .accessibilityAddTraits(.isHeader)
             } else {
                 dayNumberText
                 dayNameText(fullDayName, spokenAs: fullDayName)
@@ -198,18 +210,18 @@ struct InkDayHeader<Actions: View>: View {
 extension InkDayHeader where Actions == EmptyView {
     init(
         date: Date, progress: Double, remainingCount: Int, showsRing: Bool = true,
-        compact: Bool = false, compactTitle: String? = nil
+        compact: Bool = false, compactTitle: String? = nil, compactTitleFallbacks: [String] = []
     ) {
         self.init(
             date: date, progress: progress, remainingCount: remainingCount, showsRing: showsRing,
-            compact: compact, compactTitle: compactTitle
+            compact: compact, compactTitle: compactTitle, compactTitleFallbacks: compactTitleFallbacks
         ) { EmptyView() }
     }
 }
 
 /// Which arrangement the day manşet draws (unit-tested).
 enum InkDayHeaderLayout: Equatable, Sendable {
-    /// One row with the compact title; a title too long for it is cut.
+    /// One row with the compact title, shortened until it fits.
     case singleRow
     /// One row while the day number fits beside the icons, else ``stacked``.
     case fitted

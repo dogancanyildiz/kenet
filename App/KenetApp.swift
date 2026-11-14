@@ -68,9 +68,12 @@ struct KenetApp: App {
         }
         let appLock = AppLockService()
         _appLock = State(initialValue: appLock)
-        let support = SupportService(storefront: StoreKitSupportStorefront())
+        let support = AppLaunchPolicy.supportService()
         // Listens from launch on, so a purchase approved while the app was closed gets finished.
-        if AppLaunchPolicy.allowsAutomaticStart() { support.start() }
+        if AppLaunchPolicy.allowsAutomaticStart() {
+            support.start()
+            Task { await support.refreshBadges() }
+        }
         _support = State(initialValue: support)
         let location = LocationService()
         _location = State(initialValue: location)

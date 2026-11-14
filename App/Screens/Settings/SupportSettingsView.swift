@@ -17,6 +17,12 @@ extension SupportTier {
 struct SupportSettingsView: View {
     let service: SupportService
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// The thank-you moment: the badge springs in and a ring of light leaves it. Both rest at 1.
+    @State private var badgeScale: CGFloat = 1
+    @State private var glow: CGFloat = 1
+    @State private var thanks = 0
+    @ScaledMetric(relativeTo: .body) private var badgeSide: CGFloat = 84
 
     var body: some View {
         List {
@@ -32,6 +38,7 @@ struct SupportSettingsView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .inkListRow()
                 .accessibilityIdentifier("text.settings.support.intro")
+                badge
                 outcome
                 options
                 Text("Ödemeyi App Store alır. Destek tek seferliktir ve yenilenmez.")
@@ -45,15 +52,62 @@ struct SupportSettingsView: View {
         .inkPageScrollColumn()
         .inkPage()
         .accessibilityIdentifier("screen.settings.support")
-        .task { await service.pageAppeared() }
+        .task {
+            await service.refreshBadges()
+            await service.pageAppeared()
+        }
+        .onChange(of: service.purchase) { _, purchase in
+            guard purchase == .thanked else { return }
+            thanks += 1
+            // Reduce Motion: the badge is simply there.
+            guard !reduceMotion else { return }
+            badgeScale = 0.5
+            glow = 0
+            withAnimation(.spring(duration: 0.55, bounce: 0.45)) { badgeScale = 1 }
+            withAnimation(.easeOut(duration: 0.95)) { glow = 1 }
+        }
+        #if os(iOS)
+            .sensoryFeedback(.success, trigger: thanks)
+        #endif
+    }
+
+    private var badgeCaption: LocalizedStringKey {
+        service.purchase == .thanked ? "Teşekkürler. Desteğin Kenet'in gelişmesine yardım ediyor." : "Destekçi"
+    }
+
+    /// The supporter badge, once there is one, with the thank-you under it right after a purchase.
+    @ViewBuilder private var badge: some View {
+        if let level = service.supporterLevel {
+            VStack(spacing: 10) {
+                SupportBadgeView(kind: .supporter(level), side: min(badgeSide, 120))
+                    .scaleEffect(badgeScale)
+                    .background {
+                        Circle()
+                            .stroke(Color.ink.accent, lineWidth: 2)
+                            .scaleEffect(1 + 0.9 * glow)
+                            .opacity(0.7 * (1 - glow))
+                        Circle()
+                            .fill(Color.ink.accentSoft)
+                            .scaleEffect(1 + 0.6 * glow)
+                            .opacity(0.8 * (1 - glow))
+                    }
+                Text(badgeCaption)
+                    .font(.ink.content)
+                    .foregroundStyle(Color.ink.text)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier(
+                        service.purchase == .thanked
+                            ? "status.settings.support.thanks" : "status.settings.support.supporter")
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .inkListRow()
+        }
     }
 
     @ViewBuilder private var outcome: some View {
         switch service.purchase {
-        case .thanked:
-            InfoBand(kind: .info, "Teşekkürler. Desteğin Kenet'in gelişmesine yardım ediyor.")
-                .inkListRow()
-                .accessibilityIdentifier("band.settings.support.thanks")
         case .pending:
             InfoBand(kind: .info, "Satın alma onay bekliyor. Onaylanınca tamamlanır.")
                 .inkListRow()
@@ -66,7 +120,7 @@ struct SupportSettingsView: View {
             InfoBand(kind: .error, "Satın alma tamamlanamadı. Yeniden deneyebilirsin.")
                 .inkListRow()
                 .accessibilityIdentifier("band.settings.support.failed")
-        case .idle, .purchasing, .cancelled:
+        case .idle, .purchasing, .cancelled, .thanked:
             EmptyView()
         }
     }

@@ -30,6 +30,15 @@ enum SupportStoreTranslation {
         }
     }
 
+    static func distribution(_ environment: AppStore.Environment) -> SupportDistribution {
+        switch environment {
+        case .xcode: .xcode
+        case .sandbox: .sandbox
+        case .production: .production
+        default: .unknown
+        }
+    }
+
     /// A thrown cancellation is a cancellation; every other error stays an error.
     static func purchase(thrown error: any Error) throws -> SupportStorePurchase {
         if case StoreKitError.userCancelled = error { return .cancelled }
@@ -80,6 +89,18 @@ enum SupportStoreTranslation {
         }
     }
 
+    func purchaseHistory() async -> [SupportHistoryEntry] {
+        var entries: [SupportHistoryEntry] = []
+        for await result in Transaction.all {
+            let transaction = result.unsafePayloadValue
+            entries.append(
+                SupportHistoryEntry(
+                    productID: transaction.productID, isVerified: SupportStoreTranslation.isVerified(result),
+                    isRevoked: SupportStoreTranslation.isRevoked(revocationDate: transaction.revocationDate)))
+        }
+        return entries
+    }
+
     /// An unverified transaction is still handed over, so it gets finished; the app does not
     /// thank for it.
     nonisolated private static func transaction(
@@ -90,5 +111,35 @@ enum SupportStoreTranslation {
             productID: transaction.productID, isVerified: SupportStoreTranslation.isVerified(result),
             isRevoked: SupportStoreTranslation.isRevoked(revocationDate: transaction.revocationDate),
             finish: { await transaction.finish() })
+    }
+}
+
+/// Whether this run earns the test team badge (``TesterBadgePolicy``). TestFlight builds run in
+/// the sandbox environment and carry no development profile; a build run from Xcode reports
+/// `xcode` or carries one. A DEBUG build never asks the store.
+enum SystemTesterProbe {
+    @MainActor static func earns() async -> Bool {
+        #if DEBUG || targetEnvironment(simulator)
+            return false
+        #else
+            let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+            // Asked first: after 1.0.0 the store is never asked.
+            guard TesterBadgePolicy.isPrerelease(version) else { return false }
+            guard let result = try? await AppTransaction.shared else { return false }
+            return TesterBadgePolicy.earns(
+                distribution: SupportStoreTranslation.distribution(result.unsafePayloadValue.environment),
+                hasDevelopmentProfile: hasDevelopmentProfile, isSimulator: false, version: version)
+        #endif
+    }
+
+    /// iOS: App Store and TestFlight copies have no `embedded.mobileprovision`; development and
+    /// ad hoc copies do. Mac copies from the store keep their profile (iCloud needs it), so the
+    /// file says nothing there.
+    static var hasDevelopmentProfile: Bool {
+        #if os(iOS)
+            Bundle.main.path(forResource: "embedded", ofType: "mobileprovision") != nil
+        #else
+            false
+        #endif
     }
 }

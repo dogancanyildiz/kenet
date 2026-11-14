@@ -12,6 +12,7 @@ import Foundation
     /// Nil: the store cannot be reached.
     var catalog: [SupportStoreProduct]?
     var purchaseOutcome: PurchaseOutcome
+    var history: [SupportHistoryEntry]
 
     static let sampleCatalog = [
         SupportStoreProduct(id: SupportTier.small.productID, displayPrice: "₺49,00"),
@@ -19,9 +20,13 @@ import Foundation
         SupportStoreProduct(id: SupportTier.large.productID, displayPrice: "₺249,00"),
     ]
 
-    init(catalog: [SupportStoreProduct]? = sampleCatalog, purchaseOutcome: PurchaseOutcome = .verified) {
+    init(
+        catalog: [SupportStoreProduct]? = sampleCatalog, purchaseOutcome: PurchaseOutcome = .verified,
+        history: [SupportTier] = []
+    ) {
         self.catalog = catalog
         self.purchaseOutcome = purchaseOutcome
+        self.history = history.map { SupportHistoryEntry(productID: $0.productID) }
     }
 
     func products(for ids: [String]) async throws -> [SupportStoreProduct] {
@@ -32,6 +37,7 @@ import Foundation
     func purchase(productID: String) async throws -> SupportStorePurchase {
         switch purchaseOutcome {
         case .verified, .unverified:
+            history.append(SupportHistoryEntry(productID: productID, isVerified: purchaseOutcome == .verified))
             return .completed(
                 SupportStoreTransaction(
                     productID: productID, isVerified: purchaseOutcome == .verified, finish: {}))
@@ -44,4 +50,6 @@ import Foundation
     func transactionUpdates() -> AsyncStream<SupportStoreTransaction> {
         AsyncStream { _ in }
     }
+
+    func purchaseHistory() async -> [SupportHistoryEntry] { history }
 }

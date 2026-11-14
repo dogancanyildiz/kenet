@@ -24,6 +24,33 @@ enum AppLaunchPolicy {
         return nil
     }
 
+    /// DEBUG-only: a store in memory in place of the App Store, for UI tests and the screen tour.
+    /// Comma-separated words: `small`, `medium`, `large` (a purchase already in the history),
+    /// `tester` (this run earns the test team badge), `unverified`, `pending`, `failed`,
+    /// `cancelled` (what the next purchase does), `offline` (no products). Nothing is kept.
+    static let uiTestSupportKey = "KENET_UITEST_SUPPORT"
+
+    /// The support service: the App Store, with the test team badge kept in the app's defaults.
+    @MainActor static func supportService(
+        environment: [String: String] = ProcessInfo.processInfo.environment
+    ) -> SupportService {
+        #if DEBUG
+            if uiTestVaultPath(environment: environment) != nil, let value = environment[uiTestSupportKey] {
+                let words = Set(value.split(separator: ",").map(String.init))
+                let storefront = InMemorySupportStorefront(
+                    catalog: words.contains("offline") ? nil : InMemorySupportStorefront.sampleCatalog,
+                    purchaseOutcome: words.compactMap(InMemorySupportStorefront.PurchaseOutcome.init(rawValue:)).first
+                        ?? .verified,
+                    history: words.compactMap(SupportTier.init(rawValue:)))
+                let earnsTester = words.contains("tester")
+                return SupportService(storefront: storefront, testerProbe: { earnsTester })
+            }
+        #endif
+        return SupportService(
+            storefront: StoreKitSupportStorefront(), defaults: .standard,
+            testerProbe: { await SystemTesterProbe.earns() })
+    }
+
     /// DEBUG-only: `memory` puts an in-memory calendar with full access in place of EventKit;
     /// `sample` fills it with today's fictional events (the screen tour).
     static let uiTestCalendarKey = "KENET_UITEST_CALENDAR"

@@ -1278,7 +1278,11 @@ Uzantı `AddEventIntent` çağırmaz: intent uygulamanın `IndexStore` nesnesine
 | `SupportStorefront` | Mağaza protokolü: ürünleri yükler, satın alır, satın alma dışı işlemleri akıtır. Birim testleri sahte mağaza kullanır |
 | `StoreKitSupportStorefront` | StoreKit 2 uygulaması: `Product.products(for:)`, `Product.purchase()`, `Transaction.updates` |
 | `SupportService` | Durum makinesi. Ürün durumu: yükleniyor, yüklü, yüklenemedi. Satın alma durumu: boşta, sürüyor, teşekkür, iptal, onay bekliyor, doğrulanamadı, hata |
+| `SupporterLevel` | Destekçi rozetinin seviyesi: geçmişteki doğrulanmış, iade edilmemiş en yüksek katman. Saf işlev |
+| `TesterBadgePolicy` | Test ekibi rozetinin koşulu: mağaza ortamı `sandbox`, geliştirme profili yok, simülatör değil, sürüm `1.0.0` öncesi. Saf işlev |
+| `SystemTesterProbe` | Koşulun girdilerini okur: `AppTransaction.shared` ortamı ve iOS'ta `embedded.mobileprovision`. DEBUG yapı ve simülatör mağazaya sormaz |
 | `SupportSettingsView` | Ayarlar → Hakkında → Kenet'i destekle alt ekranı |
+| `SupportBadgeView`, `SupportBadgesCard` | Rozet çizimi (SwiftUI şekilleri) ve Hakkında'nın üstündeki rozet kartı |
 | `Config/Support.storekit` | Yerel StoreKit yapılandırması: üç tüketilebilir ürün, Türkiye mağazası, `49`, `99`, `249` TL |
 
 ```mermaid
@@ -1299,11 +1303,11 @@ stateDiagram-v2
     Hata --> Suruyor: satıra dokunma
 ```
 
-Uygulama satın almayı hiçbir yere yazmaz: dosya, indeks ve UserDefaults değişmez. `SupportService` destek ürünlerinin her işlemini `finish()` ile kapatır; kapanmayan işlemi mağaza her açılışta yeniden yollar. Dinleme uygulama açılışında başlar (`KenetApp`); kapalıyken onaylanan satın alma böyle kapanır.
+Uygulama satın almayı hiçbir yere yazmaz: dosya, indeks ve UserDefaults değişmez. Destekçi seviyesi her okumada App Store geçmişinden gelir: `Transaction.all`. Info.plist anahtarı `SKIncludeConsumableInAppPurchaseHistory` bitmiş tüketilebilirleri geçmişe katar; anahtar iOS 18 ve macOS 15 ister, dağıtım hedefi `26.0`. Uygulama yalnız test ekibi rozetini saklar: UserDefaults `support.testerBadge`; bir kez yazılır, silinmez. `SupportService` destek ürünlerinin her işlemini `finish()` ile kapatır; kapanmayan işlemi mağaza her açılışta yeniden yollar. Dinleme uygulama açılışında başlar (`KenetApp`); kapalıyken onaylanan satın alma böyle kapanır.
 
 Satın alma sürerken ikinci dokunuş mağazaya gitmez. Doğrulanmamış satın almada ödeme alınmıştır; ekran hata demez ve yeniden satın almaya çağırmaz. İade edilmiş işlem kapanır ve teşekkür göstermez. Satın alma sürerken gelen onay bekler; satın alma bitince teşekkür olur.
 
-`SupportStoreTranslation` StoreKit yanıtlarını uygulamanın değerlerine çevirir; saf işlevdir ve birim testlidir. Mac'te mağaza `purchase(confirmIn:)` ile ödeme penceresini Ayarlar penceresine bağlar. `InMemorySupportStorefront` görüntü testlerinin mağazasıdır. `project.yml` yapılandırma dosyasını yalnız şemaların run eylemine bağlar; dosya hiçbir hedefin kaynağı değildir ve arşive girmez.
+`SupportStoreTranslation` StoreKit yanıtlarını uygulamanın değerlerine çevirir; saf işlevdir ve birim testlidir. Mac'te mağaza `purchase(confirmIn:)` ile ödeme penceresini Ayarlar penceresine bağlar. `InMemorySupportStorefront` görüntü testlerinin mağazasıdır; DEBUG yapıda `KENET_UITEST_SUPPORT` ile UI testine de girer. `project.yml` yapılandırma dosyasını yalnız şemaların run eylemine bağlar; dosya hiçbir hedefin kaynağı değildir ve arşive girmez.
 
 ## Platform düzeni
 

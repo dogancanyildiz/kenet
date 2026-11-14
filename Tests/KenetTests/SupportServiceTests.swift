@@ -50,6 +50,10 @@ private final class FinishCounter: @unchecked Sendable {
         return try purchaseResult.get()
     }
 
+    var history: [SupportHistoryEntry] = []
+
+    func purchaseHistory() async -> [SupportHistoryEntry] { history }
+
     func transactionUpdates() -> AsyncStream<SupportStoreTransaction> {
         updateStreams += 1
         return AsyncStream { updates = $0 }
@@ -336,6 +340,184 @@ private final class FinishCounter: @unchecked Sendable {
 extension SupportProductsState {
     fileprivate var loadedTiers: [SupportTier] {
         if case .loaded(let products) = self { products.map(\.tier) } else { [] }
+    }
+}
+
+@MainActor private final class TesterProbe {
+    var earns = false
+    private(set) var asked = 0
+
+    func ask() -> Bool {
+        asked += 1
+        return earns
+    }
+}
+
+/// The badges: the supporter level comes from the purchase history, the test team badge from the
+/// kind of build that ran.
+@MainActor @Suite(.timeLimit(.minutes(1))) struct SupportBadgeTests {
+    private let store = FakeSupportStorefront()
+
+    private func entry(_ tier: SupportTier, verified: Bool = true, revoked: Bool = false) -> SupportHistoryEntry {
+        SupportHistoryEntry(productID: tier.productID, isVerified: verified, isRevoked: revoked)
+    }
+
+    @Test func tiersAreOrderedSmallToLarge() {
+        #expect(SupportTier.small < .medium && SupportTier.medium < .large)
+        #expect(SupportTier.allCases.max() == .large)
+    }
+
+    @Test func levelIsTheHighestTierInTheHistory() {
+        #expect(SupporterLevel.level(history: []) == nil)
+        #expect(SupporterLevel.level(history: [entry(.small)]) == .small)
+        #expect(SupporterLevel.level(history: [entry(.medium), entry(.small), entry(.small)]) == .medium)
+        #expect(SupporterLevel.level(history: [entry(.small), entry(.large), entry(.medium)]) == .large)
+    }
+
+    @Test func revokedUnverifiedAndForeignEntriesDoNotCount() {
+        let history = [
+            entry(.large, revoked: true), entry(.medium, verified: false), entry(.small),
+            SupportHistoryEntry(productID: "com.dogancanyildiz.kenet.other"),
+        ]
+        #expect(SupporterLevel.level(history: history) == .small)
+        #expect(SupporterLevel.level(history: [entry(.large, revoked: true)]) == nil)
+    }
+
+    @Test func refreshReadsTheLevelFromTheHistory() async {
+        let service = SupportService(storefront: store)
+        #expect(service.supporterLevel == nil)
+        store.history = [entry(.medium)]
+        await service.refreshBadges()
+        #expect(service.supporterLevel == .medium)
+        store.history = []
+        await service.refreshBadges()
+        #expect(service.supporterLevel == nil)
+    }
+
+    @Test func aVerifiedPurchaseRaisesTheLevelAndNeverLowersIt() async {
+        let service = SupportService(storefront: store)
+        store.purchaseResult = .success(.completed(store.transaction(.medium)))
+        await service.buy(.medium)
+        #expect(service.supporterLevel == .medium)
+        store.purchaseResult = .success(.completed(store.transaction(.small)))
+        await service.buy(.small)
+        #expect(service.supporterLevel == .medium)
+        store.purchaseResult = .success(.completed(store.transaction(.large)))
+        await service.buy(.large)
+        #expect(service.supporterLevel == .large)
+    }
+
+    @Test func unverifiedCancelledPendingAndFailedPurchasesGiveNoBadge() async {
+        let service = SupportService(storefront: store)
+        let results: [Result<SupportStorePurchase, FakeSupportStorefront.Failure>] = [
+            .success(.completed(store.transaction(.large, verified: false))), .success(.cancelled),
+            .success(.pending), .failure(.declined),
+        ]
+        for result in results {
+            store.purchaseResult = result
+            await service.buy(.large)
+            #expect(service.supporterLevel == nil)
+        }
+    }
+
+    @Test func anApprovalFromTheListenerRaisesTheLevelAndARefundRereadsTheHistory() async {
+        let service = SupportService(storefront: store)
+        service.start()
+        store.send(store.transaction(.large))
+        for _ in 0..<200 where service.supporterLevel != .large { try? await Task.sleep(for: .milliseconds(5)) }
+        #expect(service.supporterLevel == .large)
+
+        store.history = [entry(.large, revoked: true), entry(.small)]
+        store.send(store.transaction(.large, revoked: true))
+        for _ in 0..<200 where service.supporterLevel != .small { try? await Task.sleep(for: .milliseconds(5)) }
+        #expect(service.supporterLevel == .small)
+        service.stop()
+    }
+
+    @Test func testerBadgeNeedsATestFlightBuildBeforeLaunch() {
+        func earns(
+            _ distribution: SupportDistribution, profile: Bool = false, simulator: Bool = false,
+            version: String = "0.17.0"
+        ) -> Bool {
+            TesterBadgePolicy.earns(
+                distribution: distribution, hasDevelopmentProfile: profile, isSimulator: simulator, version: version)
+        }
+        #expect(earns(.sandbox))
+        #expect(!earns(.xcode))
+        #expect(!earns(.production))
+        #expect(!earns(.unknown))
+        #expect(!earns(.sandbox, profile: true))
+        #expect(!earns(.sandbox, simulator: true))
+        #expect(!earns(.sandbox, version: "1.0.0"))
+        #expect(!earns(.sandbox, version: "2.3"))
+        #expect(!earns(.sandbox, version: ""))
+        #expect(earns(.sandbox, version: "0.9"))
+    }
+
+    @Test func storeEnvironmentsMapToDistributions() {
+        #expect(SupportStoreTranslation.distribution(.xcode) == .xcode)
+        #expect(SupportStoreTranslation.distribution(.sandbox) == .sandbox)
+        #expect(SupportStoreTranslation.distribution(.production) == .production)
+        #expect(SupportStoreTranslation.distribution(AppStore.Environment(rawValue: "Other")) == .unknown)
+    }
+
+    @Test func testerBadgeIsKeptOnceEarnedAndTheProbeRunsOncePerRun() async throws {
+        let suite = "SupportBadgeTests-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let probe = TesterProbe()
+        let service = SupportService(storefront: store, defaults: defaults, testerProbe: { probe.ask() })
+        #expect(!service.isTester)
+        await service.refreshBadges()
+        await service.refreshBadges()
+        #expect(!service.isTester)
+        #expect(probe.asked == 1)
+        #expect(!defaults.bool(forKey: SupportService.testerBadgeKey))
+
+        probe.earns = true
+        let next = SupportService(storefront: store, defaults: defaults, testerProbe: { probe.ask() })
+        await next.refreshBadges()
+        #expect(next.isTester)
+        #expect(defaults.bool(forKey: SupportService.testerBadgeKey))
+
+        // A later run that no longer earns it (the store build) still shows it, and does not ask.
+        probe.earns = false
+        let later = SupportService(storefront: store, defaults: defaults, testerProbe: { probe.ask() })
+        #expect(later.isTester)
+        await later.refreshBadges()
+        #expect(probe.asked == 2)
+    }
+
+    @Test func withoutDefaultsNothingIsKeptAndTheDefaultProbeNeverEarns() async {
+        let service = SupportService(storefront: store)
+        await service.refreshBadges()
+        #expect(!service.isTester)
+        let earning = SupportService(storefront: store, testerProbe: { true })
+        await earning.refreshBadges()
+        #expect(earning.isTester)
+        #expect(!SupportService(storefront: store).isTester)
+    }
+
+    @Test func uiTestLaunchBuildsAStoreInMemory() async {
+        let environment = [
+            AppLaunchPolicy.uiTestVaultEnvironmentKey: "/tmp/vault",
+            AppLaunchPolicy.uiTestSupportKey: "medium,small,tester,unverified",
+        ]
+        let service = AppLaunchPolicy.supportService(environment: environment)
+        await service.refreshBadges()
+        #expect(service.supporterLevel == .medium)
+        #expect(service.isTester)
+        await service.buy(.large)
+        #expect(service.purchase == .unverified)
+        #expect(service.supporterLevel == .medium)
+
+        let offline = AppLaunchPolicy.supportService(
+            environment: [
+                AppLaunchPolicy.uiTestVaultEnvironmentKey: "/tmp/vault", AppLaunchPolicy.uiTestSupportKey: "offline",
+            ])
+        await offline.loadProducts()
+        #expect(offline.products == .unavailable)
+        #expect(!offline.isTester)
     }
 }
 

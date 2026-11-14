@@ -138,6 +138,9 @@ targets:
       path: .dd/Kenet-${platform}-Info.plist
       properties:
         UIFileSharingEnabled: true
+        # Bitmiş tüketilebilir satın almalar Transaction.all içinde görünür (iOS 18, macOS 15):
+        # destekçi rozetinin seviyesi satın alma geçmişinden türetilir (docs/architecture.md).
+        SKIncludeConsumableInAppPurchaseHistory: true
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
         NSUbiquitousContainers:

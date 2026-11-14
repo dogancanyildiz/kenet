@@ -7005,6 +7005,70 @@
         }
       }
     },
+    "Destekçi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supporter"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Destekçi"
+          }
+        }
+      }
+    },
+    "Destekçi rozeti, büyük" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supporter badge, large"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Destekçi rozeti, büyük"
+          }
+        }
+      }
+    },
+    "Destekçi rozeti, küçük" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supporter badge, small"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Destekçi rozeti, küçük"
+          }
+        }
+      }
+    },
+    "Destekçi rozeti, orta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supporter badge, medium"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Destekçi rozeti, orta"
+          }
+        }
+      }
+    },
     "Devam" : {
       "localizations" : {
         "en" : {
@@ -11732,6 +11796,38 @@
         }
       }
     },
+    "Kenet'i destekledin. Teşekkürler." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You supported Kenet. Thank you."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kenet'i destekledin. Teşekkürler."
+          }
+        }
+      }
+    },
+    "Kenet'i yayından önce denedin. Teşekkürler." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You tried Kenet before launch. Thank you."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kenet'i yayından önce denedin. Teşekkürler."
+          }
+        }
+      }
+    },
     "Kenet'in bütün özellikleri ücretsizdir. Destek gönüllüdür ve hiçbir özelliği açmaz; yalnız geliştirmenin sürmesine yardım eder." : {
       "localizations" : {
         "en" : {
@@ -16055,6 +16151,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Temizlik yap"
+          }
+        }
+      }
+    },
+    "Test ekibi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Test team"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Test ekibi"
+          }
+        }
+      }
+    },
+    "Test ekibi rozeti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Test team badge"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Test ekibi rozeti"
           }
         }
       }

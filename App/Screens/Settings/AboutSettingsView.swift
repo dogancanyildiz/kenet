@@ -6,12 +6,12 @@ import SwiftUI
 enum AppLinks {
     static func privacyPolicy(locale: Locale) -> URL {
         isEnglish(locale)
-            ? URL(string: "https://kenet.app/en/privacy")! : URL(string: "https://kenet.app/gizlilik")!
+            ? URL(string: "https://www.kenet.app/en/privacy")! : URL(string: "https://www.kenet.app/gizlilik")!
     }
 
     static func support(locale: Locale) -> URL {
         isEnglish(locale)
-            ? URL(string: "https://kenet.app/en/support")! : URL(string: "https://kenet.app/destek")!
+            ? URL(string: "https://www.kenet.app/en/support")! : URL(string: "https://www.kenet.app/destek")!
     }
 
     /// Turkish is the catalog's source language; every other app language gets the English page.
@@ -48,6 +48,10 @@ struct AboutSettingsView: View {
                 InkPageTitleRow("Hakkında")
             #endif
             Section {
+                if let support, support.supporterLevel != nil || support.isTester {
+                    SupportBadgesCard(service: support)
+                        .inkListRow()
+                }
                 InkCard(padded: false) {
                     VStack(alignment: .leading, spacing: 0) {
                         LabeledContent("Sürüm") {
@@ -90,6 +94,7 @@ struct AboutSettingsView: View {
         .inkPageNavigationTitle("Hakkında")
         .inkPageScrollColumn()
         .inkPage()
+        .task { await support?.refreshBadges() }
     }
 
     /// Opens the support page. The purchase itself happens there, never from this row.

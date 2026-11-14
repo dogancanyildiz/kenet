@@ -3,8 +3,12 @@ import Observation
 
 /// The three voluntary support amounts (docs/decisions.md, 2026-11-13). The product identifiers
 /// are permanent: App Store Connect keeps an identifier forever, even after the product is deleted.
-enum SupportTier: String, CaseIterable, Identifiable, Sendable {
+enum SupportTier: String, CaseIterable, Identifiable, Comparable, Sendable {
     case small, medium, large
+
+    static func < (lhs: Self, rhs: Self) -> Bool { lhs.rank < rhs.rank }
+
+    private var rank: Int { Self.allCases.firstIndex(of: self) ?? 0 }
 
     var id: Self { self }
 
@@ -34,6 +38,48 @@ struct SupportStoreTransaction: Sendable {
     let finish: @Sendable () async -> Void
 }
 
+/// One line of the App Store purchase history, as the store returned it.
+struct SupportHistoryEntry: Equatable, Sendable {
+    let productID: String
+    var isVerified = true
+    var isRevoked = false
+}
+
+/// The supporter badge's level: the highest tier ever bought. Derived from the purchase history
+/// on every read; the app keeps no copy of it. The badge unlocks nothing.
+enum SupporterLevel {
+    static func level(history: [SupportHistoryEntry]) -> SupportTier? {
+        history.filter { $0.isVerified && !$0.isRevoked }
+            .compactMap { SupportTier(productID: $0.productID) }
+            .max()
+    }
+}
+
+/// Where this copy of the app came from, as StoreKit reports it.
+enum SupportDistribution: Equatable, Sendable {
+    /// Run from Xcode or against a local StoreKit file, simulator included.
+    case xcode
+    /// TestFlight, or a development build signed into a sandbox account.
+    case sandbox
+    case production
+    case unknown
+}
+
+/// The test team badge: anyone who ran a TestFlight build before 1.0.0. Once earned it stays.
+enum TesterBadgePolicy {
+    static func earns(
+        distribution: SupportDistribution, hasDevelopmentProfile: Bool, isSimulator: Bool, version: String
+    ) -> Bool {
+        distribution == .sandbox && !hasDevelopmentProfile && !isSimulator && isPrerelease(version)
+    }
+
+    /// "0.17.2" is before launch; "1.0.0" and an unreadable version are not.
+    static func isPrerelease(_ version: String) -> Bool {
+        guard let first = version.split(separator: ".").first, let major = Int(first) else { return false }
+        return major < 1
+    }
+}
+
 enum SupportStorePurchase: Sendable {
     case completed(SupportStoreTransaction)
     case cancelled
@@ -55,6 +101,9 @@ enum SupportStoreError: Error, Equatable {
     /// Transactions that arrive outside a purchase call: an approved pending purchase, a refund,
     /// one left unfinished by an earlier launch.
     func transactionUpdates() -> AsyncStream<SupportStoreTransaction>
+    /// The customer's support purchases so far. Finished consumables are in it only because the
+    /// app sets `SKIncludeConsumableInAppPurchaseHistory` (iOS 18, macOS 15).
+    func purchaseHistory() async -> [SupportHistoryEntry]
 }
 
 struct SupportProduct: Equatable, Identifiable, Sendable {
@@ -87,11 +136,17 @@ enum SupportPurchaseState: Equatable, Sendable {
     }
 }
 
-/// Voluntary support: three consumable purchases that unlock nothing. The app stores nothing about
-/// them; it shows a thank-you and finishes the transaction.
+/// Voluntary support: three consumable purchases that unlock nothing. The app shows a thank-you
+/// and a supporter badge, and finishes the transaction. The badge level comes from the App Store
+/// purchase history; only the test team badge is kept on the device.
 @MainActor @Observable final class SupportService {
     private(set) var products: SupportProductsState = .loading
     private(set) var purchase: SupportPurchaseState = .idle
+    /// The highest tier bought so far; nil before any purchase.
+    private(set) var supporterLevel: SupportTier?
+    private(set) var isTester: Bool
+
+    static let testerBadgeKey = "support.testerBadge"
 
     @ObservationIgnored private let storefront: any SupportStorefront
     @ObservationIgnored private var isLoading = false
@@ -100,8 +155,32 @@ enum SupportPurchaseState: Equatable, Sendable {
     /// An approval that arrived while another purchase was under way; shown once that one ends.
     @ObservationIgnored private var hasDeferredThanks = false
 
-    init(storefront: any SupportStorefront) {
+    @ObservationIgnored private let defaults: UserDefaults?
+    @ObservationIgnored private let testerProbe: @MainActor () async -> Bool
+    @ObservationIgnored private var hasProbedTester = false
+
+    /// `defaults` keeps the test team badge (nil: nothing is kept, for tests and UI test
+    /// launches). `testerProbe` says whether this run earns it; the default never does.
+    init(
+        storefront: any SupportStorefront, defaults: UserDefaults? = nil,
+        testerProbe: @escaping @MainActor () async -> Bool = { false }
+    ) {
         self.storefront = storefront
+        self.defaults = defaults
+        self.testerProbe = testerProbe
+        isTester = defaults?.bool(forKey: Self.testerBadgeKey) ?? false
+    }
+
+    /// Reads the supporter level from the purchase history and, once per run and only until it
+    /// is earned, asks whether this run earns the test team badge.
+    func refreshBadges() async {
+        supporterLevel = SupporterLevel.level(history: await storefront.purchaseHistory())
+        guard !isTester, !hasProbedTester else { return }
+        hasProbedTester = true
+        if await testerProbe() {
+            isTester = true
+            defaults?.set(true, forKey: Self.testerBadgeKey)
+        }
     }
 
     /// Starts listening for transactions that arrive outside a purchase call. Called once at
@@ -165,6 +244,7 @@ enum SupportPurchaseState: Equatable, Sendable {
             switch try await storefront.purchase(productID: tier.productID) {
             case .completed(let transaction):
                 await transaction.finish()
+                if transaction.isVerified { raiseSupporterLevel(to: tier) }
                 purchase = transaction.isVerified ? .thanked : .unverified
             case .cancelled:
                 purchase = .cancelled
@@ -182,9 +262,14 @@ enum SupportPurchaseState: Equatable, Sendable {
     }
 
     private func receive(_ transaction: SupportStoreTransaction) async {
-        guard SupportTier(productID: transaction.productID) != nil else { return }
+        guard let tier = SupportTier(productID: transaction.productID) else { return }
         await transaction.finish()
+        if transaction.isRevoked {
+            // A refund can lower the level: the history decides.
+            supporterLevel = SupporterLevel.level(history: await storefront.purchaseHistory())
+        }
         guard transaction.isVerified, !transaction.isRevoked else { return }
+        raiseSupporterLevel(to: tier)
         // A purchase under way reports its own result first; an approval that arrives meanwhile
         // is kept and shown when that purchase ends.
         if purchase.isPurchasing {
@@ -192,5 +277,9 @@ enum SupportPurchaseState: Equatable, Sendable {
         } else {
             purchase = .thanked
         }
+    }
+
+    private func raiseSupporterLevel(to tier: SupportTier) {
+        supporterLevel = max(supporterLevel ?? tier, tier)
     }
 }

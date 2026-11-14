@@ -836,6 +836,19 @@ Ajanlar ekranı göremez; bu yüzden ekran görüntüsü testleri bu projede zor
 | Parıltı ve fotoğraf | Parıltı kart zemini değildir; kart opak kalır. Kartın altında renk kayması olmaz. |
 | Maketler | Maketler HTML'dir; cam ve parıltı yaklaşıktır. Son söz gerçek cihazdadır. |
 
+## Rozetler
+
+**Rozet uygulama simgesindeki geçme halkadan türer; SwiftUI şekliyle çizilir, görsel dosyası yoktur.**
+
+| Rozet | Çizim | Renk |
+|---|---|---|
+| Destekçi, küçük | Çapraz duran tek halka | `accent` |
+| Destekçi, orta | Birbirine geçen iki halka | `text` ve `accent` |
+| Destekçi, büyük | Dolu daire üstünde iki halka, çevresinde hafif parıltı | Zemin `accent`; halkalar `onAccent`, alttaki yarı saydam |
+| Test ekibi | Kesik çizgili tek halka | `accent` |
+
+Hakkında'daki rozet `40 pt`, destek sayfasındaki `84 pt` kenarlıdır; ikisi de yazı boyutuyla büyür. Teşekkür anında rozet yaylanır ve `accent` ile `accentSoft` halkası açılıp söner. Hareketi Azalt bu canlandırmayı kapatır.
+
 ## Terim sözlüğü
 
 **Belgede, arayüzde ve katalogda kullanılan tek ad.** Yeni terim önce bu tabloya girer; metinde terim icat edilmez.
@@ -858,6 +871,9 @@ Ajanlar ekranı göremez; bu yüzden ekran görüntüsü testleri bu projede zor
 | konuma girince | check-in | On arrival | Konuma girince çalışan hatırlatma ve kayıt |
 | gün ekranı | gün sayfası | (başlık tarih) | Geçmiş günün saatli programı |
 | gönüllü destek | bağış, bahşiş, premium | Tip | Hiçbir özelliği açmayan, tek seferlik uygulama içi satın alma |
+| destekçi rozeti | premium rozeti, üyelik | Supporter badge | Gönüllü destek verenin teşekkür rozeti; üç seviye, hiçbir özelliği açmaz |
+| test ekibi rozeti | beta rozeti | Test team badge | v1.0.0 öncesi TestFlight yapısını çalıştıranın rozeti; kesik çizgili halka |
+| yardım | destek (web bağlantısı için) | Help | Hakkında'daki yardım sayfası bağlantısı; "destek" yalnız gönüllü destek içindir |
 
 ## İlgili belgeler
 

@@ -1393,7 +1393,7 @@ Adresler tek sabittedir: `AppLinks`. Karar: `docs/decisions.md` 2026-10-21 alan 
 | Seçenekler | Tek kartta üç satır, bu sırayla: Küçük destek, Orta destek, Büyük destek. Sıra ürün kimliğini izler, fiyatı izlemez. |
 | Satır | Solda uygulamanın kendi adı, sağda mağazanın döndürdüğü yerel fiyat. Uygulama fiyat yazmaz. Erişilebilirlik boyutlarında fiyat adın altına iner. |
 | Dokunma | Mağazanın satın alma penceresini açar. Satın alma sürerken üç satır da kapalıdır; dokunulan satır ilerleme gösterir. |
-| Destekçi rozeti | Açıklamanın altında, ortada. Kullanıcı hiç destek vermediyse yoktur. Altında "Destekçi" yazar. Seviye alınan en yüksek katmandır: küçük tek halka, orta çift halka, büyük dolu ve parıltılı. |
+| Destekçi rozeti | Açıklamanın altında, ortada. Kullanıcı hiç destek vermediyse yoktur. Altında "Destekçi" yazar. Seviye alınan en yüksek katmandır: küçük tek halka, orta çift halka, büyük çerçeve içinde çift halka. |
 | Başarı | Rozet canlanarak gelir: yaylanır ve çevresinden mürdüm bir ışık halkası açılıp söner; süre yaklaşık 1 saniye. iPhone ve iPad hafif dokunsal geri bildirim verir. Rozetin altında teşekkür yazar. Hareketi Azalt açıkken canlandırma yoktur; rozet doğrudan görünür. Uygulama başka hiçbir şeyi değiştirmez. |
 | İptal | Ekran ilk hâline döner; bant çıkmaz. |
 | Onay bekleyen | Bilgi bandı satın almanın onay beklediğini söyler. Onay gelince bant kalkar ve rozet teşekkürle gelir. Sayfa yeniden açılınca bant kalkar; sonradan gelen onay yine teşekkür gösterir. |

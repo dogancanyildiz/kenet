@@ -831,7 +831,8 @@ Manşetin altında görünüm sekmesi durur. Sekmenin altında görünüme göre
 |---|---|---|
 | 1 | Manşet, künye ve çip satırı | Manşet ekranın içindedir: ad. Künye tip, takma adlar ve son görülme tarihini yazar: "Kişi · takma ad Baran · son görülme 19 Eyl". Yıl yalnız başka yıldaysa yazar. Sağda "Düzenle" ve arama durur. Gezinme çubuğunda büyük başlık yoktur. Künyenin altındaki çip satırında yıl dönümü çipi ve "Graph'ta göster" çipi durur. |
 | 2 | Son görüşme ya da Son ziyaret kartı | Yalnız kişi ve konumda, manşetin hemen altında. Kartta 12 aylık geçiş çubuğu ve 90 günlük şerit durur. Ayrıntı [Kişi ve konum içgörüleri](#kişi-ve-konum-içgörüleri-6) bölümündedir. |
-| 3 | Alanlar kartı | Tek kart, anahtar solda, değer sağda: ayırt edici, şablon alanları, öteki alanlar (ikincil renkte) ve en altta gelen bağlantı sayısı. |
+| 3 | Alanlar kartı | Tek kart, anahtar solda, değer sağda: ayırt edici, takma adlar, şablon alanları, öteki alanlar (ikincil renkte) ve en altta gelen bağlantı sayısı. |
+| 3a | Takma adlar satırı | Kişi, konum ve özel tipte, Alanlar kartında. Değer takma adları virgülle yazar; sağda küçük "Ekle" bağlantısı durur. "Ekle" takma ad sheet'ini açar. Erişilebilirlik yazı boyutlarında adlar başlığın altına iner. Uygulama `aliases` alanını yazamıyorsa satır çizilmez; alanın ham metni kartın altında kalır. |
 | 4 | Yıl dönümü | Çip satırında. Kişide ve özel tipte, tarih alanı varsa sıradaki yıl dönümü tek çiptir: "doğum günü · 12 Nis · 31 yıl". Pencere yoktur. Konumda bu çip yoktur. |
 | 5 | Graph'ta göster | Çip satırında vurgu çipi. Kişide, konumda ve özel tipte. Graph o düğümü seçer ve ortaya alır. Özel tipte Graph o tipi süzgeçte açarak açılır. |
 | 6 | Bağlar | Kişi, konum ve özel tipte; kart üstünde başlık ve "Bağ kur" düğmesi. Satır yalnız karşı varlığın adını yazar; yön ifadesi yoktur. Etiketli giden satır "eşi · Selin Korkmaz", etiketli gelen satır "Mert Aksu · iş arkadaşı" biçimindedir. Karşı varlık geri bağ kurduysa bir kez görünür: sayfa aynı varlığa etiketsiz ya da aynı etiketle gelen bağı ayrı satır yapmaz. VoiceOver satırı aynı metinle okur. Dokunma karşı varlığı açar. Uzun basma / Mac ikincil tık yalnız giden bağda "Bağı kaldır" sunar; özel tipin şema alanından gelen bağda kaldırma yoktur, o bağ Alanlar’da düzenlenir. Bağ kur sheet’i üstte isteğe bağlı etiketi ve kasadaki etiket önerilerini, altında aramalı listeyle kendisi hariç kişi, konum ve özel tip seçimini içerir; çubukta solda Vazgeç, sağda Kaydet durur (hedef seçilince etkin). Çakışan alan ve ayrılmış ad hatası sheet’te kalır; kaldırma hatası bölümde bilgi bandıdır. |
@@ -863,6 +864,18 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Koordinat yazma | Dosyaya yalnız Kaydet yazar. Değişiklik yoksa yazmaz. Kullanıcının dokunmadığı alanda dosyadaki sayı yazımı aynı kalır. |
 | Ölçüm yok | Ölçüm gelmezse ya da izin yoksa bunu söyler. Elle giriş açık kalır. Kullanıcı alana elle yazınca bekleyen ölçüm alanı doldurmaz. |
 | Okunamayan değer | Okunamayan kayıtlı değer dosyadaki haliyle görünür. |
+
+**Takma ad sheet'i.**
+
+| Konu | Davranış |
+|---|---|
+| Giriş | Varlık ekranındaki "Takma adlar" satırının "Ekle" bağlantısı. Düzenleme sheet'indeki takma ad düzenleyicisi de kalır. |
+| Kalıp | Ortak sheet kalıbı, tek "Kapat". Her ekleme ve kaldırma dosyaya o anda yazar. |
+| Ekleme | Üstte odaklı tek alan ve "Ekle". Klavyenin onay tuşu da ekler. Başarılı eklemeden sonra alan boşalır ve odak kalır. |
+| Kaldırma | Mevcut takma adlar alanın altında çiptir. Çipin çarpısı o takma adı kaldırır. |
+| Reddedilen | Boş metin, `\|`, `[`, `]` ya da satır sonu içeren metin, varlığın kendi adı ve var olan takma ad. Karşılaştırma [ad anahtarıyla](vault-format.md#adlar-ve-karşılaştırma) yapılır. Hata alanın altında bilgi bandıdır. |
+| Başka kayıtla eşleşme | Uygulama eklemeyi engellemez. Bilgi bandı öteki kaydı adıyla söyler. Tanıma o adı kullanıcı seçmeden bağlamaz. |
+| Yazılan | Yalnız `aliases` alanı; uygulama dosyayı yazma anında yeniden okur. Geçmiş olay satırları değişmez. |
 
 **Bağlanmamış anmalar.**
 

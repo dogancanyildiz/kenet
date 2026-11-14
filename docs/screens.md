@@ -219,7 +219,7 @@ Varsayılan boyutta hızlı giriş iki satırlı karttır: üstte kip, çipler v
 | Konu | Davranış |
 |---|---|
 | Gün halkası | Sayılan hedeflerin (günlük ve haftalık) yapılan oranını vurgu yayıyla çizer. Halka Hedefler sayacıyla aynı kümeyi sayar. Ortasında tamamlanan pay yüzde olarak yazar ("67"). Sayılan hedef yoksa halka çizilmez. VoiceOver "3 hedef kaldı" okur. |
-| Gün rakamı ve gün adı | Gün rakamı büyük ve kalındır; gün adı aynı taban çizgisinde yanındadır: "20 Pazar". |
+| Gün rakamı ve gün adı | Gün rakamı büyük ve kalındır; gün adı aynı taban çizgisinde yanındadır: "20 Pazar". Satır daralınca önce gün adı kısalır: "19 Cumartesi", sonra "19 Cmt", sonra yalnız "19". Gün rakamı satır kırmaz ve gün adı üç noktayla kesilmez. VoiceOver her durumda tam gün adını okur. |
 | Hafta şeridi | Cihaz takviminin hafta başından 7 gün: Pzt–Paz ya da Paz–Cmt. Şerit yarı saydam karttır. Bugün çerçeveli hücrededir; rakamı ve noktası vurgu rengindedir. Olaylı ya da yazılı her günün altında nokta durur. Bir güne dokunma o günün Gün ekranını açar. |
 | Künye cümlesi | Saate göre selamlama ve günün sayıları: "Günaydın. Bugün 2 olay, 6 görev ve 3 hedef var." Selamlama 05:00–11:59 "Günaydın", 12:00–17:59 "İyi günler", öteki saatlerde "İyi akşamlar"dır. Sayılar olay, kalan görev ve kalan hedeftir (günlük ve haftalık, sayaçla aynı küme); sayı ve sözcüğü öne çıkar. Sıfır olan parçayı yazmaz. Hiçbir sayı yoksa yalnız selamlama durur. |
 | Künye çipleri | 3 çip: zincir ("12 gün zincir"), dünün olay sayısı ("Dün 4 olay"), son görüşülen kişi. Her çip yalnız verisi varken görünür. Kişi çipi kişinin ekranını açar. |

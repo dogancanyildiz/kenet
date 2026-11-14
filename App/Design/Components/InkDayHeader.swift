@@ -27,10 +27,6 @@ struct InkDayHeader<Actions: View>: View {
     #endif
     @ScaledMetric(relativeTo: .body) private var ringSide = InkSize.dayRing
 
-    private var dayNameFormatter: DateFormatter {
-        InkWeekStrip.makeFormatter(template: "EEEE", calendar: calendar, locale: locale)
-    }
-
     var body: some View {
         Group {
             if compact || dynamicTypeSize.isAccessibilitySize {
@@ -46,12 +42,28 @@ struct InkDayHeader<Actions: View>: View {
     private var expandedLayout: some View {
         HStack(alignment: .center, spacing: 12) {
             if showsRing { ring }
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                dayNumberText
-                dayNameText
-            }
+            expandedTitle
+                // Offered the row's free width before the spacer, so the widest fitting title wins.
+                .layoutPriority(1)
             Spacer(minLength: 0)
             actionGroup
+        }
+    }
+
+    /// The title gives way before the icons do: the full day name ("19 Cumartesi"), then the week
+    /// strip's short name ("19 Cmt"), then the number alone. The number never wraps and no name is
+    /// cut with an ellipsis. VoiceOver reads the full name whichever one is drawn.
+    private var expandedTitle: some View {
+        let names = InkDayHeaderTitle.names(for: date, calendar: calendar, locale: locale)
+        return ViewThatFits(in: .horizontal) {
+            ForEach(names.drawn, id: \.self) { name in
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    dayNumberText.fixedSize()
+                    dayNameText(name, spokenAs: names.full).fixedSize()
+                }
+            }
+            dayNumberText.fixedSize()
+                .accessibilityLabel(Text(verbatim: "\(dayNumber) \(names.full)"))
         }
     }
 
@@ -66,11 +78,15 @@ struct InkDayHeader<Actions: View>: View {
                     .accessibilityAddTraits(.isHeader)
             } else {
                 dayNumberText
-                dayNameText
+                dayNameText(fullDayName, spokenAs: fullDayName)
             }
             Spacer(minLength: 0)
             actionGroup
         }
+    }
+
+    private var fullDayName: String {
+        InkDayHeaderTitle.names(for: date, calendar: calendar, locale: locale).full
     }
 
     private var ring: some View {
@@ -99,11 +115,12 @@ struct InkDayHeader<Actions: View>: View {
             .accessibilityAddTraits(.isHeader)
     }
 
-    private var dayNameText: some View {
-        Text(verbatim: dayNameFormatter.string(from: date))
+    private func dayNameText(_ name: String, spokenAs full: String) -> some View {
+        Text(verbatim: name)
             .font(.ink.dayName)
             .foregroundStyle(Color.ink.secondaryText)
             .lineLimit(1)
+            .accessibilityLabel(Text(verbatim: full))
     }
 
     private var actionGroup: some View {
@@ -126,6 +143,26 @@ extension InkDayHeader where Actions == EmptyView {
             date: date, progress: progress, remainingCount: remainingCount, showsRing: showsRing,
             compact: compact, compactTitle: compactTitle
         ) { EmptyView() }
+    }
+}
+
+/// The day names the manşet title may draw (unit-tested).
+enum InkDayHeaderTitle {
+    struct Names: Equatable {
+        /// "Cumartesi": drawn first and always what VoiceOver reads.
+        var full: String
+        /// Names in the order the title tries them: the full one, then the week strip's short one
+        /// ("Cmt") when it differs.
+        var drawn: [String]
+    }
+
+    static func names(for date: Date, calendar: Calendar, locale: Locale) -> Names {
+        let full = InkWeekStrip.makeFormatter(template: "EEEE", calendar: calendar, locale: locale)
+            .string(from: date)
+        // Same template as the week strip's cells, so the two never disagree.
+        let short = InkWeekStrip.makeFormatter(template: "EEE", calendar: calendar, locale: locale)
+            .string(from: date)
+        return Names(full: full, drawn: short == full ? [full] : [full, short])
     }
 }
 

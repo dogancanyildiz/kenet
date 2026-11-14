@@ -1277,7 +1277,7 @@ Uzantı `AddEventIntent` çağırmaz: intent uygulamanın `IndexStore` nesnesine
 | `SupportTier` | Üç kalıcı ürün kimliği: `com.dogancanyildiz.kenet.support.small`, `.medium`, `.large`. Sıra küçükten büyüğedir |
 | `SupportStorefront` | Mağaza protokolü: ürünleri yükler, satın alır, satın alma dışı işlemleri akıtır. Birim testleri sahte mağaza kullanır |
 | `StoreKitSupportStorefront` | StoreKit 2 uygulaması: `Product.products(for:)`, `Product.purchase()`, `Transaction.updates` |
-| `SupportService` | Durum makinesi. Ürün durumu: yükleniyor, yüklü, yüklenemedi. Satın alma durumu: boşta, sürüyor, teşekkür, iptal, onay bekliyor, hata |
+| `SupportService` | Durum makinesi. Ürün durumu: yükleniyor, yüklü, yüklenemedi. Satın alma durumu: boşta, sürüyor, teşekkür, iptal, onay bekliyor, doğrulanamadı, hata |
 | `SupportSettingsView` | Ayarlar → Hakkında → Kenet'i destekle alt ekranı |
 | `Config/Support.storekit` | Yerel StoreKit yapılandırması: üç tüketilebilir ürün, Türkiye mağazası, `49`, `99`, `249` TL |
 
@@ -1285,18 +1285,25 @@ Uzantı `AddEventIntent` çağırmaz: intent uygulamanın `IndexStore` nesnesine
 stateDiagram-v2
     [*] --> Bosta
     Bosta --> Suruyor: satıra dokunma
+    Bosta --> Tesekkur: önceki açılıştan kalan işlem, finish
     Suruyor --> Tesekkur: doğrulanmış işlem, finish
     Suruyor --> Iptal: kullanıcı vazgeçti
     Suruyor --> OnayBekliyor: mağaza onay bekliyor
-    Suruyor --> Hata: mağaza hatası ya da doğrulanmamış işlem
+    Suruyor --> Dogrulanamadi: doğrulanmamış işlem, finish
+    Suruyor --> Hata: mağaza hatası
     OnayBekliyor --> Tesekkur: Transaction.updates, finish
+    OnayBekliyor --> Bosta: sayfa yeniden açıldı
+    Iptal --> Bosta: sayfa yeniden açıldı
+    Hata --> Bosta: sayfa yeniden açıldı
     Iptal --> Suruyor: satıra dokunma
     Hata --> Suruyor: satıra dokunma
 ```
 
-Uygulama satın almayı hiçbir yere yazmaz: dosya, indeks ve UserDefaults değişmez. `SupportService` her işlemi `finish()` ile kapatır; kapanmayan işlemi mağaza her açılışta yeniden yollar. Dinleme uygulama açılışında başlar (`KenetApp`); kapalıyken onaylanan satın alma böyle kapanır.
+Uygulama satın almayı hiçbir yere yazmaz: dosya, indeks ve UserDefaults değişmez. `SupportService` destek ürünlerinin her işlemini `finish()` ile kapatır; kapanmayan işlemi mağaza her açılışta yeniden yollar. Dinleme uygulama açılışında başlar (`KenetApp`); kapalıyken onaylanan satın alma böyle kapanır.
 
-Satın alma sürerken ikinci dokunuş mağazaya gitmez. Doğrulanmamış ve iade edilmiş işlem kapanır ama teşekkür göstermez. `project.yml` yapılandırma dosyasını yalnız şemaların run eylemine bağlar; dosya hiçbir hedefin kaynağı değildir ve arşive girmez.
+Satın alma sürerken ikinci dokunuş mağazaya gitmez. Doğrulanmamış satın almada ödeme alınmıştır; ekran hata demez ve yeniden satın almaya çağırmaz. İade edilmiş işlem kapanır ve teşekkür göstermez. Satın alma sürerken gelen onay bekler; satın alma bitince teşekkür olur.
+
+`SupportStoreTranslation` StoreKit yanıtlarını uygulamanın değerlerine çevirir; saf işlevdir ve birim testlidir. Mac'te mağaza `purchase(confirmIn:)` ile ödeme penceresini Ayarlar penceresine bağlar. `InMemorySupportStorefront` görüntü testlerinin mağazasıdır. `project.yml` yapılandırma dosyasını yalnız şemaların run eylemine bağlar; dosya hiçbir hedefin kaynağı değildir ve arşive girmez.
 
 ## Platform düzeni
 

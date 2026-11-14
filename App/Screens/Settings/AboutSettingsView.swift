@@ -67,9 +67,9 @@ struct AboutSettingsView: View {
                         .accessibilityIdentifier("link.settings.about.privacy")
                         InkCardDivider()
                         Link(destination: AppLinks.support(locale: locale)) {
-                            InkDisclosureRowLabel("Destek", symbol: "arrow.up.right")
+                            InkDisclosureRowLabel("Yardım", symbol: "arrow.up.right")
                         }
-                        .inkDisclosureRow("Destek")
+                        .inkDisclosureRow("Yardım")
                         .accessibilityIdentifier("link.settings.about.support")
                         InkCardDivider()
                         licensesRow

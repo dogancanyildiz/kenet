@@ -77,6 +77,9 @@ enum SupportPurchaseState: Equatable, Sendable {
     case thanked
     case cancelled
     case pending
+    /// The store took the payment but its signature did not check out on this device. Not an
+    /// error to retry: a second purchase would charge again.
+    case unverified
     case failed
 
     var isPurchasing: Bool {
@@ -94,6 +97,8 @@ enum SupportPurchaseState: Equatable, Sendable {
     @ObservationIgnored private var isLoading = false
     @ObservationIgnored private var hasLoadedOnce = false
     @ObservationIgnored private var updatesTask: Task<Void, Never>?
+    /// An approval that arrived while another purchase was under way; shown once that one ends.
+    @ObservationIgnored private var hasDeferredThanks = false
 
     init(storefront: any SupportStorefront) {
         self.storefront = storefront
@@ -116,10 +121,12 @@ enum SupportPurchaseState: Equatable, Sendable {
         updatesTask = nil
     }
 
-    /// The page came on screen: products load once, and an old error or cancellation is cleared.
-    /// A thank-you and a pending note stay.
+    /// The page came on screen: products load once, and an old error, cancellation or pending
+    /// note is cleared (a declined Ask to Buy sends nothing, so the note would never leave; a
+    /// later approval still thanks through the update listener). A thank-you and the unverified
+    /// note stay.
     func pageAppeared() async {
-        if purchase == .failed || purchase == .cancelled { purchase = .idle }
+        if purchase == .failed || purchase == .cancelled || purchase == .pending { purchase = .idle }
         if case .loaded = products { return }
         await loadProducts()
     }
@@ -140,7 +147,13 @@ enum SupportPurchaseState: Equatable, Sendable {
             }
             products = ordered.isEmpty ? .unavailable : .loaded(ordered)
         } catch {
-            products = .unavailable
+            // The page left while loading: not the store's answer. The next appearance loads again.
+            if error is CancellationError || Task.isCancelled {
+                products = .loading
+                hasLoadedOnce = false
+            } else {
+                products = .unavailable
+            }
         }
     }
 
@@ -152,7 +165,7 @@ enum SupportPurchaseState: Equatable, Sendable {
             switch try await storefront.purchase(productID: tier.productID) {
             case .completed(let transaction):
                 await transaction.finish()
-                purchase = transaction.isVerified ? .thanked : .failed
+                purchase = transaction.isVerified ? .thanked : .unverified
             case .cancelled:
                 purchase = .cancelled
             case .pending:
@@ -161,13 +174,23 @@ enum SupportPurchaseState: Equatable, Sendable {
         } catch {
             purchase = .failed
         }
+        if hasDeferredThanks {
+            hasDeferredThanks = false
+            // The unverified note stays: it keeps the user from paying twice.
+            if purchase != .unverified { purchase = .thanked }
+        }
     }
 
     private func receive(_ transaction: SupportStoreTransaction) async {
         guard SupportTier(productID: transaction.productID) != nil else { return }
         await transaction.finish()
         guard transaction.isVerified, !transaction.isRevoked else { return }
-        // A purchase under way reports its own result; an approval that arrives meanwhile waits.
-        if !purchase.isPurchasing { purchase = .thanked }
+        // A purchase under way reports its own result first; an approval that arrives meanwhile
+        // is kept and shown when that purchase ends.
+        if purchase.isPurchasing {
+            hasDeferredThanks = true
+        } else {
+            purchase = .thanked
+        }
     }
 }

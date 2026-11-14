@@ -1236,7 +1236,7 @@ iPhone'da Ayarlar, Bugün gün başlığındaki düğmenin açtığı sheet'tir.
 | Gizlilik | "Uygulama kilidi açık · kişi hatırlatmaları" ya da "kapalı" |
 | Bildirimler | "Günlük hatırlatması 21:30" ya da "Günlük hatırlatması kapalı" |
 | Takvim ve Konum | "2 takvim · konuma girince kapalı"; izin yoksa "Takvim izni yok" |
-| Öteki bölümler | Bölümün içeriği: "Konum, varlık tipleri", "Sürüm, gizlilik politikası, destek" |
+| Öteki bölümler | Bölümün içeriği: "Konum, varlık tipleri", "Sürüm, gizlilik politikası, yardım" |
 
 **Alt ekran satır dili.**
 
@@ -1375,7 +1375,7 @@ stateDiagram-v2
 |---|---|
 | Sürüm | Paketin sürümü ve yapı numarası: `0.17.0 (383)`. Kullanıcı metni seçip kopyalar. |
 | Gizlilik politikası | Web bağlantısı, Safari'de açılır. Adres uygulama dilini izler: `kenet.app/gizlilik` ya da `kenet.app/en/privacy`. |
-| Destek | Web bağlantısı: `kenet.app/destek` ya da `kenet.app/en/support`. |
+| Yardım | Web bağlantısı: `kenet.app/destek` ya da `kenet.app/en/support`. Satırın adı "Destek" değildir; "Kenet'i destekle" satırıyla karışmaz. |
 | Üçüncü taraf lisansları | Tanılama'daki lisans alt ekranının aynısı. Mac'te sekmenin içeriğinin yerine geçer; "Hakkında" düğmesi geri döndürür. |
 | Kenet'i destekle | Destek alt ekranını açar. Satır satın alma başlatmaz. Mac'te alt ekran sekmenin içeriğinin yerine geçer; "Hakkında" düğmesi geri döndürür. |
 | Dipnot | Kenet veri toplamaz; veri yalnız kullanıcının dosyalarındadır. |
@@ -1394,8 +1394,9 @@ Adresler tek sabittedir: `AppLinks`. Karar: `docs/decisions.md` 2026-10-21 alan 
 | Dokunma | Mağazanın satın alma penceresini açar. Satın alma sürerken üç satır da kapalıdır; dokunulan satır ilerleme gösterir. |
 | Başarı | Bilgi bandı teşekkür eder. Uygulama başka hiçbir şeyi değiştirmez. |
 | İptal | Ekran ilk hâline döner; bant çıkmaz. |
-| Onay bekleyen | Bilgi bandı satın almanın onay beklediğini söyler. Onay gelince bant teşekküre döner. |
-| Hata | Hata bandı satın almanın tamamlanamadığını söyler. Kullanıcı satıra yeniden dokunur. |
+| Onay bekleyen | Bilgi bandı satın almanın onay beklediğini söyler. Onay gelince bant teşekküre döner. Sayfa yeniden açılınca bant kalkar; sonradan gelen onay yine teşekkür gösterir. |
+| Hata | Hata bandı satın almanın tamamlanamadığını söyler. Kullanıcı satıra yeniden dokunur. Bu bant yalnız ödeme alınmadığında çıkar. |
+| Doğrulanamadı | Mağaza ödemeyi aldı ama cihaz imzayı doğrulayamadı. Uyarı bandı ödemenin alındığını ve yeniden satın almanın gerekmediğini söyler. Uygulama teşekkür göstermez. |
 | Ürünler yüklenemedi | Kartın yerinde uyarı bandı ve "Yeniden dene" düğmesi durur. Çevrimdışı cihaz ve satışta olmayan ürün bu durumu verir. |
 | Dipnot | Ödemeyi App Store alır. Destek tek seferliktir ve yenilenmez. |
 | Olmayanlar | Dış ödeme bağlantısı, "satın alımları geri yükle" düğmesi ve kilitli özellik yoktur. |

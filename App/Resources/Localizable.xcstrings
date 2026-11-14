@@ -6973,22 +6973,6 @@
         }
       }
     },
-    "Destek" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Support"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Destek"
-          }
-        }
-      }
-    },
     "Destek seçenekleri şu an yüklenemiyor." : {
       "localizations" : {
         "en" : {
@@ -13543,6 +13527,22 @@
         }
       }
     },
+    "Ödeme alındı ama doğrulanamadı. Yeniden satın alman gerekmez." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The payment went through but could not be verified. You do not need to buy again."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ödeme alındı ama doğrulanamadı. Yeniden satın alman gerekmez."
+          }
+        }
+      }
+    },
     "Pano seçenekleri" : {
       "localizations" : {
         "en" : {
@@ -15091,18 +15091,18 @@
         }
       }
     },
-    "Sürüm, gizlilik politikası, destek" : {
+    "Sürüm, gizlilik politikası, yardım" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Version, privacy policy, support"
+            "value" : "Version, privacy policy, help"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sürüm, gizlilik politikası, destek"
+            "value" : "Sürüm, gizlilik politikası, yardım"
           }
         }
       }
@@ -17184,6 +17184,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yapılmadı"
+          }
+        }
+      }
+    },
+    "Yardım" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yardım"
           }
         }
       }

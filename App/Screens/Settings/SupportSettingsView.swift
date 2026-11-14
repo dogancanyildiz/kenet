@@ -58,6 +58,10 @@ struct SupportSettingsView: View {
             InfoBand(kind: .info, "Satın alma onay bekliyor. Onaylanınca tamamlanır.")
                 .inkListRow()
                 .accessibilityIdentifier("band.settings.support.pending")
+        case .unverified:
+            InfoBand(kind: .warning, "Ödeme alındı ama doğrulanamadı. Yeniden satın alman gerekmez.")
+                .inkListRow()
+                .accessibilityIdentifier("band.settings.support.unverified")
         case .failed:
             InfoBand(kind: .error, "Satın alma tamamlanamadı. Yeniden deneyebilirsin.")
                 .inkListRow()

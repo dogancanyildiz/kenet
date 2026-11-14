@@ -26,6 +26,10 @@ final class EntityDetailModel {
     private(set) var aliases: [String] = []
     private(set) var aliasesEditable = false
     private(set) var aliasesSource = ""
+    /// A refused or failed quick alias change: shown in the alias sheet, never on the page.
+    private(set) var aliasErrorText: String?
+    /// The last alias change asked for; the next one waits for it.
+    @ObservationIgnored private var aliasChange: Task<Bool, Never>?
     private(set) var unreadableFrontmatter = false
     /// The place's valid `coordinates`, the value the map shows.
     private(set) var coordinate: PlaceCoordinate?
@@ -165,6 +169,57 @@ final class EntityDetailModel {
             try await self.store.setList(
                 at: self.path, key: "aliases",
                 values: values.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }.map { .text($0) })
+        }
+    }
+
+    /// Adds one alias to the list the file holds now; history lines are never rewritten.
+    @discardableResult
+    func addAlias(_ text: String, name: String) async -> Bool {
+        await changeAliases { try EntityAliasRules.adding(text, to: $0, name: name) }
+    }
+
+    @discardableResult
+    func removeAlias(_ alias: String) async -> Bool {
+        await changeAliases { EntityAliasRules.removing(alias, from: $0) }
+    }
+
+    func clearAliasError() { aliasErrorText = nil }
+
+    /// Alias changes run one after another: one asked for while another is being written waits
+    /// for it instead of being dropped, and then changes the list that write left in the file.
+    private func changeAliases(_ change: @escaping @Sendable ([String]) throws -> [String]) async -> Bool {
+        let previous = aliasChange
+        let task = Task { @MainActor in
+            _ = await previous?.value
+            return await self.writeAliases(change)
+        }
+        aliasChange = task
+        return await task.value
+    }
+
+    private func writeAliases(_ change: @escaping @Sendable ([String]) throws -> [String]) async -> Bool {
+        aliasErrorText = nil
+        guard canEdit else {
+            // Never silent: another editor's write, a read-only file or a vault selected meanwhile.
+            aliasErrorText = String(localized: "Değişiklik kaydedilemedi. Kasayı kontrol edip yeniden dene.")
+            return false
+        }
+        isWriting = true
+        defer { isWriting = false }
+        do {
+            try await store.changeAliases(at: path, change)
+            await load()
+            return true
+        } catch let rejection as EntityAliasRules.Rejection {
+            aliasErrorText = rejection.message
+            return false
+        } catch VaultStoreError.indexUpdateFailed {
+            await load()
+            aliasErrorText = String(localized: "Değişiklik kaydedildi, indeks güncellenemedi.")
+            return true
+        } catch {
+            aliasErrorText = DayEditError.message(for: error)
+            return false
         }
     }
 

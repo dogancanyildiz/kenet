@@ -17,6 +17,8 @@ struct TagChip: View {
     /// Scope chip (Ara): selected is `accentSoft` with accent, bold text and no stroke; the
     /// checkmark shows only with "Renksiz ayırt et". Unselected is `well` with a thin rule.
     var accentSelection = false
+    /// What the dismiss button says to VoiceOver; a chip that removes a value names it.
+    var dismissLabel = Text("Kapat")
 
     @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
     @Environment(\.displayScale) private var displayScale
@@ -36,7 +38,7 @@ struct TagChip: View {
                         .tapTarget()
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(Text("Kapat"))
+                .accessibilityLabel(dismissLabel)
                 // The 44 pt target overlaps the chip's edge; the capsule keeps its own height.
                 .padding(.vertical, -TagChipChrome.targetOverhang)
             }

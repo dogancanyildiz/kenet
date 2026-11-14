@@ -15,4 +15,12 @@ extension IndexStore {
     func removeField(at path: String, key: String) async throws {
         try await performEdit(path: path) { try await $0.removingFrontmatterField(at: path, key: key) }
     }
+    /// `change` sees the aliases the file holds when the write runs; what it throws writes nothing.
+    func changeAliases(at path: String, _ change: @escaping @Sendable ([String]) throws -> [String]) async throws {
+        try await performEdit(path: path) {
+            try await $0.changingFrontmatterList(at: path, key: "aliases") { items in
+                try change(EntityAliasRules.texts(items)).map { .text($0) }
+            }
+        }
+    }
 }

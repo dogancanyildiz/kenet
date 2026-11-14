@@ -5,12 +5,13 @@
 # dosya 300, boyut bugünkü +%20 (61 MiB). 2026-10-23: Mac sabit manşet ve günün grafiği referanslarıyla
 # dosya tavanı 320 (kullanıcı kararı; temsilci olmayan koyu/AX3 vakaları budandı). 2026-11-10: boyut tavanı
 # 80 MiB (Şafak koyu zeminli referanslar ~2× büyük; 318 dosya 69,6 MiB); dosya tavanı 320 kalır.
+# 2026-11-14: 360 dosya ve 90 MiB (kullanıcı kararı; 320/320 dolmuştu, 77,5 MiB).
 # Aşınca listeyle düşer.
 # Kullanım: sh .github/scripts/check-snapshot-budget.sh [kök]   (SNAPSHOT_MAX_COUNT, SNAPSHOT_MAX_MB)
 set -eu
 ROOT="${1:-$(dirname "$0")/../..}"
-MAX_COUNT="${SNAPSHOT_MAX_COUNT:-320}"
-MAX_MB="${SNAPSHOT_MAX_MB:-80}"
+MAX_COUNT="${SNAPSHOT_MAX_COUNT:-360}"
+MAX_MB="${SNAPSHOT_MAX_MB:-90}"
 
 [ -d "$ROOT/Tests" ] || { echo "Tests klasörü bulunamadı: $ROOT" >&2; exit 1; }
 

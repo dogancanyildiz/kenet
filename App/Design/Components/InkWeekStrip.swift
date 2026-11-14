@@ -116,12 +116,16 @@ struct InkWeekStrip: View {
         return VStack(spacing: 4) {
             Text(verbatim: weekday.string(from: day))
                 .font(.ink.weekday)
+                .lineLimit(1)
+                .minimumScaleFactor(InkWeekStripChrome.narrowestTextScale)
                 .foregroundStyle(
                     enabled ? (style == .filled ? Color.ink.paper : Color.ink.secondaryText) : Color.ink.tertiaryText)
             Text(verbatim: Self.dayNumber(day, calendar: calendar))
                 .font(.ink.value.weight(.semibold))
                 .foregroundStyle(numberColor(style: style, isToday: isToday, enabled: enabled))
                 .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(InkWeekStripChrome.narrowestTextScale)
             // One dot under every day with writing or events; today's dot is accent.
             Circle()
                 .fill(dotColor(style: style, isToday: isToday))
@@ -129,7 +133,11 @@ struct InkWeekStrip: View {
                 .opacity(hasMark || isToday ? 1 : 0)
                 .frame(height: 5)
         }
-        .frame(minWidth: dayWidth, minHeight: dayHeight)
+        .padding(.horizontal, InkWeekStripChrome.textInset)
+        // The cell face is `dayWidth` wide where the row has room, never a fixed minimum: seven
+        // days (four at an accessibility size) share a narrow screen instead of pushing the page
+        // wider than it.
+        .frame(idealWidth: dayWidth, maxWidth: dayWidth, minHeight: dayHeight)
         .background {
             switch style {
             case .filled:
@@ -240,6 +248,10 @@ enum InkWeekStripChrome {
     static let inset: CGFloat = 4
     /// Gap between day boxes in the boxed strip.
     static let boxGap: CGFloat = 6
+    /// Gap kept between a day's text and its cell's edge once the cell is as narrow as the text.
+    static let textInset: CGFloat = 4
+    /// A day cell narrower than its text shrinks the text down to this share, never cuts it.
+    static let narrowestTextScale: CGFloat = 0.6
 
     enum StripStyle: Equatable, Sendable {
         /// One card around the seven days.

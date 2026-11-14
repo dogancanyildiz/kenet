@@ -54,6 +54,11 @@ final class UnlinkedMentionsAccessibilityUITests: XCTestCase {
         }
         let first = button("Elif'le konuştum.")
         let second = button("Lale geldi.")
+        // The list mounts only the rows near the screen, and `openUnlinkedMentions` stops at the
+        // first button it meets: the row under it may not exist yet. Each button is brought into
+        // reach on its own, the lower row first so the upper one stays on screen with it.
+        reveal(second, in: app)
+        reveal(first, in: app)
         UITestSupport.waitForExistence(first)
         UITestSupport.waitForExistence(second)
         first.tourTap()
@@ -63,6 +68,37 @@ final class UnlinkedMentionsAccessibilityUITests: XCTestCase {
         XCTAssertTrue(second.isEnabled)
         // It was written, not refused.
         XCTAssertFalse(UITestSupport.element(in: app, identifier: "entity.unlinkedMentions.notice").exists)
+    }
+
+    /// Scrolls in short, slow drags until `element` exists and can be touched in the middle band of
+    /// the screen, clear of the pinned title above and of the quick entry capsule and tab bar below.
+    /// The page moves towards its end while the element is not mounted, back towards its start once
+    /// the end did not bring it, and by the element's own distance once its frame is known.
+    @MainActor
+    private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
+        let window = app.windows.firstMatch.frame
+        let band = (window.minY + window.height * 0.25)...(window.minY + window.height * 0.65)
+        let anchor = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        let step: CGFloat = 140
+        var misses = 0
+        for _ in 0..<40 {
+            var distance: CGFloat
+            if element.exists {
+                let middle = element.frame.midY
+                if band.contains(middle), element.isHittable { return }
+                // Positive: the element is below the band and the page has to move up.
+                distance = middle > band.upperBound ? middle - band.upperBound + 24 : middle - band.lowerBound - 24
+                distance = max(-step, min(step, distance))
+            } else {
+                misses += 1
+                distance = misses <= 14 ? step : -step
+            }
+            anchor.press(
+                forDuration: 0.05, thenDragTo: anchor.withOffset(CGVector(dx: 0, dy: -distance)),
+                withVelocity: .slow, thenHoldForDuration: 0.2)
+            _ = element.waitForExistence(timeout: 0.5)
+        }
+        XCTFail("\(element) could not be brought into reach")
     }
 
     @MainActor

@@ -121,6 +121,7 @@ Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru 
 | `write/mention-*` | ek olarak `VaultStoreTests/UnlinkedMentionTests.swift` | Klasör tarama |
 | `write/task-recur-trailing-text` | ek olarak `VaultFormatTests/RecurrenceTests.swift` | Ad kodda |
 | `write/cadence-*` | ek olarak `Tests/KenetTests/CadenceTests.swift` | Ad kodda |
+| `write/alias-*` | ek olarak `Tests/KenetTests/EntityAliasTests.swift` | Ad kodda |
 | `merge/` | `VaultFormatTests/MergeFixtureTests.swift`, `VaultStoreTests/DayCopyMergeCaseTests.swift` | Klasör tarama |
 | `recognition/<ad>/` | `EntityRecognitionTests/Fixtures.swift` | Ad listesi |
 | `recognition/attendees/` | `EntityRecognitionTests/AttendeeMatchingTests.swift` | Ad kodda |
@@ -457,6 +458,7 @@ flowchart LR
 | Eşlem kaydı yazma ve alan silme | `frontmatter` | `set-entry-crlf`, `remove-entry`, `remove-field-mapping` | 24 |
 | Reddedilen frontmatter yazımı | `frontmatter` | `error-raw-field-set-value`, `error-unreadable-duplicate-key` | 20 |
 | Ritim alanı | `frontmatter` | `cadence-days-add`, `cadence-snooze-replace` | 11 |
+| Takma ad ekleme ve kaldırma | `frontmatter` | `alias-add-missing-key`, `alias-remove-inline-keeps-spelling` | 8 |
 | Bölüme satır ekleme | `sections` | `section-append-end`, `section-unclosed-fence-create` | 39 |
 | Günlük yazısını değiştirme | `sections` | `section-diary-replace`, `section-diary-legacy-heading` | 18 |
 | Günlük yazısına ekleme | `sections` | `diary-append-new`, `diary-append-legacy-heading` | 37 |
@@ -516,6 +518,8 @@ Değer, türünü adlandıran tek anahtarlı bir nesnedir. `number` yazımı met
 | Eşgüçlülük | İşlem ikinci kez uygulanınca dosya değişmez |
 
 **Ritim alanı:** `cadence-*` örnekleri ritim alanını eklemeyi, değiştirmeyi ve silmeyi bayt bayt sınar. Yorum satırı, komşu alan, CRLF ve BOM hedef satırın dışında kalır. `cadence-days-replace-text` ve `cadence-paused-replace-text` yok sayılan yazımı (`aylık`, `yes`) seçilen değerle değiştirir ve yalnız o satırı yazar. `cadence-snooze-replace` eski erteleme tarihini yerinde değiştirir. Değerden önceki boşluk, satır sonu yorumu, komşu satırların sondaki boşlukları ve tırnaklar kalır. `cadence-snooze-remove-middle` sürdürmenin yalnız `cadence_paused` satırını sildiğini gösterir.
+
+**Takma ad:** `alias-*` örnekleri varlık sayfasından takma ad eklemeyi ve kaldırmayı bayt bayt sınar. İşlem `set-list` işlemidir; uygulama testi aynı baytları sayfanın ekleme ve kaldırma eylemiyle üretir. `alias-add-missing-key` anahtarı frontmatter'ın sonuna tek satırlı liste olarak ekler; yorum ve komşu alanlar kalır. `alias-add-inline-keeps-quotes-and-comment` ve `alias-add-block-keeps-comments` mevcut öğelerin tırnağını, liste biçimini ve yorumları korur. `alias-add-crlf-bom` BOM ve CRLF taşır. `alias-add-single-value` tek değeri listeye çevirir. `alias-add-comma-is-quoted` virgüllü takma adı tırnaklar. `alias-remove-inline-keeps-spelling` aradaki öğeyi çıkarır. `alias-remove-last-keeps-key` son öğeyi çıkarır ve `aliases: []` bırakır.
 
 ### Bölüm işlemleri
 

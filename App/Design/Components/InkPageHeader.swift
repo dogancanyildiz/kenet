@@ -265,18 +265,118 @@ struct InkNavigationRow<Center: View, Actions: View>: View {
     }
 
     var body: some View {
-        ZStack {
-            center()
-            HStack(spacing: InkHeaderActionChrome.spacing) {
+        // Each slot is one subview, empty or not (``InkNavigationRowLayout``). The back item and
+        // the icons stop growing at the day manşet's cap, so they fit a 320 pt screen at every
+        // text size; the middle item keeps the full size.
+        InkNavigationRowLayout {
+            HStack(spacing: 0) {
                 if let drawnBackTitle {
                     InkBackButton(title: drawnBackTitle, showsTitle: backShowsTitle)
                 }
-                Spacer(minLength: 0)
+            }
+            .dynamicTypeSize(...InkDayHeaderLayout.largestActionSize)
+            HStack(spacing: 0) { center() }
+            HStack(spacing: InkHeaderActionChrome.spacing) {
                 actions()
                     .buttonStyle(InkHeaderButtonStyle())
                     .environment(\.isInkHeaderActionSlot, true)
             }
+            .dynamicTypeSize(...InkDayHeaderLayout.largestActionSize)
         }
         .preference(key: InkHeaderBackShownKey.self, value: drawnBackTitle != nil)
+    }
+}
+
+/// Where the middle item of a navigation row sits (unit-tested).
+enum InkNavigationRowArrangement: Equatable, Sendable {
+    /// In the middle of the row, the back item and the icons at its ends (the drawing).
+    case centered
+    /// In the middle of the room left between the back item and the icons: the row's own middle
+    /// would put it under one of them.
+    case between
+    /// On its own row below: the three do not fit one row.
+    case below
+
+    /// Smallest gap between the middle item and a neighbor.
+    static let gap = InkHeaderActionChrome.spacing
+    /// Gap between the two rows of ``below``.
+    static let rowSpacing: CGFloat = 4
+
+    static func resolve(width: CGFloat, leading: CGFloat, center: CGFloat, trailing: CGFloat) -> Self {
+        guard center > 0 else { return .centered }
+        if (width - center) / 2 >= max(leading, trailing) + gap { return .centered }
+        return taken(leading) + center + taken(trailing) <= width ? .between : .below
+    }
+
+    /// A side's width with its gap; an empty side takes none.
+    static func taken(_ side: CGFloat) -> CGFloat { side > 0 ? side + gap : 0 }
+}
+
+/// Lays out a navigation row's three slots (back item, middle item, icons) so the middle item
+/// never runs under the icons at a large text size or on a narrow screen.
+private struct InkNavigationRowLayout: Layout {
+    private struct Measured {
+        var leading: CGSize
+        var center: CGSize
+        var trailing: CGSize
+        var arrangement: InkNavigationRowArrangement
+        var sidesHeight: CGFloat { max(leading.height, trailing.height) }
+        var height: CGFloat {
+            switch arrangement {
+            case .centered, .between: max(sidesHeight, center.height)
+            case .below: sidesHeight + InkNavigationRowArrangement.rowSpacing + center.height
+            }
+        }
+    }
+
+    private func measure(_ subviews: Subviews, width: CGFloat?) -> Measured {
+        let leading = subviews[0].sizeThatFits(.unspecified)
+        var center = subviews[1].sizeThatFits(.unspecified)
+        let trailing = subviews[2].sizeThatFits(.unspecified)
+        guard let width else {
+            return Measured(leading: leading, center: center, trailing: trailing, arrangement: .between)
+        }
+        let arrangement = InkNavigationRowArrangement.resolve(
+            width: width, leading: leading.width, center: center.width, trailing: trailing.width)
+        if arrangement == .below {
+            // Its own row: wider than the row, it wraps instead of leaving the screen.
+            center = subviews[1].sizeThatFits(ProposedViewSize(width: width, height: nil))
+        }
+        return Measured(leading: leading, center: center, trailing: trailing, arrangement: arrangement)
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard subviews.count == 3 else { return .zero }
+        let measured = measure(subviews, width: proposal.width)
+        let ideal =
+            InkNavigationRowArrangement.taken(measured.leading.width) + measured.center.width
+            + InkNavigationRowArrangement.taken(measured.trailing.width)
+        return CGSize(width: proposal.width ?? ideal, height: measured.height)
+    }
+
+    func placeSubviews(
+        in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()
+    ) {
+        guard subviews.count == 3 else { return }
+        let measured = measure(subviews, width: bounds.width)
+        let stacked = measured.arrangement == .below
+        let sidesMidY = stacked ? bounds.minY + measured.sidesHeight / 2 : bounds.midY
+        subviews[0].place(
+            at: CGPoint(x: bounds.minX, y: sidesMidY), anchor: .leading,
+            proposal: ProposedViewSize(measured.leading))
+        subviews[2].place(
+            at: CGPoint(x: bounds.maxX, y: sidesMidY), anchor: .trailing,
+            proposal: ProposedViewSize(measured.trailing))
+        let center = ProposedViewSize(measured.center)
+        switch measured.arrangement {
+        case .centered:
+            subviews[1].place(at: CGPoint(x: bounds.midX, y: bounds.midY), anchor: .center, proposal: center)
+        case .between:
+            let start = bounds.minX + InkNavigationRowArrangement.taken(measured.leading.width)
+            let end = bounds.maxX - InkNavigationRowArrangement.taken(measured.trailing.width)
+            subviews[1].place(at: CGPoint(x: (start + end) / 2, y: bounds.midY), anchor: .center, proposal: center)
+        case .below:
+            subviews[1].place(at: CGPoint(x: bounds.minX, y: bounds.maxY), anchor: .bottomLeading, proposal: center)
+        }
     }
 }

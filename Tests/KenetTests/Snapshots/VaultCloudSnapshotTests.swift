@@ -103,7 +103,8 @@ private enum VaultCloudSnapshotHost {
             let record = ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"]
                 .flatMap(SnapshotTestingConfiguration.Record.init(rawValue:))
             assertSnapshot(
-                of: image, as: .image(precision: 0.9999, perceptualPrecision: 0.995),
+                of: image,
+                as: .image(precision: macSnapshotPrecision, perceptualPrecision: snapshotPerceptualPrecision),
                 named: "\(name.rawValue)MacLight", record: record, file: #filePath, testName: "vaultCloud")
         }
     }

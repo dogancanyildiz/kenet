@@ -190,7 +190,7 @@ import Testing
                     of: host,
                     as: .image(
                         on: ViewImageConfig.iPhone13,
-                        precision: snapshotPrecision,
+                        precision: snapshotPrecision(canvas: snapshotCanvasSize),
                         perceptualPrecision: snapshotPerceptualPrecision,
                         size: snapshotCanvasSize,
                         traits: traits

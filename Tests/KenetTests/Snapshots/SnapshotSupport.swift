@@ -149,10 +149,28 @@
             from: DateComponents(year: 2026, month: 9, day: 17, hour: 9, minute: 41))!
     }()
 
-    /// Cross-machine render noise (antialiasing, font hinting). Tuned after sensitivity probes
-    /// (color / spacing / glyph); see report for the measurement table.
-    let snapshotPrecision: Float = 0.999
-    let snapshotPerceptualPrecision: Float = 0.995
+    /// How many pixels of an iOS reference may differ (ΔE above the perceptual threshold), whatever
+    /// the canvas size. A fixed share of the canvas grows with it: the former 0.999 let 1 316 px
+    /// pass on the phone canvas and 5 680 px on the 13" iPad, while a reworded one-line caption
+    /// moves 708–904 px (measured on the Settings references of PR #408) and so went unnoticed.
+    /// The floor is render noise between CI runs on one runtime: 0 px on iPhone, 7–23 px on iPad.
+    let snapshotPixelBudget = 100
+
+    /// `precision` for `assertSnapshot`: all but ``snapshotPixelBudget`` pixels must match.
+    func snapshotPrecision(pixelCount: Int) -> Float {
+        guard pixelCount > snapshotPixelBudget else { return 0 }
+        return Float(1 - Double(snapshotPixelBudget) / Double(pixelCount))
+    }
+
+    /// For a view the library draws itself: `canvas` in points at the references' 2× scale.
+    func snapshotPrecision(canvas: CGSize, scale: CGFloat = 2) -> Float {
+        snapshotPrecision(pixelCount: Int((canvas.width * scale).rounded() * (canvas.height * scale).rounded()))
+    }
+
+    /// For an image the test drew itself.
+    func snapshotPrecision(of image: UIImage) -> Float {
+        snapshotPrecision(pixelCount: (image.cgImage?.width ?? 0) * (image.cgImage?.height ?? 0))
+    }
 
     enum SnapshotColorScheme: String, CaseIterable, Sendable {
         case light, dark
@@ -540,7 +558,7 @@
                     of: host,
                     as: .image(
                         on: config,
-                        precision: snapshotPrecision,
+                        precision: snapshotPrecision(canvas: canvas),
                         perceptualPrecision: snapshotPerceptualPrecision,
                         size: canvas,
                         traits: traits
@@ -571,9 +589,16 @@
     }
 #endif
 
+/// A pixel counts as different when its Lab ΔE against the reference exceeds
+/// (1 − this) × 100 = 0.5. Shared by the iOS and Mac references.
+let snapshotPerceptualPrecision: Float = 0.995
+
 #if os(macOS)
     import AppKit
     import Testing
+
+    /// Share of pixels that must match on a Mac reference: 1 in 10 000 may differ.
+    let macSnapshotPrecision: Float = 0.9999
 
     /// Window for Mac references. A hosted SwiftUI view takes two things from its window, and a
     /// plain `NSWindow` takes both from the main display, so docking the Mac to an external

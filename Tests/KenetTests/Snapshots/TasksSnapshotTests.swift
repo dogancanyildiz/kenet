@@ -55,8 +55,6 @@
             if: MacSnapshotEnvironment.isEnabled,
             "Mac references belong to CI; set SNAPSHOT_MAC_LOCAL=1 for local inspection (do not commit)."))
     struct TasksMacSnapshotTests {
-        private static let snapshotPrecision: Float = 0.9999
-        private static let snapshotPerceptualPrecision: Float = 0.995
         private static let bitmapScale = MacSnapshotWindow.scale
 
         @Test func kanbanMacLight() async throws {
@@ -354,8 +352,8 @@
             assertSnapshot(
                 of: image,
                 as: .image(
-                    precision: Self.snapshotPrecision,
-                    perceptualPrecision: Self.snapshotPerceptualPrecision),
+                    precision: macSnapshotPrecision,
+                    perceptualPrecision: snapshotPerceptualPrecision),
                 named: name,
                 record: record,
                 testName: "tasksMac"

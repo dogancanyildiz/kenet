@@ -145,7 +145,7 @@ func weeklyReviewSnapshotCalendar(timeZone: TimeZone) -> Calendar {
                 .flatMap(SnapshotTestingConfiguration.Record.init(rawValue:))
             assertSnapshot(
                 of: Self.render(host, scale: MacSnapshotWindow.scale),
-                as: .image(precision: 0.9999, perceptualPrecision: 0.995),
+                as: .image(precision: macSnapshotPrecision, perceptualPrecision: snapshotPerceptualPrecision),
                 named: name, record: record, file: #filePath, testName: "weeklyReview", line: #line)
         }
 

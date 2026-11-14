@@ -57,12 +57,7 @@ final class EntityRelationsModel {
             guard root == store.vaultURL, !Task.isCancelled else { return }
             let kind = store.content.entities.first { $0.id == path }?.kind
             let schemaKeys = Set(store.entityTypes.allTypes.first { $0.id == kind }?.fields.map(\.key) ?? [])
-            rows =
-                relations.outgoing.map {
-                    EntityRelationRow(
-                        relation: $0, isOutgoing: true, isSchemaField: $0.label.map(schemaKeys.contains) ?? false)
-                }
-                + relations.incoming.map { EntityRelationRow(relation: $0, isOutgoing: false) }
+            rows = Self.rows(outgoing: relations.outgoing, incoming: relations.incoming, schemaKeys: schemaKeys)
             // The source's own schema keys are refused as labels, so they are not offered.
             self.labels = labels.filter { !schemaKeys.contains($0) }
             errorText = nil
@@ -70,6 +65,22 @@ final class EntityRelationsModel {
             guard root == store.vaultURL, !Task.isCancelled else { return }
             errorText = String(localized: "Bağlar yüklenemedi. Kasayı kontrol edip yeniden dene.")
         }
+    }
+
+    /// Outgoing rows first, then the incoming ones. A page that links back appears once: an incoming
+    /// relation is left out when this page already shows the same page with no label or with the
+    /// same label. An incoming label this page does not carry stays, since nothing else shows it.
+    static func rows(outgoing: [Relation], incoming: [Relation], schemaKeys: Set<String>) -> [EntityRelationRow] {
+        let shown = outgoing.map {
+            EntityRelationRow(relation: $0, isOutgoing: true, isSchemaField: $0.label.map(schemaKeys.contains) ?? false)
+        }
+        let back = incoming.filter { relation in
+            let same = outgoing.filter { $0.target == relation.source }
+            if same.isEmpty { return true }
+            guard let label = relation.label else { return false }
+            return !same.contains { $0.label == label }
+        }
+        return shown + back.map { EntityRelationRow(relation: $0, isOutgoing: false) }
     }
 
     func save(target: EntitySummary, label: String) async -> Bool {

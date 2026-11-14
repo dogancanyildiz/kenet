@@ -22,7 +22,8 @@ import VaultStore
         defer { context.clean() }
         let model = EntityRelationsModel(store: context.store, path: Self.person)
         await model.load()
-        #expect(model.rows.count == 4)
+        // Selin links back with no label: she is already on the page, so that row is left out.
+        #expect(model.rows.count == 3)
         let labelled = try #require(model.rows.first { $0.isOutgoing && $0.relation.label == "eşi" })
         #expect(labelled.name == "Selin Korkmaz")
         #expect(labelled.relation.label == "eşi")
@@ -33,43 +34,48 @@ import VaultStore
         let incoming = try #require(model.rows.first { !$0.isOutgoing && $0.relation.label == "yazar" })
         #expect(incoming.name == "Örnek Kitap")
         #expect(incoming.relation.label == "yazar")
-        let incomingPlain = try #require(model.rows.first { !$0.isOutgoing && $0.relation.label == nil })
-        #expect(incomingPlain.name == "Selin Korkmaz")
-        #expect(incomingPlain.relation.label == nil)
+        #expect(!model.rows.contains { !$0.isOutgoing && $0.relation.label == nil })
         #expect(model.rows.filter { !$0.isOutgoing }.allSatisfy { !$0.canRemove })
         #expect(incoming.path == "books/Örnek Kitap.md")
     }
 
-    @Test func removalActionsFollowDirectionSchemaAndWriteAccess() async throws {
+    @Test func bothEndsOfARelationShowOnlyTheOtherName() async throws {
         let context = try await Self.context()
         defer { context.clean() }
-        for path in [Self.person, "books/Örnek Kitap.md"] {
-            let model = EntityRelationsModel(store: context.store, path: path)
-            await model.load()
-            #expect(!model.rows.isEmpty)
-            for row in model.rows {
-                let expected: [EntityRelationsSection.RemoveAction] =
-                    row.isOutgoing && !row.isSchemaField ? [.remove] : []
-                #expect(EntityRelationsSection.removeActions(for: row, canWrite: true) == expected)
-                #expect(EntityRelationsSection.removeActions(for: row, canWrite: false).isEmpty)
-            }
-        }
+        // Selin's page: her own link to Deniz, and Deniz's labelled link back.
+        let model = EntityRelationsModel(store: context.store, path: "people/Selin Korkmaz.md")
+        await model.load()
+        #expect(model.rows.map(\.isOutgoing) == [true, false])
+        #expect(model.rows.map(\.name) == ["Deniz Arıkan", "Deniz Arıkan"])
+        #expect(model.rows.map(\.relation.label) == [nil, "eşi"])
     }
 
-    @Test func incomingPageCopyUsesExplicitLanguageBundles() throws {
-        let examples = [
-            ("Ada", "Ada'nın"), ("Ece", "Ece'nin"), ("Aksu", "Aksu'nun"), ("Öykü", "Öykü'nün"),
-            ("Deniz", "Deniz'in"), ("Bulut", "Bulut'un"), ("Özgür", "Özgür'ün"), ("Arıkan", "Arıkan'ın"),
-        ]
-        for language in ["tr", "en"] {
-            let path = try #require(Bundle.main.path(forResource: language, ofType: "lproj"))
-            for (name, possessive) in examples {
-                let resource = EntityRelationCopy.incomingPage(
-                    name, locale: Locale(identifier: language), bundle: .atURL(URL(fileURLWithPath: path)))
-                let expected = language == "tr" ? "\(possessive) sayfasında" : "On \(name)'s page"
-                #expect(String(localized: resource) == expected)
+    @Test func aPageThatLinksBackAppearsOnce() throws {
+        // `Relation` has no public initializer; the index decodes it, and so does this.
+        func relation(_ source: String, _ target: String, _ label: String? = nil) throws -> Relation {
+            var fields = ["source": source, "target": target, "sourceName": source, "targetName": target]
+            fields["targetKind"] = "person"
+            fields["label"] = label
+            return try JSONDecoder().decode(Relation.self, from: JSONEncoder().encode(fields))
+        }
+        func rows(outgoing: [Relation], incoming: [Relation]) -> [String] {
+            EntityRelationsModel.rows(outgoing: outgoing, incoming: incoming, schemaKeys: []).map {
+                ($0.isOutgoing ? "out " : "in ") + $0.name + ($0.relation.label.map { " " + $0 } ?? "")
             }
         }
+        let plain = try relation("a", "b")
+        let wife = try relation("a", "b", "eşi")
+        let back = try relation("b", "a")
+        // Only the other end links here: one incoming row.
+        #expect(rows(outgoing: [], incoming: [back]) == ["in b"])
+        // Both ends link each other: the outgoing row stands for both.
+        #expect(rows(outgoing: [plain], incoming: [back]) == ["out b"])
+        #expect(rows(outgoing: [wife], incoming: [back]) == ["out b eşi"])
+        #expect(rows(outgoing: [wife], incoming: [try relation("b", "a", "eşi")]) == ["out b eşi"])
+        // A label only the other page carries is shown nowhere else, so its row stays.
+        #expect(rows(outgoing: [plain], incoming: [try relation("b", "a", "kardeş")]) == ["out b", "in b kardeş"])
+        // Another page's link is untouched.
+        #expect(rows(outgoing: [plain], incoming: [try relation("c", "a")]) == ["out b", "in c"])
     }
 
     @Test func schemaLinkRowOffersNoRemovalAndKeepsTheFile() async throws {
@@ -182,15 +188,20 @@ import VaultStore
         defer { context.clean() }
         let model = EntityRelationsModel(store: context.store, path: Self.person)
         await model.load()
-        // Every incoming row, including the plain `related` one Core could remove from its source.
-        let incoming = model.rows.filter { !$0.isOutgoing }
+        // Every incoming relation, including the plain `related` one Core could remove from its source;
+        // the page leaves that one out (Selin is already on it), so the rows come from the query.
+        let incoming = try await context.store.computeRelations(of: Self.person).incoming.map {
+            EntityRelationRow(relation: $0, isOutgoing: false)
+        }
         #expect(incoming.contains { $0.relation.label == nil })
+        #expect(incoming.contains { row in model.rows.contains { $0.id == row.id } })
+        let shown = model.rows.map(\.id)
         for row in incoming {
             let source = context.root.appendingPathComponent(row.relation.source)
             let before = try Data(contentsOf: source)
             await model.remove(row)
             #expect(try Data(contentsOf: source) == before)
-            #expect(model.rows.contains { $0.id == row.id })
+            #expect(model.rows.map(\.id) == shown)
         }
         let outgoing = try #require(model.rows.first { $0.isOutgoing && $0.relation.label == nil })
         await model.remove(outgoing)

@@ -10,6 +10,15 @@ extension SupportTier {
         case .large: "Büyük destek"
         }
     }
+
+    /// The row's spoken value: the price and the badge this amount earns.
+    func accessibilityValue(price: String) -> LocalizedStringKey {
+        switch self {
+        case .small: "\(price), tek halkalı destekçi rozeti"
+        case .medium: "\(price), çift halkalı destekçi rozeti"
+        case .large: "\(price), çerçeveli çift halkalı destekçi rozeti"
+        }
+    }
 }
 
 /// Kenet'i destekle: three voluntary one-time purchases that unlock nothing (docs/decisions.md,
@@ -23,6 +32,8 @@ struct SupportSettingsView: View {
     @State private var glow: CGFloat = 1
     @State private var thanks = 0
     @ScaledMetric(relativeTo: .body) private var badgeSide: CGFloat = 84
+    /// The badge at the head of each amount's row: beside one line of body text.
+    @ScaledMetric(relativeTo: .body) private var rowBadgeSide: CGFloat = 28
 
     var body: some View {
         List {
@@ -41,10 +52,14 @@ struct SupportSettingsView: View {
                 badge
                 outcome
                 options
-                Text("Ödemeyi App Store alır. Destek tek seferliktir ve yenilenmez.")
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.secondaryText)
-                    .inkListRow()
+                Text(
+                    "Her destek bir destekçi rozeti kazandırır. Rozet hiçbir özelliği açmaz. Ödemeyi App Store alır. Destek tek seferliktir ve yenilenmez."
+                )
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+                .inkListRow()
+                .accessibilityIdentifier("text.settings.support.note")
             }
         }
         .listStyle(.plain)
@@ -175,34 +190,42 @@ struct SupportSettingsView: View {
         return Button {
             Task { await service.buy(product.tier) }
         } label: {
+            // One layout for both arrangements: at accessibility sizes the price goes under the
+            // name, and the badge stays at the head of the row.
             let layout =
                 dynamicTypeSize.isAccessibilitySize
                 ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
                 : AnyLayout(HStackLayout(alignment: .center, spacing: InkSpacing.row))
-            layout {
-                Text(product.tier.title)
-                    .font(.ink.content)
-                    .foregroundStyle(Color.ink.text)
-                    .fixedSize(horizontal: false, vertical: true)
-                if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 8) }
-                if isBuying {
-                    ProgressView()
-                } else {
-                    Text(verbatim: product.displayPrice)
-                        .font(.ink.value)
-                        .foregroundStyle(Color.ink.accent)
+            HStack(alignment: .center, spacing: InkSpacing.row) {
+                // The badge this amount earns. Decoration: the row's value names it.
+                SupportBadgeView(kind: .supporter(product.tier), side: min(rowBadgeSide, 56))
+                    .accessibilityHidden(true)
+                layout {
+                    Text(product.tier.title)
+                        .font(.ink.content)
+                        .foregroundStyle(Color.ink.text)
                         .fixedSize(horizontal: false, vertical: true)
+                    if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 8) }
+                    if isBuying {
+                        ProgressView()
+                    } else {
+                        Text(verbatim: product.displayPrice)
+                            .font(.ink.value)
+                            .foregroundStyle(Color.ink.accent)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
             .padding(.horizontal, InkSpacing.cardPadding)
-            .padding(.vertical, dynamicTypeSize.isAccessibilitySize ? 8 : 0)
+            .padding(.vertical, dynamicTypeSize.isAccessibilitySize ? 8 : 4)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .disabled(service.purchase.isPurchasing)
         .accessibilityLabel(Text(product.tier.title))
-        .accessibilityValue(Text(verbatim: product.displayPrice))
+        .accessibilityValue(Text(product.tier.accessibilityValue(price: product.displayPrice)))
         .accessibilityIdentifier("button.settings.support.\(product.tier.rawValue)")
     }
 }

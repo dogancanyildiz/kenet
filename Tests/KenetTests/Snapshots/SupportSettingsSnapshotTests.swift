@@ -12,8 +12,10 @@
         case thankedLight
         case unverifiedLight
         case supporterLight
+        case unconfirmedLight
+        case unconfirmedDark
 
-        var colorScheme: SnapshotColorScheme { .light }
+        var colorScheme: SnapshotColorScheme { self == .unconfirmedDark ? .dark : .light }
 
         var dynamicType: SnapshotDynamicType { .medium }
     }
@@ -28,12 +30,13 @@
             case .supporterLight: storefront.history = [SupportHistoryEntry(productID: SupportTier.large.productID)]
             case .unavailableLight: storefront.catalog = nil
             case .unverifiedLight: storefront.purchaseOutcome = .unverified
+            case .unconfirmedLight, .unconfirmedDark: storefront.purchaseOutcome = .unconfirmed
             }
             let service = SupportService(storefront: storefront)
             await service.loadProducts()
             await service.refreshBadges()
             switch snapshotCase {
-            case .thankedLight, .unverifiedLight: await service.buy(.medium)
+            case .thankedLight, .unverifiedLight, .unconfirmedLight, .unconfirmedDark: await service.buy(.medium)
             case .loadedLight, .unavailableLight, .supporterLight: break
             }
             return service

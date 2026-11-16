@@ -50,10 +50,32 @@ enum SupportStoreTranslation {
         }
     }
 
-    /// A thrown cancellation is a cancellation; every other error stays an error.
+    /// A thrown cancellation is a cancellation. An error that rules a payment out is thrown as
+    /// ``SupportStoreError/refused``; every other error is thrown as it came, and the service
+    /// reads it as "not known whether the payment was taken".
     static func purchase(thrown error: any Error) throws -> SupportStorePurchase {
         if case StoreKitError.userCancelled = error { return .cancelled }
+        if rulesOutPayment(error) { throw SupportStoreError.refused }
         throw error
+    }
+
+    /// Whether a thrown purchase error means the store took no payment. Only the errors that
+    /// refuse the purchase before a payment are named; a network, system or unknown error, and
+    /// any error this build does not know, leaves it open.
+    static func rulesOutPayment(_ error: any Error) -> Bool {
+        switch error {
+        case let error as StoreKitError:
+            switch error {
+            case .notAvailableInStorefront, .notEntitled: true
+            default: false
+            }
+        case let error as Product.PurchaseError:
+            switch error {
+            case .productUnavailable, .purchaseNotAllowed: true
+            default: false
+            }
+        default: false
+        }
     }
 }
 

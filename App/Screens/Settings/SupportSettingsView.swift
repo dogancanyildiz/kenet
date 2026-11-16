@@ -122,6 +122,13 @@ struct SupportSettingsView: View {
             InfoBand(kind: .error, "Satın alma tamamlanamadı. Yeniden deneyebilirsin.")
                 .inkListRow()
                 .accessibilityIdentifier("band.settings.support.failed")
+        case .unconfirmed:
+            InfoBand(
+                kind: .warning,
+                "Satın alma doğrulanamadı. Ödeme alındıysa teşekkür burada görünür; yeniden satın alman gerekmez."
+            )
+            .inkListRow()
+            .accessibilityIdentifier("band.settings.support.unconfirmed")
         case .idle, .purchasing, .cancelled, .thanked:
             EmptyView()
         }

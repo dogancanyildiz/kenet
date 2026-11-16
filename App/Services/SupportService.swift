@@ -129,9 +129,14 @@ enum SupportStorePurchase: Sendable {
     case pending
 }
 
+/// The errors after which the store has certainly taken no payment. Every other error a purchase
+/// throws leaves that open (``SupportPurchaseState/unconfirmed``).
 enum SupportStoreError: Error, Equatable {
     /// A purchase was asked for a product the store did not return.
     case productNotLoaded
+    /// The store turned the purchase down before any payment: the product is not on sale in this
+    /// storefront, or this account or app may not buy.
+    case refused
 }
 
 /// The store behind the support page. ``StoreKitSupportStorefront`` talks to the App Store; unit
@@ -170,7 +175,13 @@ enum SupportPurchaseState: Equatable, Sendable {
     /// The store took the payment but its signature did not check out on this device. Not an
     /// error to retry: a second purchase would charge again.
     case unverified
+    /// The store turned the purchase down; no payment was taken (``SupportStoreError``).
     case failed
+    /// The purchase ended in an error that does not say whether the payment was taken (network,
+    /// system, unknown). Not an error to retry: if the payment went through, the transaction
+    /// arrives through the update listener, now or on the next launch, and a second purchase
+    /// would charge again.
+    case unconfirmed
 
     var isPurchasing: Bool {
         if case .purchasing = self { true } else { false }
@@ -249,8 +260,8 @@ enum SupportPurchaseState: Equatable, Sendable {
 
     /// The page came on screen: products load once, and an old error, cancellation or pending
     /// note is cleared (a declined Ask to Buy sends nothing, so the note would never leave; a
-    /// later approval still thanks through the update listener). A thank-you and the unverified
-    /// note stay.
+    /// later approval still thanks through the update listener). A thank-you, the unverified
+    /// note and the unconfirmed note stay: the last two keep the user from paying twice.
     func pageAppeared() async {
         if purchase == .failed || purchase == .cancelled || purchase == .pending { purchase = .idle }
         if case .loaded = products { return }
@@ -298,8 +309,11 @@ enum SupportPurchaseState: Equatable, Sendable {
             case .pending:
                 purchase = .pending
             }
-        } catch {
+        } catch is SupportStoreError {
             purchase = .failed
+        } catch {
+            // Unknown to this build, too: an error that is not known to rule a payment out.
+            purchase = .unconfirmed
         }
         if hasDeferredThanks {
             hasDeferredThanks = false

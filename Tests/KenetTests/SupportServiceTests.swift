@@ -24,7 +24,7 @@ private final class FinishCounter: @unchecked Sendable {
         SupportStoreProduct(id: SupportTier.medium.productID, displayPrice: "₺99,00"),
     ]
     var productsError: (any Error)?
-    var purchaseResult: Result<SupportStorePurchase, Failure> = .success(.cancelled)
+    var purchaseResult: Result<SupportStorePurchase, any Error> = .success(.cancelled)
     /// When set, the next purchase waits here until the test resumes it. Only that one: a later
     /// purchase returns at once, so a test whose guard is gone fails on its counts and does not hang.
     var holdsNextPurchase = false
@@ -211,12 +211,87 @@ private final class FinishCounter: @unchecked Sendable {
         service.stop()
     }
 
-    @Test func thrownPurchaseErrorIsFailed() async {
-        store.purchaseResult = .failure(.declined)
+    /// The store refused before any payment: the page may invite a retry.
+    @Test(arguments: [SupportStoreError.refused, .productNotLoaded])
+    func anErrorThatRulesOutPaymentIsFailed(_ error: SupportStoreError) async {
+        store.purchaseResult = .failure(error)
         let service = SupportService(storefront: store)
         await service.buy(.small)
         #expect(service.purchase == .failed)
         #expect(store.finishes.count == 0)
+    }
+
+    /// Every other error leaves the payment open: the state must not invite a second purchase.
+    @Test func anyOtherThrownErrorIsUnconfirmedAndNotFailed() async {
+        let errors: [any Error] = [
+            FakeSupportStorefront.Failure.offline, URLError(.networkConnectionLost), CancellationError(),
+            StoreKitError.unknown,
+        ]
+        for error in errors {
+            store.purchaseResult = .failure(error)
+            let service = SupportService(storefront: store)
+            await service.buy(.small)
+            #expect(service.purchase == .unconfirmed)
+            #expect(service.supporterLevel == nil)
+        }
+        #expect(store.finishes.count == 0)
+    }
+
+    /// The purchase call threw, but the payment went through and the transaction arrives through
+    /// the update listener: it is finished, thanked and the note leaves.
+    @Test(arguments: [true, false])
+    func aTransactionThatArrivesAfterAThrownErrorIsFinishedAndThanked(refused: Bool) async {
+        store.purchaseResult = .failure(refused ? SupportStoreError.refused : FakeSupportStorefront.Failure.offline)
+        let service = SupportService(storefront: store)
+        service.start()
+        await service.buy(.medium)
+        #expect(service.purchase == (refused ? .failed : .unconfirmed))
+        #expect(store.finishes.count == 0)
+
+        store.send(store.transaction(.medium))
+        await settle { service.purchase == .thanked }
+        #expect(service.purchase == .thanked)
+        #expect(service.supporterLevel == .medium)
+        #expect(store.finishes.count == 1)
+        service.stop()
+    }
+
+    @Test func reopeningThePageKeepsTheUnconfirmedNoteAndALaterTransactionStillThanks() async {
+        store.purchaseResult = .failure(FakeSupportStorefront.Failure.offline)
+        let service = SupportService(storefront: store)
+        service.start()
+        await service.buy(.small)
+        await service.pageAppeared()
+        #expect(service.purchase == .unconfirmed)
+
+        store.send(store.transaction(.small))
+        await settle { service.purchase == .thanked }
+        #expect(service.purchase == .thanked)
+        service.stop()
+    }
+
+    /// An unverified or revoked arrival is no proof of this payment: the note stays.
+    @Test func anUnverifiedOrRevokedArrivalKeepsTheUnconfirmedNote() async {
+        store.purchaseResult = .failure(FakeSupportStorefront.Failure.offline)
+        let service = SupportService(storefront: store)
+        service.start()
+        await service.buy(.small)
+        store.send(store.transaction(.small, verified: false))
+        store.send(store.transaction(.small, revoked: true))
+        await settle { store.finishes.count == 2 }
+        #expect(store.finishes.count == 2)
+        #expect(service.purchase == .unconfirmed)
+        service.stop()
+    }
+
+    @Test func aNewPurchaseIsAllowedAfterAnUnconfirmedOne() async {
+        store.purchaseResult = .failure(FakeSupportStorefront.Failure.offline)
+        let service = SupportService(storefront: store)
+        await service.buy(.small)
+        store.purchaseResult = .success(.completed(store.transaction(.small)))
+        await service.buy(.small)
+        #expect(store.purchaseRequests.count == 2)
+        #expect(service.purchase == .thanked)
     }
 
     @Test func secondTapWhilePurchasingBuysOnce() async {
@@ -342,8 +417,9 @@ private final class FinishCounter: @unchecked Sendable {
 
     @Test func reopeningThePageClearsErrorAndCancelButKeepsThanks() async {
         let service = SupportService(storefront: store)
-        store.purchaseResult = .failure(.declined)
+        store.purchaseResult = .failure(SupportStoreError.refused)
         await service.buy(.small)
+        #expect(service.purchase == .failed)
         await service.pageAppeared()
         #expect(service.purchase == .idle)
 
@@ -454,9 +530,10 @@ extension SupportProductsState {
 
     @Test func unverifiedCancelledPendingAndFailedPurchasesGiveNoBadge() async {
         let service = SupportService(storefront: store)
-        let results: [Result<SupportStorePurchase, FakeSupportStorefront.Failure>] = [
+        let results: [Result<SupportStorePurchase, any Error>] = [
             .success(.completed(store.transaction(.large, verified: false))), .success(.cancelled),
-            .success(.pending), .failure(.declined),
+            .success(.pending), .failure(SupportStoreError.refused),
+            .failure(FakeSupportStorefront.Failure.offline),
         ]
         for result in results {
             store.purchaseResult = result
@@ -649,6 +726,15 @@ extension SupportProductsState {
         await offline.loadProducts()
         #expect(offline.products == .unavailable)
         #expect(!offline.isTester)
+
+        for (word, state) in [("failed", SupportPurchaseState.failed), ("unconfirmed", .unconfirmed)] {
+            let failing = AppLaunchPolicy.supportService(
+                environment: [
+                    AppLaunchPolicy.uiTestVaultEnvironmentKey: "/tmp/vault", AppLaunchPolicy.uiTestSupportKey: word,
+                ])
+            await failing.buy(.small)
+            #expect(failing.purchase == state)
+        }
     }
 }
 
@@ -682,12 +768,62 @@ extension SupportProductsState {
         #expect(built == 0)
     }
 
-    @Test func thrownCancellationIsACancellationAndOtherErrorsStayErrors() throws {
+    @Test func thrownCancellationIsACancellation() throws {
         #expect(try SupportStoreTranslation.purchase(thrown: StoreKitError.userCancelled).kind == "cancelled")
-        #expect(throws: StoreKitError.self) {
-            try SupportStoreTranslation.purchase(thrown: StoreKitError.notEntitled)
+    }
+
+    private static let underlying = URLError(.notConnectedToInternet)
+
+    @Test func aStorefrontOrEntitlementErrorRulesOutPayment() {
+        #expect(SupportStoreTranslation.rulesOutPayment(StoreKitError.notAvailableInStorefront))
+        #expect(SupportStoreTranslation.rulesOutPayment(StoreKitError.notEntitled))
+    }
+
+    @Test func anUnavailableProductOrAForbiddenPurchaseRulesOutPayment() {
+        #expect(SupportStoreTranslation.rulesOutPayment(Product.PurchaseError.productUnavailable))
+        #expect(SupportStoreTranslation.rulesOutPayment(Product.PurchaseError.purchaseNotAllowed))
+    }
+
+    @Test func aNetworkErrorLeavesPaymentOpen() {
+        #expect(!SupportStoreTranslation.rulesOutPayment(StoreKitError.networkError(Self.underlying)))
+        #expect(!SupportStoreTranslation.rulesOutPayment(Self.underlying))
+    }
+
+    @Test func aSystemErrorLeavesPaymentOpen() {
+        #expect(!SupportStoreTranslation.rulesOutPayment(StoreKitError.systemError(Self.underlying)))
+    }
+
+    @Test func anUnknownErrorLeavesPaymentOpen() {
+        #expect(!SupportStoreTranslation.rulesOutPayment(StoreKitError.unknown))
+        #expect(!SupportStoreTranslation.rulesOutPayment(CancellationError()))
+    }
+
+    /// Never sent by this app (no quantity, no offer): not named, so they stay open.
+    @Test func purchaseErrorsTheAppCannotCauseLeavePaymentOpen() {
+        #expect(!SupportStoreTranslation.rulesOutPayment(Product.PurchaseError.invalidQuantity))
+        #expect(!SupportStoreTranslation.rulesOutPayment(Product.PurchaseError.invalidOfferSignature))
+    }
+
+    @Test func anErrorThatRulesOutPaymentIsThrownAsRefused() {
+        let refusing: [any Error] = [
+            StoreKitError.notAvailableInStorefront, StoreKitError.notEntitled,
+            Product.PurchaseError.productUnavailable, Product.PurchaseError.purchaseNotAllowed,
+        ]
+        for error in refusing {
+            #expect(throws: SupportStoreError.refused) { try SupportStoreTranslation.purchase(thrown: error) }
         }
-        #expect(throws: SupportStoreError.self) {
+    }
+
+    @Test func anErrorThatLeavesPaymentOpenIsThrownAsItCame() {
+        #expect(throws: StoreKitError.self) {
+            try SupportStoreTranslation.purchase(thrown: StoreKitError.networkError(Self.underlying))
+        }
+        #expect(throws: StoreKitError.self) {
+            try SupportStoreTranslation.purchase(thrown: StoreKitError.systemError(Self.underlying))
+        }
+        #expect(throws: StoreKitError.self) { try SupportStoreTranslation.purchase(thrown: StoreKitError.unknown) }
+        #expect(throws: URLError.self) { try SupportStoreTranslation.purchase(thrown: Self.underlying) }
+        #expect(throws: SupportStoreError.productNotLoaded) {
             try SupportStoreTranslation.purchase(thrown: SupportStoreError.productNotLoaded)
         }
     }

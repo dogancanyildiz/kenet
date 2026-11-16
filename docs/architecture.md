@@ -1277,7 +1277,7 @@ Uzantı `AddEventIntent` çağırmaz: intent uygulamanın `IndexStore` nesnesine
 | `SupportTier` | Üç kalıcı ürün kimliği: `com.dogancanyildiz.kenet.support.small`, `.medium`, `.large`. Sıra küçükten büyüğedir |
 | `SupportStorefront` | Mağaza protokolü: ürünleri yükler, satın alır, satın alma dışı işlemleri akıtır. Birim testleri sahte mağaza kullanır |
 | `StoreKitSupportStorefront` | StoreKit 2 uygulaması: `Product.products(for:)`, `Product.purchase()`, `Transaction.updates` |
-| `SupportService` | Durum makinesi. Ürün durumu: yükleniyor, yüklü, yüklenemedi. Satın alma durumu: boşta, sürüyor, teşekkür, iptal, onay bekliyor, doğrulanamadı, hata |
+| `SupportService` | Durum makinesi. Ürün durumu: yükleniyor, yüklü, yüklenemedi. Satın alma durumu: boşta, sürüyor, teşekkür, iptal, onay bekliyor, doğrulanamadı, hata, sonucu belirsiz |
 | `SupporterLevel` | Destekçi rozetinin seviyesi: geçmişteki doğrulanmış, iade edilmemiş en yüksek katman. Saf işlev |
 | `TesterBadgePolicy` | Test ekibi rozetinin koşulu: doğrulanmış mağaza ortamı `sandbox`, yapı yerel imzalı değil, simülatör değil, sürüm `1.0.0` öncesi. Saf işlev |
 | `SupportSigningProfile` | Gömülü profilden yapının yerel imzalı olup olmadığını söyler. Saf işlev; kuralı aşağıdaki tablo verir |
@@ -1295,7 +1295,10 @@ stateDiagram-v2
     Suruyor --> Iptal: kullanıcı vazgeçti
     Suruyor --> OnayBekliyor: mağaza onay bekliyor
     Suruyor --> Dogrulanamadi: doğrulanmamış işlem, finish
-    Suruyor --> Hata: mağaza hatası
+    Suruyor --> Hata: mağaza satın almayı reddetti
+    Suruyor --> Belirsiz: öteki her hata
+    Belirsiz --> Tesekkur: Transaction.updates, finish
+    Hata --> Tesekkur: Transaction.updates, finish
     OnayBekliyor --> Tesekkur: Transaction.updates, finish
     OnayBekliyor --> Bosta: sayfa yeniden açıldı
     Iptal --> Bosta: sayfa yeniden açıldı
@@ -1303,6 +1306,7 @@ stateDiagram-v2
     Iptal --> Suruyor: satıra dokunma
     Hata --> Suruyor: satıra dokunma
     Dogrulanamadi --> Suruyor: satıra dokunma
+    Belirsiz --> Suruyor: satıra dokunma
     Tesekkur --> Suruyor: satıra dokunma
     Suruyor --> Tesekkur: iptal, onay bekliyor ya da hata; o sırada gelen onay bekliyordu
 ```
@@ -1324,6 +1328,19 @@ Satın alma hiçbir yere yazılmaz: uygulama satın alma için dosyaya, indekse 
 | Sürüm `1.0.0` öncesi | `CFBundleShortVersionString` | Yayın sonrası her yapı |
 
 Geliştirme imzalı yapı da `sandbox` ortamında çalışır; ortam tek başına TestFlight demez. Mac'te mağaza kopyası profilini korur; bu yüzden Mac kuralı profilin varlığına değil içeriğine bakar. **Varsayım:** TestFlight Mac yapısının profili cihaz listesi taşımaz; kaynak Apple TN3125, TestFlight Mac yapısında ölçülmedi.
+
+**Tablo satın alma çağrısının attığı hatanın hangi duruma gittiğini gösterir.**
+
+| Hata | Durum | Bant |
+|---|---|---|
+| `StoreKitError.userCancelled` | İptal | Yok |
+| `StoreKitError.notAvailableInStorefront`, `StoreKitError.notEntitled` | Hata | "Yeniden deneyebilirsin" |
+| `Product.PurchaseError.productUnavailable`, `Product.PurchaseError.purchaseNotAllowed` | Hata | "Yeniden deneyebilirsin" |
+| `SupportStoreError.productNotLoaded` | Hata | "Yeniden deneyebilirsin" |
+| `StoreKitError.networkError`, `StoreKitError.systemError`, `StoreKitError.unknown` | Sonucu belirsiz | "Yeniden satın alman gerekmez" |
+| Adı geçmeyen her hata | Sonucu belirsiz | "Yeniden satın alman gerekmez" |
+
+Sınıflandırma `SupportStoreTranslation.rulesOutPayment` saf işlevindedir. Ödemeyi dışladığı bilinen hata `SupportStoreError.refused` olur; `SupportService` yalnız `SupportStoreError` için Hata durumuna geçer. Sonucu belirsiz durum sayfa yeniden açılınca kalkmaz; doğrulanmış işlem gelince teşekkür olur. **Varsayım:** Hata satırlarındaki dört StoreKit hatasında mağaza ödeme almaz; Apple belgesi hataları tanımlar ama ödemeyi açıkça anmaz.
 
 Satın alma sürerken ikinci dokunuş mağazaya gitmez. Doğrulanmamış satın almada ödeme alınmıştır; ekran hata demez ve yeniden satın almaya çağırmaz. İade edilmiş işlem kapanır ve teşekkür göstermez. Satın alma sürerken gelen onay bekler; satın alma bitince teşekkür olur.
 

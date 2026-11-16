@@ -4,7 +4,11 @@ import Foundation
 /// Prices are fixed texts; nothing is charged.
 @MainActor final class InMemorySupportStorefront: SupportStorefront {
     enum PurchaseOutcome: String, Sendable {
-        case verified, unverified, cancelled, pending, failed
+        case verified, unverified, cancelled, pending
+        /// The store refused; no payment.
+        case failed
+        /// An error that does not say whether the payment was taken.
+        case unconfirmed
     }
 
     struct Unavailable: Error {}
@@ -43,7 +47,8 @@ import Foundation
                     productID: productID, isVerified: purchaseOutcome == .verified, finish: {}))
         case .cancelled: return .cancelled
         case .pending: return .pending
-        case .failed: throw Unavailable()
+        case .failed: throw SupportStoreError.refused
+        case .unconfirmed: throw Unavailable()
         }
     }
 

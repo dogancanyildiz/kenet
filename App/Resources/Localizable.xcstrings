@@ -14147,6 +14147,22 @@
         }
       }
     },
+    "Satın alma doğrulanamadı. Ödeme alındıysa teşekkür burada görünür; yeniden satın alman gerekmez." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The purchase could not be confirmed. If you were charged, the thank-you appears here; you do not need to buy again."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Satın alma doğrulanamadı. Ödeme alındıysa teşekkür burada görünür; yeniden satın alman gerekmez."
+          }
+        }
+      }
+    },
     "Satın alma onay bekliyor. Onaylanınca tamamlanır." : {
       "localizations" : {
         "en" : {

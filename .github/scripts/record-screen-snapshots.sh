@@ -7,6 +7,7 @@
 # SNAPSHOT_SUITES doluysa yalnız o kümeler (boşlukla ayrılmış adlar); boşsa bütün iOS kümeleri.
 # --duo: yalnız iPhone Duo tuval kümeleri (snapshot-suites.sh --duo). Bu kümeler test konağında
 # SNAPSHOT_DUO=1 görmeden koşmaz; betik değişkeni TEST_RUNNER_SNAPSHOT_DUO olarak geçirir.
+# Duo referanslarını CI kaydeder (record-snapshots iş akışı, target=duo); yerel koşu incelemedir.
 # --pad: yalnız iPad tuval kümeleri (snapshot-suites.sh --pad), iPad simülatöründe (tercih sırası
 # aşağıda; CI ile aynı aygıt). Bu kümeler iPhone'da kendini atlar.
 # Kayıt kipi varsayılan "failed": yalnız eşleşmeyen ya da eksik referans yazılır; eşleşen PNG'ler

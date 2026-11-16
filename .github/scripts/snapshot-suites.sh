@@ -8,7 +8,8 @@
 #   sh snapshot-suites.sh --mac  Mac kümeleri (kayıt ve haftalık ölçüm CI ortamında;
 #                                yerelde SNAPSHOT_MAC_LOCAL=1 ile açılır)
 #   sh snapshot-suites.sh --duo  Duo kümeleri (henüz CI kapısı değil; varsayılan listeye girmez;
-#                                kayıt: record-screen-snapshots.sh --duo)
+#                                kayıt CI'da: record-snapshots iş akışı, target=duo; yerelde
+#                                inceleme için: record-screen-snapshots.sh --duo)
 #   sh snapshot-suites.sh --pad  iPad kümeleri (CI'da ikinci simülatörde kapı; varsayılan listeye
 #                                girmez; kayıt: record-screen-snapshots.sh --pad)
 # Yeni küme eklemek için başka dosyaya dokunmak gerekmez.

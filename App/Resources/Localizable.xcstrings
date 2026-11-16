@@ -14179,6 +14179,22 @@
         }
       }
     },
+    "Satın almanın sonucu belli değil. Ödeme alındıysa teşekkür burada görünür; yeniden satın alman gerekmez." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The outcome of the purchase is unclear. If you were charged, the thank-you appears here; you do not need to buy again."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Satın almanın sonucu belli değil. Ödeme alındıysa teşekkür burada görünür; yeniden satın alman gerekmez."
+          }
+        }
+      }
+    },
     "Satır değişmiş, bağlanmadı." : {
       "localizations" : {
         "en" : {

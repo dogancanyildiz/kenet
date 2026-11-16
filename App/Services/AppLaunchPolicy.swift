@@ -27,7 +27,7 @@ enum AppLaunchPolicy {
     /// DEBUG-only: a store in memory in place of the App Store, for UI tests and the screen tour.
     /// Comma-separated words: `small`, `medium`, `large` (a purchase already in the history),
     /// `tester` (this run earns the test team badge), `unverified`, `pending`, `failed`,
-    /// `cancelled` (what the next purchase does), `offline` (no products). Nothing is kept.
+    /// `unconfirmed`, `cancelled` (what the next purchase does), `offline` (no products). Nothing is kept.
     static let uiTestSupportKey = "KENET_UITEST_SUPPORT"
 
     /// The support service: the App Store, with the test team badge kept in the app's defaults.

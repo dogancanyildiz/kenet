@@ -39,10 +39,47 @@ enum SupportStoreTranslation {
         }
     }
 
-    /// A thrown cancellation is a cancellation; every other error stays an error.
+    /// The environment of an app transaction, with the verification kept in the value: an
+    /// unverified sandbox answer is ``SupportDistribution/sandboxUnverified``. The other
+    /// environments earn nothing either way, so they need no second value.
+    static func distribution<Signed>(
+        _ result: VerificationResult<Signed>, environment: (Signed) -> AppStore.Environment
+    ) -> SupportDistribution {
+        switch result {
+        case .verified(let signed):
+            return distribution(environment(signed))
+        case .unverified(let signed, _):
+            let claimed = distribution(environment(signed))
+            return claimed == .sandbox ? .sandboxUnverified : claimed
+        }
+    }
+
+    /// A thrown cancellation is a cancellation. An error that rules a payment out is thrown as
+    /// ``SupportStoreError/refused``; every other error is thrown as it came, and the service
+    /// reads it as "not known whether the payment was taken".
     static func purchase(thrown error: any Error) throws -> SupportStorePurchase {
         if case StoreKitError.userCancelled = error { return .cancelled }
+        if rulesOutPayment(error) { throw SupportStoreError.refused }
         throw error
+    }
+
+    /// Whether a thrown purchase error means the store took no payment. Only the errors that
+    /// refuse the purchase before a payment are named; a network, system or unknown error, and
+    /// any error this build does not know, leaves it open.
+    static func rulesOutPayment(_ error: any Error) -> Bool {
+        switch error {
+        case let error as StoreKitError:
+            switch error {
+            case .notAvailableInStorefront, .notEntitled: true
+            default: false
+            }
+        case let error as Product.PurchaseError:
+            switch error {
+            case .productUnavailable, .purchaseNotAllowed: true
+            default: false
+            }
+        default: false
+        }
     }
 }
 
@@ -115,8 +152,8 @@ enum SupportStoreTranslation {
 }
 
 /// Whether this run earns the test team badge (``TesterBadgePolicy``). TestFlight builds run in
-/// the sandbox environment and carry no development profile; a build run from Xcode reports
-/// `xcode` or carries one. A DEBUG build never asks the store.
+/// the sandbox environment and are not signed on a developer's machine; a build run from Xcode
+/// reports `xcode` or is signed locally. A DEBUG build never asks the store.
 enum SystemTesterProbe {
     @MainActor static func earns() async -> Bool {
         #if DEBUG || targetEnvironment(simulator)
@@ -125,21 +162,23 @@ enum SystemTesterProbe {
             let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
             // Asked first: after 1.0.0 the store is never asked.
             guard TesterBadgePolicy.isPrerelease(version) else { return false }
+            // No app transaction (no store account, offline, a copy the store never issued): no
+            // badge on this run; the next launch asks again.
             guard let result = try? await AppTransaction.shared else { return false }
             return TesterBadgePolicy.earns(
-                distribution: SupportStoreTranslation.distribution(result.unsafePayloadValue.environment),
-                hasDevelopmentProfile: hasDevelopmentProfile, isSimulator: false, version: version)
+                distribution: SupportStoreTranslation.distribution(result) { $0.environment },
+                isLocalBuild: isLocalBuild, isSimulator: false, version: version)
         #endif
     }
 
-    /// iOS: App Store and TestFlight copies have no `embedded.mobileprovision`; development and
-    /// ad hoc copies do. Mac copies from the store keep their profile (iCloud needs it), so the
-    /// file says nothing there.
-    static var hasDevelopmentProfile: Bool {
+    static var isLocalBuild: Bool {
         #if os(iOS)
-            Bundle.main.path(forResource: "embedded", ofType: "mobileprovision") != nil
+            SupportSigningProfile.isLocalPhoneBuild(
+                hasEmbeddedProfile: Bundle.main.path(forResource: "embedded", ofType: "mobileprovision") != nil)
         #else
-            false
+            SupportSigningProfile.isLocalMacBuild(
+                profile: try? Data(
+                    contentsOf: Bundle.main.bundleURL.appendingPathComponent("Contents/embedded.provisionprofile")))
         #endif
     }
 }

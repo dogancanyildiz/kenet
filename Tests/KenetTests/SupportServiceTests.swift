@@ -884,6 +884,38 @@ extension SupportProductsState {
     }
 }
 
+/// The badge drawing's measures: a link, its stroke and its turn included, stays inside the
+/// badge's square at every size, and inside the large badge's rim.
+@Suite struct SupportBadgeGeometryTests {
+    /// The row badge, the Hakkında badge, the page badge, and their Dynamic Type ceilings.
+    static let sides: [CGFloat] = [28, 40, 56, 64, 84, 120]
+
+    @Test(arguments: sides) func aTurnedLinkStaysInsideTheSquare(side: CGFloat) {
+        // The box around the turned link, and the farthest point of its round end.
+        #expect(SupportBadgeGeometry.linkHalfExtent(side: side) <= side / 2)
+        #expect(SupportBadgeGeometry.linkReach(side: side) <= side / 2)
+        // The stroke is drawn inward and stays thinner than the ring's radius: the ring has a hole.
+        #expect(SupportBadgeGeometry.strokeWidth < SupportBadgeGeometry.linkHeight / 2)
+    }
+
+    @Test(arguments: sides) func theFramedLinksStayClearOfTheRim(side: CGFloat) {
+        let scale = SupportBadgeGeometry.framedLinksScale
+        let reach = SupportBadgeGeometry.linkReach(side: side, scale: scale)
+        let rim = SupportBadgeGeometry.rimInnerRadius(side: side)
+        #expect(reach < rim)
+        // At least 0.08 of the side between a link's end and the rim.
+        #expect(rim - reach >= side * 0.08)
+        #expect(SupportBadgeGeometry.linkHalfExtent(side: side, scale: scale) < rim)
+    }
+
+    @Test func theTurnedLinkFillsMostOfTheSquare() {
+        // 0.21 on the diagonal plus the 0.29 radius: 0.4385 of the side on each axis.
+        #expect(abs(SupportBadgeGeometry.linkHalfExtent(side: 100) - 43.85) < 0.01)
+        #expect(SupportBadgeGeometry.linkReach(side: 100) == 50)
+        #expect(abs(SupportBadgeGeometry.rimInnerRadius(side: 100) - 44.5) < 0.0001)
+    }
+}
+
 extension SupportStorePurchase {
     fileprivate var kind: String {
         switch self {

@@ -8,16 +8,7 @@ extension DayView {
     ) -> some View {
         let isSelected = selectedScheduleItemID == entry.id
         let time = entry.time.map { EventTimeFormat.string(for: $0, locale: locale) }
-        HStack(alignment: .top, spacing: 8) {
-            // The card reads its time itself; the column is for the eye.
-            Text(verbatim: isTimedSection ? (time ?? "") : "")
-                .font(.ink.meta.weight(.semibold))
-                .monospacedDigit()
-                .foregroundStyle(Color.ink.secondaryText)
-                .frame(width: 52, alignment: .leading)
-                .padding(.top, InkSpacing.cardPadding + 2)
-                .accessibilityHidden(true)
-
+        ScheduleTimeRow(time: isTimedSection ? (time ?? "") : "", isTimed: isTimedSection) {
             switch entry.kind {
             case .event(let event):
                 scheduleEventCard(
@@ -69,11 +60,7 @@ extension DayView {
         let isSelected = selectedScheduleItemID == entry.id
         let time = entry.time.map { EventTimeFormat.string(for: $0, locale: locale) }
         HStack(alignment: .top, spacing: 10) {
-            Text(verbatim: time ?? "—")
-                .font(.ink.meta)
-                .monospacedDigit()
-                .foregroundStyle(Color.ink.secondaryText)
-                .frame(width: 44, alignment: .trailing)
+            InkTimeColumn(text: time ?? "—", font: .ink.meta, minWidth: 44, alignment: .trailing)
                 .padding(.top, 12)
                 .accessibilityHidden(true)
             switch entry.kind {
@@ -445,6 +432,41 @@ extension DayView {
     func openScheduleLink(_ url: URL) {
         scheduleLinkDestination = EntityLinkDestination.from(
             url: url, entities: store.content.entities)
+    }
+}
+
+/// A past-day schedule row: the time column beside its card. At accessibility sizes the time moves
+/// above the card, which then has the row's whole width. One layout either way: the card keeps
+/// its identity when the text size changes.
+struct ScheduleTimeRow<Card: View>: View {
+    /// Empty in the untimed group: the column stays, so its cards line up with the timed ones.
+    let time: String
+    let isTimed: Bool
+    @ViewBuilder let card: () -> Card
+
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    /// The column's width while the time fits in it (drawing: 52 pt).
+    static var columnWidth: CGFloat { 52 }
+
+    var body: some View {
+        let stacks = dynamicTypeSize.isAccessibilitySize
+        let layout =
+            stacks
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: 8))
+        layout {
+            if isTimed || !stacks {
+                // The card reads its time itself; the column is for the eye.
+                InkTimeColumn(
+                    text: time, font: .ink.meta.weight(.semibold), minWidth: stacks ? 0 : Self.columnWidth,
+                    reservesWidestTime: !stacks
+                )
+                .padding(.top, stacks ? 0 : InkSpacing.cardPadding + 2)
+                .accessibilityHidden(true)
+            }
+            card()
+        }
     }
 }
 

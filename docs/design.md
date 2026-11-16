@@ -78,7 +78,7 @@ Parıltının yeri ve gücü bu yüzden sayıyla tanımlıdır.
 |---|---|
 | 1 | Yazı rolünü veri türü seçer. Kasadan gelen metin `content` rolündedir: olay, görev, günlük yazısı, not, alan değeri. `content` rolünün ailesi SF Pro'dur. Rol ayrı kalır; serif tek satırlık değişiklikle geri döner. Hiçbir ekran yazı tipini elle seçmez. |
 | 2 | Her bölüm bir karttır. Bölüm başlığı ve sayaç kartın üstünde, kartın dışındadır. Kart içinde satırları `rule` ayraç ayırır. Kart içinde kart yoktur. |
-| 3 | Her satırın işareti kartın içinde, sol işaret sütunundadır: görev kutusu, hedef halkası, saat. Sütun 44 pt'dir ve yazıyla büyür. Öncelik görev kutusunun içindedir. |
+| 3 | Her satırın işareti kartın içinde, sol işaret sütunundadır: görev kutusu, hedef halkası, saat. Sütun 44 pt'dir ve yazıyla büyür. Saat sütuna sığmazsa sütun saat kadar genişler; saat satır kırmaz. Öncelik görev kutusunun içindedir. |
 | 4 | Bağlantı metni metin rengindedir; anlamı alt çizgi taşır. Kişi düz mavi, konum noktalı yeşil, çözülmemiş bağlantı kesik ve ikincil alt çizgi taşır. Türkçe ek çizginin dışında kalır. |
 | 5 | Eylem tek renktir: vurgu. Parıltı ve hale eylem değildir. Dikkat yalnız uyarı rengiyle görünür: devreden tarihinde ve yığılı çubuğun devreden parçasında. |
 | 6 | Tamamlanan görev ve yapılmış hedef soluklaşır: ikincil metin, dolu işaret. Bu satırlar listenin sonuna iner; Bugün hedef bölümünde yalnız günün ilk yüklemesinde, çünkü gün ekranda kaldıkça sıra değişmez (`screens.md` Hedefler bölümü). Üstleri çizili olmaz. |

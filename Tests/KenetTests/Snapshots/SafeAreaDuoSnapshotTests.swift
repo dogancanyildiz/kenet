@@ -31,13 +31,10 @@
         }
     }
 
-    /// Duo references are not a CI gate yet: the suite runs only when `SNAPSHOT_DUO=1` reaches the
-    /// test host (`record-screen-snapshots.sh --duo` passes it as `TEST_RUNNER_SNAPSHOT_DUO`).
-    /// Without it the iOS unit job, which skips only the default snapshot suites, would run them.
+    /// A CI gate since 2026-11-16: the suite is in the default list of `snapshot-suites.sh`, so the
+    /// iOS unit job skips it and the iPhone snapshot step runs it.
     @MainActor
-    @Suite(
-        "Duo asymmetric safe area snapshots",
-        .enabled(if: ProcessInfo.processInfo.environment["SNAPSHOT_DUO"] == "1"))
+    @Suite("Duo asymmetric safe area snapshots")
     struct SafeAreaDuoSnapshotTests {
         /// Same tab-bar inset as the phone Today references.
         private static let tabBarHeight: CGFloat = 84

@@ -44,7 +44,7 @@
 
     /// Captures the window, including system form sheets, rather than only the presenting view.
     @MainActor
-    @Suite(.serialized, .enabled(if: ProcessInfo.processInfo.environment["SNAPSHOT_DUO"] == "1"))
+    @Suite(.serialized)
     struct ChromeSheetsDuoSnapshotTests {
         @Test(arguments: ChromeSheetsDuoCase.drawn)
         func chrome(_ screen: ChromeSheetsDuoCase) async throws {

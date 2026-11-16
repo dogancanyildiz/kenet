@@ -80,8 +80,8 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  # Duo kümeleri CI kapısı değildir (snapshot-suites.sh --duo); referansları yalnız bu iş çizer.
-  # "both" Duo'yu kapsamaz: iOS ve Mac kaydının süresi değişmesin.
+  # Duo kümeleri CI kapısıdır ve "ios" kaydı onları da kapsar. Bu iş yalnız Duo referanslarını
+  # hepsini yeniden yazarak (SNAPSHOT_TESTING_RECORD=all) kaydeder.
   duo:
     if: inputs.target == 'duo'
     name: Referans üret (Duo)
@@ -99,7 +99,7 @@ jobs:
           restore-keys: spm-xcode-ios-snapshots-
       - name: XcodeGen
         run: brew install xcodegen
-      # Betik kümeleri SNAPSHOT_DUO=1 ile açar ve iPhone kapısıyla aynı simülatörü seçer.
+      # Betik yalnız Duo kümelerini seçer ve iPhone kapısıyla aynı simülatörü kullanır.
       - name: Duo referanslarını kaydet ve doğrula
         env:
           # "all": bütün Duo referansları CI ortamında baştan çizilir (Mac kaydıyla aynı gerekçe).

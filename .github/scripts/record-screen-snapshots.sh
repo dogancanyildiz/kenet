@@ -5,8 +5,9 @@
 # Derleme ve koşu ayrıdır: build-for-testing, DerivedData SNAPSHOT_DERIVED_DATA
 # (varsayılan .dd/snapshots); kayıt ve doğrulama test-without-building ile aynı yoldadır.
 # SNAPSHOT_SUITES doluysa yalnız o kümeler (boşlukla ayrılmış adlar); boşsa bütün iOS kümeleri.
-# --duo: yalnız iPhone Duo tuval kümeleri (snapshot-suites.sh --duo). Bu kümeler test konağında
-# SNAPSHOT_DUO=1 görmeden koşmaz; betik değişkeni TEST_RUNNER_SNAPSHOT_DUO olarak geçirir.
+# --duo: yalnız iPhone Duo tuval kümeleri (snapshot-suites.sh --duo). Duo kümeleri varsayılan
+# listededir; bu seçenek yalnız onları yeniden kaydeder (record-snapshots iş akışı, target=duo).
+# Yerel koşu incelemedir; referansları CI kaydeder.
 # --pad: yalnız iPad tuval kümeleri (snapshot-suites.sh --pad), iPad simülatöründe (tercih sırası
 # aşağıda; CI ile aynı aygıt). Bu kümeler iPhone'da kendini atlar.
 # Kayıt kipi varsayılan "failed": yalnız eşleşmeyen ya da eksik referans yazılır; eşleşen PNG'ler
@@ -19,7 +20,6 @@ FAMILY="iPhone"
 case "${1:-}" in
   --duo)
     SUITES_FLAG="--duo"
-    export TEST_RUNNER_SNAPSHOT_DUO=1
     ;;
   --pad)
     SUITES_FLAG="--pad"

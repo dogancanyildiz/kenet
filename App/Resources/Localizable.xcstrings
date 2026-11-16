@@ -1147,6 +1147,38 @@
         }
       }
     },
+    "%@, çerçeveli çift halkalı destekçi rozeti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, supporter badge with two links in a frame"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, çerçeveli çift halkalı destekçi rozeti"
+          }
+        }
+      }
+    },
+    "%@, çift halkalı destekçi rozeti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, supporter badge with two links"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, çift halkalı destekçi rozeti"
+          }
+        }
+      }
+    },
     "%@, işareti kaldır" : {
       "localizations" : {
         "en" : {
@@ -1176,6 +1208,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@, miktar gir"
+          }
+        }
+      }
+    },
+    "%@, tek halkalı destekçi rozeti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, supporter badge with one link"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, tek halkalı destekçi rozeti"
           }
         }
       }
@@ -10771,6 +10819,22 @@
         }
       }
     },
+    "Her destek bir destekçi rozeti kazandırır. Rozet hiçbir özelliği açmaz. Ödemeyi App Store alır. Destek tek seferliktir ve yenilenmez." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each tip earns a supporter badge. The badge unlocks nothing. The App Store handles the payment. A tip is a one-time purchase and does not renew."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Her destek bir destekçi rozeti kazandırır. Rozet hiçbir özelliği açmaz. Ödemeyi App Store alır. Destek tek seferliktir ve yenilenmez."
+          }
+        }
+      }
+    },
     "Her gün" : {
       "localizations" : {
         "en" : {
@@ -13575,22 +13639,6 @@
         }
       }
     },
-    "Ödemeyi App Store alır. Destek tek seferliktir ve yenilenmez." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The App Store handles the payment. A tip is a one-time purchase and does not renew."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ödemeyi App Store alır. Destek tek seferliktir ve yenilenmez."
-          }
-        }
-      }
-    },
     "Ödeme alındı ama doğrulanamadı. Yeniden satın alman gerekmez." : {
       "localizations" : {
         "en" : {
@@ -14175,6 +14223,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Satın alma tamamlanamadı. Yeniden deneyebilirsin."
+          }
+        }
+      }
+    },
+    "Satın almanın sonucu belli değil. Ödeme alındıysa teşekkür burada görünür; yeniden satın alman gerekmez." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The outcome of the purchase is unclear. If you were charged, the thank-you appears here; you do not need to buy again."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Satın almanın sonucu belli değil. Ödeme alındıysa teşekkür burada görünür; yeniden satın alman gerekmez."
           }
         }
       }

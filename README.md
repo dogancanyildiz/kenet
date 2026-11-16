@@ -139,6 +139,7 @@ xcodebuild test -project Kenet.xcodeproj -scheme Kenet_iOS \
 | iOS referanslarını doğrula | `SNAPSHOT_TESTING_RECORD=never sh .github/scripts/record-screen-snapshots.sh` |
 | iOS referanslarını yenile | `sh .github/scripts/record-screen-snapshots.sh`; yalnız eşleşmeyen ya da eksik referansları yazar |
 | Mac referanslarını yenile | CI `record-snapshots` iş akışı, `target=mac` |
+| Duo referanslarını yenile | CI `record-snapshots` iş akışı, `target=duo` |
 
 **DİKKAT:** iOS referanslarını CI ile aynı cihazda üret: en eski iOS çalışma zamanındaki iPhone 17. Çalışma zamanı sürümünü Mimari belgesindeki "Simülatör seçimi" satırı verir.
 

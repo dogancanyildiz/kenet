@@ -1408,16 +1408,17 @@ Adresler tek sabittedir: `AppLinks`. Karar: `docs/decisions.md` 2026-10-21 alan 
 |---|---|
 | Açıklama | Bütün özellikler ücretsizdir. Destek gönüllüdür ve hiçbir özelliği açmaz. |
 | Seçenekler | Tek kartta üç satır, bu sırayla: Küçük destek, Orta destek, Büyük destek. Sıra ürün kimliğini izler, fiyatı izlemez. |
-| Satır | Solda uygulamanın kendi adı, sağda mağazanın döndürdüğü yerel fiyat. Uygulama fiyat yazmaz. Erişilebilirlik boyutlarında fiyat adın altına iner. |
+| Satır | Başta o desteğin kazandırdığı destekçi rozeti durur: küçük tek halka, orta çift halka, büyük çerçeve içinde çift halka. Ardından uygulamanın kendi adı, sağda mağazanın döndürdüğü yerel fiyat gelir. Uygulama fiyat yazmaz. Erişilebilirlik boyutlarında fiyat adın altına iner; rozet satırın başında kalır. Rozet süstür: VoiceOver satırı tek öğe okur ve değerde fiyatla rozeti söyler: "₺49,00, tek halkalı destekçi rozeti". Kullanıcının seviyesi satırlarda ek işaret taşımaz. |
 | Dokunma | Mağazanın satın alma penceresini açar. Satın alma sürerken üç satır da kapalıdır; dokunulan satır ilerleme gösterir. |
 | Destekçi rozeti | Açıklamanın altında, ortada. Kullanıcı hiç destek vermediyse yoktur. Altında "Destekçi" yazar. Seviye alınan en yüksek katmandır: küçük tek halka, orta çift halka, büyük çerçeve içinde çift halka. |
 | Başarı | Rozet canlanarak gelir: yaylanır ve çevresinden mürdüm bir ışık halkası açılıp söner; süre yaklaşık 1 saniye. iPhone ve iPad hafif dokunsal geri bildirim verir. Rozetin altında teşekkür yazar. Hareketi Azalt açıkken canlandırma yoktur; rozet doğrudan görünür. Uygulama başka hiçbir şeyi değiştirmez. |
 | İptal | Ekran ilk hâline döner; bant çıkmaz. |
 | Onay bekleyen | Bilgi bandı satın almanın onay beklediğini söyler. Onay gelince bant kalkar ve rozet teşekkürle gelir. Sayfa yeniden açılınca bant kalkar; sonradan gelen onay yine teşekkür gösterir. |
-| Hata | Hata bandı satın almanın tamamlanamadığını söyler. Kullanıcı satıra yeniden dokunur. **Varsayım:** mağaza hata verdiğinde ödeme alınmamıştır; hatadan sonra aynı işlemin sonradan gelip gelmediği ölçülmedi. |
+| Hata | Mağaza satın almayı ödeme almadan reddetti. Dört hata bu durumu verir: işlev bu mağaza ayarındaki cihazlarda yok (`notAvailableInStorefront`), uygulamanın yetkisi yok (`notEntitled`), ürün satışta değil (`productUnavailable`), kullanıcı satın alamıyor (`purchaseNotAllowed`). Hata bandı satın almanın tamamlanamadığını söyler. Kullanıcı satıra yeniden dokunur. Sayfa yeniden açılınca bant kalkar. **Varsayım:** bu hatalarda mağaza ödeme almaz; cihazda ölçülmedi. |
+| Sonucu belirsiz | Satın alma ağ, sistem ya da bilinmeyen bir hatayla bitti; ödemenin alınıp alınmadığı bilinmez. Uyarı bandı çıkar: "Satın almanın sonucu belli değil. Ödeme alındıysa teşekkür burada görünür; yeniden satın alman gerekmez." Bant yeniden ödemeye çağırmaz. Ödeme alındıysa işlem sonradan gelir; bant kalkar ve rozet teşekkürle gelir. Sayfa yeniden açılınca bant kalmaya devam eder; uygulama kapanınca kalkar. Satırlar açık kalır. **Varsayım:** hatadan sonra tamamlanan işlem uygulama açıkken `Transaction.updates` ile gelir; cihazda ölçülmedi. Bitmemiş işlemin sonraki açılışta geldiğini Apple belgesi söyler. |
 | Doğrulanamadı | Mağaza ödemeyi aldı ama cihaz imzayı doğrulayamadı. Uyarı bandı ödemenin alındığını ve yeniden satın almanın gerekmediğini söyler. Uygulama teşekkür göstermez. |
 | Ürünler yüklenemedi | Kartın yerinde uyarı bandı ve "Yeniden dene" düğmesi durur. Çevrimdışı cihaz ve satışta olmayan ürün bu durumu verir. |
-| Dipnot | Ödemeyi App Store alır. Destek tek seferliktir ve yenilenmez. |
+| Dipnot | Satırların altında tek paragraf: "Her destek bir destekçi rozeti kazandırır. Rozet hiçbir özelliği açmaz. Ödemeyi App Store alır. Destek tek seferliktir ve yenilenmez." |
 | Olmayanlar | Dış ödeme bağlantısı, "satın alımları geri yükle" düğmesi ve kilitli özellik yoktur. |
 
 Tüketilebilir ürün geri yüklenmez; bu yüzden geri yükleme düğmesi yoktur. Metinler "bağış" sözcüğünü kullanmaz: sözcük hayır kurumu çağrıştırır. Karar: `docs/decisions.md` 2026-11-13 gelir modeli satırı.

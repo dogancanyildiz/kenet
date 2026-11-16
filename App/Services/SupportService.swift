@@ -63,20 +63,72 @@ enum SupportDistribution: Equatable, Sendable {
     case sandbox
     case production
     case unknown
+    /// Sandbox, read from an app transaction whose signature did not check out on this device.
+    /// Kept apart from ``sandbox`` so the rule that accepts it is written down, not implied.
+    case sandboxUnverified
 }
 
 /// The test team badge: anyone who ran a TestFlight build before 1.0.0. Once earned it stays.
+///
+/// The sandbox environment alone does not say TestFlight: a development-signed copy built on a
+/// developer's machine runs in the sandbox too. `isLocalBuild` tells the two apart
+/// (``SupportSigningProfile``); it is the check that keeps local builds out.
+///
+/// An unverified sandbox answer earns the badge as well. What TestFlight returns is not
+/// documented, and a real tester who misses the badge before 1.0.0 never gets it; a wrong badge
+/// needs a tampered device and unlocks nothing.
 enum TesterBadgePolicy {
     static func earns(
-        distribution: SupportDistribution, hasDevelopmentProfile: Bool, isSimulator: Bool, version: String
+        distribution: SupportDistribution, isLocalBuild: Bool, isSimulator: Bool, version: String
     ) -> Bool {
-        distribution == .sandbox && !hasDevelopmentProfile && !isSimulator && isPrerelease(version)
+        isSandbox(distribution) && !isLocalBuild && !isSimulator && isPrerelease(version)
+    }
+
+    static func isSandbox(_ distribution: SupportDistribution) -> Bool {
+        switch distribution {
+        case .sandbox, .sandboxUnverified: true
+        case .xcode, .production, .unknown: false
+        }
     }
 
     /// "0.17.2" is before launch; "1.0.0" and an unreadable version are not.
     static func isPrerelease(_ version: String) -> Bool {
         guard let first = version.split(separator: ".").first, let major = Int(first) else { return false }
         return major < 1
+    }
+}
+
+/// Whether the embedded provisioning profile says this copy was signed on a developer's machine
+/// and not handed out by the store. Pure: the caller reads the file.
+enum SupportSigningProfile {
+    /// iOS: App Store and TestFlight copies carry no `embedded.mobileprovision` (the store
+    /// re-signs them); development and ad hoc copies do.
+    static func isLocalPhoneBuild(hasEmbeddedProfile: Bool) -> Bool { hasEmbeddedProfile }
+
+    /// Mac: `profile` is the content of `Contents/embedded.provisionprofile`, nil when the file
+    /// is missing. A TestFlight copy always carries a store distribution profile, and that one
+    /// lists no devices. Local when the profile:
+    /// - is missing or unreadable (Developer ID without a profile, ad hoc, a format this build
+    ///   cannot read: the badge is not given on a guess),
+    /// - lists devices (`ProvisionedDevices`: development and ad hoc),
+    /// - covers every device (`ProvisionsAllDevices`: Developer ID),
+    /// - allows a debugger (`get-task-allow`).
+    static func isLocalMacBuild(profile: Data?) -> Bool {
+        guard let profile, let payload = payload(of: profile) else { return true }
+        if payload["ProvisionedDevices"] != nil { return true }
+        if payload["ProvisionsAllDevices"] as? Bool == true { return true }
+        let entitlements = payload["Entitlements"] as? [String: Any] ?? [:]
+        return ["com.apple.security.get-task-allow", "get-task-allow"].contains { entitlements[$0] as? Bool == true }
+    }
+
+    /// The profile is a signed (CMS) envelope around an XML property list. The list is cut out
+    /// by its markers; the signature is not checked here (the system checked it at launch).
+    static func payload(of profile: Data) -> [String: Any]? {
+        guard let start = profile.range(of: Data("<?xml".utf8)),
+            let end = profile.range(of: Data("</plist>".utf8), in: start.lowerBound..<profile.endIndex)
+        else { return nil }
+        let xml = profile.subdata(in: start.lowerBound..<end.upperBound)
+        return (try? PropertyListSerialization.propertyList(from: xml, format: nil)) as? [String: Any]
     }
 }
 
@@ -88,9 +140,14 @@ enum SupportStorePurchase: Sendable {
     case pending
 }
 
+/// The errors after which the store has certainly taken no payment. Every other error a purchase
+/// throws leaves that open (``SupportPurchaseState/unconfirmed``).
 enum SupportStoreError: Error, Equatable {
     /// A purchase was asked for a product the store did not return.
     case productNotLoaded
+    /// The store turned the purchase down before any payment: the product is not on sale in this
+    /// storefront, or this account or app may not buy.
+    case refused
 }
 
 /// The store behind the support page. ``StoreKitSupportStorefront`` talks to the App Store; unit
@@ -129,7 +186,13 @@ enum SupportPurchaseState: Equatable, Sendable {
     /// The store took the payment but its signature did not check out on this device. Not an
     /// error to retry: a second purchase would charge again.
     case unverified
+    /// The store turned the purchase down; no payment was taken (``SupportStoreError``).
     case failed
+    /// The purchase ended in an error that does not say whether the payment was taken (network,
+    /// system, unknown). Not an error to retry: if the payment went through, the transaction
+    /// arrives through the update listener, now or on the next launch, and a second purchase
+    /// would charge again.
+    case unconfirmed
 
     var isPurchasing: Bool {
         if case .purchasing = self { true } else { false }
@@ -208,8 +271,8 @@ enum SupportPurchaseState: Equatable, Sendable {
 
     /// The page came on screen: products load once, and an old error, cancellation or pending
     /// note is cleared (a declined Ask to Buy sends nothing, so the note would never leave; a
-    /// later approval still thanks through the update listener). A thank-you and the unverified
-    /// note stay.
+    /// later approval still thanks through the update listener). A thank-you, the unverified
+    /// note and the unconfirmed note stay: the last two keep the user from paying twice.
     func pageAppeared() async {
         if purchase == .failed || purchase == .cancelled || purchase == .pending { purchase = .idle }
         if case .loaded = products { return }
@@ -257,8 +320,11 @@ enum SupportPurchaseState: Equatable, Sendable {
             case .pending:
                 purchase = .pending
             }
-        } catch {
+        } catch is SupportStoreError {
             purchase = .failed
+        } catch {
+            // Unknown to this build, too: an error that is not known to rule a payment out.
+            purchase = .unconfirmed
         }
         if hasDeferredThanks {
             hasDeferredThanks = false

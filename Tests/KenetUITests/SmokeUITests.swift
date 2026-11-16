@@ -37,8 +37,7 @@ final class SmokeUITests: XCTestCase {
         // The text arrives through the DEBUG launch environment: the keyboard and the paste menu
         // behave differently across simulator versions. Typing is only a fallback.
         if !(field.value as? String ?? "").contains(UITestSupport.smokeEventText) {
-            field.tap()
-            app.typeText(UITestSupport.smokeEventText)
+            UITestSupport.type(UITestSupport.smokeEventText, into: field)
         }
 
         let send = UITestSupport.element(in: app, identifier: "button.quickEntrySend")

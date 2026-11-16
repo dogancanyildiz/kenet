@@ -63,20 +63,61 @@ enum SupportDistribution: Equatable, Sendable {
     case sandbox
     case production
     case unknown
+    /// The store's signature on the app transaction did not check out on this device. Its
+    /// environment is never read: an unsigned claim of "sandbox" must not earn anything.
+    case unverified
 }
 
 /// The test team badge: anyone who ran a TestFlight build before 1.0.0. Once earned it stays.
+///
+/// The sandbox environment alone does not say TestFlight: a development-signed copy built on a
+/// developer's machine runs in the sandbox too. `isLocalBuild` tells the two apart
+/// (``SupportSigningProfile``).
 enum TesterBadgePolicy {
     static func earns(
-        distribution: SupportDistribution, hasDevelopmentProfile: Bool, isSimulator: Bool, version: String
+        distribution: SupportDistribution, isLocalBuild: Bool, isSimulator: Bool, version: String
     ) -> Bool {
-        distribution == .sandbox && !hasDevelopmentProfile && !isSimulator && isPrerelease(version)
+        distribution == .sandbox && !isLocalBuild && !isSimulator && isPrerelease(version)
     }
 
     /// "0.17.2" is before launch; "1.0.0" and an unreadable version are not.
     static func isPrerelease(_ version: String) -> Bool {
         guard let first = version.split(separator: ".").first, let major = Int(first) else { return false }
         return major < 1
+    }
+}
+
+/// Whether the embedded provisioning profile says this copy was signed on a developer's machine
+/// and not handed out by the store. Pure: the caller reads the file.
+enum SupportSigningProfile {
+    /// iOS: App Store and TestFlight copies carry no `embedded.mobileprovision` (the store
+    /// re-signs them); development and ad hoc copies do.
+    static func isLocalPhoneBuild(hasEmbeddedProfile: Bool) -> Bool { hasEmbeddedProfile }
+
+    /// Mac: `profile` is the content of `Contents/embedded.provisionprofile`, nil when the file
+    /// is missing. A TestFlight copy always carries a store distribution profile, and that one
+    /// lists no devices. Local when the profile:
+    /// - is missing or unreadable (Developer ID without a profile, ad hoc, a format this build
+    ///   cannot read: the badge is not given on a guess),
+    /// - lists devices (`ProvisionedDevices`: development and ad hoc),
+    /// - covers every device (`ProvisionsAllDevices`: Developer ID),
+    /// - allows a debugger (`get-task-allow`).
+    static func isLocalMacBuild(profile: Data?) -> Bool {
+        guard let profile, let payload = payload(of: profile) else { return true }
+        if payload["ProvisionedDevices"] != nil { return true }
+        if payload["ProvisionsAllDevices"] as? Bool == true { return true }
+        let entitlements = payload["Entitlements"] as? [String: Any] ?? [:]
+        return ["com.apple.security.get-task-allow", "get-task-allow"].contains { entitlements[$0] as? Bool == true }
+    }
+
+    /// The profile is a signed (CMS) envelope around an XML property list. The list is cut out
+    /// by its markers; the signature is not checked here (the system checked it at launch).
+    static func payload(of profile: Data) -> [String: Any]? {
+        guard let start = profile.range(of: Data("<?xml".utf8)),
+            let end = profile.range(of: Data("</plist>".utf8), in: start.lowerBound..<profile.endIndex)
+        else { return nil }
+        let xml = profile.subdata(in: start.lowerBound..<end.upperBound)
+        return (try? PropertyListSerialization.propertyList(from: xml, format: nil)) as? [String: Any]
     }
 }
 

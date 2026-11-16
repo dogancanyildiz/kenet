@@ -1279,8 +1279,9 @@ Uzantı `AddEventIntent` çağırmaz: intent uygulamanın `IndexStore` nesnesine
 | `StoreKitSupportStorefront` | StoreKit 2 uygulaması: `Product.products(for:)`, `Product.purchase()`, `Transaction.updates` |
 | `SupportService` | Durum makinesi. Ürün durumu: yükleniyor, yüklü, yüklenemedi. Satın alma durumu: boşta, sürüyor, teşekkür, iptal, onay bekliyor, doğrulanamadı, hata |
 | `SupporterLevel` | Destekçi rozetinin seviyesi: geçmişteki doğrulanmış, iade edilmemiş en yüksek katman. Saf işlev |
-| `TesterBadgePolicy` | Test ekibi rozetinin koşulu: mağaza ortamı `sandbox`, geliştirme profili yok, simülatör değil, sürüm `1.0.0` öncesi. Saf işlev |
-| `SystemTesterProbe` | Koşulun girdilerini okur: `AppTransaction.shared` ortamı ve iOS'ta `embedded.mobileprovision`. DEBUG yapı ve simülatör mağazaya sormaz |
+| `TesterBadgePolicy` | Test ekibi rozetinin koşulu: doğrulanmış mağaza ortamı `sandbox`, yapı yerel imzalı değil, simülatör değil, sürüm `1.0.0` öncesi. Saf işlev |
+| `SupportSigningProfile` | Gömülü profilden yapının yerel imzalı olup olmadığını söyler. Saf işlev; kuralı aşağıdaki tablo verir |
+| `SystemTesterProbe` | Koşulun girdilerini okur: `AppTransaction.shared` sonucu ve gömülü profil. DEBUG yapı ve simülatör mağazaya sormaz |
 | `SupportSettingsView` | Ayarlar → Hakkında → Kenet'i destekle alt ekranı |
 | `SupportBadgeView`, `SupportBadgesCard` | Rozet çizimi (SwiftUI şekilleri) ve Hakkında'nın üstündeki rozet kartı |
 | `Config/Support.storekit` | Yerel StoreKit yapılandırması: üç tüketilebilir ürün, Türkiye mağazası, `49`, `99`, `249` TL |
@@ -1307,6 +1308,22 @@ stateDiagram-v2
 ```
 
 Satın alma hiçbir yere yazılmaz: uygulama satın alma için dosyaya, indekse ve UserDefaults'a dokunmaz. Destekçi seviyesi her okumada App Store geçmişinden gelir: `Transaction.all`. Info.plist anahtarı `SKIncludeConsumableInAppPurchaseHistory` bitmiş tüketilebilirleri geçmişe katar; anahtar iOS 18 ve macOS 15 ister, dağıtım hedefi `26.0`. Geçmiş okuması seviyeyi yalnız yükseltir; seviyeyi yalnız iade düşürür. Satın almadan bağımsız tek kayıt test ekibi rozetidir: UserDefaults `support.testerBadge`; uygulama anahtarı bir kez yazar ve silmez. `SupportService` destek ürünlerinin her işlemini `finish()` ile kapatır; kapanmayan işlemi mağaza her açılışta yeniden yollar. Dinleme uygulama açılışında başlar (`KenetApp`); kapalıyken onaylanan satın alma böyle kapanır.
+
+**Tablo test ekibi rozetinin her şartını ve şartın elediği yapıyı gösterir.**
+
+| Şart | Kaynak | Elediği yapı |
+|---|---|---|
+| `AppTransaction.shared` hata atmaz | StoreKit | Mağazanın hiç vermediği kopya, mağaza hesabı olmayan cihaz |
+| Sonuç `.verified` | StoreKit | İmzası doğrulanmayan işlem; uygulama bu işlemin ortamını okumaz |
+| Ortam `sandbox` | `AppTransaction.environment` | Mağaza yapısı (`production`), Xcode'un yerel mağazası (`xcode`) |
+| iOS: `embedded.mobileprovision` yok | Uygulama paketi | Geliştirme ve ad hoc yapısı |
+| Mac: `Contents/embedded.provisionprofile` var ve okunur | Uygulama paketi | Profilsiz ya da okunamayan yapı |
+| Mac: profilde `ProvisionedDevices` yok | Profil | Geliştirme imzalı yapı: `install-mac.sh` |
+| Mac: profilde `ProvisionsAllDevices` doğru değil | Profil | Developer ID yapısı |
+| Mac: profilde `get-task-allow` doğru değil | Profil | Hata ayıklamaya açık yapı |
+| Sürüm `1.0.0` öncesi | `CFBundleShortVersionString` | Yayın sonrası her yapı |
+
+Geliştirme imzalı yapı da `sandbox` ortamında çalışır; ortam tek başına TestFlight demez. Mac'te mağaza kopyası profilini korur; bu yüzden Mac kuralı profilin varlığına değil içeriğine bakar. **Varsayım:** TestFlight Mac yapısının profili cihaz listesi taşımaz; kaynak Apple TN3125, TestFlight Mac yapısında ölçülmedi.
 
 Satın alma sürerken ikinci dokunuş mağazaya gitmez. Doğrulanmamış satın almada ödeme alınmıştır; ekran hata demez ve yeniden satın almaya çağırmaz. İade edilmiş işlem kapanır ve teşekkür göstermez. Satın alma sürerken gelen onay bekler; satın alma bitince teşekkür olur.
 

@@ -479,24 +479,44 @@ extension SupportProductsState {
         service.stop()
     }
 
+    private func earns(
+        _ distribution: SupportDistribution = .sandbox, local: Bool = false, simulator: Bool = false,
+        version: String = "0.17.0"
+    ) -> Bool {
+        TesterBadgePolicy.earns(
+            distribution: distribution, isLocalBuild: local, isSimulator: simulator, version: version)
+    }
+
     @Test func testerBadgeNeedsATestFlightBuildBeforeLaunch() {
-        func earns(
-            _ distribution: SupportDistribution, profile: Bool = false, simulator: Bool = false,
-            version: String = "0.17.0"
-        ) -> Bool {
-            TesterBadgePolicy.earns(
-                distribution: distribution, hasDevelopmentProfile: profile, isSimulator: simulator, version: version)
-        }
-        #expect(earns(.sandbox))
-        #expect(!earns(.xcode))
+        #expect(earns())
+        #expect(earns(version: "0.9"))
+    }
+
+    @Test func testerBadgeNeedsTheSandboxEnvironment() {
         #expect(!earns(.production))
         #expect(!earns(.unknown))
-        #expect(!earns(.sandbox, profile: true))
-        #expect(!earns(.sandbox, simulator: true))
-        #expect(!earns(.sandbox, version: "1.0.0"))
-        #expect(!earns(.sandbox, version: "2.3"))
-        #expect(!earns(.sandbox, version: ""))
-        #expect(earns(.sandbox, version: "0.9"))
+    }
+
+    @Test func testerBadgeIsNotGivenInTheXcodeEnvironment() {
+        #expect(!earns(.xcode))
+    }
+
+    @Test func testerBadgeIsNotGivenForAnUnverifiedAppTransaction() {
+        #expect(!earns(.unverified))
+    }
+
+    @Test func testerBadgeIsNotGivenToALocallySignedBuild() {
+        #expect(!earns(local: true))
+    }
+
+    @Test func testerBadgeIsNotGivenInTheSimulator() {
+        #expect(!earns(simulator: true))
+    }
+
+    @Test func testerBadgeIsNotGivenFromLaunchOn() {
+        #expect(!earns(version: "1.0.0"))
+        #expect(!earns(version: "2.3"))
+        #expect(!earns(version: ""))
     }
 
     @Test func storeEnvironmentsMapToDistributions() {
@@ -504,6 +524,72 @@ extension SupportProductsState {
         #expect(SupportStoreTranslation.distribution(.sandbox) == .sandbox)
         #expect(SupportStoreTranslation.distribution(.production) == .production)
         #expect(SupportStoreTranslation.distribution(AppStore.Environment(rawValue: "Other")) == .unknown)
+    }
+
+    @Test func theEnvironmentIsReadOnlyFromAVerifiedResult() {
+        #expect(SupportStoreTranslation.distribution(VerificationResult<Int>.verified(1)) { _ in .sandbox } == .sandbox)
+        #expect(
+            SupportStoreTranslation.distribution(VerificationResult<Int>.verified(1)) { _ in .production }
+                == .production)
+        var read = 0
+        let unverified = SupportStoreTranslation.distribution(
+            VerificationResult<Int>.unverified(1, .invalidSignature)
+        ) { _ in
+            read += 1
+            return .sandbox
+        }
+        #expect(unverified == .unverified)
+        #expect(read == 0)
+    }
+
+    /// A profile as it sits in a bundle: a signed envelope (here: stand-in bytes) around an XML
+    /// property list.
+    private func profile(_ keys: [String: Any]) throws -> Data {
+        let xml = try PropertyListSerialization.data(fromPropertyList: keys, format: .xml, options: 0)
+        return Data([0x30, 0x82, 0x1F, 0x00, 0xFF]) + xml + Data([0x00, 0xA0, 0x82])
+    }
+
+    @Test func aPhoneBuildIsLocalWhenItCarriesAProfile() {
+        #expect(SupportSigningProfile.isLocalPhoneBuild(hasEmbeddedProfile: true))
+        #expect(!SupportSigningProfile.isLocalPhoneBuild(hasEmbeddedProfile: false))
+    }
+
+    @Test func aMacBuildWithAStoreProfileIsNotLocal() throws {
+        let store = try profile([
+            "Platform": ["OSX"], "Entitlements": ["com.apple.application-identifier": "TEAM.app"],
+        ])
+        #expect(!SupportSigningProfile.isLocalMacBuild(profile: store))
+        let explicit = try profile([
+            "ProvisionsAllDevices": false, "Entitlements": ["com.apple.security.get-task-allow": false],
+        ])
+        #expect(!SupportSigningProfile.isLocalMacBuild(profile: explicit))
+    }
+
+    @Test func aMacBuildWithoutAProfileIsLocal() {
+        #expect(SupportSigningProfile.isLocalMacBuild(profile: nil))
+    }
+
+    @Test func aMacBuildWithAnUnreadableProfileIsLocal() throws {
+        #expect(SupportSigningProfile.isLocalMacBuild(profile: Data()))
+        #expect(SupportSigningProfile.isLocalMacBuild(profile: Data("no property list here".utf8)))
+        #expect(SupportSigningProfile.isLocalMacBuild(profile: Data("<?xml version=\"1.0\"?><plist>".utf8)))
+        let array = try PropertyListSerialization.data(fromPropertyList: ["a"], format: .xml, options: 0)
+        #expect(SupportSigningProfile.isLocalMacBuild(profile: array))
+    }
+
+    @Test func aMacBuildWhoseProfileListsDevicesIsLocal() throws {
+        #expect(SupportSigningProfile.isLocalMacBuild(profile: try profile(["ProvisionedDevices": ["0001"]])))
+        #expect(SupportSigningProfile.isLocalMacBuild(profile: try profile(["ProvisionedDevices": [String]()])))
+    }
+
+    @Test func aMacBuildWhoseProfileCoversEveryDeviceIsLocal() throws {
+        #expect(SupportSigningProfile.isLocalMacBuild(profile: try profile(["ProvisionsAllDevices": true])))
+    }
+
+    @Test func aMacBuildWhoseProfileAllowsADebuggerIsLocal() throws {
+        for key in ["com.apple.security.get-task-allow", "get-task-allow"] {
+            #expect(SupportSigningProfile.isLocalMacBuild(profile: try profile(["Entitlements": [key: true]])))
+        }
     }
 
     @Test func testerBadgeIsKeptOnceEarnedAndTheProbeRunsOncePerRun() async throws {

@@ -36,8 +36,7 @@ final class CalendarEventUITests: XCTestCase {
         add.tap()
 
         let field = app.textFields["field.calendarEvent.title"]
-        UITestSupport.focus(field)
-        field.typeText(title)
+        UITestSupport.type(title, into: field)
         let save = app.buttons["button.calendarEvent.save"]
         XCTAssertTrue(save.isEnabled)
         save.tap()

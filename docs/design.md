@@ -847,6 +847,18 @@ Ajanlar ekranı göremez; bu yüzden ekran görüntüsü testleri bu projede zor
 | Destekçi, büyük | Orta rozet, çevresinde dairesel çerçeve; çerçevenin dışında çok hafif parıltı. Dolu zemin yoktur; iki temada aynı çizim | Halkalar `text` ve `accent`; çerçeve ve parıltı `accent` |
 | Test ekibi | Kesik çizgili tek halka | `accent` |
 
+| Ölçü | Kenara oranı |
+|---|---|
+| Halka boyu | `1` |
+| Halka eni | `0,58` |
+| Çizgi kalınlığı, içe doğru | `0,11` |
+| 45 derece dönmüş halkanın sınır kutusu, yarı kenar | `0,4385` |
+| Büyük rozetin çerçeve kalınlığı | `0,055` |
+| Büyük rozette halkaların ölçeği | `0,72` |
+| Halka ucu ile çerçevenin iç kenarı arası | `0,085` |
+
+Halkanın uçları tam yarım dairedir: `Capsule(style: .circular)`. Oranlar `SupportBadgeGeometry` içindedir; birim testi halkanın karenin ve çerçevenin içinde kaldığını her boyutta ölçer. Önceki çizim `Capsule()` varsayılanını kullanıyordu; sürekli köşe uçları basık gösteriyordu.
+
 | Yer | Kenar | Tavan |
 |---|---|---|
 | Hakkında rozet kartı | `40 pt` | `64 pt` |

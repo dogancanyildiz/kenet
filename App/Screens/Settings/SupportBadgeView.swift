@@ -37,6 +37,34 @@ enum SupportBadgeKind: Hashable, Sendable {
     }
 }
 
+/// The badge's measures, as shares of its side. Pure, so unit tests prove at every size that a
+/// link stays inside the badge's square and, in the large badge, clear of the rim.
+enum SupportBadgeGeometry {
+    /// A link is a stadium ring: as long as the side, lying on a diagonal.
+    static let linkLength: CGFloat = 1
+    static let linkHeight: CGFloat = 0.58
+    /// Drawn inward from the link's outline (`strokeBorder`), so it adds nothing to the extent.
+    static let strokeWidth: CGFloat = 0.11
+    /// The large badge's rim: 2.2 pt at 40 pt.
+    static let rimWidth: CGFloat = 0.055
+    /// The links inside the rim, against the medium badge's.
+    static let framedLinksScale: CGFloat = 0.72
+
+    /// Half the width (and height) of the box around a link turned 45 degrees: the straight
+    /// part's half length on the diagonal, plus the round end's radius.
+    static func linkHalfExtent(side: CGFloat, scale: CGFloat = 1) -> CGFloat {
+        let length = side * linkLength * scale
+        let radius = side * linkHeight * scale / 2
+        return (length / 2 - radius) * 0.5.squareRoot() + radius
+    }
+
+    /// How far a link's round end reaches from the badge's center.
+    static func linkReach(side: CGFloat, scale: CGFloat = 1) -> CGFloat { side * linkLength * scale / 2 }
+
+    /// The radius of the rim's inner edge.
+    static func rimInnerRadius(side: CGFloat) -> CGFloat { side / 2 - side * rimWidth }
+}
+
 /// The badge drawing, derived from the app icon's two interlocked links (halka). Small: one
 /// link. Medium: both links. Large: the medium badge inside a circular frame. Test team: one
 /// dashed link. Shapes only, no image file; colors are palette tokens, the same in both themes.
@@ -44,13 +72,7 @@ struct SupportBadgeView: View {
     let kind: SupportBadgeKind
     var side: CGFloat = 40
 
-    /// The large badge's rim, as a share of the side: 2.2 pt at 40 pt.
-    static let rimWidth: CGFloat = 0.055
-    /// The links inside the rim, against the medium badge's: leaves 0.085 of the side between
-    /// the links' ends and the rim.
-    static let framedLinksScale: CGFloat = 0.72
-
-    private var stroke: CGFloat { side * 0.11 }
+    private var stroke: CGFloat { side * SupportBadgeGeometry.strokeWidth }
 
     var body: some View {
         ZStack {
@@ -64,9 +86,9 @@ struct SupportBadgeView: View {
                 // proportions and shrink to leave clear room inside the rim; the faint glow is
                 // the rim's own shadow.
                 Circle()
-                    .strokeBorder(Color.ink.accent, lineWidth: side * Self.rimWidth)
+                    .strokeBorder(Color.ink.accent, lineWidth: side * SupportBadgeGeometry.rimWidth)
                     .shadow(color: Color.ink.accent.opacity(0.35), radius: side * 0.07)
-                links.scaleEffect(Self.framedLinksScale)
+                links.scaleEffect(SupportBadgeGeometry.framedLinksScale)
             case .tester:
                 link(angle: -45, color: Color.ink.accent, dash: [stroke * 1.1, stroke * 0.9])
             }
@@ -86,12 +108,14 @@ struct SupportBadgeView: View {
         .frame(width: side, height: side)
     }
 
-    /// One link of the icon: a stadium ring lying on a diagonal.
-    private func link(angle: Double, color: Color, inset: CGFloat = 0, dash: [CGFloat] = []) -> some View {
-        let length = side - inset * 2
-        return Capsule()
+    /// One link of the icon: a stadium ring lying on a diagonal. The ends are true half
+    /// circles: `Capsule()` alone draws continuous corners, which flatten them.
+    private func link(angle: Double, color: Color, dash: [CGFloat] = []) -> some View {
+        Capsule(style: .circular)
             .strokeBorder(color, style: StrokeStyle(lineWidth: stroke, lineCap: .butt, dash: dash))
-            .frame(width: length, height: length * 0.58)
+            .frame(
+                width: side * SupportBadgeGeometry.linkLength, height: side * SupportBadgeGeometry.linkHeight
+            )
             .rotationEffect(.degrees(angle))
     }
 }

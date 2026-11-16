@@ -63,21 +63,32 @@ enum SupportDistribution: Equatable, Sendable {
     case sandbox
     case production
     case unknown
-    /// The store's signature on the app transaction did not check out on this device. Its
-    /// environment is never read: an unsigned claim of "sandbox" must not earn anything.
-    case unverified
+    /// Sandbox, read from an app transaction whose signature did not check out on this device.
+    /// Kept apart from ``sandbox`` so the rule that accepts it is written down, not implied.
+    case sandboxUnverified
 }
 
 /// The test team badge: anyone who ran a TestFlight build before 1.0.0. Once earned it stays.
 ///
 /// The sandbox environment alone does not say TestFlight: a development-signed copy built on a
 /// developer's machine runs in the sandbox too. `isLocalBuild` tells the two apart
-/// (``SupportSigningProfile``).
+/// (``SupportSigningProfile``); it is the check that keeps local builds out.
+///
+/// An unverified sandbox answer earns the badge as well. What TestFlight returns is not
+/// documented, and a real tester who misses the badge before 1.0.0 never gets it; a wrong badge
+/// needs a tampered device and unlocks nothing.
 enum TesterBadgePolicy {
     static func earns(
         distribution: SupportDistribution, isLocalBuild: Bool, isSimulator: Bool, version: String
     ) -> Bool {
-        distribution == .sandbox && !isLocalBuild && !isSimulator && isPrerelease(version)
+        isSandbox(distribution) && !isLocalBuild && !isSimulator && isPrerelease(version)
+    }
+
+    static func isSandbox(_ distribution: SupportDistribution) -> Bool {
+        switch distribution {
+        case .sandbox, .sandboxUnverified: true
+        case .xcode, .production, .unknown: false
+        }
     }
 
     /// "0.17.2" is before launch; "1.0.0" and an unreadable version are not.

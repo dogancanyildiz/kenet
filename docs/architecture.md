@@ -1279,7 +1279,7 @@ Uzantı `AddEventIntent` çağırmaz: intent uygulamanın `IndexStore` nesnesine
 | `StoreKitSupportStorefront` | StoreKit 2 uygulaması: `Product.products(for:)`, `Product.purchase()`, `Transaction.updates` |
 | `SupportService` | Durum makinesi. Ürün durumu: yükleniyor, yüklü, yüklenemedi. Satın alma durumu: boşta, sürüyor, teşekkür, iptal, onay bekliyor, doğrulanamadı, hata, sonucu belirsiz |
 | `SupporterLevel` | Destekçi rozetinin seviyesi: geçmişteki doğrulanmış, iade edilmemiş en yüksek katman. Saf işlev |
-| `TesterBadgePolicy` | Test ekibi rozetinin koşulu: doğrulanmış mağaza ortamı `sandbox`, yapı yerel imzalı değil, simülatör değil, sürüm `1.0.0` öncesi. Saf işlev |
+| `TesterBadgePolicy` | Test ekibi rozetinin koşulu: mağaza ortamı `sandbox`, yapı yerel imzalı değil, simülatör değil, sürüm `1.0.0` öncesi. Saf işlev |
 | `SupportSigningProfile` | Gömülü profilden yapının yerel imzalı olup olmadığını söyler. Saf işlev; kuralı aşağıdaki tablo verir |
 | `SystemTesterProbe` | Koşulun girdilerini okur: `AppTransaction.shared` sonucu ve gömülü profil. DEBUG yapı ve simülatör mağazaya sormaz |
 | `SupportSettingsView` | Ayarlar → Hakkında → Kenet'i destekle alt ekranı |
@@ -1308,7 +1308,7 @@ stateDiagram-v2
     Dogrulanamadi --> Suruyor: satıra dokunma
     Belirsiz --> Suruyor: satıra dokunma
     Tesekkur --> Suruyor: satıra dokunma
-    Suruyor --> Tesekkur: iptal, onay bekliyor ya da hata; o sırada gelen onay bekliyordu
+    Suruyor --> Tesekkur: iptal, onay bekliyor, hata ya da sonucu belirsiz; o sırada gelen onay bekliyordu
 ```
 
 Satın alma hiçbir yere yazılmaz: uygulama satın alma için dosyaya, indekse ve UserDefaults'a dokunmaz. Destekçi seviyesi her okumada App Store geçmişinden gelir: `Transaction.all`. Info.plist anahtarı `SKIncludeConsumableInAppPurchaseHistory` bitmiş tüketilebilirleri geçmişe katar; anahtar iOS 18 ve macOS 15 ister, dağıtım hedefi `26.0`. Geçmiş okuması seviyeyi yalnız yükseltir; seviyeyi yalnız iade düşürür. Satın almadan bağımsız tek kayıt test ekibi rozetidir: UserDefaults `support.testerBadge`; uygulama anahtarı bir kez yazar ve silmez. `SupportService` destek ürünlerinin her işlemini `finish()` ile kapatır; kapanmayan işlemi mağaza her açılışta yeniden yollar. Dinleme uygulama açılışında başlar (`KenetApp`); kapalıyken onaylanan satın alma böyle kapanır.
@@ -1317,8 +1317,7 @@ Satın alma hiçbir yere yazılmaz: uygulama satın alma için dosyaya, indekse 
 
 | Şart | Kaynak | Elediği yapı |
 |---|---|---|
-| `AppTransaction.shared` hata atmaz | StoreKit | Mağazanın hiç vermediği kopya, mağaza hesabı olmayan cihaz |
-| Sonuç `.verified` | StoreKit | İmzası doğrulanmayan işlem; uygulama bu işlemin ortamını okumaz |
+| `AppTransaction.shared` hata atmaz | StoreKit | Mağazanın hiç vermediği kopya, mağaza hesabı olmayan cihaz. Sonraki açılış yeniden sorar |
 | Ortam `sandbox` | `AppTransaction.environment` | Mağaza yapısı (`production`), Xcode'un yerel mağazası (`xcode`) |
 | iOS: `embedded.mobileprovision` yok | Uygulama paketi | Geliştirme ve ad hoc yapısı |
 | Mac: `Contents/embedded.provisionprofile` var ve okunur | Uygulama paketi | Profilsiz ya da okunamayan yapı |
@@ -1327,7 +1326,25 @@ Satın alma hiçbir yere yazılmaz: uygulama satın alma için dosyaya, indekse 
 | Mac: profilde `get-task-allow` doğru değil | Profil | Hata ayıklamaya açık yapı |
 | Sürüm `1.0.0` öncesi | `CFBundleShortVersionString` | Yayın sonrası her yapı |
 
-Geliştirme imzalı yapı da `sandbox` ortamında çalışır; ortam tek başına TestFlight demez. Mac'te mağaza kopyası profilini korur; bu yüzden Mac kuralı profilin varlığına değil içeriğine bakar. **Varsayım:** TestFlight Mac yapısının profili cihaz listesi taşımaz; kaynak Apple TN3125, TestFlight Mac yapısında ölçülmedi.
+Geliştirme imzalı yapı da `sandbox` ortamında çalışır; ortam tek başına TestFlight demez. Yerel yapıyı profil şartları eler. TestFlight her zaman profil ister; bu yüzden Mac kuralı profilsiz yapıyı yerel sayar ve profilin içeriğine bakar.
+
+**Tablo ortamın, imza doğrulamasının ve yerel imzanın rozete etkisini gösterir.**
+
+| Ortam | `AppTransaction` sonucu | Yerel imzalı | Rozet |
+|---|---|---|---|
+| `sandbox` | `.verified` | Hayır | Var |
+| `sandbox` | `.unverified` | Hayır | Var |
+| `sandbox` | `.verified` ya da `.unverified` | Evet | Yok |
+| `xcode` | `.verified` ya da `.unverified` | Fark etmez | Yok |
+| `production` | `.verified` ya da `.unverified` | Fark etmez | Yok |
+| Bilinmeyen ortam | `.verified` ya da `.unverified` | Fark etmez | Yok |
+| Hata atıldı | Yok | Fark etmez | Yok; sonraki açılış yeniden sorar |
+
+Doğrulanmamış `sandbox` yanıtının ayrı değeri vardır: `SupportDistribution.sandboxUnverified`. `TesterBadgePolicy` bu değeri de kabul eder; doğrulama durumu tek başına rozeti engellemez. Kaçan rozet `1.0.0` ile kalıcı kayıptır; yanlış rozet kurcalanmış tek cihazda kalır ve hiçbir şey açmaz.
+
+- **Varsayım:** TestFlight yapısında `AppTransaction.shared` sonucunun `.verified` mi `.unverified` mi olduğu ölçülmedi; Apple belgelemez.
+- **Varsayım:** TestFlight Mac yapısının profili cihaz listesi taşımaz; kaynak Apple TN3125, TestFlight Mac yapısında ölçülmedi.
+- **Varsayım:** TestFlight Mac yapısının profil yükü XML özellik listesidir. Yük XML değilse uygulama profili okuyamaz ve Mac test kullanıcısı rozet alamaz; ölçülmedi.
 
 **Tablo satın alma çağrısının attığı hatanın hangi duruma gittiğini gösterir.**
 
@@ -1338,7 +1355,7 @@ Geliştirme imzalı yapı da `sandbox` ortamında çalışır; ortam tek başın
 | `Product.PurchaseError.productUnavailable`, `Product.PurchaseError.purchaseNotAllowed` | Hata | "Yeniden deneyebilirsin" |
 | `SupportStoreError.productNotLoaded` | Hata | "Yeniden deneyebilirsin" |
 | `StoreKitError.networkError`, `StoreKitError.systemError`, `StoreKitError.unknown` | Sonucu belirsiz | "Yeniden satın alman gerekmez" |
-| Adı geçmeyen her hata | Sonucu belirsiz | "Yeniden satın alman gerekmez" |
+| Adı geçmeyen her hata; eski API'nin `SKErrorDomain` hataları da | Sonucu belirsiz | "Yeniden satın alman gerekmez" |
 
 Sınıflandırma `SupportStoreTranslation.rulesOutPayment` saf işlevindedir. Ödemeyi dışladığı bilinen hata `SupportStoreError.refused` olur; `SupportService` yalnız `SupportStoreError` için Hata durumuna geçer. Sonucu belirsiz durum sayfa yeniden açılınca kalkmaz; doğrulanmış işlem gelince teşekkür olur. **Varsayım:** Hata satırlarındaki dört StoreKit hatasında mağaza ödeme almaz; Apple belgesi hataları tanımlar ama ödemeyi açıkça anmaz.
 

@@ -125,7 +125,7 @@ struct SupportSettingsView: View {
         case .unconfirmed:
             InfoBand(
                 kind: .warning,
-                "Satın alma doğrulanamadı. Ödeme alındıysa teşekkür burada görünür; yeniden satın alman gerekmez."
+                "Satın almanın sonucu belli değil. Ödeme alındıysa teşekkür burada görünür; yeniden satın alman gerekmez."
             )
             .inkListRow()
             .accessibilityIdentifier("band.settings.support.unconfirmed")

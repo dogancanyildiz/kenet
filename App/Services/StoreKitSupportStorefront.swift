@@ -39,14 +39,18 @@ enum SupportStoreTranslation {
         }
     }
 
-    /// The environment is read only from a result whose signature checked out; `environment` is
-    /// not called for an unverified one.
+    /// The environment of an app transaction, with the verification kept in the value: an
+    /// unverified sandbox answer is ``SupportDistribution/sandboxUnverified``. The other
+    /// environments earn nothing either way, so they need no second value.
     static func distribution<Signed>(
         _ result: VerificationResult<Signed>, environment: (Signed) -> AppStore.Environment
     ) -> SupportDistribution {
         switch result {
-        case .verified(let signed): distribution(environment(signed))
-        case .unverified: .unverified
+        case .verified(let signed):
+            return distribution(environment(signed))
+        case .unverified(let signed, _):
+            let claimed = distribution(environment(signed))
+            return claimed == .sandbox ? .sandboxUnverified : claimed
         }
     }
 
@@ -158,7 +162,8 @@ enum SystemTesterProbe {
             let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
             // Asked first: after 1.0.0 the store is never asked.
             guard TesterBadgePolicy.isPrerelease(version) else { return false }
-            // No app transaction (no store account, offline, a copy the store never issued): no badge.
+            // No app transaction (no store account, offline, a copy the store never issued): no
+            // badge on this run; the next launch asks again.
             guard let result = try? await AppTransaction.shared else { return false }
             return TesterBadgePolicy.earns(
                 distribution: SupportStoreTranslation.distribution(result) { $0.environment },

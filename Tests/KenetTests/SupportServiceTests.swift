@@ -337,6 +337,25 @@ private final class FinishCounter: @unchecked Sendable {
         service.stop()
     }
 
+    /// The approval is a verified payment: the thank-you takes the place of the unconfirmed note.
+    /// Neither text invites a second purchase.
+    @Test func approvalDuringAnUnconfirmedPurchaseThanks() async {
+        store.holdsNextPurchase = true
+        store.purchaseResult = .failure(FakeSupportStorefront.Failure.offline)
+        let service = SupportService(storefront: store)
+        service.start()
+        let buying = Task { await service.buy(.small) }
+        await settle { store.purchaseRequests.count == 1 }
+        store.send(store.transaction(.large))
+        await settle { store.finishes.count == 1 }
+        #expect(service.purchase == .purchasing(.small))
+        store.releasePurchases()
+        await buying.value
+        #expect(service.purchase == .thanked)
+        #expect(service.supporterLevel == .large)
+        service.stop()
+    }
+
     @Test func approvalDuringAnUnverifiedPurchaseKeepsTheUnverifiedNote() async {
         store.holdsNextPurchase = true
         store.purchaseResult = .success(.completed(store.transaction(.small, verified: false)))
@@ -578,8 +597,17 @@ extension SupportProductsState {
         #expect(!earns(.xcode))
     }
 
-    @Test func testerBadgeIsNotGivenForAnUnverifiedAppTransaction() {
-        #expect(!earns(.unverified))
+    /// What TestFlight returns is not measured: an unverified sandbox answer must not cost a
+    /// real tester the badge.
+    @Test func testerBadgeIsGivenForAnUnverifiedSandboxAppTransaction() {
+        #expect(earns(.sandboxUnverified))
+    }
+
+    /// The profile check, not the verification, keeps local builds out.
+    @Test func testerBadgeIsNotGivenToALocallySignedBuildWithAnUnverifiedAppTransaction() {
+        #expect(!earns(.sandboxUnverified, local: true))
+        #expect(!earns(.sandboxUnverified, simulator: true))
+        #expect(!earns(.sandboxUnverified, version: "1.0.0"))
     }
 
     @Test func testerBadgeIsNotGivenToALocallySignedBuild() {
@@ -603,20 +631,38 @@ extension SupportProductsState {
         #expect(SupportStoreTranslation.distribution(AppStore.Environment(rawValue: "Other")) == .unknown)
     }
 
-    @Test func theEnvironmentIsReadOnlyFromAVerifiedResult() {
-        #expect(SupportStoreTranslation.distribution(VerificationResult<Int>.verified(1)) { _ in .sandbox } == .sandbox)
-        #expect(
-            SupportStoreTranslation.distribution(VerificationResult<Int>.verified(1)) { _ in .production }
-                == .production)
-        var read = 0
-        let unverified = SupportStoreTranslation.distribution(
-            VerificationResult<Int>.unverified(1, .invalidSignature)
-        ) { _ in
-            read += 1
-            return .sandbox
+    @Test func aVerifiedAppTransactionGivesItsEnvironment() {
+        func verified(_ environment: AppStore.Environment) -> SupportDistribution {
+            SupportStoreTranslation.distribution(VerificationResult<Int>.verified(1)) { _ in environment }
         }
-        #expect(unverified == .unverified)
-        #expect(read == 0)
+        #expect(verified(.sandbox) == .sandbox)
+        #expect(verified(.production) == .production)
+        #expect(verified(.xcode) == .xcode)
+    }
+
+    @Test func anUnverifiedAppTransactionInTheSandboxIsKeptApart() {
+        func unverified(_ environment: AppStore.Environment) -> SupportDistribution {
+            SupportStoreTranslation.distribution(VerificationResult<Int>.unverified(1, .invalidSignature)) { _ in
+                environment
+            }
+        }
+        #expect(unverified(.sandbox) == .sandboxUnverified)
+    }
+
+    @Test func anUnverifiedAppTransactionOutsideTheSandboxKeepsItsEnvironment() {
+        func unverified(_ environment: AppStore.Environment) -> SupportDistribution {
+            SupportStoreTranslation.distribution(VerificationResult<Int>.unverified(1, .invalidSignature)) { _ in
+                environment
+            }
+        }
+        #expect(unverified(.production) == .production)
+        #expect(unverified(.xcode) == .xcode)
+        #expect(unverified(AppStore.Environment(rawValue: "Other")) == .unknown)
+        for distribution in [
+            unverified(.production), unverified(.xcode), unverified(AppStore.Environment(rawValue: "Other")),
+        ] {
+            #expect(!earns(distribution))
+        }
     }
 
     /// A profile as it sits in a bundle: a signed envelope (here: stand-in bytes) around an XML
@@ -791,6 +837,15 @@ extension SupportProductsState {
 
     @Test func aSystemErrorLeavesPaymentOpen() {
         #expect(!SupportStoreTranslation.rulesOutPayment(StoreKitError.systemError(Self.underlying)))
+    }
+
+    /// The original StoreKit API's errors are not named: whatever their code, they stay open.
+    @Test func anOriginalStoreKitErrorLeavesPaymentOpen() {
+        for code in [0, 2, 5] {
+            let error = NSError(domain: "SKErrorDomain", code: code)
+            #expect(!SupportStoreTranslation.rulesOutPayment(error))
+            #expect(throws: NSError.self) { try SupportStoreTranslation.purchase(thrown: error) }
+        }
     }
 
     @Test func anUnknownErrorLeavesPaymentOpen() {

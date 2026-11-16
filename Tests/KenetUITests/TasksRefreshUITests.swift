@@ -42,8 +42,7 @@ final class TasksRefreshUITests: XCTestCase {
         UITestSupport.waitForExistence(taskMode)
         taskMode.tap()
         if !(field.value as? String ?? "").contains(taskTitle) {
-            field.tap()
-            app.typeText("yarın \(taskTitle)")
+            UITestSupport.type("yarın \(taskTitle)", into: field)
         }
         let send = UITestSupport.element(in: app, identifier: "button.quickEntrySend")
         UITestSupport.waitForExistence(send)

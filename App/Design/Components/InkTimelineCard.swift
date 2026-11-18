@@ -18,7 +18,13 @@ struct InkTimelineCard: View {
 
     @Environment(\.displayScale) private var displayScale
     @Environment(\.locale) private var locale
-    @ScaledMetric(relativeTo: .body) private var padding = InkSpacing.cardPadding
+    @ScaledMetric(relativeTo: .body) private var scaledPadding = InkSpacing.cardPadding
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    /// Held at its xxxL value at accessibility sizes (``InkSpacing/cardPadding(scaled:dynamicTypeSize:)``).
+    private var padding: CGFloat {
+        InkSpacing.cardPadding(scaled: scaledPadding, dynamicTypeSize: dynamicTypeSize)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -68,8 +74,8 @@ struct InkTimelineCard: View {
         .accessibilityValue(Text(verbatim: completedAccessibilityValue))
     }
 
-    /// Where an overlaid leading control's top-leading corner sits, for the card's scaled
-    /// `padding` (``InkSpacing/cardPadding`` scaled relative to `.body`).
+    /// Where an overlaid leading control's top-leading corner sits, for the card's drawn
+    /// `padding` (``InkSpacing/cardPadding(scaled:dynamicTypeSize:)``).
     static func accessoryInset(padding: CGFloat) -> EdgeInsets {
         EdgeInsets(top: padding, leading: InkSize.timelineBar + 12 + padding, bottom: 0, trailing: 0)
     }

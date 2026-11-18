@@ -13,6 +13,16 @@ enum InkSpacing {
     /// Card inner padding (pt). Pair with `@ScaledMetric(relativeTo: .body)`.
     static let cardPadding: CGFloat = 16
 
+    /// Ceiling of the scaled card padding at accessibility text sizes (pt), about its xxxL value.
+    /// Scaled freely it reached ~50 pt at AX5 and took a third of a 320 pt card from the text.
+    static let accessibilityCardPaddingCeiling: CGFloat = 22
+
+    /// The card padding to draw: `scaled` (``cardPadding`` through `@ScaledMetric`), held at
+    /// ``accessibilityCardPaddingCeiling`` at accessibility sizes. Default sizes are unchanged.
+    static func cardPadding(scaled: CGFloat, dynamicTypeSize: DynamicTypeSize) -> CGFloat {
+        dynamicTypeSize.isAccessibilitySize ? min(scaled, accessibilityCardPaddingCeiling) : scaled
+    }
+
     /// Vertical gap between rows inside a card (tasks, goals, events).
     static let row: CGFloat = 12
 

@@ -20,6 +20,7 @@ import VaultFormat
         @Environment(\.calendar) private var calendar
         @Environment(\.locale) private var locale
         @Environment(\.clockNow) private var clockNow
+        @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
         @ScaledMetric(relativeTo: .body) private var hourHeight: CGFloat = 68
         @ScaledMetric(relativeTo: .body) private var timeColumnWidth: CGFloat = 48
@@ -159,7 +160,9 @@ import VaultFormat
             .buttonStyle(.plain)
             .overlay(alignment: .topLeading) {
                 completionBox(task, title: title, box: box)
-                    .padding(InkTimelineCard.accessoryInset(padding: cardPadding))
+                    .padding(
+                        InkTimelineCard.accessoryInset(
+                            padding: InkSpacing.cardPadding(scaled: cardPadding, dynamicTypeSize: dynamicTypeSize)))
             }
         }
 

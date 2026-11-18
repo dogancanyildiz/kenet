@@ -484,31 +484,29 @@ struct ScheduleEntryCard<Leading: View, Title: View, Extra: View>: View {
     @ViewBuilder let title: () -> Title
     @ViewBuilder let extra: () -> Extra
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            leading()
-
-            VStack(alignment: .leading, spacing: 4) {
-                title()
-
-                Text(verbatim: meta)
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.secondaryText)
-
-                extra()
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                // The icon box and "›" go on a line above the text, which then has the card's
+                // whole width: beside them a 320 pt card left the text ~120 pt at AX5.
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .center, spacing: 12) {
+                        leading()
+                        Spacer(minLength: 0)
+                        chevron
+                    }
+                    textBlock
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                HStack(alignment: .center, spacing: 12) {
+                    leading()
+                    textBlock
+                    chevron
+                }
             }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text(verbatim: spokenLabel))
-            .accessibilityValue(Text(verbatim: spokenValue))
-            .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
-            .accessibilityAction { onTap() }
-            .accessibilityAction(named: Text("Metni düzenle"), onEdit)
-            .accessibilityAction(named: Text("Sil"), onDelete)
-
-            Image(systemName: "chevron.right")
-                .font(.ink.meta.weight(.semibold))
-                .foregroundStyle(Color.ink.tertiaryText)
-                .accessibilityHidden(true)
         }
         .modifier(ScheduleCardChrome(isSelected: isSelected, hairline: hairline))
         .onTapGesture(perform: onTap)
@@ -520,5 +518,31 @@ struct ScheduleEntryCard<Leading: View, Title: View, Extra: View>: View {
                 Label("Sil", systemImage: "trash")
             }
         }
+    }
+
+    private var textBlock: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            title()
+
+            Text(verbatim: meta)
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.secondaryText)
+
+            extra()
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: spokenLabel))
+        .accessibilityValue(Text(verbatim: spokenValue))
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+        .accessibilityAction { onTap() }
+        .accessibilityAction(named: Text("Metni düzenle"), onEdit)
+        .accessibilityAction(named: Text("Sil"), onDelete)
+    }
+
+    private var chevron: some View {
+        Image(systemName: "chevron.right")
+            .font(.ink.meta.weight(.semibold))
+            .foregroundStyle(Color.ink.tertiaryText)
+            .accessibilityHidden(true)
     }
 }

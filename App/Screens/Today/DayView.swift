@@ -57,6 +57,8 @@ struct DayView: View {
     /// Past-day schedule state: month picker, selected timeline card, and editors for events and
     /// tasks on the schedule.
     @State var showsMonthPicker = false
+    /// Accessibility sizes restack the past day's month picker and counts (DayViewHeaders).
+    @Environment(\.dynamicTypeSize) var dynamicTypeSize
     /// The schedule card's leading icon box (the drawing's 32 pt square).
     @ScaledMetric(relativeTo: .body) var scheduleIconBox: CGFloat = 32
     /// The pinned manşet's small ring (the drawing's 30 pt).

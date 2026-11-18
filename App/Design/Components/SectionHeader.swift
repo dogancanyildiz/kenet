@@ -19,6 +19,7 @@ struct SectionHeader: View {
     /// Shows a disclosure chevron (pointing down when expanded, right when collapsed) aligned with the title.
     var isExpanded: Bool? = nil
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     /// Already-localized or verbatim title (callers that used `String(localized:)`).
     init(
@@ -47,13 +48,38 @@ struct SectionHeader: View {
     }
 
     var body: some View {
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                // Accessibility sizes: the counter goes under a title it does not fit beside.
+                // Beside it the title was squeezed into a mid-word break ("Hede- / fler" at AX5).
+                ViewThatFits(in: .horizontal) {
+                    row(title: title.fixedSize())
+                    VStack(alignment: .leading, spacing: 2) {
+                        title.fixedSize(horizontal: false, vertical: true)
+                        row(title: EmptyView(), fillsWidth: false)
+                    }
+                }
+            } else {
+                row(title: title)
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilitySpokenLabel)
+    }
+
+    private var title: some View {
+        titleText
+            .font(.ink.sectionTitle)
+            .foregroundStyle(.ink.text)
+            .accessibilityAddTraits(.isHeader)
+            .accessibilityIdentifier(Self.titleIdentifier)
+    }
+
+    /// The title, then the counter and marks; `fillsWidth` pushes them to the trailing edge.
+    private func row(title: some View, fillsWidth: Bool = true) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
-            titleText
-                .font(.ink.sectionTitle)
-                .foregroundStyle(.ink.text)
-                .accessibilityAddTraits(.isHeader)
-                .accessibilityIdentifier(Self.titleIdentifier)
-            Spacer(minLength: 0)
+            title
+            if fillsWidth { Spacer(minLength: 0) }
             if let counterText {
                 Text(verbatim: counterText)
                     // Drawing: a footnote counter beside the section title ("6 kaldı", "4 görev").
@@ -83,8 +109,6 @@ struct SectionHeader: View {
                     )
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(accessibilitySpokenLabel)
     }
 
     private var counterText: String? {

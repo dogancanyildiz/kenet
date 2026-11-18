@@ -8,6 +8,7 @@ struct InkCard<Content: View>: View {
     @ViewBuilder var content: () -> Content
 
     @ScaledMetric(relativeTo: .body) private var padding = InkSpacing.cardPadding
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         let stack = VStack(alignment: .leading, spacing: InkSpacing.row) {
@@ -16,7 +17,7 @@ struct InkCard<Content: View>: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         Group {
             if padded {
-                stack.padding(padding)
+                stack.padding(InkSpacing.cardPadding(scaled: padding, dynamicTypeSize: dynamicTypeSize))
             } else {
                 stack
             }

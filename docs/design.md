@@ -432,7 +432,7 @@ flowchart LR
 | Ad | Değer | Kullanım |
 |---|---|---|
 | `margin` | 16 pt | Sayfa yatay kenar boşluğu; `@ScaledMetric` ile büyür |
-| `cardPadding` | 16 pt | Kartın iç boşluğu; `@ScaledMetric` ile büyür |
+| `cardPadding` | 16 pt | Kartın iç boşluğu; `@ScaledMetric` ile büyür, erişilebilirlik boyutunda en çok 22 pt |
 | `gutter` | 44 pt | Kartın içindeki işaret sütunu; `@ScaledMetric` ile büyür |
 | `row` | 12 pt | Kart içinde satırlar arası dikey boşluk; satırlar arasında ayraç vardır |
 | `section` | 16 pt | Kartlar arası dikey boşluk |
@@ -799,7 +799,7 @@ Mac'te parıltı yalnız ayrıntı sütununun üstündedir. iPad üç sütunda M
 | Saydamlığı Azalt | Parıltı kalkar. |
 | Hareketi Azalt | Parıltı ve hale zaten durağandır. Hafta şeridinde gün değişimi çapraz geçiş olur, kayma olmaz. Graph oturmuş düzeni tek seferde gösterir. |
 | Kalın Metin | Sistem yazısı ağırlığı artırır. Künye cümlesinde sayı ile bağlaç arasındaki ayrım renkle de sürer. |
-| Dynamic Type, AX boyutları | Hafta şeridi 2 satıra iner: 4 + 3 gün. Gün halkası gün rakamının üstüne çıkar. İşaret sütunu metnin üstüne iner. Bugün sayfası ekrandan geniş olmaz; ayrıntı [Ekranlar](screens.md) belgesinin "Gün başlığı" tablosundadır. |
+| Dynamic Type, AX boyutları | Hafta şeridi 2 satıra iner: 4 + 3 gün. Gün halkası gün rakamının üstüne çıkar. İşaret sütunu metnin üstüne iner. Kart iç boşluğu en çok 22 pt olur. Bölüm başlığının sayacı sığmazsa başlığın altına iner. Metin sözcük ortasından bölünmez; 320 pt ekranda AX5'te de sözcük arasından sarar. Bugün sayfası ekrandan geniş olmaz; ayrıntı [Ekranlar](screens.md) belgesinin "Gün başlığı" tablosundadır. |
 | Renk Olmadan Ayırt Et | Devreden: işaret ve tarih metni. Zaman kartı çubuğu: metin etiketi. Graph: biçim. |
 | VoiceOver | Künye cümlesi tek öğedir. Hafta şeridi her gün için "20 Eylül Pazar, bugün, 3 olay" okur. Gün halkası "3 hedef kaldı" okur. Alt sayfanın geri öğesi üst sayfanın adını okur. |
 

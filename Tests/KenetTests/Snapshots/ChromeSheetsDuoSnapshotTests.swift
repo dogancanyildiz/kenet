@@ -44,7 +44,7 @@
 
     /// Captures the window, including system form sheets, rather than only the presenting view.
     @MainActor
-    @Suite(.serialized, .enabled(if: ProcessInfo.processInfo.environment["SNAPSHOT_DUO"] == "1"))
+    @Suite(.serialized)
     struct ChromeSheetsDuoSnapshotTests {
         @Test(arguments: ChromeSheetsDuoCase.drawn)
         func chrome(_ screen: ChromeSheetsDuoCase) async throws {
@@ -61,6 +61,10 @@
                 // view without a window inside one of its own, which corrupts a `UIWindow`.
                 let format = UIGraphicsImageRendererFormat()
                 format.scale = 2
+                // 8-bit sRGB like every other iOS reference (see `PadShellSnapshotTests`). The
+                // simulator's default is 16-bit extended range: files twice the size, and a
+                // hairline's sub-level coverage difference fails the perceptual comparison.
+                format.preferredRange = .standard
                 let image = UIGraphicsImageRenderer(bounds: window.bounds, format: format).image { _ in
                     window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
                     if let mask = screen.sidebarButtonMask {

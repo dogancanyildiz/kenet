@@ -222,6 +222,46 @@ enum UITestSupport {
         XCTFail("\(field) did not take keyboard focus after \(attempts) taps")
     }
 
+    /// Types into a text field and returns only once the field reads `expected` (the typed text unless
+    /// the keys also edit what was there). `typeText` returns when the events are sent, not when the
+    /// keyboard has delivered them: on a loaded CI runner the first letter reached the field 2 s later
+    /// and the rest 7 s later, after the test had already tapped "Oluştur" on a title of "K" (dev run
+    /// 43621950118, CalendarEventUITests). A field that still reads something else after `timeout` is
+    /// emptied and typed again, `attempts` times in all.
+    @MainActor
+    static func type(
+        _ text: String, into field: XCUIElement, expecting expected: String? = nil, attempts: Int = 3,
+        timeout: TimeInterval = 20
+    ) {
+        let expected = expected ?? text
+        focus(field)
+        field.typeText(text)
+        for attempt in 1...attempts {
+            if waitForValue(expected, of: field, timeout: timeout) { return }
+            guard attempt < attempts else { break }
+            // Late keys have landed or are lost by now. The caret goes to the end of the line, so the
+            // deletes take everything the field shows.
+            field.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.5)).tap()
+            let shown = typedText(in: field)
+            field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: shown.count) + expected)
+        }
+        XCTFail("\(field) reads \"\(typedText(in: field))\" after typing \"\(expected)\" \(attempts) times")
+    }
+
+    /// Waits until the field's value is exactly `text`.
+    @MainActor
+    static func waitForValue(_ text: String, of field: XCUIElement, timeout: TimeInterval = 20) -> Bool {
+        let wait = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", text), object: field)
+        return XCTWaiter().wait(for: [wait], timeout: timeout) == .completed
+    }
+
+    /// What the field holds: an empty SwiftUI field reports its placeholder as its value.
+    @MainActor
+    static func typedText(in field: XCUIElement) -> String {
+        let value = field.value as? String ?? ""
+        return value == field.placeholderValue ? "" : value
+    }
+
     @MainActor
     static func element(in app: XCUIApplication, identifier: String) -> XCUIElement {
         app.descendants(matching: .any).matching(identifier: identifier).firstMatch

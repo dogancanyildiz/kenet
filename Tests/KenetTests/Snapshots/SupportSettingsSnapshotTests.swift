@@ -12,10 +12,14 @@
         case thankedLight
         case unverifiedLight
         case supporterLight
+        case unconfirmedLight
+        case unconfirmedDark
+        /// The rows at an accessibility size: the price under the name, the badge at the head.
+        case loadedAX3
 
-        var colorScheme: SnapshotColorScheme { .light }
+        var colorScheme: SnapshotColorScheme { self == .unconfirmedDark ? .dark : .light }
 
-        var dynamicType: SnapshotDynamicType { .medium }
+        var dynamicType: SnapshotDynamicType { self == .loadedAX3 ? .accessibility3 : .medium }
     }
 
     /// The support page over a store in memory (``InMemorySupportStorefront``): no App Store.
@@ -24,17 +28,18 @@
         static func service(for snapshotCase: SupportSettingsSnapshotCase) async -> SupportService {
             let storefront = InMemorySupportStorefront()
             switch snapshotCase {
-            case .loadedLight, .thankedLight: break
+            case .loadedLight, .loadedAX3, .thankedLight: break
             case .supporterLight: storefront.history = [SupportHistoryEntry(productID: SupportTier.large.productID)]
             case .unavailableLight: storefront.catalog = nil
             case .unverifiedLight: storefront.purchaseOutcome = .unverified
+            case .unconfirmedLight, .unconfirmedDark: storefront.purchaseOutcome = .unconfirmed
             }
             let service = SupportService(storefront: storefront)
             await service.loadProducts()
             await service.refreshBadges()
             switch snapshotCase {
-            case .thankedLight, .unverifiedLight: await service.buy(.medium)
-            case .loadedLight, .unavailableLight, .supporterLight: break
+            case .thankedLight, .unverifiedLight, .unconfirmedLight, .unconfirmedDark: await service.buy(.medium)
+            case .loadedLight, .loadedAX3, .unavailableLight, .supporterLight: break
             }
             return service
         }

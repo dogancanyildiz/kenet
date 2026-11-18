@@ -230,7 +230,7 @@ flowchart LR
 |---|---|---|
 | Duo kabuğu, Xcode 26 SDK | Bitti. Uyarlanır kabuk, boyut sınıfıyla görüntü altyapısı, durum köprüsü ve taslak koruma, krom ve dokunma, güvenli alan, sheet ve panel, belgeler. Kalan Duo işi iOS 27.1 SDK'yı bekler. | #233, #236, #240, #241, #242 |
 | Duo iOS 27.1 API uyarlaması | Açık. Xcode 27.1'in iOS 27.1 SDK ile çıkmasını bekliyor. | - |
-| CI geçişi ve Duo kümeleri | Açık. Runner imajında Xcode 27.1'i bekliyor. | - |
+| CI geçişi ve Duo kümeleri | Açık. Duo kümeleri 2026-11-16'da bugünkü runner'da CI kapısı oldu. Xcode 27.1'e geçiş runner imajını bekliyor. | - |
 | iPad karma kabuk | Bitti. Üç sütun kademesi, kenar çubuğu ve seçim biçimi, arama ve Rehberden aktar, Kanban ve zaman çizelgesi iPad biçimi, cihaz türü metinleri, iPad görüntü kümeleri ve CI'da iPad adımı. | #265, #266, #267, #268 |
 | iPad kalanlar | Bitti. Klavye kısayolları (⌘K hızlı geçiş, ⇧⌘F arama, ⌘T bugün), iPad ekran turu (`screen-tour.sh --pad`), CI'da iPad erişilebilirlik denetimi, işaretçi vurgusu, soğuk açılışta açık kenar çubuğu. | #270, #271, #274, #277 |
 | iPad mağaza kaydı | Bitti. Cihaz ailesi `1,2`, iPad dört yön, tek pencere; TestFlight yapısı iPad'e çıkar. Mağaza listesi (iPad ekran görüntüleri) Aşama 12'nin mağaza sayfası maddesinde. | #264 |

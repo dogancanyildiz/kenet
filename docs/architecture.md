@@ -1277,10 +1277,11 @@ Uzantı `AddEventIntent` çağırmaz: intent uygulamanın `IndexStore` nesnesine
 | `SupportTier` | Üç kalıcı ürün kimliği: `com.dogancanyildiz.kenet.support.small`, `.medium`, `.large`. Sıra küçükten büyüğedir |
 | `SupportStorefront` | Mağaza protokolü: ürünleri yükler, satın alır, satın alma dışı işlemleri akıtır. Birim testleri sahte mağaza kullanır |
 | `StoreKitSupportStorefront` | StoreKit 2 uygulaması: `Product.products(for:)`, `Product.purchase()`, `Transaction.updates` |
-| `SupportService` | Durum makinesi. Ürün durumu: yükleniyor, yüklü, yüklenemedi. Satın alma durumu: boşta, sürüyor, teşekkür, iptal, onay bekliyor, doğrulanamadı, hata |
+| `SupportService` | Durum makinesi. Ürün durumu: yükleniyor, yüklü, yüklenemedi. Satın alma durumu: boşta, sürüyor, teşekkür, iptal, onay bekliyor, doğrulanamadı, hata, sonucu belirsiz |
 | `SupporterLevel` | Destekçi rozetinin seviyesi: geçmişteki doğrulanmış, iade edilmemiş en yüksek katman. Saf işlev |
-| `TesterBadgePolicy` | Test ekibi rozetinin koşulu: mağaza ortamı `sandbox`, geliştirme profili yok, simülatör değil, sürüm `1.0.0` öncesi. Saf işlev |
-| `SystemTesterProbe` | Koşulun girdilerini okur: `AppTransaction.shared` ortamı ve iOS'ta `embedded.mobileprovision`. DEBUG yapı ve simülatör mağazaya sormaz |
+| `TesterBadgePolicy` | Test ekibi rozetinin koşulu: mağaza ortamı `sandbox`, yapı yerel imzalı değil, simülatör değil, sürüm `1.0.0` öncesi. Saf işlev |
+| `SupportSigningProfile` | Gömülü profilden yapının yerel imzalı olup olmadığını söyler. Saf işlev; kuralı aşağıdaki tablo verir |
+| `SystemTesterProbe` | Koşulun girdilerini okur: `AppTransaction.shared` sonucu ve gömülü profil. DEBUG yapı ve simülatör mağazaya sormaz |
 | `SupportSettingsView` | Ayarlar → Hakkında → Kenet'i destekle alt ekranı |
 | `SupportBadgeView`, `SupportBadgesCard` | Rozet çizimi (SwiftUI şekilleri) ve Hakkında'nın üstündeki rozet kartı |
 | `Config/Support.storekit` | Yerel StoreKit yapılandırması: üç tüketilebilir ürün, Türkiye mağazası, `49`, `99`, `249` TL |
@@ -1294,7 +1295,10 @@ stateDiagram-v2
     Suruyor --> Iptal: kullanıcı vazgeçti
     Suruyor --> OnayBekliyor: mağaza onay bekliyor
     Suruyor --> Dogrulanamadi: doğrulanmamış işlem, finish
-    Suruyor --> Hata: mağaza hatası
+    Suruyor --> Hata: mağaza satın almayı reddetti
+    Suruyor --> Belirsiz: öteki her hata
+    Belirsiz --> Tesekkur: Transaction.updates, finish
+    Hata --> Tesekkur: Transaction.updates, finish
     OnayBekliyor --> Tesekkur: Transaction.updates, finish
     OnayBekliyor --> Bosta: sayfa yeniden açıldı
     Iptal --> Bosta: sayfa yeniden açıldı
@@ -1302,11 +1306,58 @@ stateDiagram-v2
     Iptal --> Suruyor: satıra dokunma
     Hata --> Suruyor: satıra dokunma
     Dogrulanamadi --> Suruyor: satıra dokunma
+    Belirsiz --> Suruyor: satıra dokunma
     Tesekkur --> Suruyor: satıra dokunma
-    Suruyor --> Tesekkur: iptal, onay bekliyor ya da hata; o sırada gelen onay bekliyordu
+    Suruyor --> Tesekkur: iptal, onay bekliyor, hata ya da sonucu belirsiz; o sırada gelen onay bekliyordu
 ```
 
 Satın alma hiçbir yere yazılmaz: uygulama satın alma için dosyaya, indekse ve UserDefaults'a dokunmaz. Destekçi seviyesi her okumada App Store geçmişinden gelir: `Transaction.all`. Info.plist anahtarı `SKIncludeConsumableInAppPurchaseHistory` bitmiş tüketilebilirleri geçmişe katar; anahtar iOS 18 ve macOS 15 ister, dağıtım hedefi `26.0`. Geçmiş okuması seviyeyi yalnız yükseltir; seviyeyi yalnız iade düşürür. Satın almadan bağımsız tek kayıt test ekibi rozetidir: UserDefaults `support.testerBadge`; uygulama anahtarı bir kez yazar ve silmez. `SupportService` destek ürünlerinin her işlemini `finish()` ile kapatır; kapanmayan işlemi mağaza her açılışta yeniden yollar. Dinleme uygulama açılışında başlar (`KenetApp`); kapalıyken onaylanan satın alma böyle kapanır.
+
+**Tablo test ekibi rozetinin her şartını ve şartın elediği yapıyı gösterir.**
+
+| Şart | Kaynak | Elediği yapı |
+|---|---|---|
+| `AppTransaction.shared` hata atmaz | StoreKit | Mağazanın hiç vermediği kopya, mağaza hesabı olmayan cihaz. Sonraki açılış yeniden sorar |
+| Ortam `sandbox` | `AppTransaction.environment` | Mağaza yapısı (`production`), Xcode'un yerel mağazası (`xcode`) |
+| iOS: `embedded.mobileprovision` yok | Uygulama paketi | Geliştirme ve ad hoc yapısı |
+| Mac: `Contents/embedded.provisionprofile` var ve okunur | Uygulama paketi | Profilsiz ya da okunamayan yapı |
+| Mac: profilde `ProvisionedDevices` yok | Profil | Geliştirme imzalı yapı: `install-mac.sh` |
+| Mac: profilde `ProvisionsAllDevices` doğru değil | Profil | Developer ID yapısı |
+| Mac: profilde `get-task-allow` doğru değil | Profil | Hata ayıklamaya açık yapı |
+| Sürüm `1.0.0` öncesi | `CFBundleShortVersionString` | Yayın sonrası her yapı |
+
+Geliştirme imzalı yapı da `sandbox` ortamında çalışır; ortam tek başına TestFlight demez. Yerel yapıyı profil şartları eler. TestFlight her zaman profil ister; bu yüzden Mac kuralı profilsiz yapıyı yerel sayar ve profilin içeriğine bakar.
+
+**Tablo ortamın, imza doğrulamasının ve yerel imzanın rozete etkisini gösterir.**
+
+| Ortam | `AppTransaction` sonucu | Yerel imzalı | Rozet |
+|---|---|---|---|
+| `sandbox` | `.verified` | Hayır | Var |
+| `sandbox` | `.unverified` | Hayır | Var |
+| `sandbox` | `.verified` ya da `.unverified` | Evet | Yok |
+| `xcode` | `.verified` ya da `.unverified` | Fark etmez | Yok |
+| `production` | `.verified` ya da `.unverified` | Fark etmez | Yok |
+| Bilinmeyen ortam | `.verified` ya da `.unverified` | Fark etmez | Yok |
+| Hata atıldı | Yok | Fark etmez | Yok; sonraki açılış yeniden sorar |
+
+Doğrulanmamış `sandbox` yanıtının ayrı değeri vardır: `SupportDistribution.sandboxUnverified`. `TesterBadgePolicy` bu değeri de kabul eder; doğrulama durumu tek başına rozeti engellemez. Kaçan rozet `1.0.0` ile kalıcı kayıptır; yanlış rozet kurcalanmış tek cihazda kalır ve hiçbir şey açmaz.
+
+- **Varsayım:** TestFlight yapısında `AppTransaction.shared` sonucunun `.verified` mi `.unverified` mi olduğu ölçülmedi; Apple belgelemez.
+- **Varsayım:** TestFlight Mac yapısının profili cihaz listesi taşımaz; kaynak Apple TN3125, TestFlight Mac yapısında ölçülmedi.
+- **Varsayım:** TestFlight Mac yapısının profil yükü XML özellik listesidir. Yük XML değilse uygulama profili okuyamaz ve Mac test kullanıcısı rozet alamaz; ölçülmedi.
+
+**Tablo satın alma çağrısının attığı hatanın hangi duruma gittiğini gösterir.**
+
+| Hata | Durum | Bant |
+|---|---|---|
+| `StoreKitError.userCancelled` | İptal | Yok |
+| `StoreKitError.notAvailableInStorefront`, `StoreKitError.notEntitled` | Hata | "Yeniden deneyebilirsin" |
+| `Product.PurchaseError.productUnavailable`, `Product.PurchaseError.purchaseNotAllowed` | Hata | "Yeniden deneyebilirsin" |
+| `SupportStoreError.productNotLoaded` | Hata | "Yeniden deneyebilirsin" |
+| `StoreKitError.networkError`, `StoreKitError.systemError`, `StoreKitError.unknown` | Sonucu belirsiz | "Yeniden satın alman gerekmez" |
+| Adı geçmeyen her hata; eski API'nin `SKErrorDomain` hataları da | Sonucu belirsiz | "Yeniden satın alman gerekmez" |
+
+Sınıflandırma `SupportStoreTranslation.rulesOutPayment` saf işlevindedir. Ödemeyi dışladığı bilinen hata `SupportStoreError.refused` olur; `SupportService` yalnız `SupportStoreError` için Hata durumuna geçer. Sonucu belirsiz durum sayfa yeniden açılınca kalkmaz; doğrulanmış işlem gelince teşekkür olur. **Varsayım:** Hata satırlarındaki dört StoreKit hatasında mağaza ödeme almaz; Apple belgesi hataları tanımlar ama ödemeyi açıkça anmaz.
 
 Satın alma sürerken ikinci dokunuş mağazaya gitmez. Doğrulanmamış satın almada ödeme alınmıştır; ekran hata demez ve yeniden satın almaya çağırmaz. İade edilmiş işlem kapanır ve teşekkür göstermez. Satın alma sürerken gelen onay bekler; satın alma bitince teşekkür olur.
 
@@ -1399,7 +1450,7 @@ Mac referanslarının tek yetkili ortamı CI'dır (karar 68); Xcode sürümü "C
 | `.pad11Portrait` | 834×1210 | düzenli × düzenli | Üst 24, alt 20 | iPad Pro 11 inç, dikey |
 | `.padCompact` | 440×1032 | sıkışık × düzenli | Üst 24, alt 20 | 13 inçte Split View dar yuvası, yatay |
 
-Adı `DuoSnapshotTests` ile biten kümeler Duo tuvallerini çizer. Bu kümeler henüz CI kapısı değildir. Test konağı `SNAPSHOT_DUO=1` görmezse bu kümeler koşmaz. Kayıt için `sh .github/scripts/record-screen-snapshots.sh --duo` komutunu kullan. Betik değişkeni `TEST_RUNNER_SNAPSHOT_DUO=1` olarak geçirir.
+Adı `DuoSnapshotTests` ile biten kümeler Duo tuvallerini çizer: `ChromeSheetsDuoSnapshotTests`, `PhoneScreensDuoSnapshotTests`, `SafeAreaDuoSnapshotTests`. Bu kümeler 2026-11-16'dan beri CI kapısıdır: `snapshot-suites.sh` varsayılan listesindedir. iOS birim işi bu kümeleri atlar; "iPhone ekran görüntüsü" adımı koşar. `record-snapshots` iş akışının `target=ios` kaydı Duo'yu da kapsar. `target=duo` yalnız Duo referanslarını `SNAPSHOT_TESTING_RECORD=all` ile yeniden yazar. Betik önce kaydeder, sonra yeni referanslara karşı doğrular. İş referansları `duo-snapshot-references` artifact'ına yükler. Yerel Duo kaydı yalnız inceleme içindir. Referanslar `__Snapshots__/` altında test dosyasının adını taşır: `ChromeSheetsDuoSnapshotTests`, `DuoCanvasSnapshotTests`, `SafeAreaDuoSnapshotTests`. `ChromeSheetsDuoSnapshotTests` pencereyi 8 bit sRGB çizer: `preferredRange = .standard`.
 
 **NOT:** Duo ölçüleri ve güvenli alanları tahmindir: piksel ölçüsü 3× ölçekle bölünür. Tuval iPhone simülatöründe çizer ve boyut sınıfını trait geçersiz kılmayla verir. Tuval Duo simülatörünün yerine geçmez.
 

@@ -38,10 +38,10 @@ import VaultFormat
             return VStack(spacing: 0) {
                 ForEach(Array(hours), id: \.self) { hour in
                     HStack(alignment: .top, spacing: 10) {
-                        Text(EventTimeFormat.string(hour: hour, minute: 0, locale: locale))
-                            .font(.ink.time)
-                            .foregroundStyle(.ink.secondaryText)
-                            .frame(width: timeColumnWidth, alignment: .trailing)
+                        // Grows past its width rather than wrapping (12-hour times).
+                        InkTimeColumn(
+                            text: EventTimeFormat.string(hour: hour, minute: 0, locale: locale),
+                            minWidth: timeColumnWidth, alignment: .trailing)
                         VStack(alignment: .leading, spacing: 6) {
                             Capsule()
                                 .fill(Color.ink.rule)
@@ -84,20 +84,27 @@ import VaultFormat
         }
 
         private func nowLine(rowHeight: CGFloat) -> some View {
-            HStack(spacing: 6) {
-                Text(EventTimeFormat.string(hour: currentHour, minute: currentMinute, locale: locale))
-                    .font(.ink.meta.weight(.semibold))
-                    .monospacedDigit()
-                    .foregroundStyle(.ink.onAccent)
-                    .padding(.horizontal, 7)
-                    .padding(.vertical, 3)
-                    .background(Capsule().fill(Color.ink.accent))
-                Rectangle()
-                    .fill(Color.ink.accent)
-                    .frame(height: 1.5)
+            HStack(spacing: 10) {
+                // As wide as the hour column, whatever the locale's times make it.
+                InkTimeColumn(text: "", minWidth: timeColumnWidth)
+                    .hidden()
                     .accessibilityHidden(true)
+                HStack(spacing: 6) {
+                    Text(EventTimeFormat.string(hour: currentHour, minute: currentMinute, locale: locale))
+                        .font(.ink.meta.weight(.semibold))
+                        .monospacedDigit()
+                        .lineLimit(1)
+                        .fixedSize()
+                        .foregroundStyle(.ink.onAccent)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill(Color.ink.accent))
+                    Rectangle()
+                        .fill(Color.ink.accent)
+                        .frame(height: 1.5)
+                        .accessibilityHidden(true)
+                }
             }
-            .padding(.leading, timeColumnWidth + 10)
             .offset(y: CGFloat(currentMinute) / 60 * rowHeight)
             .accessibilityElement(children: .combine)
             .accessibilityLabel(Text("Şimdi"))

@@ -30,4 +30,10 @@ enum EventTimeFormat {
         formatter.timeStyle = .short
         return formatter.string(from: date)
     }
+
+    /// The widest times the locale writes, for sizing a time column: a two-digit hour before and
+    /// after noon ("10:00" and "22:00", or "10:00 AM" and "10:00 PM"). Digits are drawn tabular.
+    static func widestSamples(locale: Locale = .current) -> (morning: String, evening: String) {
+        (string(hour: 10, minute: 0, locale: locale), string(hour: 22, minute: 0, locale: locale))
+    }
 }

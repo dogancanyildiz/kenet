@@ -54,6 +54,18 @@ final class AccessibilityAuditExemptionTests: XCTestCase {
         XCTAssertFalse(isExempt(.textClipped, identifier: "sectionHeader", label: "Timeline"))
     }
 
+    /// The 90-day strip reads its frequency line and the note as one label; only on the entity page,
+    /// only for dynamicType, and only when the note is part of it.
+    func testNinetyDayStripNoteIsExemptInsideItsMergedLabel() {
+        let english = "1 days in the last 90 days. Based on diary mentions."
+        let turkish = "Son 90 günde 5 gün · ortalama aralık 2,8 gün. Günlükteki geçişlere dayanır."
+        XCTAssertTrue(isExempt(.dynamicType, label: english, screen: "unlinkedMentions"))
+        XCTAssertTrue(isExempt(.dynamicType, label: turkish, screen: "unlinkedMentions"))
+        XCTAssertFalse(isExempt(.dynamicType, label: english, screen: "today"))
+        XCTAssertFalse(isExempt(.textClipped, label: english, screen: "unlinkedMentions"))
+        XCTAssertFalse(isExempt(.dynamicType, label: "1 days in the last 90 days", screen: "unlinkedMentions"))
+    }
+
     func testUnlistedElementIsNotExempt() {
         XCTAssertFalse(isExempt(.dynamicType, label: "Günü kapat"))
         XCTAssertFalse(isExempt(.textClipped, identifier: "button.closeDay", label: "Close the day"))

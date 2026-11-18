@@ -30,6 +30,7 @@ struct TimelineDayBoard: View {
     @Environment(\.calendar) private var calendar
     @Environment(\.locale) private var locale
     @Environment(\.clockNow) private var clockNow
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @ScaledMetric(relativeTo: .body) private var hourHeight: CGFloat = 68
     @ScaledMetric(relativeTo: .body) private var timeColumnWidth: CGFloat = 48
@@ -75,38 +76,50 @@ struct TimelineDayBoard: View {
         let timed = Dictionary(grouping: events.filter { $0.time != nil }) { $0.time!.hour }
         return VStack(spacing: 0) {
             ForEach(Array(hours), id: \.self) { hour in
-                HStack(alignment: .top, spacing: 10) {
-                    Text(EventTimeFormat.string(hour: hour, minute: 0, locale: locale))
-                        .font(.ink.time).foregroundStyle(.ink.secondaryText)
-                        .frame(width: timeColumnWidth, alignment: .trailing)
+                // Accessibility sizes: the hour sits above its cards, which take the row's width. The
+                // "now" badge then has no column to sit in: it takes a line of its own above the cards.
+                let isNowHour = day == today && currentHour == hour
+                let stacks = dynamicTypeSize.isAccessibilitySize
+                let layout =
+                    stacks
+                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+                    : AnyLayout(HStackLayout(alignment: .top, spacing: 10))
+                layout {
+                    InkTimeColumn(
+                        text: EventTimeFormat.string(hour: hour, minute: 0, locale: locale),
+                        minWidth: stacks ? 0 : timeColumnWidth, alignment: .trailing,
+                        reservesWidestTime: !stacks)
                     VStack(alignment: .leading, spacing: 6) {
                         Line()
                             .stroke(Color.ink.rule, style: StrokeStyle(lineWidth: 1, dash: [3, 4]))
                             .frame(height: 1)
                             .accessibilityHidden(true)
+                        if stacks, isNowHour { nowLine(offset: 0) }
                         ForEach(timed[hour] ?? []) { event in eventCard(event) }
                     }
                 }
                 .frame(minHeight: hourHeight, alignment: .top)
                 .overlay(alignment: .topLeading) {
-                    if day == today, currentHour == hour { nowLine }
+                    if !stacks, isNowHour { nowLine(offset: CGFloat(currentMinute) / 60 * hourHeight) }
                 }
             }
         }
     }
 
-    private var nowLine: some View {
+    private func nowLine(offset: CGFloat) -> some View {
         HStack(spacing: 6) {
             Text(EventTimeFormat.string(hour: currentHour, minute: currentMinute, locale: locale))
                 .font(.ink.meta.weight(.semibold))
                 .monospacedDigit()
+                .lineLimit(1)
+                .fixedSize()
                 .foregroundStyle(.ink.onAccent)
                 .padding(.horizontal, 7).padding(.vertical, 3)
                 .background(Capsule().fill(Color.ink.accent))
             Rectangle().fill(Color.ink.accent).frame(height: 1.5)
                 .accessibilityHidden(true)
         }
-        .offset(y: CGFloat(currentMinute) / 60 * hourHeight)
+        .offset(y: offset)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text("Şimdi"))
     }

@@ -44,11 +44,13 @@ struct MarginRow<Mark: View, Primary: View, Secondary: View, Trailing: View>: Vi
     private var standardLayout: some View {
         // Mark stays top-aligned with the block; trailing value aligns to the first line baseline.
         HStack(alignment: .top, spacing: 10) {
-            edgeColumn {
-                if hasMark {
-                    mark()
-                } else if let time {
-                    timeLabel(time)
+            if !hasMark, let time {
+                // Grows past the gutter rather than wrapping (large text, 12-hour times).
+                InkTimeColumn(text: time, minWidth: gutter, alignment: .center)
+                    .accessibilityElement(children: .contain)
+            } else {
+                edgeColumn {
+                    if hasMark { mark() }
                 }
             }
             HStack(alignment: .firstTextBaseline, spacing: 10) {
@@ -91,11 +93,15 @@ struct MarginRow<Mark: View, Primary: View, Secondary: View, Trailing: View>: Vi
             .accessibilityElement(children: .contain)
     }
 
+    /// The time on a line of its own (accessibility sizes). One line: where the row is narrower
+    /// than the time (a 12-hour time at AX5 on a 320 pt screen) the time shrinks, it never wraps.
     private func timeLabel(_ time: String) -> some View {
         Text(verbatim: time)
             .font(.ink.time)
             .foregroundStyle(.ink.secondaryText)
             .monospacedDigit()
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
     }
 }
 

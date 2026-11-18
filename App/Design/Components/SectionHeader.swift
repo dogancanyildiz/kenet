@@ -48,66 +48,62 @@ struct SectionHeader: View {
     }
 
     var body: some View {
-        Group {
-            if dynamicTypeSize.isAccessibilitySize {
-                // Accessibility sizes: the counter goes under a title it does not fit beside.
-                // Beside it the title was squeezed into a mid-word break ("Hede- / fler" at AX5).
-                ViewThatFits(in: .horizontal) {
-                    row(title: title.fixedSize())
-                    VStack(alignment: .leading, spacing: 2) {
-                        title.fixedSize(horizontal: false, vertical: true)
-                        row(title: EmptyView(), fillsWidth: false)
-                    }
-                }
+        // Accessibility sizes: the counter and marks go on a line of their own under the title. Beside
+        // it the title was squeezed into a mid-word break ("Hede- / fler" at AX5). One layout keeps the
+        // title the same view at every size: the accessibility audit measures it while it grows, and a
+        // title that changes views as it grows (if/else, ViewThatFits) reads to it as clipped (iPad
+        // Tasks, "Carried over").
+        let stacks = dynamicTypeSize.isAccessibilitySize
+        let layout =
+            stacks
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2))
+            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
+        layout {
+            titleText
+                .font(.ink.sectionTitle)
+                .foregroundStyle(.ink.text)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier(Self.titleIdentifier)
+            if stacks {
+                HStack(alignment: .firstTextBaseline, spacing: 8) { marks }
             } else {
-                row(title: title)
+                Spacer(minLength: 0)
+                marks
             }
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilitySpokenLabel)
     }
 
-    private var title: some View {
-        titleText
-            .font(.ink.sectionTitle)
-            .foregroundStyle(.ink.text)
-            .accessibilityAddTraits(.isHeader)
-            .accessibilityIdentifier(Self.titleIdentifier)
-    }
-
-    /// The title, then the counter and marks; `fillsWidth` pushes them to the trailing edge.
-    private func row(title: some View, fillsWidth: Bool = true) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
-            title
-            if fillsWidth { Spacer(minLength: 0) }
-            if let counterText {
-                Text(verbatim: counterText)
-                    // Drawing: a footnote counter beside the section title ("6 kaldı", "4 görev").
-                    .font(.ink.meta.monospacedDigit())
-                    .foregroundStyle(.ink.secondaryText)
-                    // Whole at every text size, never cut (audit "Text clipped" on "1 day"); the
-                    // title beside it wraps instead.
-                    .fixedSize()
-                    .layoutPriority(1)
-                    .accessibilityHidden(true)
-                    .accessibilityIdentifier(Self.counterIdentifier)
-            }
-            if let isExpanded {
-                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.secondaryText)
-                    .accessibilityHidden(true)
-            }
-            if isLoading {
-                ProgressView()
-                    .controlSize(.mini)
-                    .accessibilityLabel(
-                        Text(
-                            verbatim: String(
-                                localized: "Hedefler yükleniyor",
-                                bundle: PresentationLocalization.bundle(locale), locale: locale))
-                    )
-            }
+    /// The counter, the disclosure chevron and the loading mark, in this order after the title.
+    @ViewBuilder private var marks: some View {
+        if let counterText {
+            Text(verbatim: counterText)
+                // Drawing: a footnote counter beside the section title ("6 kaldı", "4 görev").
+                .font(.ink.meta.monospacedDigit())
+                .foregroundStyle(.ink.secondaryText)
+                // Whole at every text size, never cut (audit "Text clipped" on "1 day"); the
+                // title beside it wraps instead.
+                .fixedSize()
+                .layoutPriority(1)
+                .accessibilityHidden(true)
+                .accessibilityIdentifier(Self.counterIdentifier)
+        }
+        if let isExpanded {
+            Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.secondaryText)
+                .accessibilityHidden(true)
+        }
+        if isLoading {
+            ProgressView()
+                .controlSize(.mini)
+                .accessibilityLabel(
+                    Text(
+                        verbatim: String(
+                            localized: "Hedefler yükleniyor",
+                            bundle: PresentationLocalization.bundle(locale), locale: locale))
+                )
         }
     }
 

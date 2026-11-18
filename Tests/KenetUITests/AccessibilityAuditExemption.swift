@@ -129,7 +129,7 @@ extension AccessibilityAuditExemption {
         .init(
             type: .dynamicType, element: .catalogKey("Günlükteki geçişlere dayanır."),
             reason: Reason.entityPage),
-        // With mentions the note is the second sentence of the 90-day strip's one element ("1 days in
+        // With mentions the note is the second sentence of the 90-day strip's one element ("1 day in
         // the last 90 days. Based on diary mentions.", Entity90DayStrip), which the whole-label entry
         // above stopped matching; the line is `.ink.meta` text that wraps whole at AX5 on iPhone 17e.
         .init(

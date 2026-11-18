@@ -23,6 +23,9 @@ import VaultFormat
         #expect(mentions.busiestCount == 5)
         #expect(mentions.spokenSummary == "Son 12 ayda 5 gün; en yoğun Eylül, 5 gün")
         #expect(mentions.recentIntervalText == "Son 90 günde 5 gün · ortalama aralık 2,8 gün")
+        let english = try #require(insight.mentions(locale: Locale(identifier: "en_US")))
+        #expect(english.spokenSummary == "In the last 12 months, 5 days; busiest September, 5 days")
+        #expect(english.recentIntervalText == "5 days in the last 90 days · average interval 2.8 days")
         #expect(mentions.monthly.count == 12)
         #expect(mentions.recentDays.count == 90)
         #expect(insight.rows.count == 1)
@@ -94,6 +97,10 @@ import VaultFormat
         #expect(single.recentDayCount == 1 && single.averageInterval == nil)
         let singleMentions = try #require(single.mentions(locale: Locale(identifier: "tr_TR")))
         #expect(singleMentions.recentIntervalText == "Son 90 günde 1 gün")
+        // English counts take their plural form: one day, not "1 days".
+        let singleEnglish = try #require(single.mentions(locale: Locale(identifier: "en_US")))
+        #expect(singleEnglish.recentIntervalText == "1 day in the last 90 days")
+        #expect(singleEnglish.spokenSummary == "In the last 12 months, 1 day; busiest October, 1 day")
 
         let olderDay = today.addingDays(-400)!
         let older = EntityInsights.compute(
@@ -111,6 +118,8 @@ import VaultFormat
         #expect(olderMentions.busiestCount == 0)
         #expect(olderMentions.spokenSummary == "Son 12 ayda 0 gün")
         #expect(olderMentions.recentIntervalText == "Son 90 günde 0 gün")
+        let olderEnglish = try #require(older.mentions(locale: Locale(identifier: "en_US")))
+        #expect(olderEnglish.recentIntervalText == "0 days in the last 90 days")
 
         let empty = EntityInsights.compute(path: "unknown", timeline: [], lastDay: nil, entities: [], today: today)
         #expect(

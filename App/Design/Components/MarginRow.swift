@@ -65,22 +65,24 @@ struct MarginRow<Mark: View, Primary: View, Secondary: View, Trailing: View>: Vi
         }
     }
 
+    /// Accessibility sizes: the mark sits above the text (design.md "Erişilebilirlik"). The edge
+    /// column scales with the text (`gutter` is ~137 pt at AX5): beside the text it left a
+    /// 320 pt row a few letters per line, so words broke mid-word.
     private var accessibilityLayout: some View {
-        HStack(alignment: .top, spacing: 10) {
+        VStack(alignment: .leading, spacing: 4) {
             if hasMark {
-                edgeColumn { mark() }
+                mark()
+                    .accessibilityElement(children: .contain)
             }
-            VStack(alignment: .leading, spacing: 4) {
-                if let time {
-                    timeLabel(time)
-                }
-                primary()
-                    .font(kind.contentFont)
-                secondary()
-                trailing()
+            if let time {
+                timeLabel(time)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            primary()
+                .font(kind.contentFont)
+            secondary()
+            trailing()
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var hasMark: Bool {
@@ -180,7 +182,8 @@ extension MarginRow where Mark == EmptyView, Trailing == EmptyView {
     }
 }
 
-/// Pure layout decision for unit tests (accessibility sizes stack time/value around content).
+/// Pure layout decision for unit tests (accessibility sizes stack mark, time and value around
+/// content).
 enum MarginRowLayout {
     case standard
     case accessibilityStacked

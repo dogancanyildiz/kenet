@@ -226,26 +226,63 @@ extension DayView {
         Button {
             showsMonthPicker = true
         } label: {
-            HStack(spacing: 4) {
-                Text(LocalDay.instant(for: date), format: .dateTime.month(.wide))
-                    .font(.ink.section)
-                    .foregroundStyle(.ink.text)
-                Text(LocalDay.instant(for: date), format: .dateTime.year())
-                    .font(.ink.section)
-                    .foregroundStyle(.ink.secondaryText)
-                Image(systemName: "chevron.down")
-                    .font(.ink.meta.weight(.semibold))
-                    .foregroundStyle(.ink.secondaryText)
-                    .accessibilityHidden(true)
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    // Accessibility sizes: "September 2026" on one line when it fits, else the
+                    // year and chevron go under the month. Squeezed into one line the month was
+                    // cut ("Septe… 2026" at AX5).
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 4) {
+                            monthPickerMonth
+                            monthPickerYear
+                            monthPickerChevron
+                        }
+                        .fixedSize()
+                        VStack(alignment: .leading, spacing: 0) {
+                            monthPickerMonth
+                            HStack(spacing: 4) {
+                                monthPickerYear
+                                monthPickerChevron
+                            }
+                        }
+                    }
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                } else {
+                    HStack(spacing: 4) {
+                        monthPickerMonth
+                        monthPickerYear
+                        monthPickerChevron
+                    }
+                    // On a row narrower than "Eylül 2026" the words shrink; they never wrap mid-word.
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                }
             }
-            // On a row narrower than "Eylül 2026" the words shrink; they never wrap mid-word.
-            .lineLimit(1)
-            .minimumScaleFactor(0.6)
             .tapTarget()
         }
         .buttonStyle(.plain)
         .accessibilityHint(Text("Ay seç"))
         .accessibilityIdentifier("button.dayMonthPicker")
+    }
+
+    private var monthPickerMonth: some View {
+        Text(LocalDay.instant(for: date), format: .dateTime.month(.wide))
+            .font(.ink.section)
+            .foregroundStyle(.ink.text)
+    }
+
+    private var monthPickerYear: some View {
+        Text(LocalDay.instant(for: date), format: .dateTime.year())
+            .font(.ink.section)
+            .foregroundStyle(.ink.secondaryText)
+    }
+
+    private var monthPickerChevron: some View {
+        Image(systemName: "chevron.down")
+            .font(.ink.meta.weight(.semibold))
+            .foregroundStyle(.ink.secondaryText)
+            .accessibilityHidden(true)
     }
 
     @ViewBuilder private var dayGraphAction: some View { dayGraphAction(alwaysShown: false) }
@@ -375,7 +412,8 @@ extension DayView {
                 }
                 VStack(alignment: .leading, spacing: 2) {
                     pastDayTitle(presented)
-                    pastDayCountsText(presented)
+                    // Under the title the counts wrap at accessibility sizes ("4 events · 1 ta…").
+                    pastDayCountsText(presented, wraps: dynamicTypeSize.isAccessibilitySize)
                 }
             }
         }
@@ -389,12 +427,15 @@ extension DayView {
             .accessibilityAddTraits(.isHeader)
     }
 
-    @ViewBuilder private func pastDayCountsText(_ presented: TodayPresentation) -> some View {
+    @ViewBuilder private func pastDayCountsText(_ presented: TodayPresentation, wraps: Bool = false)
+        -> some View
+    {
         if let counts = pastDayCounts(presented) {
             Text(verbatim: counts)
                 .font(.ink.meta)
                 .foregroundStyle(.ink.secondaryText)
-                .lineLimit(1)
+                .lineLimit(wraps ? nil : 1)
+                .fixedSize(horizontal: false, vertical: wraps)
         }
     }
 }

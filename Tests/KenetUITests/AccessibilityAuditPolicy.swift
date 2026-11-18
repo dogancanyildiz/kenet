@@ -7,7 +7,8 @@ import XCTest
 /// - The issue names no element. The audit cannot say what it measured, so there is nothing to fix or
 ///   to exempt by element. Touch targets are measured again by ``assertTouchTargets(in:screen:)``,
 ///   which names every element it checks.
-/// - A contrast issue whose element, measured on screen, reaches 4.5:1, sits under a system bar, or lies
+/// - A contrast issue whose element, measured on screen, reaches 4.5:1, sits under a system bar (the
+///   status bar too: the element is cut by the window's top edge), or lies
 ///   outside the visible frame of a presented sheet (`sheet.*` identifier; the capture would be the backdrop).
 /// - One entry of ``exemptions``: one audit type, one element (identifier or catalog text), one reason.
 enum AccessibilityAuditPolicy {
@@ -221,10 +222,16 @@ enum AccessibilityAuditPolicy {
 
     static let minimumContrast = 4.5
 
-    /// The tab bar or the navigation bar when it overlaps the frame (content scrolled under it).
+    /// The tab bar or the navigation bar when it overlaps the frame (content scrolled under it), or the
+    /// status bar when the frame runs past the window's top edge.
     static func coveringBar(of frame: CGRect, chrome: Chrome) -> String? {
         if let tabBar = chrome.tabBar, tabBar.intersects(frame) { return "tab bar" }
         if let navigationBar = chrome.navigationBar, frame.minY < navigationBar.maxY { return "navigation bar" }
+        // A page without a navigation bar (the entity page) scrolls under the status bar. A row cut by
+        // the window's top edge is drawn only in part, under the status bar and the top scroll edge, so
+        // neither the audit nor ``measuredContrast(of:frame:)`` sees the row's own ground (one local run
+        // in five: 'entity.labeledRow.label' at y = -18.5). A row wholly inside the window is measured.
+        if frame.minY < chrome.window.minY, frame.maxY > chrome.window.minY { return "status bar" }
         return nil
     }
 

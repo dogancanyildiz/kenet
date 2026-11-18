@@ -32,6 +32,10 @@ final class UnlinkedMentionsAccessibilityUITests: XCTestCase {
 
         let section = UITestSupport.element(in: app, identifier: "entity.unlinkedMentions")
         let link = UITestSupport.element(in: app, identifier: "button.unlinkedMention.link")
+        // On iPhone 17e the first button is mounted without scrolling, once the page has loaded. A swipe
+        // taken before that flings the page by a varying distance (one local run in five), and the
+        // audit then meets rows cut by the window's top edge. Waiting first keeps the page where it opened.
+        _ = link.waitForExistence(timeout: 5)
         for _ in 0..<12 where !link.exists {
             app.swipeUp()
             if link.waitForExistence(timeout: 1) { break }

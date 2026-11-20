@@ -725,7 +725,7 @@ Manşetin altında görünüm sekmesi durur. Sekmenin altında görünüme göre
 | Filtre ve arama | Manşet satırı | Simge. Filtreler: kişi, konum, proje. |
 | Sekme | Künyenin altı | Liste \| Kanban \| Zaman çizelgesi: altı çizili sekme. Dar sütunda (iPad liste sütunu) sözcükler tek satıra sığmazsa üçüncü sekme "Çizelge" olur. |
 | Haftalık özet kartı | Liste'de sekmenin altı | Küçük "Bu hafta" etiketi, altında büyük "3/8 görev" ve vurgu renkli ilerleme çubuğu. Pay, bu hafta tamamlanan görevdir; payda, bitişi bu haftada olan ve bu hafta tamamlanan görevlerin toplamıdır. |
-| Proje kartları | Liste'de özet kartının altı | Yatay kayan kartlar: durum çipi (Başlamadı, Sürüyor, Bitti; görev sayılarından), proje renkli nokta ve ad, "1/3 görev" (biten/toplam) ve proje renginde ilerleme çubuğu. Karta dokunma proje ekranını açar. |
+| Proje kartları | Liste'de özet kartının altı | Yatay kayan kartlar: durum çipi (Başlamadı, Sürüyor, Bitti; görev sayılarından), proje renkli nokta ve ad, "1/3 görev" (biten/toplam) ve proje renginde ilerleme çubuğu. Karta dokunma proje ekranını açar. Erişilebilirlik boyutunda kartlar alt alta durur ve nokta sayı satırının başına geçer. Ad tek satırdır; karta sığmayan ad önce küçülür. |
 | Seçici | Liste'de proje kartlarının altı, öteki görünümlerde sekmenin altı | Liste'de "Bölüm" menüsü, Kanban'da "Grupla" menüsü, Zaman çizelgesi'nde Gün \| Hafta \| Çeyrek sekmesi. Bölümler (Devreden, Bugün, Yaklaşan…) kart içindedir. |
 | Geniş yüzey | Kanban ve Zaman çizelgesi | 680 pt sütun sınırına girmez. |
 | Mac kenar çubuğu | Mac | Kanban, Zaman çizelgesi ve proje girdileri gezinme düzenidir ve değişmez. |
@@ -780,7 +780,7 @@ Manşetin altında görünüm sekmesi durur. Sekmenin altında görünüme göre
 | Konu | Davranış |
 |---|---|
 | Sıra | Aynı gündeki görevler yüksek, orta, normal, düşük öncelik sırasındadır. Eşitlikte dosya ve satır sırası geçerlidir. |
-| Satır | Öncelik kutunun içindedir. Tekrar rozeti vardır. Başlık tek satırda kesilir (erişilebilirlik boyutlarında sarar). Devreden satırın alt satırı bütünüyle uyarı rengindedir: "→ mobil · 14 Eyl'den devretti". Projesiz görev "Projesiz" yazar. |
+| Satır | Öncelik kutunun içindedir. Tekrar rozeti vardır. Başlık tek satırda kesilir (erişilebilirlik boyutlarında sarar). Devreden satırın alt satırı bütünüyle uyarı rengindedir: "→ mobil · 14 Eyl'den devretti". Projesiz görev "Projesiz" yazar. Alt satırın parçaları yan yana sığmazsa sığmayan parça bütün olarak alt satıra iner; sözcük bölünmez. Devreden satır erişilebilirlik boyutunun altında tek satır kalır ve tarihi kesilir; tekrar rozeti varsa rozet alt satıra iner. Erişilebilirlik boyutunda devreden satır da sarar ve "›" kutunun satırında, sağda durur. |
 | Dokunma (Liste) | Telefonda kart içindeki satırın boş alanına dokunma bağlantısız görevi tamamlar. Bağlantıya dokunma bağlantıyı açar. Bölünmüş kabukta ve Mac'te satıra dokunma satırı seçer; yalnız kutu tamamlar. |
 | Ayrıntı (telefon) | Satırın sağındaki "›" görev ayrıntısını açar; 44 pt alanı tamamlamaz. Bağlam menüsündeki "Ayrıntıları göster" de açar. VoiceOver aynı adlı eylemi sunar. |
 | Düzenleme menüsü | Başta "Bitti" durur; kapalı görevde yeniden açma izinliyse "Görevi yeniden aç" durur. Ardından Bugüne, Yarına, Haftaya, Tekrar ve Öncelik gelir. Taşıma kuralları Bugün'deki görev satırıyla aynıdır: bitişin zaten olduğu gün yoktur, kapalı görevde taşıma yoktur. |

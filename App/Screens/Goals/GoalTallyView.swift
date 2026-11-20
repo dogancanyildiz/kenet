@@ -7,12 +7,17 @@ struct GoalTallyStrip: View {
     @ScaledMetric(relativeTo: .caption) private var cell: CGFloat = 14
     @Environment(\.locale) private var locale
 
+    /// Seven cells and their gaps fit a card on a 320 pt screen (244 pt inside): the scaled cell
+    /// is ~33 pt at AX3 and the strip ran out of the card.
+    static let cellCeiling: CGFloat = 30
+    private var side: CGFloat { min(cell, Self.cellCeiling) }
+
     var body: some View {
         HStack(spacing: 4) {
             ForEach(Array(days.enumerated()), id: \.offset) { _, day in
                 HeatmapCell(
                     kind: day.heatmapKind,
-                    size: cell,
+                    size: side,
                     isToday: day.isToday,
                     accessibilityValue: Text(accessibilityValue(day)),
                     accessibilityLabel: Text(
@@ -44,6 +49,11 @@ struct GoalYearMiniBars: View {
     @ScaledMetric(relativeTo: .caption) private var barWidth: CGFloat = 6
     @Environment(\.locale) private var locale
 
+    /// Twelve bars and their gaps fit a card on a 320 pt screen: the scaled bar is ~20 pt at AX5
+    /// and the row ran out of the card.
+    static let barWidthCeiling: CGFloat = 14
+    private var barSide: CGFloat { min(barWidth, Self.barWidthCeiling) }
+
     var body: some View {
         HStack(alignment: .bottom, spacing: 3) {
             ForEach(Array(bars.enumerated()), id: \.offset) { _, bar in
@@ -54,12 +64,12 @@ struct GoalYearMiniBars: View {
                                 Color.ink.control,
                                 style: StrokeStyle(lineWidth: 1, dash: [2, 2])
                             )
-                            .frame(width: barWidth, height: max(4, maxHeight * 0.25))
+                            .frame(width: barSide, height: max(4, maxHeight * 0.25))
                     } else {
                         Capsule()
                             .fill(Color.ink.accent)
                             .frame(
-                                width: barWidth,
+                                width: barSide,
                                 height: max(2, maxHeight * CGFloat(bar.fraction)))
                     }
                 }

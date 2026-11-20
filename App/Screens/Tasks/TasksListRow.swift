@@ -59,6 +59,9 @@ struct TasksListRow: View {
         #endif
     }
 
+    /// ``MarginRow`` stacks the box, the text and the meta line at accessibility sizes.
+    private var stacksRow: Bool { dynamicTypeSize.isAccessibilitySize }
+
     private var rowTapCompletes: Bool {
         TasksListRowTouch.completes(
             canToggle: completion.canToggleCompletion,
@@ -67,10 +70,18 @@ struct TasksListRow: View {
 
     var body: some View {
         MarginRow(kind: .vault) {
-            TaskBox(
-                state: boxState,
-                action: completion.canToggleCompletion ? complete : nil,
-                accessibilityLabel: LocalizedStringKey(completion.boxAccessibilityLabelKey))
+            // Accessibility sizes: the row stacks, and "›" shares the box's line instead of taking
+            // a line of its own under the text.
+            HStack(spacing: 0) {
+                TaskBox(
+                    state: boxState,
+                    action: completion.canToggleCompletion ? complete : nil,
+                    accessibilityLabel: LocalizedStringKey(completion.boxAccessibilityLabelKey))
+                if stacksRow {
+                    Spacer(minLength: 8)
+                    detailChevron
+                }
+            }
         } primary: {
             // One line, cut at the end (the detail shows the whole text); accessibility sizes wrap.
             LinkedTextView(
@@ -86,7 +97,7 @@ struct TasksListRow: View {
         } secondary: {
             metaRow
         } trailing: {
-            detailChevron
+            if !stacksRow { detailChevron }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         // Inside the section card (`inkListRow(cardSegment:)` draws it behind the row). Completed
@@ -153,10 +164,11 @@ struct TasksListRow: View {
     /// stack shaved fractions of a point off the project name as well: in the iPad list column
     /// a row with the low-priority mark drew "Projesiz" at 63.5 pt, and the audit reported it as
     /// clipped (run 43325184188).
+    /// Accessibility sizes cut nothing: the parts flow onto the next line and the date text wraps.
     @ViewBuilder private var overdueLine: some View {
         if let date = row.due {
             let carried = TodayPresentation.carriedOverDate(date, today: day, locale: locale, calendar: calendar)
-            HStack(spacing: 4) {
+            TaskMetaLineLayout(spacing: 4, wraps: stacksRow) {
                 Image(systemName: "arrow.right")
                     .accessibilityHidden(true)
                 if let projectName {
@@ -170,23 +182,36 @@ struct TasksListRow: View {
             }
             .font(.ink.meta)
             .foregroundStyle(.ink.warning)
-            .lineLimit(1)
+            .lineLimit(stacksRow ? nil : 1)
             .overdueAccessibilityValue(true)
         }
     }
 
+    /// The meta line's parts go onto the next line whole when they do not fit beside each other.
+    /// A carried-over line below the accessibility sizes is the exception: it stays one line and
+    /// its date gives way (``overdueLine``), unless a recurrence label needs the room.
+    private var metaLineWraps: Bool {
+        TasksListRowMeta.wraps(
+            isAccessibilitySize: stacksRow,
+            isCarriedOver: presentation.showsOverdueCue && row.due != nil,
+            hasRecurrence: row.recurrence != nil || row.recurrenceSource != nil)
+    }
+
     @ViewBuilder private var metaRow: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 8) {
+            TaskMetaLineLayout(spacing: 8, wraps: metaLineWraps) {
                 if presentation.showsOverdueCue && row.due != nil {
                     overdueLine
                 } else {
                     // The section's own day (created, completed) takes the due date's place.
                     let shownDay = footnote != nil || row.due != nil
                     if let projectName {
+                        // A name wider than the whole line is cut, as the title is; it has no
+                        // space to wrap at. Accessibility sizes cut nothing.
                         projectName
                             .font(.ink.meta)
                             .foregroundStyle(.ink.secondaryText)
+                            .lineLimit(stacksRow ? nil : 1)
                         if shownDay {
                             Text(verbatim: "·")
                                 .font(.ink.meta)
@@ -273,6 +298,16 @@ struct TasksListRow: View {
             if model.target != nil { _ = await operation(model) }
             errorText = model.errorText
         }
+    }
+}
+
+/// Whether the row's meta line may go onto a second line (unit-tested).
+enum TasksListRowMeta {
+    /// Accessibility sizes always wrap. Below them a carried-over line stays one line and its
+    /// date gives way with "…" (screens.md "Satır"), unless a recurrence label needs the room:
+    /// squeezed beside the line it broke letter by letter.
+    static func wraps(isAccessibilitySize: Bool, isCarriedOver: Bool, hasRecurrence: Bool) -> Bool {
+        isAccessibilitySize || !isCarriedOver || hasRecurrence
     }
 }
 

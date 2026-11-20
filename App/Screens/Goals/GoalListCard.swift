@@ -25,6 +25,11 @@ struct GoalListCard<Detail: View>: View {
     let onUnmark: () -> Void
 
     @ScaledMetric(relativeTo: .body) private var plusSide: CGFloat = 46
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    /// Accessibility sizes: the "+" goes under the text and the chips under the name. Beside them the
+    /// name broke mid-word ("Es- / neme") and the card grew wider than a 320 pt screen.
+    private var stacks: Bool { typeSize.isAccessibilitySize }
 
     private var progress: Double { GoalRowPresentation.progress(goal: goal, status: status) }
     private var complete: Bool { GoalListPresentation.isComplete(goal: goal, status: status) }
@@ -32,7 +37,12 @@ struct GoalListCard<Detail: View>: View {
 
     var body: some View {
         InkCard(padded: true) {
-            HStack(alignment: .center, spacing: 12) {
+            // One layout at every size, so the text keeps its view identity as it grows.
+            let layout =
+                stacks
+                ? AnyLayout(VStackLayout(alignment: .trailing, spacing: 8))
+                : AnyLayout(HStackLayout(alignment: .center, spacing: 12))
+            layout {
                 openSection
                 trailingControl
             }
@@ -80,33 +90,50 @@ struct GoalListCard<Detail: View>: View {
 
     private var cardBody: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                if complete {
-                    Image(systemName: "checkmark")
-                        .font(.ink.meta.weight(.semibold))
-                        .foregroundStyle(Color.ink.secondaryText)
-                        .accessibilityHidden(true)
+            titleLayout {
+                if complete, !stacks { completeMark }
+                // The mark stays on the name's first line when the chip wraps under the name.
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    if complete, stacks { completeMark }
+                    Text(verbatim: goal.name)
+                        .font(.ink.content.weight(.semibold))
+                        .foregroundStyle(complete ? Color.ink.secondaryText : Color.ink.text)
                 }
-                Text(verbatim: goal.name)
-                    .font(.ink.content.weight(.semibold))
-                    .foregroundStyle(complete ? Color.ink.secondaryText : Color.ink.text)
                 TagChip(title: GoalListPresentation.periodChip(goal.period, locale: locale))
             }
             if goal.kind == .milestone {
                 Text(verbatim: GoalRowPresentation.meta(goal: goal, status: status, locale: locale) ?? "")
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
             } else {
                 Text(valueLine)
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
                     .monospacedDigit()
+                    // Wraps, never cut: stacked over the "+" the line was cut to "0/1 · Son 30 gün…".
+                    .fixedSize(horizontal: false, vertical: true)
             }
             meter
             if goal.kind != .milestone, goal.period == .day {
                 streakLine
             }
         }
+    }
+
+    /// The name and its chip on one line; at accessibility sizes the chip wraps under a name that
+    /// leaves it no room, and the name takes the card's width.
+    private var titleLayout: AnyLayout {
+        stacks
+            ? AnyLayout(InkFlowLayout(spacing: 8, lineSpacing: 4))
+            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
+    }
+
+    private var completeMark: some View {
+        Image(systemName: "checkmark")
+            .font(.ink.meta.weight(.semibold))
+            .foregroundStyle(Color.ink.secondaryText)
+            .accessibilityHidden(true)
     }
 
     /// "**30/20** sayfa · Son 30 gün %87" (daily) or "**17/24** kitap · 7 kitap kaldı".
@@ -140,7 +167,12 @@ struct GoalListCard<Detail: View>: View {
     }
 
     private var streakLine: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 6) {
+        // Accessibility sizes: the badge wraps under a streak text that fills the line.
+        let layout =
+            stacks
+            ? AnyLayout(InkFlowLayout(spacing: 6, lineSpacing: 4))
+            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 6))
+        return layout {
             Label {
                 Text(verbatim: GoalListPresentation.streakText(status.streak, locale: locale))
             } icon: {

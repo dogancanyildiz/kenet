@@ -5,7 +5,8 @@ enum InkPageHeaderLayout: Equatable, Sendable {
     /// Manşet on the left, icons on the same row at its right.
     case inline
     /// Accessibility text sizes: icons on their own row above the manşet, right-aligned,
-    /// so the 44 pt targets stay clear of the large title.
+    /// so the 44 pt targets stay clear of the large title. Icons wider than the row together
+    /// continue on a second row (``InkStackedHeaderRows``).
     case stacked
 
     static func resolve(dynamicTypeSize: DynamicTypeSize) -> Self {
@@ -75,22 +76,21 @@ struct InkPageHeader<Actions: View>: View {
         } else if Actions.self == EmptyView.self && titleAccessory == nil {
             headline
         } else {
-            switch InkPageHeaderLayout.resolve(dynamicTypeSize: dynamicTypeSize) {
-            case .inline:
-                HStack(alignment: .firstTextBaseline, spacing: InkHeaderActionChrome.spacing) {
-                    headline
-                    titleAccessory
-                    actionGroup
+            // One layout holds the same three children at every text size, so the manşet and its
+            // künye stay the same view while the text grows: the accessibility audit reads a text
+            // that changes views as it grows (if/else, switch) as clipped (``SectionHeader``).
+            let layout =
+                switch InkPageHeaderLayout.resolve(dynamicTypeSize: dynamicTypeSize) {
+                case .inline:
+                    AnyLayout(
+                        HStackLayout(alignment: .firstTextBaseline, spacing: InkHeaderActionChrome.spacing))
+                case .stacked:
+                    AnyLayout(InkStackedHeaderLayout())
                 }
-            case .stacked:
-                VStack(alignment: .leading, spacing: InkSpacing.row) {
-                    HStack(spacing: InkHeaderActionChrome.spacing) {
-                        Spacer(minLength: 0)
-                        titleAccessory
-                        actionGroup
-                    }
-                    headline
-                }
+            layout {
+                headline
+                titleAccessory
+                actionGroup
             }
         }
     }
@@ -107,15 +107,27 @@ struct InkPageHeader<Actions: View>: View {
 
     /// Subpage: "‹ <parent>" and the page's icons on one row, the title (title1) below it.
     private func subpageBody(backTitle: Text) -> some View {
-        VStack(alignment: .leading, spacing: InkSpacing.row / 2) {
-            HStack(spacing: InkHeaderActionChrome.spacing) {
+        // Accessibility sizes: icons that do not fit beside the back item go under it, so the
+        // parent's name wraps between words, not letter by letter ("Gör / evl / er" at 320 pt).
+        let row =
+            dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(InkBackRowLayout())
+            : AnyLayout(HStackLayout(spacing: InkHeaderActionChrome.spacing))
+        // The title accessory (hedef ayrıntısı: the period pill) goes under the title there: beside
+        // it the pill was cut ("G… · 20…").
+        let titleRow =
+            dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: InkHeaderActionChrome.spacing))
+            : AnyLayout(HStackLayout(alignment: .center, spacing: InkHeaderActionChrome.spacing))
+        return VStack(alignment: .leading, spacing: InkSpacing.row / 2) {
+            row {
                 InkBackButton(title: backTitle)
                 Spacer(minLength: 0)
                 if Actions.self != EmptyView.self {
                     actionGroup
                 }
             }
-            HStack(alignment: .center, spacing: InkHeaderActionChrome.spacing) {
+            titleRow {
                 headline
                     .environment(\.inkPageHeadlineIsSubpage, true)
                 titleAccessory
@@ -166,8 +178,8 @@ extension InkPageHeader {
         return copy
     }
 
-    /// A small view beside the title: on its trailing side on a subpage, before the icons
-    /// elsewhere.
+    /// A small view beside the title: on its trailing side on a subpage (under the title at
+    /// accessibility text sizes), before the icons elsewhere.
     func titleAccessory(_ view: some View) -> Self {
         var copy = self
         copy.titleAccessory = AnyView(view)
@@ -195,6 +207,173 @@ extension InkPageHeader where Actions == EmptyView {
         self.init(
             verbatim: title, shortTitle: shortTitle, byline: byline, fitsOneLine: fitsOneLine
         ) { EmptyView() }
+    }
+}
+
+/// Icon rows of the stacked manşet (unit-tested): which icons share a row.
+enum InkStackedHeaderRows {
+    /// Gap between two icon rows, and between two icons (``InkHeaderActionChrome/spacing``).
+    static let spacing = InkHeaderActionChrome.spacing
+
+    /// Icons fill a row in order; one that does not fit starts the next row. Three chips at the
+    /// largest text size are wider than a 320 pt screen: on one row the first one left the screen.
+    static func resolve(widths: [CGFloat], available: CGFloat?) -> [Range<Int>] {
+        guard !widths.isEmpty else { return [] }
+        guard let available else { return [0..<widths.count] }
+        var rows: [Range<Int>] = []
+        var start = 0
+        var used: CGFloat = 0
+        for (index, width) in widths.enumerated() {
+            let next = index == start ? width : used + spacing + width
+            if index > start && next > available {
+                rows.append(start..<index)
+                start = index
+                used = width
+            } else {
+                used = next
+            }
+        }
+        rows.append(start..<widths.count)
+        return rows
+    }
+}
+
+/// Icons of a manşet at accessibility text sizes, measured at their own size and set on as many
+/// right-aligned rows as the width needs.
+private struct InkHeaderIconRows {
+    private struct Row {
+        var items: Range<Int>
+        var width: CGFloat
+        var height: CGFloat
+    }
+
+    private let sizes: [CGSize]
+    private let rows: [Row]
+    /// Width of the widest row.
+    let width: CGFloat
+    /// Height of all rows with the gaps between them; zero without icons.
+    let height: CGFloat
+    var isEmpty: Bool { rows.isEmpty }
+    var isOneRow: Bool { rows.count == 1 }
+
+    init(_ icons: LayoutSubviews, width available: CGFloat?) {
+        let spacing = InkStackedHeaderRows.spacing
+        let sizes = icons.map { $0.sizeThatFits(.unspecified) }
+        let rows = InkStackedHeaderRows.resolve(widths: sizes.map(\.width), available: available).map { items in
+            let row = sizes[items]
+            return Row(
+                items: items,
+                width: row.reduce(0) { $0 + $1.width } + spacing * CGFloat(items.count - 1),
+                height: row.reduce(0) { max($0, $1.height) })
+        }
+        self.sizes = sizes
+        self.rows = rows
+        width = rows.reduce(0) { max($0, $1.width) }
+        height = rows.reduce(0) { $0 + $1.height } + spacing * CGFloat(max(rows.count - 1, 0))
+    }
+
+    /// Places the rows from `top` down, each ending at `trailing`.
+    func place(_ icons: LayoutSubviews, top: CGFloat, trailing: CGFloat) {
+        let spacing = InkStackedHeaderRows.spacing
+        var y = top
+        for row in rows {
+            var x = trailing - row.width
+            for index in row.items {
+                let size = sizes[index]
+                icons[icons.startIndex + index].place(
+                    at: CGPoint(x: x, y: y + row.height / 2), anchor: .leading, proposal: ProposedViewSize(size))
+                x += size.width + spacing
+            }
+            y += row.height + spacing
+        }
+    }
+}
+
+/// The manşet at accessibility text sizes: the first subview (the manşet and its künye) takes the
+/// full width below; every other subview (title accessory, icons) sits above it, right-aligned,
+/// on as many rows as the width needs.
+private struct InkStackedHeaderLayout: Layout {
+    /// Height of the icon rows and the gap under them.
+    private func top(_ icons: InkHeaderIconRows) -> CGFloat {
+        icons.isEmpty ? 0 : icons.height + InkSpacing.row
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard let headline = subviews.first else { return .zero }
+        let icons = InkHeaderIconRows(subviews.dropFirst(), width: proposal.width)
+        let headlineSize = headline.sizeThatFits(ProposedViewSize(width: proposal.width, height: nil))
+        return CGSize(
+            width: proposal.width ?? max(headlineSize.width, icons.width),
+            height: top(icons) + headlineSize.height)
+    }
+
+    func placeSubviews(
+        in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()
+    ) {
+        guard let headline = subviews.first else { return }
+        let icons = InkHeaderIconRows(subviews.dropFirst(), width: bounds.width)
+        icons.place(subviews.dropFirst(), top: bounds.minY, trailing: bounds.maxX)
+        let top = top(icons)
+        headline.place(
+            at: CGPoint(x: bounds.minX, y: bounds.minY + top), anchor: .topLeading,
+            proposal: ProposedViewSize(width: bounds.width, height: max(bounds.height - top, 0)))
+    }
+}
+
+/// A subpage's navigation row at accessibility text sizes. Subviews: the back item, a spacer
+/// (the row is an `HStack` at the other sizes), then the icons. The icons stay beside the back
+/// item while its title fits one line there; otherwise the back item takes the full width and
+/// the icons go under it, right-aligned.
+private struct InkBackRowLayout: Layout {
+    private struct Measured {
+        var back: CGSize
+        var icons: InkHeaderIconRows
+        var isOneRow: Bool
+        var height: CGFloat {
+            if isOneRow { return max(back.height, icons.height) }
+            return back.height + InkStackedHeaderRows.spacing + icons.height
+        }
+    }
+
+    private func measure(_ subviews: Subviews, width: CGFloat?) -> Measured {
+        let icons = InkHeaderIconRows(subviews.dropFirst(2), width: width)
+        let ideal = subviews[0].sizeThatFits(.unspecified)
+        guard let width else { return Measured(back: ideal, icons: icons, isOneRow: true) }
+        if icons.isEmpty {
+            let back = subviews[0].sizeThatFits(ProposedViewSize(width: width, height: nil))
+            return Measured(back: back, icons: icons, isOneRow: true)
+        }
+        if icons.isOneRow, ideal.width + InkStackedHeaderRows.spacing + icons.width <= width {
+            return Measured(back: ideal, icons: icons, isOneRow: true)
+        }
+        let back = subviews[0].sizeThatFits(ProposedViewSize(width: width, height: nil))
+        return Measured(back: back, icons: icons, isOneRow: false)
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard subviews.count >= 2 else { return .zero }
+        let measured = measure(subviews, width: proposal.width)
+        let ideal = measured.back.width + InkStackedHeaderRows.spacing + measured.icons.width
+        return CGSize(width: proposal.width ?? ideal, height: measured.height)
+    }
+
+    func placeSubviews(
+        in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()
+    ) {
+        guard subviews.count >= 2 else { return }
+        let measured = measure(subviews, width: bounds.width)
+        let back = ProposedViewSize(measured.back)
+        subviews[1].place(at: bounds.origin, proposal: .zero)
+        if measured.isOneRow {
+            subviews[0].place(at: CGPoint(x: bounds.minX, y: bounds.midY), anchor: .leading, proposal: back)
+            measured.icons.place(
+                subviews.dropFirst(2), top: bounds.midY - measured.icons.height / 2, trailing: bounds.maxX)
+        } else {
+            subviews[0].place(at: bounds.origin, anchor: .topLeading, proposal: back)
+            measured.icons.place(
+                subviews.dropFirst(2), top: bounds.minY + measured.back.height + InkStackedHeaderRows.spacing,
+                trailing: bounds.maxX)
+        }
     }
 }
 

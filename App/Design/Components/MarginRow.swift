@@ -43,7 +43,19 @@ struct MarginRow<Mark: View, Primary: View, Secondary: View, Trailing: View>: Vi
 
     private var standardLayout: some View {
         // Mark stays top-aligned with the block; trailing value aligns to the first line baseline.
-        HStack(alignment: .top, spacing: 10) {
+        // At xxL and xxxL a time row narrower than a card of a 375 pt screen puts its time above
+        // the text; one container either way, so the text keeps its identity.
+        let stackingWidth =
+            hasMark || time == nil
+            ? nil
+            : InkSpacing.timeStackingWidth(
+                narrowWidth: InkSpacing.narrowCardRowWidth, dynamicTypeSize: dynamicTypeSize)
+        let layout =
+            stackingWidth == nil
+            ? AnyLayout(HStackLayout(alignment: .top, spacing: 10))
+            : AnyLayout(
+                InkTimeRowLayout(gap: 10, stacksBelowWidth: stackingWidth))
+        return layout {
             if !hasMark, let time {
                 // Grows past the gutter rather than wrapping (large text, 12-hour times).
                 InkTimeColumn(text: time, minWidth: gutter, alignment: .center)

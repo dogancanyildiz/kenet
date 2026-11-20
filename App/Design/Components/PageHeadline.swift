@@ -47,10 +47,12 @@ struct PageHeadline: View {
             if let shownByline {
                 // A subpage's byline is a footnote line (drawing: varlık sayfası). No line limit:
                 // a long date wraps at larger text sizes instead of being cut (audit "Text clipped").
+                // At accessibility sizes it always takes the height its lines need: a list row
+                // offered the künye one line there and cut it ("16 açık · 5 d…", Görevler at 320 pt).
                 shownByline
                     .font(isSubpage ? .ink.meta : .ink.pageByline)
                     .foregroundStyle(.ink.secondaryText)
-                    .fixedSize(horizontal: false, vertical: isSubpage)
+                    .fixedSize(horizontal: false, vertical: isSubpage || dynamicTypeSize.isAccessibilitySize)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -90,10 +92,13 @@ struct PageHeadline: View {
                     .minimumScaleFactor(0.75)
             }
         } else {
+            // Accessibility sizes: the title takes the height its lines need, as the künye does
+            // (a list row cut "Deniz Arıkan" to "Deniz Arı…" on a 320 pt screen).
             titleText
                 .font(titleFont)
                 .lineLimit(shrinksToFit ? 1 : nil)
                 .minimumScaleFactor(shrinksToFit ? 0.75 : 1)
+                .fixedSize(horizontal: false, vertical: dynamicTypeSize.isAccessibilitySize)
         }
     }
 

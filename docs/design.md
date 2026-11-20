@@ -160,7 +160,7 @@ Kod karşılığı: `InkPageTitle`, `InkPageTitleRow`, `inkRootPageNavigationTit
 | Renk | Yardımcı eylemler ikincil metin rengindedir: ara, sırala, filtrele, Ayarlar, günün grafiği. Kayıt açan ya da içeriği değiştiren eylem vurgu rengindedir: ekle, düzenle. "Eylem tek renktir" kuralı bu eylemler içindir. |
 | Sayı | Bir satırda en çok 3 simge durur. Fazlası sayfanın en üstünde ayrı satır olur; örneğin Günlük'teki Özetler ve Haftalık inceleme çipleri. |
 | Sıra | Sıra sabittir. iPhone'da en sağda ara durur, solunda ekrana özgü simgeler durur. Mac'te manşet satırında arama simgesi yoktur. |
-| Büyük yazı | Erişilebilirlik yazı boyutlarında simgeler manşetin üstünde ayrı satıra çıkar. |
+| Büyük yazı | Erişilebilirlik yazı boyutlarında simgeler manşetin üstünde ayrı satıra çıkar. Satıra sığmayan simge ikinci satıra iner. Alt sayfada geri öğesinin yanına sığmayan simgeler onun altına iner. Manşet ve künye sarar, kırpılmaz. |
 
 Kod karşılığı: `InkHeaderAction`, `InkHeaderMenu` ve `InkHeaderActionChrome`. Sınırlar `maximumCount = 3`, `spacing = 4` ve `macMinimumSide = 28` değerleridir.
 
@@ -799,7 +799,8 @@ Mac'te parıltı yalnız ayrıntı sütununun üstündedir. iPad üç sütunda M
 | Saydamlığı Azalt | Parıltı kalkar. |
 | Hareketi Azalt | Parıltı ve hale zaten durağandır. Hafta şeridinde gün değişimi çapraz geçiş olur, kayma olmaz. Graph oturmuş düzeni tek seferde gösterir. |
 | Kalın Metin | Sistem yazısı ağırlığı artırır. Künye cümlesinde sayı ile bağlaç arasındaki ayrım renkle de sürer. |
-| Dynamic Type, AX boyutları | Hafta şeridi 2 satıra iner: 4 + 3 gün. Gün halkası gün rakamının üstüne çıkar. İşaret sütunu metnin üstüne iner. Kart iç boşluğu en çok 22 pt olur. Bölüm başlığının sayacı başlığın altındaki satırdadır. Metin sözcük ortasından bölünmez; 320 pt ekranda AX5'te de sözcük arasından sarar. Bugün sayfası ekrandan geniş olmaz; ayrıntı [Ekranlar](screens.md) belgesinin "Gün başlığı" tablosundadır. |
+| Dynamic Type, AX boyutları | Hafta şeridi 2 satıra iner: 4 + 3 gün. Gün halkası gün rakamının üstüne çıkar. İşaret sütunu metnin üstüne iner. Kart iç boşluğu en çok 22 pt olur. Bölüm başlığının sayacı başlığın altındaki satırdadır. Sayfa künyesi sarar, kırpılmaz. Metin sözcük ortasından bölünmez; 320 pt ekranda AX5'te de sözcük arasından sarar. Bugün sayfası ekrandan geniş olmaz; ayrıntı [Ekranlar](screens.md) belgesinin "Gün başlığı" tablosundadır. |
+| Dynamic Type, xxL ve xxxL, dar ekran | Dar ekran 352 pt'den dar ekrandır; 320 pt bu sınırın altındadır. Saat sütunu metnin ya da kartın üstündeki satıra çıkar. Kural Bugün'ün Olaylar kartında ve gün ekranının saatli programında geçerlidir. 375 pt ve üstü genişlikte düzen değişmez. Sınırlar `InkSpacing.narrowPageRowWidth` (320 pt) ve `narrowCardRowWidth` (280 pt) değerleridir. |
 | Renk Olmadan Ayırt Et | Devreden: işaret ve tarih metni. Zaman kartı çubuğu: metin etiketi. Graph: biçim. |
 | VoiceOver | Künye cümlesi tek öğedir. Hafta şeridi her gün için "20 Eylül Pazar, bugün, 3 olay" okur. Gün halkası "3 hedef kaldı" okur. Alt sayfanın geri öğesi üst sayfanın adını okur. |
 

@@ -326,11 +326,21 @@ struct EntityRow: View {
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 
+    /// Badge, text and count side by side; stacked from the leading edge at accessibility sizes.
+    private var rowLayout: AnyLayout {
+        dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
+            : AnyLayout(HStackLayout(alignment: .center, spacing: 12))
+    }
+
     var body: some View {
         // One row view: the error band below the row, not a second row with the same tag.
         VStack(alignment: .leading, spacing: 0) {
             // Şafak list row: badge, name and one meta line, the 12-month mini bar on the right.
-            HStack(alignment: .center, spacing: 12) {
+            // At accessibility sizes the badge, the text and the count stack: beside the scaled
+            // badge and count a narrow column left the name less than a word ("Arıka / n").
+            // One layout, so the texts keep their identity when the size changes.
+            rowLayout {
                 EntityInitialBadge(entity: entity)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(verbatim: entity.name)
@@ -352,7 +362,8 @@ struct EntityRow: View {
                             .font(.ink.meta.monospacedDigit())
                             .foregroundStyle(.ink.secondaryText)
                             .fixedSize()
-                            .accessibilityLabel(Text("Son 12 ayda \(days) gün"))
+                            .accessibilityLabel(
+                                Text(verbatim: EntityRowPresentation.yearDaysLabel(days: days, locale: locale)))
                     }
                 } else if lastDate != nil, let mentionData {
                     EntityMonthlyBarChart(data: mentionData, compact: true)
@@ -460,6 +471,11 @@ enum EntityInitials {
 
 /// The row's meta line: "Son görüşme 3 gün önce · 14 bağ" ("Son ziyaret" for places).
 enum EntityRowPresentation {
+    /// The column count's spoken label: "Son 12 ayda 41 gün"; English reads "1 day", not "1 days".
+    static func yearDaysLabel(days: Int, locale: Locale) -> String {
+        PresentationLocalization.string(localized: "Son 12 ayda \(days) gün", locale: locale)
+    }
+
     /// The split shell column's short line: "son 3 gün önce", "son dün"; nil before any encounter.
     static func columnMeta(lastDate: CalendarDate?, today: CalendarDate, locale: Locale) -> String? {
         guard let lastDate, lastDate.ordinal <= today.ordinal else { return nil }

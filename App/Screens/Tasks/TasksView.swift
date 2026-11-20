@@ -208,31 +208,10 @@ struct TasksView: View {
         let count = model.list?.projectCounts[VaultIndex.projectKey(project)]
         let completed = count?.done ?? 0
         let total = (count?.open ?? open) + completed
-        let color = ProjectColor.color(for: project)
         return NavigationLink {
             ProjectView(store: store, name: project)
         } label: {
-            InkCard {
-                VStack(alignment: .leading, spacing: 8) {
-                    ProjectStateChip(state: .make(completed: completed, total: total))
-                    HStack(spacing: 6) {
-                        Circle().fill(color).frame(width: 8, height: 8)
-                            .accessibilityHidden(true)
-                        Text(verbatim: project).font(.ink.content.weight(.semibold)).foregroundStyle(.ink.text)
-                            .lineLimit(width == nil ? nil : 1)
-                    }
-                    Text(
-                        verbatim: String(
-                            format: PresentationLocalization.string(
-                                localized: "%1$d/%2$d görev", locale: locale), completed, total)
-                    )
-                    .font(.ink.meta).monospacedDigit().foregroundStyle(.ink.secondaryText)
-                    ProjectProgressBar(fraction: total == 0 ? 0 : Double(completed) / Double(total), color: color)
-                }
-                .frame(width: width, alignment: .leading)
-                .frame(maxWidth: width == nil ? .infinity : nil, alignment: .leading)
-            }
-            .accessibilityElement(children: .combine)
+            TaskProjectCard(project: project, completed: completed, total: total, width: width)
         }
         .buttonStyle(.plain)
     }
@@ -397,6 +376,54 @@ struct TasksView: View {
         let calendar = Calendar(identifier: .gregorian)
         let instant = calendar.date(byAdding: .day, value: 1, to: LocalDay.instant(for: model.day))!
         return LocalDay.today(at: instant)
+    }
+}
+
+/// A project's card on the Tasks list: state chip, color dot and name, "1/3 görev" and the bar.
+struct TaskProjectCard: View {
+    let project: String
+    let completed: Int
+    let total: Int
+    /// The strip's card width; `nil` at accessibility sizes, where the cards stack full width.
+    let width: CGFloat?
+    @Environment(\.locale) private var locale
+
+    var body: some View {
+        let color = ProjectColor.color(for: project)
+        let stacked = width == nil
+        InkCard {
+            VStack(alignment: .leading, spacing: 8) {
+                ProjectStateChip(state: .make(completed: completed, total: total))
+                // Stacked (accessibility sizes): the name has the card's whole width and the dot
+                // moves to the count line. Beside the dot "performans" was a few points too wide
+                // for a 320 pt screen at AX5 and broke mid-word. A project name is one word (a
+                // tag) with nowhere to wrap, so a longer one shrinks before it is cut.
+                HStack(spacing: 6) {
+                    if !stacked { dot(color) }
+                    Text(verbatim: project).font(.ink.content.weight(.semibold)).foregroundStyle(.ink.text)
+                        .lineLimit(1)
+                        .minimumScaleFactor(stacked ? 0.6 : 1)
+                }
+                HStack(spacing: 6) {
+                    if stacked { dot(color) }
+                    Text(
+                        verbatim: String(
+                            format: PresentationLocalization.string(
+                                localized: "%1$d/%2$d görev", locale: locale), completed, total)
+                    )
+                    .font(.ink.meta).monospacedDigit().foregroundStyle(.ink.secondaryText)
+                }
+                ProjectProgressBar(fraction: total == 0 ? 0 : Double(completed) / Double(total), color: color)
+            }
+            .frame(width: width, alignment: .leading)
+            .frame(maxWidth: stacked ? .infinity : nil, alignment: .leading)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private func dot(_ color: Color) -> some View {
+        Circle().fill(color).frame(width: 8, height: 8)
+            .accessibilityHidden(true)
     }
 }
 

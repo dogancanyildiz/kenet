@@ -199,8 +199,9 @@ struct EntityView: View {
         if (showsImportantDates && importantDates.nearest(file: model.path) != nil) || isGraphNode {
             // A chip row; stacked when the two chips do not fit side by side.
             ViewThatFits(in: .horizontal) {
-                HStack(spacing: 8) { headChips }
-                VStack(alignment: .leading, spacing: 0) { headChips }
+                HStack(spacing: 8) { headChips(wraps: false) }
+                // Also the choice when neither fits: there the date chip wraps, not runs off the page.
+                VStack(alignment: .leading, spacing: 0) { headChips(wraps: true) }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .inkListRow()
@@ -217,10 +218,10 @@ struct EntityView: View {
         fieldsCard
     }
 
-    @ViewBuilder private var headChips: some View {
+    @ViewBuilder private func headChips(wraps: Bool) -> some View {
         if showsImportantDates {
             EntityImportantDatesChip(file: model.path, model: importantDates)
-                .fixedSize()
+                .fixedSize(horizontal: !wraps, vertical: true)
         }
         if isGraphNode {
             // A button, not a list `NavigationLink`: a link in a list row draws a disclosure arrow.

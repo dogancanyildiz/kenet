@@ -14678,9 +14678,21 @@
     "Son 12 ayda %lld gün" : {
       "localizations" : {
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld days in the last 12 months"
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day in the last 12 months"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld days in the last 12 months"
+                }
+              }
+            }
           }
         },
         "tr" : {
@@ -14917,6 +14929,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Son 90 günde %lld gün"
+          }
+        }
+      }
+    },
+    "Son 90 günde %lld gün · ortalama aralık 1 gün" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day in the last 90 days · average interval 1 day"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld days in the last 90 days · average interval 1 day"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son 90 günde %lld gün · ortalama aralık 1 gün"
           }
         }
       }

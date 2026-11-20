@@ -25,7 +25,13 @@ struct GoalColumnRow: View {
 
     var body: some View {
         Button(action: onOpen) {
-            HStack(alignment: .top, spacing: 12) {
+            // Accessibility sizes: the ring goes over the text. Beside it the name broke mid-word
+            // ("Es- / neme") and the tally ran out of the card.
+            let layout =
+                typeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+                : AnyLayout(HStackLayout(alignment: .top, spacing: 12))
+            layout {
                 GoalRing(progress: progress, diameter: ringSide, emphasizesArc: true)
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 6) {
@@ -59,7 +65,8 @@ struct GoalColumnRow: View {
                 value
             }
             VStack(alignment: .leading, spacing: 4) {
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                // Accessibility sizes: the chip wraps under a name that leaves it no room.
+                InkFlowLayoutOrRow(wraps: typeSize.isAccessibilitySize, spacing: 8) {
                     name
                     TagChip(title: GoalListPresentation.periodChip(goal.period, locale: locale))
                 }
@@ -94,7 +101,7 @@ struct GoalColumnRow: View {
         }
         .font(.ink.meta.monospacedDigit())
         .foregroundStyle(Color.ink.secondaryText)
-        .lineLimit(1)
+        .lineLimit(typeSize.isAccessibilitySize ? nil : 1)
         .accessibilityHidden(true)
     }
 

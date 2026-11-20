@@ -190,17 +190,24 @@ struct GoalDetailView: View {
         if goal.kind == .number {
             amount = goal.target.formatted(.number.locale(locale)) + (goal.unit.map { " " + $0 } ?? "")
         }
-        return HStack(spacing: 4) {
+        // Accessibility sizes: the amount goes under the period and wraps; on one line both were cut
+        // ("Gün… · 2.5…").
+        let stacks = typeSize.isAccessibilitySize
+        let layout =
+            stacks
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 0))
+            : AnyLayout(HStackLayout(spacing: 4))
+        return layout {
             Text(verbatim: period)
                 .fontWeight(.semibold)
                 .foregroundStyle(Color.ink.text)
             if let amount {
-                Text(verbatim: "· " + amount)
+                Text(verbatim: stacks ? amount : "· " + amount)
                     .foregroundStyle(Color.ink.secondaryText)
             }
         }
         .font(.ink.meta)
-        .lineLimit(1)
+        .lineLimit(stacks ? nil : 1)
         .padding(.horizontal, 10)
         .padding(.vertical, 4)
         .background(Capsule().fill(Color.ink.surface))
@@ -418,26 +425,33 @@ struct GoalDetailView: View {
             .font(.ink.value.weight(.bold))
             .monospacedDigit()
             .foregroundStyle(Color.ink.text)
-            .lineLimit(1)
+            // Accessibility sizes wrap: on one line the value was cut ("64 g…", AX5 at 320 pt).
+            .lineLimit(typeSize.isAccessibilitySize ? nil : 1)
     }
 
     private func statTitle(_ title: String) -> some View {
         Text(verbatim: title)
             .font(.ink.meta)
             .foregroundStyle(Color.ink.secondaryText)
-            .lineLimit(1)
-            .minimumScaleFactor(0.75)
+            .lineLimit(typeSize.isAccessibilitySize ? nil : 1)
+            .minimumScaleFactor(typeSize.isAccessibilitySize ? 1 : 0.75)
     }
 
     private var recentLogs: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline) {
+            // Accessibility sizes: the hint goes under the title; beside it the title broke mid-word
+            // ("Son / kayı / tlar", AX3 at 320 pt).
+            let headerLayout =
+                typeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2))
+                : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
+            headerLayout {
                 SectionHeader(title: PresentationLocalization.string(localized: "Son kayıtlar", locale: locale))
                 if history.canEdit, !(history.logs[goal.key] ?? []).isEmpty {
                     Text("Dokun, düzelt")
                         .font(.ink.meta)
                         .foregroundStyle(Color.ink.secondaryText)
-                        .fixedSize()
+                        .fixedSize(horizontal: !typeSize.isAccessibilitySize, vertical: true)
                         .accessibilityHidden(true)
                 }
             }
@@ -518,7 +532,14 @@ struct GoalDetailView: View {
             case .boolean(let value): value
             case .number(let value): value >= goal.target
             }
-        return HStack(alignment: .firstTextBaseline, spacing: 6) {
+        // Accessibility sizes: the value goes under the date; on one line both were cut
+        // ("19 Cu… ✓ Ya…", AX3 at 320 pt). One layout over the same views at every size.
+        let stacks = typeSize.isAccessibilitySize
+        let layout =
+            stacks
+            ? AnyLayout(GoalLogRowStackedLayout(spacing: 6, lineSpacing: 2))
+            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 6))
+        return layout {
             Text(date.formatted(.dateTime.day().month(.abbreviated).locale(locale)))
                 .font(.ink.content)
                 .foregroundStyle(Color.ink.text)
@@ -526,6 +547,7 @@ struct GoalDetailView: View {
                 .font(.ink.meta)
                 .foregroundStyle(Color.ink.secondaryText)
             Spacer(minLength: 8)
+                .layoutValue(key: GoalLogRowBreak.self, value: true)
             if met {
                 Image(systemName: "checkmark")
                     .font(.ink.meta.weight(.semibold))
@@ -550,6 +572,7 @@ struct GoalDetailView: View {
                     .accessibilityHidden(true)
             }
         }
+        .frame(maxWidth: stacks ? .infinity : nil, alignment: .leading)
         .padding(.horizontal, InkSpacing.cardPadding)
         .padding(.vertical, 10)
         .frame(minHeight: TapTarget.minimumLength)
@@ -698,5 +721,94 @@ struct GoalDetailColumn: View {
         // With a goal selected the column is blank until the definitions answer; the page it then
         // shows reports its own loads.
         .pageReady(goalID == nil || goals != nil)
+    }
+}
+
+/// A baseline row that wraps to more lines at accessibility sizes; one layout at every size, so
+/// its texts keep their view identity as they grow.
+struct InkFlowLayoutOrRow<Content: View>: View {
+    let wraps: Bool
+    var spacing: CGFloat = 8
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        let layout =
+            wraps
+            ? AnyLayout(InkFlowLayout(spacing: spacing, lineSpacing: 2))
+            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: spacing))
+        layout { content() }
+    }
+}
+
+/// Marks the view where ``GoalLogRowStackedLayout`` starts a new line; the view itself is not drawn.
+struct GoalLogRowBreak: LayoutValueKey {
+    static let defaultValue = false
+}
+
+/// A log row at accessibility sizes: the views before the break on the first lines, the views
+/// after it under them, each part wrapping at the row's width. A view wider than the row gets the
+/// row's width and wraps inside it.
+struct GoalLogRowStackedLayout: Layout {
+    var spacing: CGFloat = 6
+    var lineSpacing: CGFloat = 2
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? .infinity
+        let lines = arrange(width: width, subviews: subviews)
+        let height = lines.reduce(0) { $0 + $1.height } + CGFloat(max(0, lines.count - 1)) * lineSpacing
+        return CGSize(width: proposal.width ?? (lines.map(\.width).max() ?? 0), height: height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var y = bounds.minY
+        for line in arrange(width: bounds.width, subviews: subviews) {
+            var x = bounds.minX
+            for index in line.indices {
+                let size = fittedSize(subviews[index], width: bounds.width)
+                subviews[index].place(
+                    at: CGPoint(x: x, y: y + (line.height - size.height) / 2), anchor: .topLeading,
+                    proposal: ProposedViewSize(size))
+                x += size.width + spacing
+            }
+            y += line.height + lineSpacing
+        }
+        // The break takes no room.
+        for subview in subviews where subview[GoalLogRowBreak.self] {
+            subview.place(at: bounds.origin, anchor: .topLeading, proposal: ProposedViewSize(width: 0, height: 0))
+        }
+    }
+
+    private struct Line {
+        var indices: [Int] = []
+        var width: CGFloat = 0
+        var height: CGFloat = 0
+    }
+
+    private func fittedSize(_ subview: LayoutSubview, width: CGFloat) -> CGSize {
+        let ideal = subview.sizeThatFits(.unspecified)
+        guard ideal.width > width else { return ideal }
+        return subview.sizeThatFits(ProposedViewSize(width: width, height: nil))
+    }
+
+    private func arrange(width: CGFloat, subviews: Subviews) -> [Line] {
+        var lines: [Line] = []
+        var line = Line()
+        for index in subviews.indices {
+            if subviews[index][GoalLogRowBreak.self] {
+                if !line.indices.isEmpty { lines.append(line) }
+                line = Line()
+                continue
+            }
+            let size = fittedSize(subviews[index], width: width)
+            if !line.indices.isEmpty, line.width + spacing + size.width > width {
+                lines.append(line)
+                line = Line()
+            }
+            line.width = line.indices.isEmpty ? size.width : line.width + spacing + size.width
+            line.height = max(line.height, size.height)
+            line.indices.append(index)
+        }
+        if !line.indices.isEmpty { lines.append(line) }
+        return lines
     }
 }

@@ -77,6 +77,7 @@ struct GoalAmountPanel: View {
     @State private var removal = DestructiveConfirmation<DestructiveConfirmationToken>()
     @ScaledMetric(relativeTo: .largeTitle) private var largeSide = InkSize.largeNumber
     @ScaledMetric(relativeTo: .title2) private var compactSide: CGFloat = 28
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     init(
         model: GoalDayModel, goal: GoalDefinition, isCompact: Bool = false, focusToken: Int = 0,
@@ -98,7 +99,13 @@ struct GoalAmountPanel: View {
         // The whole period, also days after a past day: the ring and the period line agree.
         let total = editor.periodTotal
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .center, spacing: 16) {
+            // Accessibility sizes: the ring goes under the amount. Beside it the amount line was wider
+            // than a 320 pt page at AX5 and pushed the whole page off the screen.
+            let heroLayout =
+                typeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+                : AnyLayout(HStackLayout(alignment: .center, spacing: 16))
+            heroLayout {
                 VStack(alignment: .leading, spacing: 6) {
                     amountLine
                     if let preview = readPreview {
@@ -121,7 +128,7 @@ struct GoalAmountPanel: View {
                     }
                 }
                 if !isCompact {
-                    Spacer(minLength: 0)
+                    if !typeSize.isAccessibilitySize { Spacer(minLength: 0) }
                     let amount = GoalAmount(done: total, target: goal.target)
                     GoalRing(
                         progress: amount.fraction,
@@ -195,7 +202,9 @@ struct GoalAmountPanel: View {
 
     /// "7500 / 7500 adım": the day's amount is the field, the target and unit follow it.
     private var amountLine: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 6) {
+        // Accessibility sizes: the target and the unit wrap under the field; on one line the unit
+        // was cut to nothing ("0 / 2.500", AX3 at 320 pt).
+        InkFlowLayoutOrRow(wraps: typeSize.isAccessibilitySize, spacing: 6) {
             amountField
             Text(verbatim: "/ " + goal.target.formatted(.number.locale(locale)))
                 .font(.ink.value)
@@ -206,7 +215,7 @@ struct GoalAmountPanel: View {
                 Text(verbatim: unit)
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
-                    .lineLimit(1)
+                    .lineLimit(typeSize.isAccessibilitySize ? nil : 1)
                     .accessibilityHidden(true)
             }
             if focused {

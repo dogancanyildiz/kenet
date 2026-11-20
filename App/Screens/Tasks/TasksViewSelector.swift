@@ -114,6 +114,11 @@ struct TasksPageTop<Actions: View, MenuRow: View>: View {
         }
         .padding(.horizontal, InkSpacing.margin)
         .frame(maxWidth: .infinity, alignment: .leading)
+        #if os(iOS)
+            // Keeps its own height: a board below asks for all the room and would squeeze the tabs
+            // at accessibility sizes. Not on the Mac, whose pinned masthead sizes this block itself.
+            .fixedSize(horizontal: false, vertical: true)
+        #endif
         // No paper of its own: the page's paper and, on the tab shell's root, its glow show.
         // The boards show the list's counts too; the list view loads them itself.
         .task(id: current == .kanban ? tasks.listRequest : nil) {

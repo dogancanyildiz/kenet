@@ -144,9 +144,16 @@ extension EntityInsights {
         let recentIntervalText: String
         if let interval = density.averageInterval {
             let intervalStr = interval.formatted(.number.precision(.fractionLength(0...1)).locale(resolved))
-            recentIntervalText = String(
-                localized: "Son 90 günde \(density.recentDayCount) gün · ortalama aralık \(intervalStr) gün",
-                bundle: bundle, locale: resolved)
+            // The interval is formatted text, so the catalog cannot pick its plural: an interval
+            // that reads "1" has its own key ("average interval 1 day", not "1 days").
+            recentIntervalText =
+                (interval * 10).rounded() == 10
+                ? String(
+                    localized: "Son 90 günde \(density.recentDayCount) gün · ortalama aralık 1 gün",
+                    bundle: bundle, locale: resolved)
+                : String(
+                    localized: "Son 90 günde \(density.recentDayCount) gün · ortalama aralık \(intervalStr) gün",
+                    bundle: bundle, locale: resolved)
         } else {
             recentIntervalText = String(
                 localized: "Son 90 günde \(density.recentDayCount) gün",

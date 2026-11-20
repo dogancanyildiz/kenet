@@ -14,6 +14,7 @@ struct EntityInsightsCard: View {
     @Environment(\.clockNow) private var clockNow
     @Environment(\.locale) private var locale
     @Environment(\.timeZone) private var timeZone
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     /// A reload keeps the previous cadences until it answers; a failed one shows its error.
     @State private var cadences = QueryState<[String: PersonCadence]>()
     @State private var cadenceReady = false
@@ -28,23 +29,29 @@ struct EntityInsightsCard: View {
         // Şafak "Son görüşme" card: title and last date on one line, the 12-month bars, the
         // 90-day strip with its one-line note, then that day's text and companions, compact.
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Group {
-                    if entity.kind == "place" { Text("Son ziyaret") } else { Text("Son görüşme") }
+            // Side by side; at accessibility sizes the date goes under the title, which beside it
+            // broke mid-word in a narrow column ("Last en- / counter").
+            (dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 0))
+                : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))) {
+                    Group {
+                        if entity.kind == "place" { Text("Son ziyaret") } else { Text("Son görüşme") }
+                    }
+                    .font(.headline)
+                    .foregroundStyle(.ink.text)
+                    .accessibilityAddTraits(.isHeader)
+                    // Section title, not a manşet (manşet probes and audits key on this).
+                    .accessibilityIdentifier(SectionHeader.titleIdentifier)
+                    Spacer(minLength: 8)
+                    if let date = insight.lastDay {
+                        Text(verbatim: Self.lastLine(date, today: today, locale: locale))
+                            .font(.footnote)
+                            .foregroundStyle(.ink.secondaryText)
+                            .multilineTextAlignment(dynamicTypeSize.isAccessibilitySize ? .leading : .trailing)
+                    }
                 }
-                .font(.headline)
-                .foregroundStyle(.ink.text)
-                .accessibilityAddTraits(.isHeader)
-                // Section title, not a manşet (manşet probes and audits key on this).
-                .accessibilityIdentifier(SectionHeader.titleIdentifier)
-                Spacer(minLength: 8)
-                if let date = insight.lastDay {
-                    Text(verbatim: Self.lastLine(date, today: today, locale: locale))
-                        .font(.footnote)
-                        .foregroundStyle(.ink.secondaryText)
-                        .multilineTextAlignment(.trailing)
-                }
-            }
+                // Its own height: stacked, the spacer would otherwise take the card's spare height.
+                .fixedSize(horizontal: false, vertical: true)
             if insight.lastDay == nil {
                 Text("Henüz günlükte geçmedi.")
                     .font(.ink.meta)

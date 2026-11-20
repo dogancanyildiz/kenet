@@ -196,7 +196,7 @@ Uygulama açılışta Bugün ekranını gösterir. Bölüm 2–9 kartlarda durur
 | 2 | Hedefler | 3 | Günlük dönemli hedefler. Altında haftalık ve yıllık hedefler aynı satır bileşeniyle durur. | Hedef varken. |
 | 3 | Görevler | 2 | Devreden görevler, bugünün görevleri ve bugün yazılan açık görevler. Bugün yazılan görev bitiş tarihi ileride olsa da görünür. | Görev varken. |
 | 4 | Takvim | 2, 10, 11 | Cihaz takvimindeki bugünkü etkinlikler. Satır etkinlik ayrıntısını açar. Başlığın sağında "Takvime etkinlik ekle" düğmesi durur. | İzin sorulmadıysa ya da okuma izni varsa. |
-| 5 | Olaylar | 1 | Bugün yazılan olaylar, dosyadaki sırayla. İşaret sütununda saat durur. | Olay varken. |
+| 5 | Olaylar | 1 | Bugün yazılan olaylar, dosyadaki sırayla. İşaret sütununda saat durur. xxL ve xxxL boyutunda 320 pt ekranda saat metnin üstündeki satırdadır. | Olay varken. |
 | 6 | Bağlam | 10 | "Bu gün geçmişte" ve "Önemli tarihler" satırları. Başlık yoktur. | Yalnız Bugün'de, söyleyecek bir şey varken. |
 | 7 | Günlük yazısı | 1 | Serbest yazının ilk 4 satırı ve "Devamını yaz". | Her zaman. |
 | 8 | Bu güne bağlananlar | 10 | Başka dosyalardan bu güne bağlanan satırlar. | Satır varken. |
@@ -553,7 +553,7 @@ flowchart TD
 | Gezinme satırı | En üstte tek satır: solda yuvarlak "‹" geri çipi, ortada ay seçici (ay, yıl ve aşağı ok), sağda arama. Gün dosyası bağlantı içeriyorsa aramanın solunda günün grafiği simgesi durur. Ay seçici dokunmayla "Ay seç" sheet'ini açar; seçilen gün ekranı değiştirir. iPhone sekme kabuğunda sistem gezinme çubuğu gizlidir; iPad bölünmüş kabukta geri düğmesi sistem çubuğundadır. Ay seçici ortaya sığmazsa geri çipi ile simgelerin arasına kayar; oraya da sığmazsa satırın altına iner. Erişilebilirlik boyutunda ay tek satıra sığmazsa yıl ve ok ayın altına iner. Geri çipi ve simgeler AX2 boyutundan sonra büyümez. |
 | Hafta şeridi | Bugün'deki şerit. Seçili gün metin renginde dolu hücredir. Bir güne dokunma o günü gösterir. |
 | Gün başlığı | Hafta şeridinin altında günün tam tarihi: "12 Ekim Pazartesi"; başka yılın gününde yıl da yazar. Sağında günün sayıları durur: "3 olay · 2 görev". Sığmazsa sayılar tarihin altına iner; erişilebilirlik boyutunda orada sarar, kırpılmaz. Sıfır olan parça yazılmaz. Bugün'deki künye cümlesi ve çipler yoktur. |
-| Saatli program | Solda saat sütunu, sağda olay ve görev kartları saat sırasıyla. Saat sütunu en az 52 pt'dir ve saat kadar genişler. Erişilebilirlik boyutunda saat kartın üstüne çıkar. Kartın solunda simge kutusu, sağında "›" durur. Erişilebilirlik boyutunda ikisi metnin üstündeki satıra çıkar; metin kartın tüm genişliğini alır. Görev kartı görev kutusunu taşır. Renkli çubuk yoktur. |
+| Saatli program | Solda saat sütunu, sağda olay ve görev kartları saat sırasıyla. Saat sütunu en az 52 pt'dir ve saat kadar genişler. Erişilebilirlik boyutunda saat kartın üstüne çıkar. xxL ve xxxL boyutunda 320 pt ekranda da saat kartın üstüne çıkar. Kartın solunda simge kutusu, sağında "›" durur. Erişilebilirlik boyutunda ikisi metnin üstündeki satıra çıkar; metin kartın tüm genişliğini alır. Görev kartı görev kutusunu taşır. Renkli çubuk yoktur. |
 | Saatsiz grubu | Saati olmayan olay ve görevler en altta "Saatsiz" başlığının altında, dosyadaki sırayla. |
 | Takvim | Gün başlığının altında, Bugün'deki [Takvim bölümü](#takvim-bölümü-2-10-11): o günün etkinlikleri ve "Takvime etkinlik ekle". |
 | Seçili kart | Dokunulan kart `accentSoft` zemin alır ve altında not satırını gösterir: olayın alt satırları ya da görevin tarihi. İkinci dokunma düzenlemeyi açar. |

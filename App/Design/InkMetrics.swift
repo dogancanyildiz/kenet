@@ -23,6 +23,23 @@ enum InkSpacing {
         dynamicTypeSize.isAccessibilitySize ? min(scaled, accessibilityCardPaddingCeiling) : scaled
     }
 
+    /// A page-wide row narrower than this is on a narrow screen: 288 pt on a 320 pt screen less
+    /// the page margins, 343 pt on a 375 pt one.
+    static let narrowPageRowWidth: CGFloat = 320
+
+    /// The same line for a row inside a card: 245–248 pt on a 320 pt screen at xxL and xxxL, 300 pt
+    /// and more on a 375 pt one.
+    static let narrowCardRowWidth: CGFloat = 280
+
+    /// The width under which a row moves its time column above its content, for a row that is
+    /// narrow under `narrowWidth`. Only the two largest default sizes (xxL, xxxL) answer: there
+    /// the column leaves the text of a 320 pt screen a few letters per line. `nil` at the smaller
+    /// sizes (the row never stacks by width) and at accessibility sizes, which stack at any width
+    /// in a layout of their own.
+    static func timeStackingWidth(narrowWidth: CGFloat, dynamicTypeSize: DynamicTypeSize) -> CGFloat? {
+        dynamicTypeSize >= .xxLarge && !dynamicTypeSize.isAccessibilitySize ? narrowWidth : nil
+    }
+
     /// Vertical gap between rows inside a card (tasks, goals, events).
     static let row: CGFloat = 12
 

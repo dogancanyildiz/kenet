@@ -800,6 +800,7 @@ Mac'te parıltı yalnız ayrıntı sütununun üstündedir. iPad üç sütunda M
 | Hareketi Azalt | Parıltı ve hale zaten durağandır. Hafta şeridinde gün değişimi çapraz geçiş olur, kayma olmaz. Graph oturmuş düzeni tek seferde gösterir. |
 | Kalın Metin | Sistem yazısı ağırlığı artırır. Künye cümlesinde sayı ile bağlaç arasındaki ayrım renkle de sürer. |
 | Dynamic Type, AX boyutları | Hafta şeridi 2 satıra iner: 4 + 3 gün. Gün halkası gün rakamının üstüne çıkar. İşaret sütunu metnin üstüne iner. Kart iç boşluğu en çok 22 pt olur. Bölüm başlığının sayacı başlığın altındaki satırdadır. Metin sözcük ortasından bölünmez; 320 pt ekranda AX5'te de sözcük arasından sarar. Bugün sayfası ekrandan geniş olmaz; ayrıntı [Ekranlar](screens.md) belgesinin "Gün başlığı" tablosundadır. |
+| Dynamic Type, xxL ve xxxL, dar ekran | Dar ekran 352 pt'den dar ekrandır; 320 pt bu sınırın altındadır. Saat sütunu metnin ya da kartın üstündeki satıra çıkar. Kural Bugün'ün Olaylar kartında ve gün ekranının saatli programında geçerlidir. 375 pt ve üstü genişlikte düzen değişmez. Sınırlar `InkSpacing.narrowPageRowWidth` (320 pt) ve `narrowCardRowWidth` (280 pt) değerleridir. |
 | Renk Olmadan Ayırt Et | Devreden: işaret ve tarih metni. Zaman kartı çubuğu: metin etiketi. Graph: biçim. |
 | VoiceOver | Künye cümlesi tek öğedir. Hafta şeridi her gün için "20 Eylül Pazar, bugün, 3 olay" okur. Gün halkası "3 hedef kaldı" okur. Alt sayfanın geri öğesi üst sayfanın adını okur. |
 

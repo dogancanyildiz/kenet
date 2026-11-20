@@ -436,8 +436,9 @@ extension DayView {
 }
 
 /// A past-day schedule row: the time column beside its card. At accessibility sizes the time moves
-/// above the card, which then has the row's whole width. One layout either way: the card keeps
-/// its identity when the text size changes.
+/// above the card, which then has the row's whole width; at xxL and xxxL it does so on a narrow
+/// screen (``InkSpacing/narrowPageRowWidth``). One layout either way: the card keeps its identity
+/// when the text size or the row's width changes.
 struct ScheduleTimeRow<Card: View>: View {
     /// Empty in the untimed group: the column stays, so its cards line up with the timed ones.
     let time: String
@@ -451,10 +452,19 @@ struct ScheduleTimeRow<Card: View>: View {
 
     var body: some View {
         let stacks = dynamicTypeSize.isAccessibilitySize
+        let topInset = InkSpacing.cardPadding + 2
+        let stackingWidth = InkSpacing.timeStackingWidth(
+            narrowWidth: InkSpacing.narrowPageRowWidth, dynamicTypeSize: dynamicTypeSize)
         let layout =
-            stacks
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
-            : AnyLayout(HStackLayout(alignment: .top, spacing: 8))
+            if stacks {
+                AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+            } else if stackingWidth == nil {
+                AnyLayout(HStackLayout(alignment: .top, spacing: 8))
+            } else {
+                AnyLayout(
+                    InkTimeRowLayout(
+                        gap: 8, timeTopInset: topInset, stacksBelowWidth: stackingWidth, showsStackedTime: isTimed))
+            }
         layout {
             if isTimed || !stacks {
                 // The card reads its time itself; the column is for the eye.
@@ -462,7 +472,7 @@ struct ScheduleTimeRow<Card: View>: View {
                     text: time, font: .ink.meta.weight(.semibold), minWidth: stacks ? 0 : Self.columnWidth,
                     reservesWidestTime: !stacks
                 )
-                .padding(.top, stacks ? 0 : InkSpacing.cardPadding + 2)
+                .padding(.top, stacks ? 0 : topInset)
                 .accessibilityHidden(true)
             }
             card()

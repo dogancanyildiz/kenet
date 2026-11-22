@@ -24,8 +24,6 @@ struct SectionHeader: View {
     var isExpanded: Bool? = nil
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    /// The width the title is given at accessibility sizes; `nil` until the first layout.
-    @State private var titleWidth: CGFloat?
 
     /// Already-localized or verbatim title (callers that used `String(localized:)`).
     init(
@@ -65,15 +63,14 @@ struct SectionHeader: View {
             : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
         layout {
             titleText
-                .font(
-                    InkWordFit.font(
-                        base: .ink.sectionTitle, text: stacks ? measuredTitle : "", style: .sectionTitle,
-                        size: dynamicTypeSize, available: stacks ? titleWidth : nil)
-                )
+                .font(.ink.sectionTitle)
                 .foregroundStyle(.ink.text)
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier(Self.titleIdentifier)
-                .modifier(InkOfferedWidthReader(isActive: stacks, width: $titleWidth))
+                .modifier(
+                    InkWordFitModifier(
+                        wordWidth: stacks
+                            ? InkWordFit.wordWidth(in: measuredTitle, style: .sectionTitle, size: dynamicTypeSize) : 0))
             if stacks {
                 HStack(alignment: .firstTextBaseline, spacing: 8) { marks }
             } else {

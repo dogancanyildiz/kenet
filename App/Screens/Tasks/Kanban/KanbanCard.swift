@@ -11,8 +11,6 @@ struct KanbanCard: View {
     @Environment(\.locale) private var locale
     @Environment(\.shellKind) private var shellKind
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    /// The width the card's text is given at accessibility sizes; `nil` until the first layout.
-    @State private var textWidth: CGFloat?
 
     var body: some View {
         card
@@ -80,22 +78,22 @@ struct KanbanCard: View {
                     // and a word wider than the card shrinks the text until it fits. Beside the box
                     // a word broke in two ("hede- / flerini"). One layout keeps the text's identity.
                     let stacks = dynamicTypeSize.isAccessibilitySize
-                    let font = InkWordFit.font(
-                        base: .ink.content, text: row.text.plainText, style: .content, size: dynamicTypeSize,
-                        available: stacks ? textWidth : nil)
+                    let wordWidth =
+                        stacks
+                        ? InkWordFit.wordWidth(in: row.text.plainText, style: .content, size: dynamicTypeSize) : 0
                     let titleLayout = Self.titleLayout(stacks: stacks)
                     titleLayout {
                         TaskBox(state: boxState, isDecorative: true)
                         LinkedTextView(
                             text: row.text, store: model.store,
-                            isMuted: presentation.usesSecondaryText, font: font
+                            isMuted: presentation.usesSecondaryText
                         )
-                        .font(font)
+                        .font(.ink.content)
                         .foregroundStyle(
                             presentation.usesSecondaryText
                                 ? Color.ink.secondaryText : Color.ink.text
                         )
-                        .modifier(InkOfferedWidthReader(isActive: stacks, width: $textWidth))
+                        .modifier(InkWordFitModifier(wordWidth: wordWidth))
                     }
                     HStack(spacing: 8) {
                         if let project = row.project {

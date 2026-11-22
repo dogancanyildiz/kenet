@@ -7,7 +7,8 @@ import SwiftUI
 /// Keeps a wrapping text from breaking inside a word. A text wraps between words by itself; a
 /// word wider than the line is cut mid-word or hyphenated ("hede- / flerini"), and
 /// `minimumScaleFactor` does not help a text that may take more lines. This measures the text's
-/// widest word in its system text style and returns the scale at which that word fits.
+/// widest word in its system text style; ``InkWordFitModifier`` then draws the text smaller, in
+/// one layout pass, until that word fits its line.
 enum InkWordFit {
     /// The text never shrinks below this share of its size; a longer word then breaks.
     static let floor: CGFloat = 0.5
@@ -45,21 +46,24 @@ enum InkWordFit {
         }
     #endif
 
-    /// What a text draws with: `base` while its widest word fits `available`, a smaller system
-    /// font of the same weight otherwise. The Mac draws at the default size and keeps `base`.
-    static func font(
-        base: Font, text: String, style: InkWordFitStyle, size: DynamicTypeSize, available: CGFloat?
-    ) -> Font {
+    /// The width of the widest word of `text`, for ``InkWordFitModifier``. 0 on the Mac, which
+    /// draws at the default size: the text then keeps its size.
+    static func wordWidth(in text: String, style: InkWordFitStyle, size: DynamicTypeSize) -> CGFloat {
         #if canImport(UIKit)
-            guard let available else { return base }
-            let width = widestWordWidth(in: text, style: style.textStyle, weight: style.platformWeight, size: size)
-            let scale = scale(wordWidth: width, available: available)
-            guard scale < 1 else { return base }
-            let pointSize = platformFont(style.textStyle, weight: style.platformWeight, size: size).pointSize
-            return .system(size: pointSize * scale, weight: style.weight)
+            widestWordWidth(in: text, style: style.textStyle, weight: style.platformWeight, size: size)
         #else
-            return base
+            0
         #endif
+    }
+
+    /// The coordinate space of a fitted text's box; the text reads the box's width from it.
+    static let space = "inkWordFit"
+
+    /// The scale a fitted text is drawn at: its box's width over its own. The layout made the box
+    /// narrower than the text by exactly the scale it chose.
+    static func drawnScale(own: CGFloat, box: CGFloat?) -> CGFloat {
+        guard let box, own > 0, box > 0, box < own else { return 1 }
+        return box / own
     }
 }
 
@@ -94,36 +98,53 @@ enum InkWordFitStyle: Sendable {
     #endif
 }
 
-/// Reads the width a text is offered, for ``InkWordFit/font(base:text:style:size:available:)``.
-/// The text's own width will not do: it is the width of its lines, and it follows the font this
-/// reading sets. The reader lays its content out exactly as it would be laid out without it.
-struct InkOfferedWidthReader: ViewModifier {
-    var isActive: Bool
-    @Binding var width: CGFloat?
+/// Draws a wrapping text smaller when its widest word is wider than the line it is offered, so
+/// the word stays whole. Everything is decided inside one layout pass: no state, no second frame.
+/// The layout offers the text a line as wide as the word, and reports the text's size times the
+/// scale; the text then draws itself at that scale. `wordWidth` 0 leaves the text as it is.
+struct InkWordFitModifier: ViewModifier {
+    /// The widest word at the text's full size (``InkWordFit/wordWidth(in:style:size:)``).
+    var wordWidth: CGFloat
 
     func body(content: Content) -> some View {
-        let binding = $width
-        let current = width
-        let layout = InkOfferedWidthLayout(isActive: isActive) { offered in
-            guard current.map({ abs($0 - offered) > 0.5 }) ?? true else { return }
-            // Layout runs inside a view update; the state changes after it.
-            Task { @MainActor in binding.wrappedValue = offered }
+        InkWordFitLayout(wordWidth: wordWidth) {
+            content.visualEffect { view, proxy in
+                view.scaleEffect(
+                    InkWordFit.drawnScale(
+                        own: proxy.size.width, box: proxy.bounds(of: .named(InkWordFit.space))?.width),
+                    anchor: .topLeading)
+            }
         }
-        layout { content }
+        .coordinateSpace(.named(InkWordFit.space))
     }
 }
 
-/// Passes every proposal through to its one subview and reports the width it places it in.
-private struct InkOfferedWidthLayout: Layout {
-    var isActive: Bool
-    var report: @Sendable (CGFloat) -> Void
+/// One subview. While the widest word fits the offered width it passes every proposal through.
+struct InkWordFitLayout: Layout {
+    var wordWidth: CGFloat
+
+    /// The scale for an offered width; 1 when the width is not a real one.
+    func scale(width: CGFloat?) -> CGFloat {
+        guard let width, width.isFinite, wordWidth > 0 else { return 1 }
+        return InkWordFit.scale(wordWidth: wordWidth, available: width)
+    }
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        subviews.first?.sizeThatFits(proposal) ?? .zero
+        guard let subview = subviews.first else { return .zero }
+        let scale = scale(width: proposal.width)
+        guard scale < 1, let width = proposal.width else { return subview.sizeThatFits(proposal) }
+        let full = subview.sizeThatFits(ProposedViewSize(width: width / scale, height: nil))
+        return CGSize(width: min(width, full.width * scale), height: full.height * scale)
     }
 
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        subviews.first?.place(at: bounds.origin, anchor: .topLeading, proposal: proposal)
-        if isActive, let width = proposal.width, width.isFinite, width > 0 { report(width) }
+        guard let subview = subviews.first else { return }
+        let scale = scale(width: proposal.width)
+        guard scale < 1, let width = proposal.width else {
+            subview.place(at: bounds.origin, anchor: .topLeading, proposal: proposal)
+            return
+        }
+        subview.place(
+            at: bounds.origin, anchor: .topLeading, proposal: ProposedViewSize(width: width / scale, height: nil))
     }
 }

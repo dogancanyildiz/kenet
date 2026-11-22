@@ -150,6 +150,59 @@ struct LargeTextRuleTests {
             #expect(row == card, "the hour left its column at \(size) on a \(Int(screenWidth)) pt screen")
         }
 
+        // MARK: Sözcük sığdırma
+
+        private static func fitted(_ text: String, style: InkWordFitStyle, size: DynamicTypeSize) -> some View {
+            Text(verbatim: text)
+                .font(style == .content ? .ink.content : .ink.sectionTitle)
+                .modifier(InkWordFitModifier(wordWidth: InkWordFit.wordWidth(in: text, style: style, size: size)))
+        }
+
+        /// A fitted text keeps a word wider than its line whole: it is no taller than one letter,
+        /// where the same text without the fit breaks the word and takes more lines.
+        @Test(arguments: accessibilitySizes)
+        func wordFitHoldsAWordOnOneLine(_ size: DynamicTypeSize) {
+            for style in [InkWordFitStyle.content, .sectionTitle] {
+                let width: CGFloat = 256
+                let word = Self.size(
+                    of: Self.fitted("görüşmediklerin", style: style, size: size), size: size, width: width)
+                let letter = Self.size(of: Self.fitted("g", style: style, size: size), size: size, width: width)
+                #expect(word.height <= letter.height, "\(style) broke its word at \(size)")
+                #expect(word.width <= width, "\(style) asks for \(word.width) pt at \(size)")
+                // The widest word is not the one with the most letters: two words, two lines.
+                let pair = Self.size(
+                    of: Self.fitted("iiiiiiiiii mmmmmmm", style: style, size: size), size: size, width: width)
+                #expect(pair.height <= 2 * letter.height + 2, "\(style) broke the wider, shorter word at \(size)")
+            }
+        }
+
+        /// A text whose words fit keeps its size: the fit changes nothing at any text size.
+        @Test(arguments: [DynamicTypeSize.large, .xxxLarge, .accessibility3])
+        func wordFitLeavesAFittingTextAlone(_ size: DynamicTypeSize) {
+            let plain = Text(verbatim: "Bir not").font(.ink.content)
+            let width: CGFloat = 256
+            #expect(
+                Self.size(of: Self.fitted("Bir not", style: .content, size: size), size: size, width: width)
+                    == Self.size(of: plain, size: size, width: width))
+        }
+
+        /// The fit is decided in the layout pass: the first measurement is the final one, and two
+        /// hosts of the same text agree. With state from a measured width the first frame was full size.
+        @Test(arguments: accessibilitySizes)
+        func wordFitIsDecidedInTheFirstLayout(_ size: DynamicTypeSize) {
+            let header = SectionHeader(title: "Bir süredir görüşmediklerin", count: 4)
+            let first = Self.size(of: header, size: size, width: 256)
+            let second = Self.size(of: header, size: size, width: 256)
+            #expect(first == second)
+            let scale = InkWordFitLayout(
+                wordWidth: InkWordFit.wordWidth(in: "görüşmediklerin", style: .sectionTitle, size: size)
+            ).scale(width: 256)
+            #expect(scale < 1 || size == .accessibility1)
+            #expect(InkWordFit.drawnScale(own: 400, box: 200) == 0.5)
+            #expect(InkWordFit.drawnScale(own: 200, box: 200) == 1)
+            #expect(InkWordFit.drawnScale(own: 200, box: nil) == 1)
+        }
+
         // MARK: Kanban kartı
 
         /// The card's text on a phone column (240 pt less the card's padding): the box is above the
@@ -161,12 +214,7 @@ struct LargeTextRuleTests {
                 let layout = KanbanCard.titleLayout(stacks: size.isAccessibilitySize)
                 return layout {
                     TaskBox(state: TaskBoxState(status: .todo, priority: nil), isDecorative: true)
-                    Text(verbatim: text)
-                        .font(
-                            InkWordFit.font(
-                                base: .ink.content, text: text, style: .content, size: size, available: width)
-                        )
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Self.fitted(text, style: .content, size: size)
                 }
             }
             let word = Self.size(of: title("değerlendirmesi"), size: size, width: width).height
@@ -174,46 +222,35 @@ struct LargeTextRuleTests {
             #expect(word <= letter, "the word broke at \(size): \(word) pt, one line is \(letter) pt")
         }
 
-        /// The measured word width is the drawn one: a text in the fitted font is one line high.
-        @Test(arguments: accessibilitySizes)
-        func wordFitFontHoldsItsWordOnOneLine(_ size: DynamicTypeSize) {
-            for style in [InkWordFitStyle.content, .sectionTitle] {
-                let base: Font = style == .content ? .ink.content : .ink.sectionTitle
-                let width: CGFloat = 256
-                func text(_ string: String) -> some View {
-                    Text(verbatim: string)
-                        .font(InkWordFit.font(base: base, text: string, style: style, size: size, available: width))
-                }
-                let word = Self.size(of: text("görüşmediklerin"), size: size, width: width).height
-                let letter = Self.size(of: text("g"), size: size, width: width).height
-                #expect(word <= letter, "\(style) broke its word at \(size)")
-                // The widest word is not the one with the most letters: two words, two lines.
-                let pair = Self.size(of: text("iiiiiiiiii mmmmmmm"), size: size, width: width).height
-                #expect(pair <= 2 * letter + 2, "\(style) broke the wider, shorter word at \(size)")
-            }
-        }
-
         // MARK: Bölüm başlığı
 
         /// A section header in a narrow column (iPad list column, 256 pt) at accessibility sizes:
-        /// the title measures its width in a window and shrinks until its longest word fits.
+        /// the title shrinks until its widest word fits.
         @Test(arguments: accessibilitySizes)
-        func sectionHeaderKeepsAWordWhole(_ size: DynamicTypeSize) async {
+        func sectionHeaderKeepsAWordWhole(_ size: DynamicTypeSize) {
             let width: CGFloat = 256
-            let word = await Self.windowHeight(
-                of: SectionHeader(title: "görüşmediklerin", count: 4), size: size, width: width)
-            let letter = await Self.windowHeight(of: SectionHeader(title: "g", count: 4), size: size, width: width)
-            #expect(word <= letter, "the title broke its word at \(size): \(word) pt, one line is \(letter) pt")
+            let word = Self.size(of: SectionHeader(title: "görüşmediklerin", count: 4), size: size, width: width)
+            let letter = Self.size(of: SectionHeader(title: "g", count: 4), size: size, width: width)
+            #expect(word.height <= letter.height, "the title broke its word at \(size)")
         }
 
         /// A header made from a catalog key shrinks too: the key is read back to measure its word.
         @Test(arguments: [DynamicTypeSize.accessibility3, .accessibility5])
-        func sectionHeaderFromAKeyKeepsAWordWhole(_ size: DynamicTypeSize) async {
+        func sectionHeaderFromAKeyKeepsAWordWhole(_ size: DynamicTypeSize) {
             #expect(SectionHeader.catalogKey(of: "Hatırlatmalar") == "Hatırlatmalar")
             let width: CGFloat = 256
-            let word = await Self.windowHeight(of: SectionHeader("Hatırlatmalar"), size: size, width: width)
-            let letter = await Self.windowHeight(of: SectionHeader(title: "g"), size: size, width: width)
-            #expect(word <= letter, "the title broke its word at \(size): \(word) pt, one line is \(letter) pt")
+            let word = Self.size(of: SectionHeader("Hatırlatmalar"), size: size, width: width)
+            let letter = Self.size(of: SectionHeader(title: "g"), size: size, width: width)
+            #expect(word.height <= letter.height, "the title broke its word at \(size)")
+        }
+
+        /// The stacked header hugs its title: it does not stretch to the width it is offered, so a
+        /// button beside it stays beside it ("Bağlar", "Bağ kur").
+        @Test func sectionHeaderHugsItsTitleAtAccessibilitySizes() {
+            let header = UIHostingController(
+                rootView: SectionHeader(title: "Bağlar").environment(\.dynamicTypeSize, .accessibility3)
+            ).sizeThatFits(in: CGSize(width: 390, height: 4000))
+            #expect(header.width < 300)
         }
 
         // MARK: Hedefler
@@ -289,36 +326,6 @@ struct LargeTextRuleTests {
                 .environment(\.locale, Locale(identifier: "tr_TR"))
             return UIHostingController(rootView: sized)
                 .sizeThatFits(in: CGSize(width: width ?? 4000, height: height))
-        }
-
-        /// The view's height once it has measured itself in a window (state from its own geometry).
-        private static func windowHeight(of view: some View, size: DynamicTypeSize, width: CGFloat) async -> CGFloat {
-            let sized =
-                view
-                .frame(width: width)
-                .environment(\.dynamicTypeSize, size)
-                .environment(\.locale, Locale(identifier: "tr_TR"))
-            let host = UIHostingController(rootView: sized)
-            let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
-            guard let scene = scenes.first else {
-                Issue.record("no window scene")
-                return 0
-            }
-            let window = UIWindow(windowScene: scene)
-            window.frame = CGRect(x: 0, y: 0, width: width, height: 2000)
-            window.rootViewController = host
-            window.isHidden = false
-            defer {
-                window.isHidden = true
-                window.rootViewController = nil
-                window.windowScene = nil
-            }
-            for _ in 0..<6 {
-                host.view.setNeedsLayout()
-                host.view.layoutIfNeeded()
-                try? await Task.sleep(for: .milliseconds(30))
-            }
-            return host.sizeThatFits(in: CGSize(width: width, height: 4000)).height
         }
     }
 #endif

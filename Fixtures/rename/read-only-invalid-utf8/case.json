@@ -1,4 +1,5 @@
 {
+  "description": "UTF-8 olmayan kaynak dosya değişmez; işlem kısmi başarıyla biter ve dosyayı bildirir.",
   "path": "people/Deniz Arıkan.md",
   "name": "Deniz Arıkan Yılmaz",
   "newPath": "people/Deniz Arıkan Yılmaz.md",

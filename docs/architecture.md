@@ -284,6 +284,16 @@ sequenceDiagram
 | Birim sabit bağlantıyı desteklemiyor | `VaultStore` geçici dosyayı dışlayıcı adlandırmayla yayımlar (`renamex_np`, `RENAME_EXCL`). Hedef varsa adlandırma reddedilir. | Dosya yok ya da yeni baytların tamamı |
 | Birim dışlayıcı adlandırmayı da desteklemiyor | `VaultStore` yeni dosyayı doğrudan dışlayıcı oluşturur. Bu ilk yazma atomik değildir. Linux'ta `Core` dışlayıcı adlandırma kullanmaz ve bu yolu izler. | Yarım dosya kalabilir |
 
+**Tablo her yazmadan önceki format sürümü denetiminin önbelleğini gösterir.**
+
+| Durum | Davranış |
+|---|---|
+| `.app/vault.json` değişiklik zamanı (mtime) önbellektekiyle aynı | `VaultStore` dosyayı yeniden okumaz; önbellekteki sürüme bakar |
+| mtime değişti ya da dosya ilk kez soruluyor | `VaultStore` dosyayı yeniden okur ve önbelleği yeniler |
+| Kapsam | Denetim yalnız bu dosyaya bakar; kasayı taramaz. Önbellek yazma kuyruğunda sıralıdır |
+
+Sürüm kuralı ve `readOnlyVault` hatası [Kasa biçimi](vault-format.md#ayarlar) belgesindedir.
+
 ## Okuma modeli
 
 **Şema okuma modelinin parçalardan nasıl kurulduğunu gösterir.**
@@ -396,6 +406,15 @@ Okuma modeli Graph alanı tutmaz. Ekran açıkken ve her indeks yayımında `.ta
 
 Okuma modeli zaman akışı tutmaz. Varlık sayfası açıkken ve her indeks yayımında sayfa o varlığa bağlanan gün dosyası olaylarını ve Diary paragraflarını sorgular. İçgörü kartı aynı sonucu kullanır. `lastEncounters(asOf:)` kişi başına son görüşme gününü verir ve zaman akışıyla aynı kayıtları sayar. Bu sorgu görevleri ve frontmatter'ı saymaz; `entityUsage().lastDate` ise ikisini de sayar.
 
+**Tablo içgörü kartındaki sıklık ve ortalama aralık hesabını gösterir.**
+
+| Değer | Hesap |
+|---|---|
+| Pencere | Bugün dahil son 90 takvim günü: `bugün -89` … bugün |
+| Sıklık | Pencerede geçilen farklı gün sayısı. Aynı gündeki tekrarlar tek gündür |
+| Ortalama aralık | Penceredeki son ve ilk gün farkı bölü `gün sayısı -1` |
+| 2 günden az geçiş | Ortalama aralık yoktur |
+
 ### Günler
 
 Okuma modeli gün listesi tutmaz. Günlük listesi bütün günleri sorgular: iPhone'da `DaysView`, Mac'te gün sütunu. Takvim yalnız gösterdiği ayı sorgular. Yanıt gün başına olay sayısını, Diary paragraf ve başlık sayısını, ilk Diary paragrafını ve hedef kaydını taşır. İlk paragraf önizleme olarak görünür.
@@ -429,6 +448,21 @@ Kişi ve proje süzgeci sorguya gider: `TaskScope`. Sorgu projeyi anahtarla kar�
 | Varlık sayfasının açık işleri | `computeTaskGroups(today:scope:)`, varlığa bağlı kapsam | Sayfa açık işleri zaman akışıyla aynı görevde sorgular |
 
 `taskProjects()` her proje anahtarı için bir yazılış verir. Sorgu açık, tamamlanmış ve iptal görevlerin hepsini sayar. Eşit iki yazılıştan dosya ve satır sırasında önce gelen kazanır.
+
+**Tablo Görevler ekranının türetilmiş iki değerini gösterir.**
+
+| Değer | Hesap |
+|---|---|
+| Haftalık özet kartı: hafta | Bugünü içeren 7 gün; hafta başı cihaz takviminden gelir (`TasksWeeklySummary.week`) |
+| Haftalık özet kartı: pay | Tamamlanma günü bu haftada olan görevlerin sayısı |
+| Haftalık özet kartı: payda | Pay ile bitişi bu haftada olan açık görevlerin toplamı |
+| Haftalık özet kartı: kapsam | Listenin süzgeçleri uygulanmaz; sayıya tavan yoktur (`computePeriodTaskCount(from:through:)`) |
+| Proje rengi: türetme | `ProjectColor` (`App/Model/ProjectColor.swift`) proje adının UTF-8 baytlarından 64 bit FNV-1a özeti alır. Özetin 4'e bölümünden kalan 4 belirteçlik dizide rengi seçer |
+| Proje rengi: neden FNV-1a | Swift'in `String.hashValue` değeri süreç başına rastgeledir. FNV-1a her açılışta aynı rengi verir |
+| Proje rengi: projesiz görev | Adı olmayan ya da boş olan proje `control` alır |
+| Proje rengi: kullanan yerler | Kanban kartı, zaman kartı, zaman çizelgesi çubuğu, proje grubu başlığı ve proje kartı noktası aynı yardımcıyı kullanır |
+
+Dizideki belirteçleri ve rengin anlamını [Tasarım dili](design.md#zaman-kartı) söyler.
 
 ### Hedef durumu
 
@@ -532,6 +566,19 @@ Widget ekranlarla aynı hedef sorgusunu kullanır. Widget sorguyu kendisi çalı
 | Hedef hatırlatması | Günlük hedefler: `computeNotificationGoals(from:through:)`. Günlük tanımlar ve planlanan günlerin kayıtları |
 | Görüşme ritmi hatırlatması | `cadenceReminderPeople(today:)` |
 
+**Tablo görüşme ritmi hatırlatmasına kimin hangi gün girdiğini gösterir: `CadenceReminderPlan`.**
+
+| Konu | Kural |
+|---|---|
+| Sıklık | 7 günlük pencerede günde en çok 1 bildirim. |
+| Kimler | Yalnız `cadence_days` değeri olan ve o gün vadesi gelen kişiler. Vade: son görüşmeden bu yana geçen gün ritme eşit ya da büyük. |
+| Dışarıda kalan | Ritmi olmayanlar, hiç görüşülmemişler, duraklatılanlar ve erteleme günü (o gün dahil). Erteleme pencere içinde biterse kişi ertesi gün hesaba yeniden girer. |
+| Yineleme | Bildirilen kişi, o günden sonra görüşülmediyse en erken ritminin dörtte biri kadar gün sonra yeniden girer. Tam bölme, en az 3 gün. |
+| Son bildirim günü | Cihazda, kasa yoluna göre durur. Uygulama planlanan her bildirimin çalma anını tutar. Uygulama anı geçmiş bildirimi çalmış kabul eder. Neden: uygulama kapalıyken teslimatı göremez. |
+| Geri çekilen | Plan yenilemesinde geri çekilen ve çalmamış bildirim sayıma girmez. Saat tercihi ya da kasa değişse de kural aynıdır. |
+| Kayıt düşmesi | Ritmi kalmayan, silinen ya da yeniden adlandırılan kişinin kaydı düşer. |
+| Yenileme | Yeni görüşme ya da ritim, erteleme veya duraklatma değişikliği planı öteki hatırlatmalarla aynı yenilemede kurar. Tercih kapanınca uygulama planlı `people-` bildirimlerini siler. |
+
 `NotificationService` bildirim haftasını `computeNotificationDays(from:through:)` ile bugünden 6 gün sonrasına kadar okur. Görev ve günlük hatırlatması kapalıysa servis haftayı okumaz. Günlük hedefleri aynı günler için `computeNotificationGoals(from:through:)` ile okur; hedef hatırlatması kapalıysa okumaz. Günlük hedefin bir gündeki ilerlemesi yalnız o günün kaydıdır; sorgu daha eski kayıt okumaz. Servis okumaları iptale karşı korur: plan yarıda kalmaz. Servis haftayı okuyamazsa planlayıcı görev ve günlük hatırlatması planlamaz; hedefleri okuyamazsa hedef hatırlatması planlamaz. İki okuma birbirinden bağımsızdır.
 
 `NotificationService` indeks yayımlarını 2 saniye birleştirir. Kasa yüklenirken servis merkezdeki planı değiştirmez. Bu kural soğuk açılışı, arka plan açılışını ve aynı kasanın yeniden açılmasını kapsar. Eski plan kasanın ilk yayımından sonraki plana kadar kalır. Açılış yenilemesi hata verirse kasa yüklenmiş sayılmaz ve eski plan kalır. Servis eski planı yalnız iki durumda hemen kaldırır: başka bir kasa açıldı ya da kasaya erişim kayboldu. Servis önce yeni planı hesaplar ve ekler; aynı kimlikli istek eskisinin yerine geçer. Saati ve metni aynı kalan bekleyen isteği servis yeniden eklemez. Sonra servis yalnız yeni planda olmayan kendi isteklerini kaldırır. Böylece süreç plan sırasında askıya alınırsa hatırlatmalar kaybolmaz. Uygulama kapalıyken planlayıcı yedi günlük planın içeriğini yeniden hesaplamaz. Bu yüzden planlayıcı sabit metni çözmez; katalog anahtarını ve argümanlarını taşır (`NotificationText`). Sistem bu metni teslim anındaki dilde çözer. Kullanıcının yazdığı metin (görev adı, kişi adı) olduğu gibi gider. Servis bekleyen isteği planla anahtar ve argüman üzerinden karşılaştırır. Görüşme ritmi hatırlatması aynı plandadır. Uygulama son bildirim gününü kasaya yazmaz; günü cihazda kasa yoluna göre saklar.
@@ -584,7 +631,7 @@ Kısıt: `Core` yalnız Foundation ve SQLite katmanını kullanır. Bu sayede ay
 
 ### Bağlanmamış anmalar
 
-`VaultIndex.unlinkedMentions` önce arama indeksiyle aday gün dosyalarını daraltır. Arama belirteci yalnız `I` harfini `i` yapar; `İ`, `ı` ve birleşik noktayı korur. Bu yüzden arama yazımları `OR` ile arar. Ad anahtarındaki her `ı` için `ı` ve `i` aranır. Her `i` için `i`, `İ` ve `i` + U+0307 aranır. Bir sözcüğün 81'den çok yazımı varsa sorgu bütün gün dosyalarını okur. Sonra sorgu dosyaları diskten okur ve olay ile görev ilk satırlarını var olan tanıyıcıyla tarar. `VaultStore.linkingMention` onaylanan tek anmayı yazma kuyruğunda bağlar. Yazıcı dosyayı yeniden okur ve bayat hedefi denetler. Önce dosyaya yazar, sonra indeksi günceller.
+`VaultIndex.unlinkedMentions` önce arama indeksiyle aday gün dosyalarını daraltır. Arama belirteci yalnız `I` harfini `i` yapar; `İ`, `ı` ve birleşik noktayı korur. Bu yüzden arama yazımları `OR` ile arar. Ad anahtarındaki her `ı` için `ı` ve `i` aranır. Her `i` için `i`, `İ` ve `i` + U+0307 aranır. Bir sözcüğün 81'den çok yazımı varsa sorgu bütün gün dosyalarını okur. Sonra sorgu dosyaları diskten okur ve olay ile görev ilk satırlarını var olan tanıyıcıyla tarar. Sorgu yalnız gün dosyalarını tarar; görev alt satırları, Diary paragrafı ve notlar listeye girmez. Taranmayan yazımlar tanımayla aynıdır: [Kasa biçimi](vault-format.md#otomatik-tanıma-ve-belirsizlik). `VaultStore.linkingMention` onaylanan tek anmayı yazma kuyruğunda bağlar. Yazıcı dosyayı yeniden okur ve bayat hedefi denetler. Önce dosyaya yazar, sonra indeksi günceller.
 
 ### Diary sonuna ekleme ve ilk kullanım
 
@@ -595,6 +642,31 @@ Diary sonuna ekleme, `VaultStore`'un dosya-önce atomik yazma yolunu ve `RawDocu
 ### Hedef hesapları
 
 `GoalTracking` yalnız `VaultFormat` importu olan saf hedef katmanıdır. Katman tanımı, gün kaydını, dönem ve yıl ilerlemesini, zinciri, en uzun seriyi ve ısı haritasını taşır. İndeks tipleri kaynak alanlarından kurar. `VaultStore.settingGoalValue` kaydı dosya-önce yazar. Takvim aritmetiği `CalendarDate` üzerinde ortaktır; `DateParsing` de aynı aritmetiği kullanır.
+
+Zincir, af, zincir günü, skor ve ısı haritası kuralları [Kasa biçimi](vault-format.md#zincir) belgesindedir.
+
+**Tablo hedef değer grafiğinin hesabını gösterir: `GoalValueSeries`.**
+
+| Konu | Kural |
+|---|---|
+| Ortalama | Görünür aralıkta kaydı olan günlerin değer ortalaması. Kayıtsız gün sıfır değildir |
+| Hedefin üstünde | Hedefe eşit ya da üstünde kaydı olan günlerin sayısı |
+| Günün değeri | Günün son kaydı geçerlidir. Türü uymayan ya da geçersiz (negatif, sonsuz) son kayıt o günü 0 yapar. Kural ilerleme ve ısı haritasıyla aynıdır |
+| Tepe | Eşit tepelerde en yeni gün seçilir |
+| 7 günlük ortalama çizgisi | Her günün ve önceki 6 günün kayıt ortalaması. En az 3 kayıt gerekir (`windowMinimum`); yoksa çizgi kırılır |
+| İlk günün penceresi | Görünür aralıktan önceye uzanır |
+| Hafta ve ay toplamı | Haftalar pazartesi başlar. Son hafta ve son ay yalnız bugüne kadarki kayıtları toplar |
+| Hız çizgisi | Aylık çizgi yıllık hedefin on ikide biridir. Haftalık çizgi haftalık hedeftir |
+| Gelecek kayıtları | Hesaba girmez |
+
+**Tablo hedef ayrıntısındaki miktar çiplerinin değerini gösterir: App, `GoalAmountPanel`.**
+
+| Konu | Kural |
+|---|---|
+| Paylar | Hedefin 1/15, 2/15 ve 1/3'ü |
+| Yuvarlama | Her pay aşağı doğru 1, 2, 2,5 ya da 5 × 10ⁿ değerine iner. 2,5 yalnız sonuç tam sayıysa kullanılır |
+| Sınır | Değer tam sayıdır, en az 1'dir ve tekrar etmez |
+| Örnek | `7500` → +500 +1000 +2500; `20` → +1 +2 +5; `8` → +1 +2 |
 
 ### Özetler
 
@@ -608,7 +680,47 @@ Diary sonuna ekleme, `VaultStore`'un dosya-önce atomik yazma yolunu ve `RawDocu
 | Kasa değişimi | App özeti yeniden yükler ve eski isteklerin sonuçlarını eler |
 | Depolama | Özet için ayrı dosya ya da indeks şeması yok |
 
-Sayıların kapsamı `screens.md`, sabit beklentiler `fixtures.md` içindedir.
+Bu bölüm sayıların nasıl sayıldığını tanımlar. Hangi sayının ekranda nerede durduğunu [Ekranlar](screens.md#özetler) söyler. Sabit beklentiler [Fixture'lar](fixtures.md) belgesindedir.
+
+**Şema süren dönemin aynı tarihe kadar karşılaştırıldığını gösterir.**
+
+```mermaid
+flowchart LR
+    A{Dönem süren dönem mi} -->|Evet| B[Sayılar: dönem başı ile bugün arası]
+    B --> C[Önceki dönem: başı ile aynı tarih arası]
+    A -->|Hayır| D[Sayılar: bütün dönem]
+    D --> E[Önceki dönem: bütün dönem]
+```
+
+**Tablo ölçülen günlerin kurallarını gösterir.**
+
+| Kural | Tanım |
+|---|---|
+| Süren dönem | Dönem bugünü içerir ve son günü bugünden sonradır. Bugün dönemin son günüyse dönem süren dönem değildir. |
+| Aynı tarih | Önceki haftanın aynı günü, önceki ayın aynı tarihi, önceki yılın aynı tarihi. Önceki ayda o tarih yoksa ayın son günü geçerlidir: 31 Mart'ın karşılığı 28 Şubat'tır. |
+| Ölçülen günler | Süren dönemde sayılar, ilk 5, ilk kez geçenler, ritim ve açık envanter bugünde biter. Bugünden sonraki gün dosyaları sayıya girmez. |
+| Artık gün | 29 Şubat'ın önceki yıldaki karşılığı 28 Şubat'tır. 1 Mart 2029'da süren yıl 60 günü 2028'in 61 günüyle karşılaştırır, çünkü 2028 yılı 29 Şubat'ı içerir. 30 Mart'ta süren ay 30 günü Şubat'ın bütün günleriyle karşılaştırır. |
+| Ritimde önceki dönem | Arkadaki soluk çubuklar önceki dönemin bütün birimlerini gösterir. |
+| Başlamamış dönem | Bugünden sonraki dönemi Core bütün olarak sayar. Ekran bu döneme geçmez. |
+
+**Tablo Özetler ve Haftalık inceleme sayılarının tanımını gösterir.**
+
+| Sayı | Tanım |
+|---|---|
+| Olay sayısı | Olay bloklarının sayısı. |
+| Yazılan gün | En az bir olay ya da boş olmayan `Diary` paragrafı veya başlığı olan farklı gün tarihleri. Yalnız görev ya da hedef kaydı olan gün bu sayıya girmez. |
+| Kişi ve konum geçişi | Gün dosyalarının gövdesindeki her çözülen bağlantı. Her tekrar ayrı bir geçiştir. Frontmatter bağlantıları bu sayıya girmez. Bölüm toplamı ilk beşin dışındakileri de içerir. |
+| İlk kez geçenler | Bütün günlük geçmişinde ilk gövde bağlantısı bu döneme düşen varlıklar. Kasada oluşturma tarihi yoktur. Bu sayı dosya oluşturma sayısı değildir. Liste önce güne, sonra ada göre sıralıdır. |
+| Görev oluşturma günü | Kaynak gün dosyasının tarihi. Tekrarlayan görevin de oluşturma günü kaynak günüdür. |
+| Tamamlanan görev | Durumu tamamlanmış ve `✅` tarihi dönemde olan görev. |
+| Dönem sonu açık envanteri | Ölçülen son güne kadar kaynak gün dosyasında olan ve tamamlanmamış görevler. Tamamlanma tarihi o günden sonraysa görev o dönemde açıktır. Süren dönemde ölçülen son gün bugündür. Kaynak günü olmayan görev bugünden itibaren envanterdedir. |
+| Birim sonu açık | Dönem sonu açık envanteri kuralının her ritim biriminin ölçülen son gününe uygulanmasıdır. Hafta birimi gün, ay birimi 1'inden başlayan 7 günlük dilim, yıl birimi aydır. Süren birim bugünde biter; başlamamış birimin noktası yoktur. Bitiş tarihi gelecekte olan açık görevler de dahildir. Önceki çizgi önceki dönemin bütün birim sonlarını gösterir. |
+| Devreden ve tarihsiz | Bitiş tarihi ölçülen son günden önceyse görev devredendir. Bitiş tarihi yoksa görev tarihsiz açıktır. |
+| Envanter dışı | İptaller ve tamamlanma tarihi olmayan tamamlanmış görevler. |
+| Kaynak günü olmayan görev | Proje ya da not dosyasındaki görevdir. Oluşturma sayısına girmez. Bugün ve sonrasında açık sayılır; bugünden önceki günlere girmez ve geçmiş seri değişmez. |
+| Kaynak günü olmayan görev: biten dönem | Biten dönemin sayısı bakılan güne bağlıdır. Örnek: Ekim'e 31 Ekim'de bakılırsa görev sayılır, 1 Kasım'da sayılmaz. Önceki dönem bugün açık olan bu görevleri aynen taşır; fark onları saymaz. |
+| Kaynak günü olmayan görev: Görevler listesiyle fark | Bu görevlerde tarihsiz sayısı Görevler listesiyle aynıdır. İki fark kalır: gelecek tarihli gün dosyasındaki görev bugün sayılmaz; tamamlanma tarihi gelecekte olan görev Özetler'de açık sayılır. Geçerli tamamlanma tarihi varsa görev tamamlanan sayısına girer. |
+| Geri kurulamayan bilgi | Dosyalar durum ve değişiklik geçmişi tutmaz. Yeniden açma, iptal tarihi ve eski bitiş tarihi geri kurulamaz. |
 
 ### Kuvvet yerleşimi
 
@@ -632,6 +744,8 @@ Sayıların kapsamı `screens.md`, sabit beklentiler `fixtures.md` içindedir.
 | `DateExpressionParser` | Çağıranın yerel günü ve sıralı dil tercihleri | Tek tarih, UTF-8 ifade aralığı, kalan metin ve güven. Foundation, saat ya da dosya erişimi yok |
 
 `DateParsing` yalnız `VaultFormat` importu olan saf metin hedefidir. Ayrıştırıcı özgün aralıklarla bastırılan ifadeleri taramaz. Önceki çıkarma bir ifadeyi birleştirmişse özgün parçalar aynı değerle ayrı simgeler olur. `PriorityParse.byteRanges` baştaki ve sondaki işaretleri ayrı gösterir.
+
+Bu tablo bir tarih ifadesinin hangi güne çözüldüğünü taşır. Kesme işaretli ekleri, öncelik ve tekrar yazımını [Kasa biçimi](vault-format.md#yorumlama-kuralları) taşır.
 
 **Tablo tarih ayrıştırma kurallarını gösterir.**
 
@@ -668,12 +782,18 @@ Birimsiz `5/10` gibi yazımların tarih mi miktar mı olduğu metinden kesinleş
 
 `EntityRecognition` yalnız `VaultFormat` bağımlılığı ve importu olan saf metin işleme hedefidir. Çağıran bilinen kişileri, konumları ve kullanım verilerini değer olarak verir. Hedef dosya okumaz ve dosyaya yazmaz. Hedef, tanıma sonucundan ve kullanıcı seçimlerinden bağlantılı metin üretir. Çağıran bu metni `VaultStore` üzerinden kaydeder.
 
+Bu tablo aday sıralamasının puanını ve tanımanın kodda nasıl kurulduğunu taşır. Eşleşme, taranmayan yazım ve kesinlik kurallarını [Kasa biçimi](vault-format.md#otomatik-tanıma-ve-belirsizlik) taşır.
+
 **Tablo tanıma ve sıralama kurallarını gösterir.**
 
 | Konu | Kural |
 |---|---|
 | Kullanıcı metni | Satırın hangi baytlarının kullanıcı metni olduğunu `VaultFormat` içindeki tek tanım söyler: `LineTextRegion`. Kullanıcı metni liste işareti, kutu, görev alanları, olay saati ve kimlik dışında kalan kısımdır. Bağlanmamış anmalar sorgusu da aynı tanımı kullanır |
 | Takvim katılımcıları | Aynı hedefteki `AttendeeMatching` katılımcı adlarını kesin, belirsiz ve bilinmeyen diye ayırır. Uygulama adları EventKit'ten okur ve değer olarak verir. `AttendeeMatching` tanıyıcının karşılaştırma anahtarlarını kullanır ve takvim çerçevesini görmez |
+| Takvim katılımcıları: karşılaştırma | Eşleme adın ya da takma adın tamamını ad karşılaştırma anahtarıyla karşılaştırır. NFD yazım ve harf boyu farkı eşleşir. Baştaki ve sondaki boşluk atılır |
+| Takvim katılımcıları: sonuç | Tek varlık kesin, birden çok varlık belirsiz, hiç varlık yoksa bilinmeyen. Aynı dosya bir katılımcıya iki kez aday olmaz |
+| Takvim katılımcıları: aday olmayan | Boş ya da yalnız boşluk olan ad, `@` içeren ad ve takvimin cihaz sahibi diye işaretlediği katılımcı hiçbir diziye girmez |
+| Takvim katılımcıları: yinelenen ad | Anahtarı aynı olan ad ikinci kez listelenmez |
 | Harf boyu | Öneri kuralı [Kasa biçimi](vault-format.md#otomatik-tanıma-ve-belirsizlik) belgesindedir. Tanıyıcı öneri yazımını açık `@` dışında kesin bağlam varlığı saymaz |
 | Rakam ad | Kural [Kasa biçimi](vault-format.md#otomatik-tanıma-ve-belirsizlik) belgesindedir |
 | Puan saklama | Sıralama her çağrıda farklı adayın puanını bir kez hesaplar ve saklar. Sıralama aynı adayın puanını başka anmalarda ya da karşılaştırmalarda yeniden hesaplamaz |
@@ -1109,7 +1229,11 @@ App bağlantısı `IndexStore+DayCopyMerge` içindedir. Yenileme bitince `IndexS
 | Dosya taşıma | `Core`: `VaultStore.migratingLegacyDayFolder()` | Dosya başına tek koordinasyon sınırı. Kural: `vault-format.md`, "Eski adlar ve geçiş". |
 | Koordinasyon | App: `SystemFileCoordination` | `.move`, `.merge` ve `.delete` niyetlerini `NSFileCoordinator`'a bağlar. |
 | Öneri | App: `IndexStore+DayFolderMigration`, `ContentView` | Her yenilemeden sonra eski klasördeki gün dosyalarını sayar. Ana ekran bandı onay ister. |
-| Tetikleme | App: `moveLegacyDayFolder()` | Yalnız onaydan sonra. 50 dosyalık partiler; her parti ayrı `performEdit`. Sonra iki klasörü tarar. |
+| Koordinasyon sınırları | `Core`: `VaultStore.migratingLegacyDayFolder()` | Boş hedef tek `.move(kaynak → hedef)` sınırıdır. Hazır hedef tek `.merge(kaynak → hedef)` sınırıdır. Klasör silme tek silme sınırıdır. |
+| Sınırın içi | `Core`: aynı işlev | Uygulama hedef adın boş olduğunu ve yer tutucusu olmadığını sınırın içinde yeniden denetler. |
+| Tetikleme | App: `moveLegacyDayFolder()` | Yalnız onaydan sonra. Her parti ayrı `performEdit`. Sonra iki klasörü tarar. |
+| Partiler | App: `moveLegacyDayFolder()` | Her parti en çok 50 dosyadır ve yazma kuyruğunda tek sıradır. Düzenlemeler ve paylaşım satırları partilerin arasında yazılır. |
+| Yeniden deneme | `Core`: `VaultStore.migratingLegacyDayFolder()` | Ad dolduysa ya da hedef değiştiyse uygulama yeni listeyle bir kez daha dener. |
 | Eski dosyaya yazma | `Core`: `VaultStore.dayFilePath(for:)` | `diary/` dosyası yoksa ve eski dosya varsa okuma ve yazma eski dosyaya gider. App yayımı aynı yolu kullanır. |
 | Tekil tarih | `Core`: `VaultIndex.countsForItsDate` | Tarihe göre sayan sorgular `diary/` dosyası olan tarihin eski dosyasını atlar. |
 | Bildirim | App: ana ekran bandı | Taşınan, kopya olan ve taşınamayan gün sayısını `DayCopyMergeReport` ile gösterir. |

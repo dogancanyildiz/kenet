@@ -2,7 +2,7 @@ import Foundation
 import VaultFormat
 import VaultIndex
 
-/// screens.md "Haftalık özet kartı": the numerator is the tasks completed this week (by their
+/// architecture.md "Görevler" (weekly summary card): the numerator is the tasks completed this week (by their
 /// done day); the denominator adds the open tasks due this week. The list's filters do not
 /// apply, and nothing is capped (``IndexStore/computePeriodTaskCount(from:through:)``).
 struct TasksWeeklySummary: Equatable {

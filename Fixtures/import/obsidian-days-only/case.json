@@ -1,4 +1,5 @@
 {
+  "description": "Yalnız gün dosyası olan Obsidian kasasında ayar klasörü kalır; kök ve daily günleri taşınmaz.",
   "options": { "folders": true, "settings": true, "types": true },
   "apply": true,
   "report": {

@@ -1,4 +1,5 @@
 {
+  "description": "Türkçe ekleri sınar; sentetik e takma adı ekin ayrı ad sayılmadığını gösterir.",
   "entities": [
     {
       "file": "people/Deniz Arıkan.md",

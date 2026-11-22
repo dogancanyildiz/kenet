@@ -1,6 +1,7 @@
 [
   {
     "id": "empty-month",
+    "description": "Yazılan günü olmayan ayda öndeki gün yoktur.",
     "vault": "rhythm",
     "period": "month",
     "containing": "2026-08-12",
@@ -14,6 +15,7 @@
   },
   {
     "id": "running-month-ends-today",
+    "description": "Süren ayda payda bugüne kadarki günlerdir; eşit oranda olayı çok olan gün öndedir.",
     "vault": "rhythm",
     "period": "month",
     "containing": "2026-10-07",
@@ -27,6 +29,7 @@
   },
   {
     "id": "ended-month-higher-ratio-beats-higher-events",
+    "description": "Yazma oranı yüksek olan gün, olayı daha çok olan günü geçer.",
     "vault": "rhythm",
     "period": "month",
     "containing": "2025-10-15",
@@ -39,6 +42,7 @@
   },
   {
     "id": "running-year-ends-today",
+    "description": "Süren yılda oranı eşit iki günden olayı çok olan seçilir.",
     "vault": "rhythm",
     "period": "year",
     "containing": "2026-10-07",
@@ -52,6 +56,7 @@
   },
   {
     "id": "tie-on-ratio-and-events-picks-earlier-weekday",
+    "description": "Oran ve olay eşitse haftanın erken günü seçilir; dönem dışındaki günler sayılmaz.",
     "days": [
       { "date": "2026-01-31", "events": 5, "hasDiary": true },
       { "date": "2026-02-04", "events": 1, "hasDiary": false },
@@ -71,6 +76,7 @@
   },
   {
     "id": "period-not-begun",
+    "description": "Başlamamış dönemde her günün paydası 0'dır ve öndeki gün yoktur.",
     "days": [
       { "date": "2026-11-02", "events": 2, "hasDiary": false }
     ],

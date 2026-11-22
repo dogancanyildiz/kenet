@@ -1,6 +1,7 @@
 [
   {
     "id": "running-year-ends-today",
+    "description": "Süren yılda ölçüm bugün biter; yalnız görev taşıyan gün yazılmış sayılmaz.",
     "vault": "rhythm",
     "year": 2026,
     "today": "2026-10-07",
@@ -15,6 +16,7 @@
   },
   {
     "id": "ended-year-counts-every-day",
+    "description": "Bitmiş yılın 365 günü de ölçülür.",
     "vault": "rhythm",
     "year": 2025,
     "today": "2026-10-07",
@@ -29,6 +31,7 @@
   },
   {
     "id": "year-not-begun",
+    "description": "Başlamamış yılda hiçbir gün ölçülmez.",
     "vault": "rhythm",
     "year": 2027,
     "today": "2026-10-07",
@@ -43,6 +46,7 @@
   },
   {
     "id": "empty-leap-year-without-today",
+    "description": "Bugün verilmezse bütün yıl ölçülür; artık yılda Şubat 29 gündür.",
     "days": [],
     "year": 2024,
     "expected": {
@@ -56,6 +60,7 @@
   },
   {
     "id": "first-day-adds-rows-of-one-date",
+    "description": "Aynı günün satırları toplanır; başka yılın ve bugünden sonraki günün satırı sayılmaz.",
     "days": [
       { "date": "2025-12-31", "events": 3, "hasDiary": false },
       { "date": "2026-01-01", "events": 0, "hasDiary": true },
@@ -75,6 +80,7 @@
   },
   {
     "id": "last-day-ends-the-year",
+    "description": "Yıl 31 Aralık'ta biter; eksi olay sayısı ve boş dosya günü yazılmış yapmaz.",
     "days": [
       { "date": "2024-02-29", "events": 0, "hasDiary": true },
       { "date": "2024-06-15", "events": 0, "hasDiary": false },

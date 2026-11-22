@@ -1,6 +1,7 @@
 [
   {
     "id": "nearest-year-and-one-more",
+    "description": "En yakın bağlantılı yıl gösterilir; daha eski bir yıl sayıya girer.",
     "vault": "history",
     "today": "2026-09-20",
     "expected": {
@@ -24,18 +25,21 @@
   },
   {
     "id": "unlinked-day-is-silent",
+    "description": "Geçen yılın günü bağlantısızsa sonuç yoktur.",
     "vault": "history",
     "today": "2026-09-21",
     "expected": null
   },
   {
     "id": "only-unlinked-year-before",
+    "description": "Önceki tek yıl bağlantısızsa sonuç yoktur.",
     "vault": "history",
     "today": "2024-09-20",
     "expected": null
   },
   {
     "id": "unlinked-year-is-not-counted",
+    "description": "Bağlantısız yıl öteki yıllar sayısına girmez.",
     "vault": "history",
     "today": "2025-09-20",
     "expected": {
@@ -55,6 +59,7 @@
   },
   {
     "id": "place-only",
+    "description": "Yalnız konum taşıyan gün kişisiz gösterilir.",
     "vault": "history",
     "today": "2026-09-22",
     "expected": {
@@ -69,6 +74,7 @@
   },
   {
     "id": "common-year-skips-leap-day",
+    "description": "Artık olmayan yılda 28 Şubat, önceki yılın 28 Şubat'ını bulur.",
     "vault": "history",
     "today": "2027-02-28",
     "expected": {
@@ -85,6 +91,7 @@
   },
   {
     "id": "leap-day-meets-leap-day",
+    "description": "29 Şubat, önceki artık yılın 29 Şubat'ını bulur.",
     "vault": "history",
     "today": "2028-02-29",
     "expected": {
@@ -104,12 +111,14 @@
   },
   {
     "id": "march-first-ignores-leap-day",
+    "description": "1 Mart, 29 Şubat gününü kendi günü saymaz.",
     "vault": "history",
     "today": "2027-03-01",
     "expected": null
   },
   {
     "id": "no-file-on-this-day",
+    "description": "Geçmiş yıllarda dosyası olmayan günde sonuç yoktur.",
     "vault": "history",
     "today": "2026-10-01",
     "expected": null

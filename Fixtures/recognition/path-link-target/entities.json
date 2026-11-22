@@ -1,4 +1,5 @@
 {
+  "description": "Aynı gövde adı başka klasörde de varsa yol hedefi yazılır; benzersiz ad kısa kalır.",
   "entities": [
     {
       "file": "people/Baran.md",

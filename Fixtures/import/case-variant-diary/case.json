@@ -1,4 +1,5 @@
 {
+  "description": "Harf farkıyla yazılmış gün klasörü eksik sayılmaz; küçük harfli klasör oluşmaz.",
   "options": { "folders": true, "settings": true, "types": true },
   "apply": true,
   "report": {

@@ -1,6 +1,7 @@
 [
   {
     "id": "week-14-20",
+    "description": "Pazartesi haftası: 19 olay ve 7 yazılan gün.",
     "vault": "sample",
     "period": "week",
     "containing": "2026-09-20",
@@ -143,6 +144,7 @@
   },
   {
     "id": "monday-21-27",
+    "description": "Pazartesi haftası: 21 olay ve 7 yazılan gün.",
     "vault": "sample",
     "period": "week",
     "containing": "2026-09-21",
@@ -285,6 +287,7 @@
   },
   {
     "id": "september",
+    "description": "Eylül: 40 olay ve 14 gün; Spor hedefi 15, çünkü ay 5 pazartesi haftasına değer.",
     "vault": "sample",
     "period": "month",
     "containing": "2026-09-30",
@@ -427,6 +430,7 @@
   },
   {
     "id": "october-transition-empty",
+    "description": "Boş Ekim: 0 olay; dönem sonuna 11 geciken ve 1 tarihsiz açık görev taşınır.",
     "vault": "sample",
     "period": "month",
     "containing": "2026-10-01",
@@ -513,6 +517,7 @@
   },
   {
     "id": "october-running-source-less",
+    "description": "Süren Ekim'de kaynak günü olmayan 2 proje görevi bugün açıktır; tarihsiz sayısı 3 olur.",
     "vault": "sample",
     "period": "month",
     "containing": "2026-10-11",

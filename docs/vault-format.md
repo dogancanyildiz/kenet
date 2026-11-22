@@ -320,6 +320,21 @@ flowchart TD
 - Dosya adı şu karakterleri içermez: `/ \ : * ? " < > |`. Dosya adı bağlantı sözdizimini bozan `# ^ [ ]` karakterlerini de içermez.
   - Görünen ad bu karakterleri içeriyorsa `name` alanında aynen durur. Uygulama dosya adını üretirken bu karakterleri atar.
 
+### Takma ad karakterleri
+
+**Tablo uygulamanın yeni takma adda kabul etmediği karakterleri gösterir.**
+
+| Grup | Karakterler |
+|---|---|
+| Bağlantı sözdizimi | `\|`, `[`, `]` |
+| Kontrol karakterleri | Satır sonu, sekme, U+0000 ve Unicode `Cc` sınıfının geri kalanı |
+| Satır ve paragraf ayırıcı | U+2028, U+2029 |
+| Görünmez biçim karakterleri | U+200B, U+FEFF, U+200E, U+200F, U+00AD ve Unicode `Cf` sınıfının geri kalanı |
+| İstisna: emoji birleştiricisi | İki emoji arasındaki birleştirici (U+200D) geçerlidir. Başka yerdeki birleştirici reddedilir. |
+| İstisna: bayrak etiketi | Siyah bayraktan (U+1F3F4) sonraki bayrak etiket harfleri geçerlidir. |
+
+Takma ad bağlantının görünen metnidir: `[[Ad|takma ad]]`. Bu yüzden bağlantıyı bitiren ya da bölen karakter takma ada girmez. Kural yalnız uygulamanın eklediği takma adı sınırlar: `EntityAliasRules`.
+
 ## Dosya türleri
 
 **Dosya türleri, alanları ve aralarındaki bağlar.**
@@ -825,9 +840,9 @@ tanışma: Üniversite                                # bağ değil: bağlantı 
 | Yazma biçimi | Satırın sonunda, bir boşluktan sonra `^` ve ardından 6 karakter: küçük harf `a-z` ve rakam. |
 | Anlam | Kimlik opaktır. Tür ya da başka anlam taşıyan önek içermez. Satırın olay mı görev mi olduğunu kimlik değil satırın yazımı belirler. |
 | Üretim | Uygulama kimliği rastgele üretir. Uygulama kasadaki mevcut kimliklerle çakışmayı denetler. Paylaşım uzantısı kasa indeksini açmaz; yeni kimliği yalnız gün dosyasındaki kimliklerle denetler. |
-| Uzantının yazdığı satır | Uzantı yazdığı satırın kimliğini `written.json` işaretine yazar: `writtenLineID`. |
+| Uzantının yazdığı satır | Uygulama uzantının yazdığı satırı uzantının bıraktığı işaretten tanır. İşaret kasada durmaz; mekanizma: [Mimari](architecture.md#paylaşım-uzantısı). |
 | Uzantı satırının onarımı | Kimlik başka dosyada da varsa uygulama yalnız bu satıra yeni kimlik verir. Uygulama yalnız `^kimlik` baytlarını değiştirir. Öteki dosya değişmez. |
-| Uzantı satırı: onarım yok | Kimlik gün dosyasında birden çok satırdaysa uygulama dokunmaz. Alanı olmayan işarette de dokunmaz. |
+| Uzantı satırı: onarım yok | Kimlik gün dosyasında birden çok satırdaysa uygulama dokunmaz. Kimlik taşımayan işarette de dokunmaz. |
 | Düzenleme | Satır değişse de kimlik değişmez. |
 | Kimliksiz satır | Kullanıcının elle ya da Obsidian'da yazdığı satırda kimlik olmayabilir. Uygulama o satırı ilk kez değiştirdiğinde kimlik ekler. |
 | Okuma | Uygulama Obsidian'ın kabul ettiği her kimliği tanır ve değiştirmez: harf, rakam ve `-`, her uzunlukta. |
@@ -919,10 +934,9 @@ Uygulama eski adları kasa geçişi bitene kadar okur. Uygulama eski adlı dosya
 
 | Konu | Kural |
 |---|---|
-| Öneri | Yenileme bitince ve kasa yazılabilirse uygulama kökte tam yazımla `journal/` altında gün dosyası arar. Varsa ana ekranda öneri bandı çıkar: "Taşı…" ve kapat. |
+| Öneri | Yenileme bitince ve kasa yazılabilirse uygulama kökte tam yazımla `journal/` altında gün dosyası arar. Varsa geçişi önerir. Bant ve onay uyarısı: [Ekranlar](screens.md#boş-durumlar), "Eski gün klasörü" satırları. |
 | Başlatma | Yalnız kullanıcının onayı. Uygulama geçişi kendiliğinden başlatmaz; içe aktarılan kasada da başlatmaz. |
-| Onay metni | Önce Kenet'i bütün cihazlarda güncelle. Dosyalar `journal/` klasöründen `diary/` klasörüne taşınır. Başlık ve `type` yeni adı alır. `[[journal/…]]` yol bağlantıları çalışmaz. |
-| Ertelenen öneri | Kullanıcı bandı kapatırsa ya da onayda "Sonra" derse öneri kasa yeniden açılana kadar gelmez. Uygulama kasaya hiçbir işaret yazmaz. |
+| Ertelenen öneri | Uygulama ertelemeyi kasaya yazmaz; kasaya hiçbir işaret girmez. |
 | Kapsam | Yalnız `journal/` klasörünün hemen altındaki gün dosyaları ve sayılı adlar (`YYYY-MM-DD N.md`). Notlar, alt klasörler ve öteki adlar yerinde kalır. |
 | İndirilmemiş kaynak | Uygulama indirilmemiş dosyayı atlar. Dosya eski klasörde kalır. |
 | Değişen baytlar | Tanınan başlık `## Journal` ise yalnız ad `Diary` olur. Sondaki boşluklar ve satır sonu kalır. |
@@ -933,11 +947,8 @@ Uygulama eski adları kasa geçişi bitene kadar okur. Uygulama eski adlı dosya
 | Dolu hedef, farklı baytlar | Uygulama var olan dosyanın üzerine yazmaz. Çevrilmiş baytları ilk boş gün kopyası adına yazar: `YYYY-MM-DD N.md`. Sonra kaynağı siler. Gün kopyası birleştirmesi ya da Tanılama kopyayı ele alır. |
 | Dolu ad | Yazma dışlayıcıdır. Yer tutucusu olan ad da dolu sayılır. |
 | Değişiklik zamanı | Yeni dosya kaynağın değişiklik zamanını alır. Gün kopyası birleştirmesi bu zamanı karşılaştırır. |
-| Koordinasyon | Boş hedef tek `.move(kaynak → hedef)` sınırıdır. Hazır hedef tek `.merge(kaynak → hedef)` sınırıdır. Klasör silme tek silme sınırıdır. |
-| Sınırın içi | Uygulama hedef adın boş olduğunu ve yer tutucusu olmadığını sınırın içinde yeniden denetler. |
-| Partiler | Her parti en çok 50 dosyadır ve yazma kuyruğunda tek sıradır. Düzenlemeler ve paylaşım satırları partilerin arasında yazılır. |
-| Yeniden deneme | Ad dolduysa ya da hedef değiştiyse uygulama yeni listeyle bir kez daha dener. |
-| Hata | Hata o dosyayı eski klasörde bırakır. Öteki dosyalar sürer. Bant kalan dosyaları sayar ve ilk 5 adını yazar. Öneri yeniden gelir. |
+| Mekanizma | Koordinasyon sınırları, partiler ve yeniden deneme: [Mimari](architecture.md#eski-gün-klasörünün-geçişi). |
+| Hata | Hata o dosyayı eski klasörde bırakır. Öteki dosyalar sürer. Öneri yeniden gelir. |
 | Klasör silme | Partiler bitince uygulama klasörü yalnız boşsa ve `rmdir` ile siler; içi dolu klasör silinmez. Son anda gelen dosya da klasörü tutar. Klasör kalırsa bant kalan dosyaları sayar. |
 | Yalnız harfi farklı yeni klasör | `Diary/` varsa geçiş hiçbir dosyayı taşımaz. Bant kalan dosyaları sayar. |
 | Bağlantılar | Uygulama gün dosyasına bağlantı yazmaz. Adla yazılan `[[2026-10-02]]` taşımadan sonra da aynı günü bulur. Yol taşıyan `[[journal/…]]` bağlantısına uygulama dokunmaz. |
@@ -1328,7 +1339,7 @@ Serbest notlar...
 | Biçim: yılsız | `--MM-DD`, örnek `--04-12` (ISO 8601 yılsız tarih). `--02-29` geçerlidir. |
 | Değer türü | Tek değer. Tırnaklı yazım da okunur: `"1990-04-12"`. Liste, eşlem ve ham alan okunmaz. |
 | Okunamayan değer | Alan yok sayılır. Form tarihi elle seçtirir. |
-| Kullanım | "Doğum günü ekle" formunun tarihi bu alandan gelir. Yıllı değerde etkinlik doğum tarihinden başlar. Yılsız değerde bu yılın o gününden başlar; `--02-29` son artık yıldan başlar. |
+| Kullanım | "Doğum günü ekle" formu tarihi bu alandan alır. Etkinliğin başlangıç günü: [Ekranlar](screens.md#varlık-ekranı), "Doğum günü ekle" satırları. |
 | Gelecek yıl | Yıl bu yıldan büyükse uygulama yılı yok sayar ve değeri yılsız sayar. Örnek: `2090-04-12` bu yılın 12 Nisan'ından başlar. |
 | 29 Şubat | Takvim etkinliği şubatın son günü kuralıyla yazılır. Artık yılda 29 Şubat'ta, öteki yıllarda 28 Şubat'ta görünür. Bu, yıl dönümü kuralıyla aynıdır. |
 | Yazma | Uygulama bu alanı yalnız okur. Ne alanı ne dosyayı değiştirir. |
@@ -1488,10 +1499,7 @@ Obsidian nokta ile başlayan klasörleri göstermez. `.app/vault.json` kasanın 
 
 ```mermaid
 flowchart TD
-  A["Uygulama yazmaya başlar"] --> B{"vault.json mtime önbellektekiyle aynı mı?"}
-  B -- Evet --> D{"Önbellekteki sürüm destekleniyor mu?"}
-  B -- Hayır --> C["vault.json dosyasını yeniden okur"]
-  C --> D
+  A["Uygulama yazmaya başlar"] --> D{"vault.json sürümü destekleniyor mu?"}
   D -- Evet --> E["Yazar"]
   D -- Hayır --> F["readOnlyVault hatası; yazmaz"]
 ```
@@ -1502,7 +1510,7 @@ flowchart TD
 | Dosya yok | Uygulama sürümü 1 kabul eder. |
 | Sürüm artışı | Sürüm, eski bir istemcinin veriyi bozabileceği format değişikliklerinde artar. |
 | Büyük sürüm | Desteklediğinden büyük sürüm gören istemci kasaya yazmaz. İstemci kasayı salt okunur açar ve güncelleme gerektiğini bildirir. |
-| Denetim | Her yazma `.app/vault.json` sürümünü denetler. Uygulama dosyanın değişiklik zamanını, yani mtime değerini önbelleğe alır. mtime değişmedikçe uygulama dosyayı yeniden okumaz. Uygulama bütün kasayı taramaz. |
+| Denetim | Her yazma `.app/vault.json` sürümünü denetler. Uygulama bütün kasayı taramaz. Önbellek: [Mimari](architecture.md#yazma-sırası). |
 | Hata | Okunamayan ya da desteklenmeyen sürüm `readOnlyVault` hatası verir. Dosya var ama `formatVersion` anahtarı yoksa, tam sayı değilse ya da negatifse sürüm okunamaz. |
 
 ## Varlık tipleri
@@ -1586,11 +1594,9 @@ flowchart TD
 | Kapsam | Yalnız iCloud Drive'daki kasa. Öteki kasada uygulama hiçbir dosyaya sormaz ve liste boştur. |
 | Sorulan dosyalar | İndeksteki her dosya ve `diary/` altındaki her gün kopyası. `conflicts/` ve `templates/` sorulmaz. |
 | Okuma | Uygulama önce dosyanın "çözülmemiş çakışma var" bayrağına bakar. Yalnız bayraklı dosyanın sürümlerini koordineli okumayla okur. Uygulama kasaya hiçbir şey yazmaz. |
-| Satır | Dosyanın yolu, sürüm sayısı, en yeni sürümün kayıt zamanı ve sürümü kaydeden cihazların adları. Zamanı bilinmeyen sürümün satırında zaman yoktur. |
-| Sıra | Dosyalar yolun bayt sırasıyla gelir. Sürümler yeniden eskiye gelir. Aynı saniyedeki sürümler cihaz adına göre gelir; adsız sürüm sondadır. |
 | Çözümleme | Uygulama sürümü birleştirmez, seçmez ve silmez. Tanılama'daki cümle yalnız bunu söyler; bir çözüm yolu vaat etmez. |
+| Liste | Satırın içeriği, sıra ve yenileme: [Ayarlar — Tanılama](screens.md#ayarlar--tanılama). |
 | Çözüm yolu | **Varsayım:** Dosyalar'ın ya da Finder'ın düz bir dosya için çözüm ekranı sunduğu doğrulanmadı. Çözüm yolu iki cihaz denemesinden sonra kararlaştırılır. |
-| Yenileme | Tanılama listeyi her indeks yenilemesinde ve uygulama ön plana her dönüşte yeniden okur. iCloud çakışması kasa klasöründe olay üretmeyebilir. |
 
 ### Gün kopyası adları
 
@@ -1818,7 +1824,7 @@ flowchart TD
 | Kullanıcı | Kullanıcı gerekeni ana dosyaya aldıktan sonra kopyayı siler. Kopyaların ekranı: [Ayarlar — Tanılama](screens.md#ayarlar--tanılama). |
 | Liste kapsamı | Yalnız tam `conflicts/` klasörünün doğrudan içindeki, ad kuralına uyan sıradan dosyalar. Kural: `ConflictCopyName`. |
 | Listeye girmeyenler | Alt klasör, sembolik bağlantı, yer tutucu ve kuralı tutmayan ad. |
-| Liste sırası | Gün, addaki zaman, sonra sayı; sayısız ad önce gelir. |
+| Liste sırası | [Ayarlar — Tanılama](screens.md#ayarlar--tanılama) belgesindedir. |
 | Silme sırası | Uygulama birleşmiş içeriği ve gerekiyorsa çakışma kopyasını yazmadan hiçbir sürümü silmez. Hiçbir içerik sessizce kaybolmaz. |
 
 ### Bilinen sonuçlar
@@ -1863,8 +1869,7 @@ flowchart TD
 | Varlık dosyası | İndekste varlık satırı olan dosya: kişi, konum, hedef ya da özel tip dosyası. |
 | Birleştirme | Uygulama varlık kopyasını birleştirmez, taşımaz ve silmez. Kullanıcı kopyayı Obsidian'da ya da Dosyalar'da kendisi düzenler. |
 | İndeks | Uygulama varlık kopyasını sıradan bir dosya gibi indeksler. Kopyada `type` alanı varsa kopya ayrı bir varlıktır. |
-| Liste | Tanılama "Kopya dosyalar" bölümü varlık kopyalarını ve gün kopyalarını listeler: [Ayarlar — Tanılama](screens.md#ayarlar--tanılama). |
-| Sıra | Önce gün kopyaları birleştirme sırasıyla gelir. Sonra varlık kopyaları özgün yola ve sayıya göre gelir. |
+| Liste | Tanılama "Kopya dosyalar" bölümü varlık kopyalarını ve gün kopyalarını listeler. Liste sırası: [Ayarlar — Tanılama](screens.md#ayarlar--tanılama). |
 
 ## Yorumlama kuralları
 
@@ -1880,7 +1885,7 @@ flowchart TD
 | [Zincir](#zincir), [Zincir günü](#zincir-günü) | Gün dosyalarındaki `goals` kayıtları | Zincir, bakiye ve harcanan günler |
 | [İlerleme skoru](#i̇lerleme-skoru), [Isı haritası](#isı-haritası) | Gün dosyalarındaki `goals` kayıtları | Skor ve gün işaretleri |
 
-Bu bölümdeki kurallar dosyaya yeni alan ya da sözdizimi eklemez. Dosyada ne yazıldığını önceki bölümler tanımlar.
+Bu bölümdeki kurallar dosyaya yeni alan ya da sözdizimi eklemez. Dosyada ne yazıldığını önceki bölümler tanımlar. Tarih ifadesinin hangi güne çözüldüğünü ve aday sıralamasının puanını [Mimari](architecture.md#tarih-ayrıştırma) taşır.
 
 ### Otomatik tanıma ve belirsizlik
 
@@ -1971,7 +1976,7 @@ flowchart TD
 | Kesin eşleşme | Tek aday var ve kaynak yazımın ilk harfi adın ya da eşleşen takma adın ilk harfiyle aynı büyüklükte. Uygulama kesin eşleşmeyi kendiliğinden bağlar. |
 | Harf büyüklüğü farkı | Uygulama eşleşmeyi `isCaseMismatch` ile öneri olarak bildirir. Kullanıcı seçmeden bağlamaz. Açık `@` anmasında bu fark kesinliği bozmaz. |
 | Birden çok aday | Puan ne olursa olsun belirsizdir. Uygulama kullanıcı seçmeden bağlamaz. |
-| Aday sıralaması | Bağlama göre: o konumda daha önce birlikte geçmek, yakın zamanda geçmek, geçme sıklığı. Uygulama en olası adayı üstte önerir. |
+| Aday sıralaması | Uygulama en olası adayı üstte önerir. Puan ve sıra: [Mimari](architecture.md#varlık-tanıma), "Bağlam puanı" ve "Sıralama" satırları. |
 | Sıralama ölçütleri | Dosyada durmaz. Uygulama ölçütleri indeksten hesaplar. |
 | Bağlanmış anma | Uygulama yeniden tanımaz. |
 | Bekleyen anmalar | Öneri, belirsiz ve bilinmeyen anmalar metinde kalır. Uygulama onları yeniden bildirir. |
@@ -2012,15 +2017,11 @@ flowchart TD
 | Tanınan ekler | `'a`, `'e`, `'ya`, `'ye`, `'dan`, `'den`, `'tan`, `'ten` |
 | `kadar` | Ayrı bir ifade değildir ve metinde kalır. |
 | Başka ekler, göreli sözcükler, sayısal tarihler, İngilizce adlar | Uygulama ifadeyi eksiz çıkarır. Ek metinde kalır. |
+| İfadenin günü | Hangi ifadenin hangi güne çözüldüğü: [Mimari](architecture.md#tarih-ayrıştırma). |
 
 ### Tarihsiz görevler
 
-| Yer | Tarihsiz görev |
-|---|---|
-| Oluşturulduğu günün ekranı | Görünür. Gün ekranı, o günün `diary/` dosyasında yazılı tarihsiz görevleri listeler. |
-| Sonraki günlerin ekranı | Görünmez. |
-| Görevler ekranı, "Tarihsiz" listesi | Görev açık kaldıkça, oluşturulduğu günden başlayarak görünür. |
-| `notes/` altındaki tarihsiz görev | Hiçbir gün ekranında görünmez. "Tarihsiz" listesinde görünür. |
+Tarihsiz görev oluşturulduğu günün dosyasında kalır. Görevin hangi ekranda göründüğünü [Ekranlar](screens.md#tarihsiz-görevler) söyler.
 
 ### Yıl dönümleri
 
@@ -2044,6 +2045,7 @@ Yıl dönümünün etiketi alanın kendi adıdır. Yıl dönümü hesabı anahta
 | Günler | Sonuç |
 |---|---|
 | Pzt yapıldı, Sal yapıldı, Çar kaçtı, Per yapıldı, Cum yapıldı | Uygulama Çar'ı affeder. Zincir 4. |
+| Yapıldı, yapıldı, kaçtı, yapıldı | Uygulama kaçırmayı affeder. Affedilen gün zinciri korur ama zincire eklenmez. Zincir 3. |
 | Yapıldı, kaçtı, yapıldı | Af yok: kaçırmanın önünde iki yapılmış gün yok. Zincir 1. |
 | Yapıldı, kaçtı, kaçtı, yapıldı | Art arda 2 kaçırma. Af yok. Kaçırmalar zinciri keser. |
 | Yapıldı, kaçtı, yapıldı, kaçtı, yapıldı | Af yok: hiçbir kaçırmanın önünde iki yapılmış gün yok. Zincir 1. En uzun zincir 1. |

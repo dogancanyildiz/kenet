@@ -1,4 +1,5 @@
 {
+  "description": "Rakam içeren ama tamamı rakam olmayan adlarda rakam kuralından önceki tanıyıcı çıktısını tutar.",
   "entities": [
     {
       "file": "places/Daire 12.md",

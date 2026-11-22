@@ -1,4 +1,5 @@
 {
+  "description": "Okunamayan frontmatter taşıyan dosya atlanır ve değişmez.",
   "options": {
     "folders": true,
     "settings": true,

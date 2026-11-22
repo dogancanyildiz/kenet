@@ -353,6 +353,7 @@
   "cases": [
     {
       "id": "on-snooze-day",
+      "description": "Erteleme gününde ertelenen kişi listede görünmez.",
       "source": "vault",
       "today": "2026-10-11",
       "threshold": 30,
@@ -416,6 +417,7 @@
     },
     {
       "id": "day-after-snooze",
+      "description": "Ertelemenin ertesi günü kişi listeye döner; eşiğe eşit süre de listeye girer.",
       "source": "vault",
       "today": "2026-10-12",
       "threshold": 30,
@@ -490,6 +492,7 @@
     },
     {
       "id": "fallback-includes-threshold-day",
+      "description": "Ritmi olmayan kişi genel eşiğin dolduğu gün listeye girer.",
       "source": "inline",
       "today": "2026-10-11",
       "threshold": 9,
@@ -512,6 +515,7 @@
     },
     {
       "id": "never-met-stays-separate",
+      "description": "Hiç görüşülmemiş kişi gecikenlerden ayrı grupta durur.",
       "source": "inline",
       "today": "2026-10-11",
       "threshold": 1,
@@ -536,6 +540,7 @@
     },
     {
       "id": "ties-break-by-id-not-input-order",
+      "description": "Eşit gecikmede sıra yol sırasıdır ve girdi sırasından bağımsızdır.",
       "source": "inline",
       "today": "2026-10-11",
       "threshold": 30,
@@ -621,6 +626,7 @@
     },
     {
       "id": "never-met-ignores-cadence-but-not-pause-or-snooze",
+      "description": "Hiç görüşülmemiş kişide ritim yok sayılır; duraklatma ve erteleme kişiyi yine gizler.",
       "source": "inline",
       "today": "2026-10-11",
       "threshold": 30,

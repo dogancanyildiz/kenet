@@ -199,9 +199,9 @@ Ekim 2026 sektör taraması benzer ürünlerin o günkü durumunu karşılaştı
 
 | Alan | Yol haritasındaki yer |
 |---|---|
-| Fotoğraf | "Sonraki fikirler" |
-| Sesle giriş | "Sonraki fikirler" |
-| Başka günlük uygulamalarından içe aktarma | "Sonraki fikirler": Day One ve Apple Journal |
+| Fotoğraf | "Yayın sonrası", `1.2` ve sonrası |
+| Sesle giriş | "Yayın sonrası", `1.1` |
+| Başka günlük uygulamalarından içe aktarma | "Yayın sonrası", `1.2` ve sonrası: Day One ve Apple Journal |
 
 Taramanın saydığı beş alan kapandı: bu gün geçmişte, widget ve kilit ekranı girişleri, paylaşım uzantısı, cihazlar arası eşitleme, görsel kimlik.
 
@@ -222,7 +222,7 @@ Taramanın saydığı beş alan kapandı: bu gün geçmişte, widget ve kilit ek
 | İş | Not |
 |---|---|
 | Genel amaçlı veritabanı oluşturucu | Notion benzeri bir araç değildir. |
-| Tam özellikli Markdown editörü | Yoktur. Mac'te serbest not düzenleme yol haritasının "Sonraki fikirler" bölümündedir. |
+| Tam özellikli Markdown editörü | Yoktur. Mac'te serbest not düzenleme yol haritasının "Yayın sonrası" bölümündedir. |
 | Kullanıcının var olan Obsidian kasasını yeniden düzenlemek ya da dosyalarını taşımak | Uygulama var olan kasayı yerinde açar ve hazırlar. Ayrıntı [Kasa biçimi](vault-format.md) belgesindedir. |
 | Ekip kullanımı, hesap sistemi, kendi eşitleme sunucusu | - |
 | Android ve Windows | Ürün tutarsa proje ayrı istemci yazar. Kasa biçimi açık olduğu için kilitlenme yoktur. |
@@ -232,7 +232,7 @@ Taramanın saydığı beş alan kapandı: bu gün geçmişte, widget ve kilit ek
 | İş | Durum |
 |---|---|
 | Yapay zeka özellikleri | Karar açıktır, [açık soru 4](decisions.md#açık-sorular). Uygulama yapay zeka olmadan tam çalışır. |
-| Şirket şema paketi: şirket yapısı, çalışanlar, sorumluluklar | "Sonraki fikirler"de. |
+| Şirket şema paketi: şirket yapısı, çalışanlar, sorumluluklar | Yol haritasının "Yayın sonrası" bölümündedir. |
 
 ## Dağıtım
 

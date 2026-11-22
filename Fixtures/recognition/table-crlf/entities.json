@@ -1,4 +1,5 @@
 {
+  "description": "Bağlayıcı, tabloda görünen metin ayırıcısını kaçırır.",
   "entities": [
     {
       "file": "people/Deniz Arıkan.md",

@@ -1,6 +1,7 @@
 [
   {
     "id": "today-through-day-seven",
+    "description": "Pencere bugünden 7. güne kadardır; sıra tarih, alan adı ve dosya yoludur.",
     "vault": "anniversaries",
     "today": "2026-09-20",
     "expected": [
@@ -57,6 +58,7 @@
   },
   {
     "id": "first-anniversary-included-on-its-day",
+    "description": "İlk yıl dönümü kendi gününde listeye girer.",
     "vault": "anniversaries",
     "today": "2026-09-21",
     "expected": [
@@ -113,6 +115,7 @@
   },
   {
     "id": "year-boundary",
+    "description": "Pencere yıl sonunu aşar ve gelecek yılın tarihlerini listeler.",
     "vault": "anniversaries",
     "today": "2026-12-28",
     "expected": [
@@ -134,6 +137,7 @@
   },
   {
     "id": "leap-day",
+    "description": "29 Şubat tarihi artık yılda kendi gününde listelenir.",
     "vault": "anniversaries",
     "today": "2024-02-29",
     "expected": [
@@ -148,6 +152,7 @@
   },
   {
     "id": "leap-day-seventh-day",
+    "description": "29 Şubat pencerenin 7. gününde listelenir.",
     "vault": "anniversaries",
     "today": "2024-02-22",
     "expected": [
@@ -162,12 +167,14 @@
   },
   {
     "id": "leap-day-eighth-day-excluded",
+    "description": "29 Şubat 8. gündeyken pencerenin dışında kalır.",
     "vault": "anniversaries",
     "today": "2024-02-21",
     "expected": []
   },
   {
     "id": "common-year-observes-february-28",
+    "description": "Artık olmayan yılda 29 Şubat tarihi 28 Şubat'ta beklenir.",
     "vault": "anniversaries",
     "today": "2026-02-28",
     "expected": [
@@ -189,6 +196,7 @@
   },
   {
     "id": "common-year-seventh-day",
+    "description": "Artık olmayan yılda 28 Şubat'a taşınan tarih 7. günde listelenir.",
     "vault": "anniversaries",
     "today": "2026-02-21",
     "expected": [
@@ -210,12 +218,14 @@
   },
   {
     "id": "common-year-eighth-day-excluded",
+    "description": "Artık olmayan yılda 28 Şubat'a taşınan tarih 8. günde dışarıda kalır.",
     "vault": "anniversaries",
     "today": "2026-02-20",
     "expected": []
   },
   {
     "id": "first-leap-anniversary-on-february-28",
+    "description": "29 Şubat tarihinin ilk yıl dönümü artık olmayan yılda 28 Şubat'tadır.",
     "vault": "anniversaries",
     "today": "2025-02-28",
     "expected": [

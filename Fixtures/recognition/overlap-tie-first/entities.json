@@ -1,4 +1,5 @@
 {
+  "description": "Eşit örtüşen adları sınar; iki sentetik takma ad kadronun ad parçalarından gelir.",
   "entities": [
     {
       "file": "people/Ece Yalın.md",

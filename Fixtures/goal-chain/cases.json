@@ -280,6 +280,7 @@
   },
   {
     "id": "summary-ended-spends",
+    "description": "Bitmiş 14–20 Eylül haftasının zinciri 31 Ağustos–20 Eylül geçmişinden hesaplanır.",
     "start": "2026-08-31",
     "sequence": "111111111111110011111",
     "period": "day",

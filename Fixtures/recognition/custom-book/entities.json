@@ -1,4 +1,5 @@
 {
+  "description": "Açık anma özel tip varlığının wikilink'ine dönüşür.",
   "entities": [
     {
       "file": "books/Cam Ormanı.md",

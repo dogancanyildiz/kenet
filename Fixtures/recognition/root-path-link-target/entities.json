@@ -1,4 +1,5 @@
 {
+  "description": "Kasa kökündeki varlık baştaki eğik çizgiyle yazılır.",
   "entities": [
     {
       "file": "Baran.md",

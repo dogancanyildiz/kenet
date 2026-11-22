@@ -1,4 +1,5 @@
 {
+  "description": "Örtüşen adları sınar; uzun konum takma adı kadronun adlarından üretilmiş sentetik addır.",
   "entities": [
     {
       "file": "people/Deniz Arıkan.md",

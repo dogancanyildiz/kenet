@@ -655,45 +655,7 @@ flowchart TD
 | Yükleme | Dönem değişince ekran eski içeriği yeni yanıt gelene kadar gösterir. Gösterilecek içerik yoksa yükleme göstergesi çıkar. |
 | Gün dönümü | Ekran açıkken gün değişirse uygulama özeti yeni günle yeniden yükler. |
 
-**Ölçülen günler: uygulama süren dönemi aynı tarihe kadar karşılaştırır.**
-
-```mermaid
-flowchart LR
-    A{Dönem süren dönem mi} -->|Evet| B[Sayılar: dönem başı ile bugün arası]
-    B --> C[Önceki dönem: başı ile aynı tarih arası]
-    A -->|Hayır| D[Sayılar: bütün dönem]
-    D --> E[Önceki dönem: bütün dönem]
-```
-
-| Kural | Tanım |
-|---|---|
-| Süren dönem | Dönem bugünü içerir ve son günü bugünden sonradır. Bugün dönemin son günüyse dönem süren dönem değildir. |
-| Aynı tarih | Önceki haftanın aynı günü, önceki ayın aynı tarihi, önceki yılın aynı tarihi. Önceki ayda o tarih yoksa ayın son günü geçerlidir: 31 Mart'ın karşılığı 28 Şubat'tır. |
-| Ölçülen günler | Süren dönemde sayılar, ilk 5, ilk kez geçenler, ritim ve açık envanter bugünde biter. Bugünden sonraki gün dosyaları sayıya girmez. |
-| Artık gün | 29 Şubat'ın önceki yıldaki karşılığı 28 Şubat'tır. 1 Mart 2029'da süren yıl 60 günü 2028'in 61 günüyle karşılaştırır, çünkü 2028 yılı 29 Şubat'ı içerir. 30 Mart'ta süren ay 30 günü Şubat'ın bütün günleriyle karşılaştırır. |
-| Ritimde önceki dönem | Arkadaki soluk çubuklar önceki dönemin bütün birimlerini gösterir. |
-| Başlamamış dönem | Bugünden sonraki dönemi Core bütün olarak sayar. Ekran bu döneme geçmez. |
-
-**Sayıların tanımı.**
-
-| Sayı | Tanım |
-|---|---|
-| Olay sayısı | Olay bloklarının sayısı. |
-| Yazılan gün | En az bir olay ya da boş olmayan `Diary` paragrafı veya başlığı olan farklı gün tarihleri. Yalnız görev ya da hedef kaydı olan gün bu sayıya girmez. |
-| Kişi ve konum geçişi | Gün dosyalarının gövdesindeki her çözülen bağlantı. Her tekrar ayrı bir geçiştir. Frontmatter bağlantıları bu sayıya girmez. Bölüm toplamı ilk beşin dışındakileri de içerir. |
-| İlk kez geçenler | Bütün günlük geçmişinde ilk gövde bağlantısı bu döneme düşen varlıklar. Kasada oluşturma tarihi yoktur. Bu sayı dosya oluşturma sayısı değildir. Liste önce güne, sonra ada göre sıralıdır. |
-| Görev oluşturma günü | Kaynak gün dosyasının tarihi. Tekrarlayan görevin de oluşturma günü kaynak günüdür. |
-| Tamamlanan görev | Durumu tamamlanmış ve `✅` tarihi dönemde olan görev. |
-| Dönem sonu açık envanteri | Ölçülen son güne kadar kaynak gün dosyasında olan ve tamamlanmamış görevler. Tamamlanma tarihi o günden sonraysa görev o dönemde açıktır. Süren dönemde ölçülen son gün bugündür. Kaynak günü olmayan görev bugünden itibaren envanterdedir. |
-| Birim sonu açık | Dönem sonu açık envanteri kuralının her ritim biriminin ölçülen son gününe uygulanmasıdır. Hafta birimi gün, ay birimi 1'inden başlayan 7 günlük dilim, yıl birimi aydır. Süren birim bugünde biter; başlamamış birimin noktası yoktur. Bitiş tarihi gelecekte olan açık görevler de dahildir. Önceki çizgi önceki dönemin bütün birim sonlarını gösterir. |
-| Devreden ve tarihsiz | Bitiş tarihi ölçülen son günden önceyse görev devredendir. Bitiş tarihi yoksa görev tarihsiz açıktır. |
-| Envanter dışı | İptaller ve tamamlanma tarihi olmayan tamamlanmış görevler. |
-| Kaynak günü olmayan görev | Proje ya da not dosyasındaki görevdir. Oluşturma sayısına girmez. Bugün ve sonrasında açık sayılır; bugünden önceki günlere girmez ve geçmiş seri değişmez. |
-| Kaynak günü olmayan görev: biten dönem | Biten dönemin sayısı bakılan güne bağlıdır. Örnek: Ekim'e 31 Ekim'de bakılırsa görev sayılır, 1 Kasım'da sayılmaz. Önceki dönem bugün açık olan bu görevleri aynen taşır; fark onları saymaz. |
-| Kaynak günü olmayan görev: Görevler listesiyle fark | Bu görevlerde tarihsiz sayısı Görevler listesiyle aynıdır. İki fark kalır: gelecek tarihli gün dosyasındaki görev bugün sayılmaz; tamamlanma tarihi gelecekte olan görev Özetler'de açık sayılır. Geçerli tamamlanma tarihi varsa görev tamamlanan sayısına girer. |
-| Geri kurulamayan bilgi | Dosyalar durum ve değişiklik geçmişi tutmaz. Yeniden açma, iptal tarihi ve eski bitiş tarihi geri kurulamaz. |
-
-Özetler hedef ilerlemesi göstermez. Hedef ilerlemesi, zincir ve skor Hedefler sekmesindedir.
+Sayıların hesap tanımı ve süren dönemin karşılaştırma kuralı [Mimari](architecture.md#özetler) belgesindedir. Özetler hedef ilerlemesi göstermez. Hedef ilerlemesi, zincir ve skor Hedefler sekmesindedir.
 
 ### Haftalık inceleme
 
@@ -779,7 +741,7 @@ Manşetin altında görünüm sekmesi durur. Sekmenin altında görünüme göre
 | Platform farkı: kenar çubuğundan açılan Zaman çizelgesi | Mac ve bölünmüş kabuk | Manşette "Zaman çizelgesi" yazar ve sekme taşımaz. Çeyrek künyesi "**8** tarihli görev · 6 proje" olur. |
 | Filtre ve arama | Manşet satırı | Simge. Filtreler: kişi, konum, proje. |
 | Sekme | Künyenin altı | Liste \| Kanban \| Zaman çizelgesi: altı çizili sekme. Dar sütunda (iPad liste sütunu) sözcükler tek satıra sığmazsa üçüncü sekme "Çizelge" olur. |
-| Haftalık özet kartı | Liste'de sekmenin altı | Küçük "Bu hafta" etiketi, altında büyük "3/8 görev" ve ilerleme çubuğu. Pay, bu hafta tamamlanan görevdir. Payda, bitişi bu haftada olan ve bu hafta tamamlanan görevlerin toplamıdır. |
+| Haftalık özet kartı | Liste'de sekmenin altı | Küçük "Bu hafta" etiketi, altında büyük "3/8 görev" ve ilerleme çubuğu. Pay ve paydanın hesabı [Mimari](architecture.md#görevler) belgesindedir. |
 | Proje kartları | Liste'de özet kartının altı | Yatay kayan kartlar: durum çipi (Başlamadı, Sürüyor, Bitti; görev sayılarından), proje noktası ve ad, "1/3 görev" (biten/toplam) ve ilerleme çubuğu. Karta dokunma proje ekranını açar. Ad tek satırdır. |
 | Seçici | Liste'de proje kartlarının altı, öteki görünümlerde sekmenin altı | Liste'de "Bölüm" menüsü, Kanban'da "Grupla" menüsü, Zaman çizelgesi'nde Gün \| Hafta \| Çeyrek sekmesi. Bölümler (Devreden, Bugün, Yaklaşan…) kart içindedir. |
 | Geniş yüzey | Kanban ve Zaman çizelgesi | 680 pt sütun sınırına girmez. |
@@ -890,6 +852,17 @@ Manşetin altında görünüm sekmesi durur. Sekmenin altında görünüme göre
 | Görev ayrıntısı: içerik | Görev metni ve altında etiket-değer kartı: proje çipi, bitiş tarihi (devredende "30 Eyl'den"), tekrar, kişi ve konum. Öncelik sözcük seçimidir: Düşük · Normal · ! Orta · !! Yüksek. Altında not durur. |
 | Görev ayrıntısı: eylemler | Altta "Yarına taşı" ve "Haftaya taşı" ikincil düğme, "Bitti" birincil düğme. Kapalı görevde taşıma ve "Bitti" yoktur. |
 
+#### Tarihsiz görevler
+
+**Tablo bitiş tarihi olmayan görevin göründüğü yerleri gösterir.**
+
+| Yer | Tarihsiz görev |
+|---|---|
+| Oluşturulduğu günün ekranı | Görünür. Gün ekranı, o günün `diary/` dosyasında yazılı tarihsiz görevleri listeler. |
+| Sonraki günlerin ekranı | Görünmez. |
+| Görevler ekranı, "Tarihsiz" listesi | Görev açık kaldıkça, oluşturulduğu günden başlayarak görünür. |
+| `notes/` altındaki tarihsiz görev | Hiçbir gün ekranında görünmez. "Tarihsiz" listesinde görünür. |
+
 ### Kişiler ve Konumlar
 
 **Kişiler ve Konumlar ekranında nerede ne var.**
@@ -954,6 +927,7 @@ Manşetin altında görünüm sekmesi durur. Sekmenin altında görünüme göre
 | 5a | Etkinlik eşleşmesi | Çok sözcüklü ad ya da takma ad başlıkta bitişik tam sözcüklerle ya da katılımcının tam adıyla eşleşir. Tek sözcüklü ad yalnız katılımcının tam adıyla eşleşir. Harf boyuna bakılmaz; Türkçe `İ`/`ı` kuralı geçerlidir. |
 | 5a | Etkinlik başlığının sağı | Doğum günü etkinliği yoksa küçük "Doğum günü ekle" bağlantısı durur; eşleşen etkinlik yoksa bölüm yalnız bu düğmedir. Bağlantı yoksa sayı durur: "2 etkinlik". |
 | 5b | Doğum günü ekle | Tarih soran küçük sheet. Kişi dosyasında [doğum günü alanı](vault-format.md#doğum-günü-alanı) varsa tarih hazır gelir ve düğme tarihi de yazar: "Doğum günü ekle · 12 Nis". Alan yoksa tarih elle seçilir. |
+| 5b | Doğum günü ekle: başlangıç | Yıllı değerde etkinlik doğum tarihinden başlar. Yılsız değerde bu yılın o gününden başlar; `--02-29` son artık yıldan başlar. |
 | 5b | Doğum günü ekle: düğme | Başlık satırına sığmazsa tarih düşer; iPhone düğmeyi tarihsiz gösterir. |
 | 5b | Doğum günü ekle: Kaydet | Kaydet her yıl tekrarlayan tüm gün etkinliği yazar: "<Ad> doğum günü", varsayılan takvime. Kaydetmeden önce uygulama doğum gününü yeniden arar. Varsa yazmaz; sheet açık kalır ve "Bu kişinin doğum günü takvimde zaten var." yazar. |
 | 5b | Doğum günü sayılan etkinlik | Başlığı, işaret ve ek sözcükler çıkınca kişinin tam adına eşit olandır; işaret "doğum günü" ya da "birthday". Doğum günleri takviminden gelmeyen etkinlik ayrıca yıllık ve tüm gün olmalıdır. Şubatın son günü kuralı da yıllık sayılır. |
@@ -993,8 +967,7 @@ Konumda koordinat, Alanlar kartında bir satırdır. Okuma ekranında harita yok
 | Ekleme | Üstte odaklı tek alan ve "Ekle". Klavyenin onay tuşu da ekler. Başarılı eklemeden sonra alan boşalır ve odak kalır. |
 | Kaldırma | Mevcut takma adlar alanın altında çiptir. Çipin çarpısı o takma adı kaldırır. |
 | Reddedilen | Boş ya da yalnız boşluk olan metin, varlığın kendi adı ve var olan takma ad. Karşılaştırma [ad anahtarıyla](vault-format.md#adlar-ve-karşılaştırma) yapılır. Hata alanın altında bilgi bandıdır. |
-| Reddedilen karakterler | `\|`, `[`, `]`. Kontrol karakterleri: satır sonu, sekme, U+0000. Satır ve paragraf ayırıcı: U+2028, U+2029. Görünmez biçim karakterleri: U+200B, U+FEFF, U+200E, U+200F, U+00AD ve Unicode `Cf` sınıfının geri kalanı. |
-| Emoji | İki emoji arasındaki birleştirici (U+200D) ve siyah bayraktan (U+1F3F4) sonraki bayrak etiket harfleri geçerlidir. Başka yerdeki birleştirici reddedilir. |
+| Reddedilen karakterler | Kural [Kasa biçimi](vault-format.md#takma-ad-karakterleri) belgesindedir. |
 | Art arda işlem | Yazma sürerken istenen ekleme ya da kaldırma bekler ve sırayla yazar. Alan yalnız eklenen metni hâlâ taşıyorsa boşalır. |
 | Kaldırılan öğe | Uygulama değeri bayt bayt karşılaştırır ve yalnız o çipin öğesini siler. Aynı adın NFC ve NFD yazımı iki ayrı çiptir. |
 | Başka kayıtla eşleşme | Uygulama eklemeyi engellemez. Bilgi bandı öteki kaydı adıyla söyler. Tanıma o adı kullanıcı seçmeden bağlamaz. |
@@ -1062,7 +1035,7 @@ Konumda koordinat, Alanlar kartında bir satırdır. Okuma ekranında harita yok
 | Geçişler bölümü | Kartın içinde, başlığın hemen altında yer alır; ayrı başlığı yoktur. 12 takvim ayı çubuğu (ay adları altta, sayı yok) ve altında 90 günlük şerit (iki satır, 45+45). Hiç geçmemiş varlıkta bu bölüm görünmez; konum ekranında aynıdır. |
 | Geçişler: sayım | Son 12 aydaki gün sayısı çubuğun VoiceOver etiketindedir. Eşit aylarda en erken ay en yoğun sayılır. |
 | Sıklık ve ortalama aralık | Şerit altında tek satırdır ve uyarı metniyle biter: "Son 90 günde 43 gün · ortalama aralık 2,1 gün. Günlükteki geçişlere dayanır." |
-| Sıklık: hesap | Sıklık bugün dahil son 90 takvim gününde (`bugün -89` … bugün) geçilen farklı gün sayısıdır; aynı gündeki tekrarlar tek gündür. Ortalama aralık bu penceredeki son ve ilk gün farkının `gün sayısı -1` değerine bölümüdür. 2 günden az geçiş varsa aralık parçası görünmez. |
+| Sıklık: hesap | Pencere ve ortalama aralık hesabı [Mimari](architecture.md#varlık-zaman-akışı-ve-son-görüşme) belgesindedir. 2 günden az geçiş varsa aralık parçası görünmez. |
 | İlk geçiş | Bütün geçmişten gelir. |
 | Ritim satırı | Kişide ritim varsa: "Ritim: 30 günde bir". |
 | Erteleme satırı | Erteleme sürüyorsa kısa tarihle: "1 Kas tarihine kadar ertelendi". |
@@ -1196,7 +1169,7 @@ Konumda koordinat, Alanlar kartında bir satırdır. Okuma ekranında harita yok
 | Platform farkı: sütun kartının altı | iPad ve Mac | Günlükte 7 günlük çetele ve "zincir 12", yıllıkta ilerleme çubuğu ve yüzde. Dönem çipi adın yanına sığmazsa adın altına iner. |
 | Uzun basma | Hedef satırı | Boolean hedefte Bugünü işaretle ya da İşareti kaldır; sayısal hedefte Miktar gir (ayrıntıyı miktar alanı odaklı açar); ardından Düzenle ve Sil. Kilometre taşında yalnız Düzenle ve Sil. İkincil tık aynı menüyü açar. Sil onay ister; gün kayıtları kalır. |
 
-**Zincir kuralı.** Günlük hedefte önceki iki günü ve sonraki günü yapılmış bir kaçırma affedilir. Affedilen gün zinciri korur, zincire eklenmez ve yapılmış gün sayılmaz. Örnek: "yapıldı, yapıldı, kaçtı, yapıldı" zinciri 3'tür. "Yapıldı, yapıldı, kaçtı, yapıldı, kaçtı, yapıldı" zinciri 1, en uzun zinciri 3'tür: ilk kaçırma affedilir; ikinci kaçırmanın önündeki iki günden biri affedilmiş gündür. "Yapıldı, kaçtı, yapıldı, kaçtı, yapıldı" zinciri 1'dir: hiçbir kaçırmanın önünde iki yapılmış gün yoktur. Bugün henüz yapılmamışken dünkü kaçırma, önceki iki gün yapılmışsa zinciri düşürmez. İki gün üst üste kaçırıldıysa zincir 0'dır. Zincir günü varsa af olmayan kaçırmayı zincir günü korur: zincirdeki her 7 yapılmış gün 1 zincir günü kazandırır, bakiye en çok 3'tür (`vault-format.md`, Zincir günü).
+**Zincir kuralı.** Af, zincir ve zincir günü kuralları [Kasa biçimi](vault-format.md#zincir) belgesindedir: "Zincir" ve "Zincir günü" bölümleri.
 
 **Hedef ayrıntısı: tek sayfa, yukarıdan aşağı.**
 
@@ -1209,15 +1182,14 @@ Konumda koordinat, Alanlar kartında bir satırdır. Okuma ekranında harita yok
 | Halka | Halka dönemin bütün günlerini sayar. |
 | Değerin altı | Miktar çipleri ve "Hedefe tamamla" durur. En altta küçük "Kaydı kaldır" onay ister; kayıt yoksa bu bağlantı görünmez. Hedef ve birim alanın yanına sığmazsa alt satıra iner. |
 | Öteki türler | Evet/hayır hedefte büyük değerin altında "Bugünü işaretle" durur. Kilometre taşında yapıldı ya da yapılmadı ve tarih durur. |
-| Miktar çipleri | Çipler hedefin yaklaşık 1/15, 2/15 ve 1/3'üdür. Her biri aşağı doğru 1, 2, 2,5 ya da 5 × 10ⁿ değerine yuvarlanır. Değer tam sayıdır, en az 1'dir, tekrar etmez. |
-| Miktar çipleri: örnek | `7500` → +500 +1000 +2500; `20` → +1 +2 +5; `8` → +1 +2. |
+| Miktar çipleri | En çok 3 çip, küçükten büyüğe: "+500 +1000 +2500". Değerlerin hesabı [Mimari](architecture.md#hedef-hesapları) belgesindedir. |
 | Hedefe tamamla | Dönemin eksiğini günün değerine ekler. Eksik dönemin bütün günleriyle hesaplanır; geçmiş Pazartesi Çarşamba'nın kaydını da sayar. |
 | Düzenlenen gün | Panel bugünden başka bir günü düzenliyorsa üstünde günün satırı durur: "11 Eyl Cuma düzenleniyor"; bugün için satır yoktur. Isı haritası hücresi ya da son kayıt satırı o günü panele getirir; satıra "Bugüne dön" eklenir. Ayrı düzeltme sayfası yoktur. |
 | Düzenlenen gün: yükleme | Gün yüklenene dek alan kapalıdır; yükleme hatası bantta yazar. |
 | İstatistik şeridi | Kartta yan yana: güncel zincir ve en uzun zincir, son 30 gün yüzdesi, affedilen gün sayısı. Haftalık ve yıllık hedefte zincir ve skor yoktur. Kilometre taşında şerit yoktur. |
 | Grafik kartı | Başlık kartın içindedir; sağında özet: "Ortalama **25,2** · hedefin üstünde **78** gün". Grafiğin altında gösterge: Ulaştı, Altında, 7 gün ort., Hedef 20. Kilometre taşında grafik yoktur. |
 | Grafik: döneme göre | Günlük hedefte son 90 gün: günlük nokta, 7 günlük ortalama çizgisi, hedef çizgisi. Haftalık hedefte son 12 hafta toplamı. Yıllık hedefte 12 aylık toplam çubuğu ve altında aylık liste. |
-| Grafik: büyük yazı | Erişilebilirlik boyutunda günlük grafik son 30 günü çizer. Göstergenin üstünde aralık satırı durur: "12 Eyl – 11 Eki". |
+| Grafik: erişilebilirlik boyutu | Erişilebilirlik boyutunda günlük grafik son 30 günü çizer. Göstergenin üstünde aralık satırı durur: "12 Eyl – 11 Eki". |
 | Isı haritası | Grafik kartının altında kendi kartında. Başlık döneme göre hafta sayısı söylemez. Isı haritası geleceği çizmez; bugün çerçevelidir. |
 | Isı haritası: kaydırma | Sığmazsa en yeni hafta açık gelir. Gösterge haftalarla birlikte kaymaz. |
 | Affedilen gün satırı | Günlük hedefte istatistik kartının altında, son 90 gündeki en yeni affedilen gün için tek satır: "**14 Eyl affedildi:** önceki iki gün ve ertesi gün yapıldı." Böyle gün yoksa satır yoktur. |
@@ -1234,7 +1206,7 @@ Konumda koordinat, Alanlar kartında bir satırdır. Okuma ekranında harita yok
 | Formda kaydetme | "Kaydet" yalnız değişen alanları yazar; öteki satırlar ve tanınmayan alanlar bayt düzeyinde kalır. Ad değişse de dosya adı değişmez. Değişen alanlardan biri geçersizse hiçbir alan yazılmaz. Hata alanın altında yazar: boş ad, kullanılan ad, sıfır ya da sayı olmayan miktar. Hiçbir alan değişmediyse "Kaydet" kapalıdır. |
 | Formdan çıkma | Kaydedilmemiş değişiklik varsa "Vazgeç" ve aşağı kaydırma soru sorar: "Değişiklikleri at" ya da "Düzenlemeye devam et". Değişiklik yoksa sheet hemen kapanır. |
 
-Grafikte "Ortalama", görünür aralıkta kaydı olan günlerin değer ortalamasıdır; kayıtsız gün sıfır değildir. "Hedefin üstünde" sayısı hedefe eşit ya da üstünde kaydı olan günleri sayar. Bir günün son kaydı geçerlidir; türü uymayan ya da geçersiz (negatif, sonsuz) son kayıt o günü 0 yapar. Kural ilerleme ve ısı haritasıyla aynıdır. Tepe eşitse en yeni gün seçilir. Çizgi her günün ve önceki altı günün kayıt ortalamasıdır; en az üç kayıt gerekir, aksi hâlde çizgi kırılır. İlk günün penceresi görünür aralıktan önceye uzanır. Haftalar pazartesi başlar; son hafta ve ay yalnız bugüne kadarki kayıtları toplar. Aylık hız çizgisi yıllık hedefin on ikide biridir; haftalık çizgi haftalık hedeftir. Gelecek kayıtları hesaba girmez.
+Grafiğin ortalama, sayı ve çizgi hesabı [Mimari](architecture.md#hedef-hesapları) belgesindedir.
 
 **Yeni hedef sheet'i.**
 
@@ -1469,15 +1441,8 @@ stateDiagram-v2
 | Pencere | Bugün dahil 7 gün, yerel takvim saatleriyle. |
 | Görev özeti | Yalnız önceki günlerden açık görev varsa da tek sabah özeti gelir. Ayrı gecikme bildirimi yoktur. Tarihsiz, tamamlanan ve iptal görevler bildirime girmez. |
 | Günlük yazısı | Görev ya da hedef kaydı tek başına hatırlatmayı kapatmaz. |
-| Görüşme: sıklık | 7 günlük pencerede günde en çok 1 bildirim. |
-| Görüşme: kimler | Yalnız `cadence_days` değeri olan ve o gün vadesi gelen kişiler. Vade: son görüşmeden bu yana geçen gün ritme eşit ya da büyük. |
-| Görüşme: dışarıda kalan | Ritmi olmayanlar, hiç görüşülmemişler, duraklatılanlar ve erteleme günü (o gün dahil). Erteleme pencere içinde biterse kişi ertesi gün hesaba yeniden girer. |
 | Görüşme: gövde | En çok 3 ad. Fazlası: "Ad, Ad, Ad ve N kişi daha". İçerik gizliyken gövde: "Görüşme zamanı gelen N kişi var". |
-| Görüşme: yineleme | Bildirilen kişi, o günden sonra görüşülmediyse en erken ritminin dörtte biri kadar gün sonra yeniden girer. Tam bölme, en az 3 gün. |
-| Görüşme: son bildirim günü | Cihazda, kasa yoluna göre durur. Uygulama planlanan her bildirimin çalma anını tutar. Uygulama anı geçmiş bildirimi çalmış kabul eder. Neden: uygulama kapalıyken teslimatı göremez. |
-| Görüşme: geri çekilen | Plan yenilemesinde geri çekilen ve çalmamış bildirim sayıma girmez. Saat tercihi ya da kasa değişse de kural aynıdır. |
-| Görüşme: kayıt düşmesi | Ritmi kalmayan, silinen ya da yeniden adlandırılan kişinin kaydı düşer. |
-| Görüşme: yenileme | Yeni görüşme ya da ritim, erteleme veya duraklatma değişikliği planı öteki hatırlatmalarla aynı yenilemede kurar. Tercih kapanınca uygulama planlı `people-` bildirimlerini siler. |
+| Görüşme: sayım | Kimin hangi gün bildirime girdiği, yineleme ve kayıt kuralları [Mimari](architecture.md#bildirimler-ve-app-intents) belgesindedir. |
 | Plan yenileme | Açılış, ön plana dönüş, indeks yenilemesi (2 saniye birleştirme) ve tercih değişimi planı yeniler. Arka plana geçiş bekleyen planlamayı bitirir. Plan bugünün geçmiş saatlerini atlar. |
 | Kapalı uygulama | Uygulama kapalıyken planlı içeriği yeniden hesaplamaz. Yeni değişiklik sonraki açılışta ya da yenilemede yansır. 7 günlük pencere de yalnız uygulama çalışırken ileri gider. |
 | Günlük hatırlatması | Dokunma Bugün'ü ve Günü kapat akışını günlük adımından açar. Gün kuralı [Günü kapat](#günü-kapat) bölümündedir. |
@@ -1520,10 +1485,15 @@ stateDiagram-v2
 | İndeks sayıları | "Sayılar" kartı: dosya, gün, kişi, konum, hedef, not, olay, görev, varlık, bağlantı, çözülmemiş, reddedilen iCloud indirme istekleri. Sayılar tabulardır. Widget verisi ya da konum hatırlatmaları okunamadıysa hata anı tehlike renginde bir satırda görünür. Sonraki başarılı okuma satırı kaldırır. |
 | Atlanan yollar | Sembolik bağlantı ya da yinelenen yol. Ekran uzun yolu kırpar. Kullanıcı yolu kopyalar. |
 | Kopya dosyalar | Gün kopyaları ve varlık kopyaları. Her satır kopyanın yolunu ve altında özgün dosyanın yolunu gösterir; kopya yoksa bölüm görünmez. Kural: [Varlık kopyası](vault-format.md#varlık-kopyası). |
+| Kopya dosyalar: sıra | Önce gün kopyaları birleştirme sırasıyla gelir. Sonra varlık kopyaları özgün yola ve sayıya göre gelir. |
 | Kopya dosyalar: birleştirme | Tanılama kopyayı birleştirmez. Uygulama iCloud kasasında gün kopyalarını kendiliğinden birleştirir; birleşemeyen kopya burada kalır. |
-| Çakışan sürümler | Yalnız iCloud Drive kasasında: iCloud'un çözülmemiş sürüm sakladığı dosyalar. Dosya yoksa bölüm görünmez; liste ön plana dönüşte yenilenir. Kural: [Çakışan sürümün listesi](vault-format.md#çakışan-sürümün-listesi). |
-| Çakışan sürümler: satır | Her satır dosyanın yolunu, "N sürüm" ve en yeni sürümün zamanını, altında sürümü kaydeden cihazların adlarını gösterir. Bölümün altında tek cümle durur: "Kenet sürümleri birleştirmez ve silmez." Cümle bir çözüm yolu vaat etmez. |
+| Çakışan sürümler | Yalnız iCloud Drive kasasında: iCloud'un çözülmemiş sürüm sakladığı dosyalar. Dosya yoksa bölüm görünmez. Kural: [Çakışan sürümün listesi](vault-format.md#çakışan-sürümün-listesi). |
+| Çakışan sürümler: yenileme | Tanılama listeyi her indeks yenilemesinde ve uygulama ön plana her dönüşte yeniden okur. iCloud çakışması kasa klasöründe olay üretmeyebilir. |
+| Çakışan sürümler: satır | Her satır dosyanın yolunu, "N sürüm" ve en yeni sürümün kayıt zamanını, altında sürümü kaydeden cihazların adlarını gösterir. Zamanı bilinmeyen sürümün satırında zaman yoktur. |
+| Çakışan sürümler: sıra | Dosyalar yolun bayt sırasıyla gelir. Sürümler yeniden eskiye gelir. Aynı saniyedeki sürümler cihaz adına göre gelir; adsız sürüm sondadır. |
+| Çakışan sürümler: cümle | Bölümün altında tek cümle durur: "Kenet sürümleri birleştirmez ve silmez." Cümle bir çözüm yolu vaat etmez. |
 | Çakışma kopyaları | Gün kopyası birleştirmesinin `conflicts/` altına sakladığı sürümler. Her satır kopyanın yolunu ve altında gün dosyasının yolunu gösterir. Kopya yoksa bölüm görünmez. Uygulama kopyayı açmaz ve silmez. Kural: [Çakışma kopyası](vault-format.md#çakışma-kopyası). |
+| Çakışma kopyaları: sıra | Gün, addaki zaman, sonra sayı; sayısız ad önce gelir. |
 | Üçüncü taraf lisansları | Salt okunur alt ekran. Uygulamaya giren her paketin adı, lisans türü ve paketlenmiş lisans metni. Uygulama metni çevirmez. |
 | Lisans alt ekranı | iPhone alt ekranı gezinme yığınına iter. Mac'te alt ekran Tanılama sekmesinin içeriğinin yerine geçer. En üstteki "Tanılama" düğmesi geri döndürür. Sekme şeridi değişmez. |
 
@@ -1735,9 +1705,11 @@ flowchart TD
 | İlk kasa | Kullanıcı kasayı açınca boş Bugün ekranında ipucu görünür: "Gününden bir an yaz; @ ile kişi ekle". İlk kişi ve konum yazarken oluşur. |
 | Kayıtlı kasaya erişilemiyor | Yer imi var ama klasör açılmıyorsa ya da yer imi bozuksa sekmelerin yerine durum ekranı gelir. "Yeniden dene" ve "Başka klasör seç" düğmeleri durur. Yerel kasaya sessiz geçiş yoktur. |
 | Boş gün | Kartta simge, suçlayıcı olmayan kısa metin. Hızlı giriş hazırdır. |
-| Eski gün klasörü | 2026-11-13 öncesi kasada, yazılabilir kasa açıkken ana pencerenin üstünde bilgi bandı durur: “Bu kasa gün dosyalarını eski journal klasöründe tutuyor.” Bantta “Taşı…” ve kapatma vardır. Kapatılan bant kasa yeniden açılana kadar gelmez. |
-| Eski gün klasörü: onay | “Taşı…” onay uyarısı açar: başlık “Gün dosyaları taşınsın mı?”. Metin önce bütün cihazları güncellemeyi ve yol bağlantılarının kırılacağını söyler; düğmeler “Taşı” ve “Sonra”. |
-| Eski gün klasörü: sonuç | Taşıma bitince kapatılabilir bant sonucu söyler: “12 gün dosyası diary klasörüne taşındı.” Taşınamayan dosya varsa bant uyarı tonundadır ve ilk 5 adı yazar. |
+| Eski gün klasörü | 2026-11-13 öncesi kasada, yazılabilir kasa açıkken ana pencerenin üstünde bilgi bandı durur: “Bu kasa gün dosyalarını eski journal klasöründe tutuyor.” Bantta “Taşı…” ve kapatma vardır. |
+| Eski gün klasörü: erteleme | Kullanıcı bandı kapatırsa ya da onayda “Sonra” derse öneri kasa yeniden açılana kadar gelmez. |
+| Eski gün klasörü: onay | “Taşı…” onay uyarısı açar: başlık “Gün dosyaları taşınsın mı?”; düğmeler “Taşı” ve “Sonra”. |
+| Eski gün klasörü: onay metni | Metin dört şey söyler. Önce Kenet'i bütün cihazlarda güncelle. Dosyalar `journal/` klasöründen `diary/` klasörüne taşınır. Başlık ve `type` yeni adı alır. `[[journal/…]]` yol bağlantıları çalışmaz. |
+| Eski gün klasörü: sonuç | Taşıma bitince kapatılabilir bant sonucu söyler: “12 gün dosyası diary klasörüne taşındı.” Taşınamayan dosya varsa bant uyarı tonundadır, kalan dosyaları sayar ve ilk 5 adı yazar. Öneri yeniden gelir. Kural: [Eski adlar ve geçiş](vault-format.md#eski-adlar-ve-geçiş). |
 | Kasa eşitlenirken | Eldeki içerik görünür. Yalnız iCloud kasasında ana pencerenin üstünde, içeriği aşağı iterek küçük ve sessiz bir gösterge eşitleme durumunu söyler: “3 dosya iCloud’dan iniyor.” ya da “2 gün kopyası birleştiriliyor.” Eşitleme bitince gösterge kalkar. |
 | Kasa eşitlenirken: gösterge | Gösterge eşitlenen klasör bandının biçimindedir: bilgi tonunda `InfoBand`, kapatma düğmesi yok. İstek reddedilir ya da düşerse uygulama ön plana her dönüşte bekleyen dosyaları yeniden ister. |
 | Kasa eşitlenirken: birleştirme sonucu | Gün kopyası birleştirmesi bitince aynı yerde kapatılabilir bant sonucu söyler: “7 gün kopyası birleştirildi.” Birleşmeyen kopya varsa bant uyarı tonundadır ve kopyanın Tanılama’da durduğunu söyler. |

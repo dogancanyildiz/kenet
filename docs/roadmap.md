@@ -13,7 +13,7 @@
 | Son güncelleme | `2026-11-11` |
 | Aktif aşama | 11 Kimlik, eşitleme ve widget'lar |
 | Aşama 11'in açık kutuları | Eşitlenen kasada güvenli yazma; Mac widget'ları |
-| Birlikte yürüyen | Aşama 13'ün Duo dilimi; Xcode 27.1'i bekler |
+| Birlikte yürüyen | Aşama 13'ün Duo dilimi; CI runner imajında Xcode 27'yi bekler |
 | Kullanıcıda bekleyen | Aşama 8: kilidin cihaz doğrulaması |
 
 Bitmiş aşamalar "Tamamlanan teknik kapsam" bölümündedir. Açık kutusu olan aşamalar önce gelir.
@@ -204,9 +204,9 @@ Kimlikler 2026-10-21'de karara bağlandı. Güvenli yazmanın kalanı kullanıc�
 | Lisans, ad, gelir modeli | Açık. Ad Kenet, lisans "tüm hakları saklıdır" ve gelir modeli karara bağlandı. Gelir modeli gönüllü destektir: karar günlüğü, 2026-11-13. Destek alt ekranı ve StoreKit katmanı kodda bitti: Ayarlar → Hakkında → Kenet'i destekle. Kalan iş: üç ürünü App Store Connect'te oluşturmak ve yazılı taahhüt. | #131 |
 | Mağaza sayfası | Açık | - |
 
-- [ ] Mağaza teknik hazırlığı: gizlilik bildirimi dosyası, ihracat bildirimi, uygulama simgesi, gizlilik politikası, üçüncü taraf lisans bildirimi. Ayrıca derleme numarası, platforma göre ayrı yetki dosyaları, iPad kararı ve yer tutucu bölümleri kaldırma.
+- [ ] Mağaza teknik hazırlığı. Kalan iş: gizlilik politikası sayfası. Bitenler: gizlilik bildirimi dosyası, ihracat bildirimi, uygulama simgesi, üçüncü taraf lisans bildirimi. Bitenler ayrıca: derleme numarası, platforma göre ayrı yetki dosyaları, iPad kararı, yer tutucu bölümleri kaldırma.
 - [ ] CD: TestFlight'a otomatik gönderim. CD, sürekli dağıtım demektir. Araç seçenekleri: Xcode Cloud ya da fastlane. Madde Aşama 7'den devretti.
-- [ ] Lisans, ad, gelir modeli; gönüllü destek ürünlerinin App Store Connect kaydı; yazılı "veri kilidi yok" taahhüdü.
+- [ ] Lisans, ad, gelir modeli. Kalan iş: gönüllü destek ürünlerinin App Store Connect kaydı ve yazılı "veri kilidi yok" taahhüdü. Bitenler: ad, lisans ve gelir modeli kararı; destek ekranı ve StoreKit katmanı.
 - [ ] Mağaza sayfası: metinler, ekran görüntüleri, yaş derecelendirmesi.
 
 **Çıkış ölçütü:** İlk dış kullanıcı uygulamayı TestFlight'tan kurar ve kendi kasasını açar.
@@ -218,7 +218,7 @@ Kimlikler 2026-10-21'de karara bağlandı. Güvenli yazmanın kalanı kullanıc�
 ```mermaid
 flowchart LR
     K["Kararlar 2026-10-13"] --> D0["Duo: Xcode 26 SDK ile kabuk"]
-    X["Xcode 27.1, iOS 27.1 SDK"] --> D1["Duo: iOS 27.1 API uyarlaması"]
+    X["Xcode 27 SDK: yerelde var"] --> D1["Duo: iOS 27.1 API uyarlaması"]
     R["Runner imajında Xcode 27.1"] --> D2["CI geçişi ve Duo kümeleri"]
     D0 --> D1
     D1 --> D2
@@ -228,8 +228,8 @@ flowchart LR
 
 | Madde | Durum | Kanıt |
 |---|---|---|
-| Duo kabuğu, Xcode 26 SDK | Bitti. Uyarlanır kabuk, boyut sınıfıyla görüntü altyapısı, durum köprüsü ve taslak koruma, krom ve dokunma, güvenli alan, sheet ve panel, belgeler. Kalan Duo işi iOS 27.1 SDK'yı bekler. | #233, #236, #240, #241, #242 |
-| Duo iOS 27.1 API uyarlaması | Açık. Xcode 27.1'in iOS 27.1 SDK ile çıkmasını bekliyor. | - |
+| Duo kabuğu, Xcode 26 SDK | Bitti. Uyarlanır kabuk, boyut sınıfıyla görüntü altyapısı, durum köprüsü ve taslak koruma, krom ve dokunma, güvenli alan, sheet ve panel, belgeler. Kalan Duo işi CI'ın Xcode 27'ye geçişini bekler. | #233, #236, #240, #241, #242 |
+| Duo iOS 27.1 API uyarlaması | Açık. Engel CI'dır: runner `Xcode_26.6` kullanır. SDK yerelde vardır (Xcode `27.2`). Kod CI geçişinden önce `dev`'e girmez. | - |
 | CI geçişi ve Duo kümeleri | Açık. Duo kümeleri 2026-11-16'da bugünkü runner'da CI kapısı oldu. Xcode 27.1'e geçiş runner imajını bekliyor. | - |
 | iPad karma kabuk | Bitti. Üç sütun kademesi, kenar çubuğu ve seçim biçimi, arama ve Rehberden aktar, Kanban ve zaman çizelgesi iPad biçimi, cihaz türü metinleri, iPad görüntü kümeleri ve CI'da iPad adımı. | #265, #266, #267, #268 |
 | iPad kalanlar | Bitti. Klavye kısayolları (⌘K hızlı geçiş, ⇧⌘F arama, ⌘T bugün), iPad ekran turu (`screen-tour.sh --pad`), CI'da iPad erişilebilirlik denetimi, işaretçi vurgusu, soğuk açılışta açık kenar çubuğu. | #270, #271, #274, #277 |
@@ -242,7 +242,7 @@ iPhone Duo'nun dış ekranı sıkışık, iç ekranı düzenli × düzenli boyut
 - [ ] CI geçişi ve Duo kümeleri: xcode-27 runner, simülatör seçicileri, Duo görüntü kümeleri, `testflight.sh` SDK denetimi.
 - [x] iPad karma kabuk: 1000 pt ve üstü pencerede 3 sütun, dar pencerede telefon düzeni.
 - [x] iPad kalanlar: klavye kısayolları, iPad ekran turu, CI'da iPad erişilebilirlik denetimi, işaretçi vurgusu.
-- [x] iPad mağaza kaydı: cihaz ailesine 2'nin eklenmesi ve mağaza listesi. Geri alınamaz; kullanıcı kararı (2026-10-16). Mağaza listesi sürümde.
+- [x] iPad mağaza kaydı: cihaz ailesine 2'nin eklenmesi. Geri alınamaz; kullanıcı kararı (2026-10-16). Mağaza listesi bu kutuda değildir; Aşama 12'nin mağaza sayfası maddesindedir.
 
 **Çıkış ölçütü:** Duo simülatöründe 4 pozda bütün ana ekranlar taslak kaybı olmadan çalışır. Var olan iPhone ve Mac görüntü referansları değişmeden geçer.
 
@@ -403,7 +403,7 @@ Tasarım yönü, belirteçler ve kurallar [Tasarım dili](design.md) belgesinded
 
 ### Aşama 16: İlişkiler ve Graph
 
-- [x] Olay düzeyinde bağ; karar 83 ile varlıklar yalnız güne ve açık bağla bağlanır.
+- [x] Olay düzeyinde bağ; karar 2026-10-30 ile varlıklar yalnız güne ve açık bağla bağlanır.
 - [x] Günün grafiği: gün ekranındaki Graph simgesi o günün grafiğini açar.
 - [x] Açık ilişkiler: "Bağlar" bölümü, "Bağ kur" sheet'i, frontmatter'a wikilink.
 

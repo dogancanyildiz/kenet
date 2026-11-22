@@ -71,6 +71,8 @@ Kenet, kişiler, konumlar ve olaylar üzerine kurulu bir kişisel günlük uygul
 | CI, Linux | Swift 6.4 | Core derlemesi, biçim ve belge denetimi |
 | XcodeGen | Homebrew | `project.yml` dosyasından Xcode projesi üretimi |
 | python3 | Sistem sürümü | `.github/scripts/check-docs.sh`, `check-catalog-keys.py` (koddaki sabit metin katalogda var mı) ve `test-check-catalog-keys.py` |
+| `gh` | Homebrew | "CI'dan TestFlight (CD)" bölümündeki kurulum komutları ve `record-snapshots` iş akışını başlatma |
+| Ruby | Sistem sürümü | `.github/scripts/check-frontmatter-yaml.rb`; isteğe bağlı, CI koşmaz |
 
 **DİKKAT:** `xcodebuild` ve `swift` komutlarından önce `DEVELOPER_DIR` değişkenini ayarla.
 
@@ -116,11 +118,11 @@ export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 
 3. Core testlerini koş: `swift test --package-path Packages/Core -Xswiftc -warnings-as-errors`
 4. Mac uygulama testlerini koş: `xcodebuild test -project Kenet.xcodeproj -scheme Kenet_macOS -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO`
-5. iOS birim testlerini koş. Komut, CI gibi ekran görüntüsü kümelerini atlar.
+5. iOS birim testlerini koş. Komut, CI gibi ekran görüntüsü kümelerini atlar. `pick-simulator.sh` CI ile aynı aygıtı kimliğiyle seçer.
 
 ```sh
 xcodebuild test -project Kenet.xcodeproj -scheme Kenet_iOS \
-  -destination 'platform=iOS Simulator,name=iPhone 17' \
+  -destination "platform=iOS Simulator,id=$(sh .github/scripts/pick-simulator.sh iPhone | cut -d' ' -f1)" \
   -only-testing:KenetTests_iOS \
   $(sh .github/scripts/snapshot-suites.sh | sed 's#^#-skip-testing:KenetTests_iOS/#' | tr '\n' ' ') \
   CODE_SIGNING_ALLOWED=NO
@@ -136,14 +138,17 @@ xcodebuild test -project Kenet.xcodeproj -scheme Kenet_iOS \
 
 | İş | Komut |
 |---|---|
-| iOS referanslarını doğrula | `SNAPSHOT_TESTING_RECORD=never sh .github/scripts/record-screen-snapshots.sh` |
-| iOS referanslarını yenile | `sh .github/scripts/record-screen-snapshots.sh`; yalnız eşleşmeyen ya da eksik referansları yazar |
+| iPhone referanslarını yerelde doğrula | `SNAPSHOT_TESTING_RECORD=never sh .github/scripts/record-screen-snapshots.sh` |
+| iPad referanslarını yerelde doğrula | `SNAPSHOT_TESTING_RECORD=never sh .github/scripts/record-screen-snapshots.sh --pad` |
+| Farkı yerelde incele | `sh .github/scripts/record-screen-snapshots.sh`; yalnız eşleşmeyen ya da eksik referansları yazar; çıkan PNG'leri commit etme |
+| iPhone, iPad ve Duo referanslarını yenile | CI `record-snapshots` iş akışı, `target=ios` |
 | Mac referanslarını yenile | CI `record-snapshots` iş akışı, `target=mac` |
-| Duo referanslarını yenile | CI `record-snapshots` iş akışı, `target=duo` |
+| iOS ve Mac referanslarını birlikte yenile | CI `record-snapshots` iş akışı, `target=both` |
+| Yalnız Duo referanslarını yenile | CI `record-snapshots` iş akışı, `target=duo` |
 
-**DİKKAT:** iOS referanslarını CI ile aynı cihazda üret: en eski iOS çalışma zamanındaki iPhone 17. Çalışma zamanı sürümünü Mimari belgesindeki "Simülatör seçimi" satırı verir.
+**DİKKAT:** Referansları yalnız CI kaydeder; yerel koşu incelemedir. Yerel simülatörün çalışma zamanı CI'dakinden farklıysa yerel görüntü farklı çıkar. CI'ın seçtiği aygıtı ve çalışma zamanını Mimari belgesindeki "Simülatör seçimi" satırı verir.
 
-Küme kuralları, tavanlar, Mac kayıt ortamı ve ortam değişkenleri [Mimari](docs/architecture.md#ekran-görüntüsü-ve-duman-testleri) belgesindedir. Yerel Mac PNG'lerini commit etme.
+Küme kuralları, tavanlar, Mac kayıt ortamı ve ortam değişkenleri [Mimari](docs/architecture.md#ekran-görüntüsü-ve-duman-testleri) belgesindedir. Yerel PNG'leri commit etme. `SNAPSHOT_DERIVED_DATA` kayıt betiğinin derleme klasörünü seçer; varsayılan `.dd/snapshots`.
 
 ## Ekran turu
 
@@ -170,10 +175,9 @@ Küme kuralları, tavanlar, Mac kayıt ortamı ve ortam değişkenleri [Mimari](
 | `SCREEN_TOUR_DERIVED_DATA` | iPhone ve iPad turunun derleme klasörü; varsayılan `.dd/screen-tour` |
 | `SCREEN_TOUR_WINDOW=1000x700` | Mac penceresinin boyutu; varsayılan 1280x800 |
 | `SCREEN_TOUR_ONLY=ayarlar,koyu` | Mac turunda yalnız adı verilen bölümleri koşar |
-| `KENET_UITEST_CLOCK=09:41` | Tur kendisi verir; uygulama saati durum çubuğuyla aynıdır, selam sabahtır |
 | `SCREEN_TOUR_TREE=1` | Her görüntünün yanına erişilebilirlik ağacını `<çıktı>/agac/` altına yazar |
 
-Tur, tasarım işinde önce ve sonra karşılaştırması içindir. iPhone turu uygulamayı örnek kasayla simülatörde gezer. Mac turunda uygulama ayrı bir bundle kimliği ve geçici bir ev klasörü kullanır. Mac turu gerçek kasaya ve ayarlara dokunmaz.
+Tur uygulama saatini `09:41`'e kendisi sabitler (`KENET_UITEST_CLOCK`); bu değeri betik okumaz. Tur, tasarım işinde önce ve sonra karşılaştırması içindir. iPhone turu uygulamayı örnek kasayla simülatörde gezer. Mac turunda uygulama ayrı bir bundle kimliği ve geçici bir ev klasörü kullanır. Mac turu gerçek kasaya ve ayarlara dokunmaz.
 
 **NOT:** Çıktı klasörünü depo dışında seç; Kasa ayar sayfası görüntüsü makine yolunu gösterebilir, görüntüleri depoya ve PR'a ekleme.
 
@@ -205,8 +209,8 @@ flowchart TD
    | Seçeneksiz | Arşivler, özeti gösterir, onay gelince yükler |
    | `--yes` | Onay sormadan yükler |
    | `--check` | İmzasız arşivler ve yalnız denetler; yükleme yok |
-   | `--mac` | Mac uygulamasını (`Kenet_macOS`) arşivler ve yükler; `--check` ve `--ci` ile birleşir |
-   | `--ci` | CI'da API anahtarıyla onaysız yükler; "CI'dan TestFlight (CD)" bölümü |
+   | `--mac` | Mac uygulamasını (`Kenet_macOS`) arşivler ve yükler; `--check` ya da `--ci` ile birleşir |
+   | `--ci` | CI'da API anahtarıyla onaysız yükler; `--keychain`, `--api-key`, `--api-key-id`, `--api-issuer` ister; `--check` ile birleşmez; "CI'dan TestFlight (CD)" bölümü |
 
    Betik HEAD'i geçici bir kopyaya çıkarır ve arşivi oradan alır. Xcode'un çalışma klasöründe yeniden yazdığı dosyalar böylece yapıya girmez. Betik paketteki kimliği, sürümü, yapı numarasını ve belge paylaşımı anahtarlarını denetler. Koşullar: yerel `dev`, `origin/dev` ile aynıdır; Xcode'da aynı Apple hesabıyla oturum açıktır. `dev` dalına itme olunca `.github/workflows/testflight-check.yml` aynı `--check` denetimini koşar ve yükleme yapmaz.
 

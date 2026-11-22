@@ -18,15 +18,15 @@
 | Çekirdek | `Core` Swift paketi; Apple arayüz ve sistem çerçevelerine bağımsız |
 | Veri | Markdown dosyaları; gerçek kaynak |
 | İndeks | SQLite, GRDB, FTS5 |
-| Eşitleme | iCloud Drive, uygulamanın kendi kapsayıcısı (`Documents/Kenet`); kasa konumu bölümü. Eşitlenen kasada güvenli yazmanın kalanı açık: indirme isteği, gün kopyası birleştirmesinin bağlanması, eşitleme göstergesi |
-| Widget | WidgetKit. Ana ekran zincir widget'ı, yalnız iOS: `KenetWidgets` hedefi. Veriyi App Group'taki anlık görüntüden okur. iCloud kasasında açık evet/hayır hedefini kendi sürecinde işaretler |
+| Eşitleme | iCloud Drive, uygulamanın kendi kapsayıcısı (`Documents/Kenet`); kasa konumu bölümü. Eşitlenen kasada güvenli yazmanın kalanı: çakışan sürüm çözümleme ve gerçek cihaz doğrulaması (`roadmap.md`, Aşama 11) |
+| Widget | WidgetKit, yalnız iOS: `KenetWidgets` hedefi. Zincir, kilit ekranı ve hızlı giriş widget'ı ile Denetim Merkezi kontrolü. Veriyi App Group'taki anlık görüntüden okur. iCloud kasasında açık evet/hayır hedefini kendi sürecinde işaretler |
 | Paylaşım uzantısı | Share extension, yalnız iOS: `KenetShare` hedefi. Paylaşılan metni ya da sayfa bağlantısını olay olarak ekler |
 | Sistem girişleri | App Intents: Kısayollar ve Siri |
 | Takvim | EventKit: okuma; kullanıcı isteğiyle etkinlik ekleme, düzenleme ve silme |
 | Konum | CoreLocation; harita için MapKit |
 | Bildirim ve kilit | UserNotifications, LocalAuthentication |
 | Rehber | ContactsUI kişi seçicisi, yalnız iOS. Uygulama rehber izni istemez |
-| Günlük önerileri | JournalingSuggestions seçicisi, yalnız iPhone. Çerçeve cihaz SDK'sındadır; simülatör ve Mac derlemesinde kod `canImport` ile dışarıda kalır. iPad'de çerçeve vardır; seçici ürün kararıyla yalnız iPhone'da açılır ve kapıyı çalışma anındaki cihaz türü tutar. Seçici ayrı süreçte açılır; uygulama yalnız kullanıcının seçtiği öneriyi alır (`JournalingSuggestionsService`) |
+| Günlük önerileri | JournalingSuggestions seçicisi, yalnız iPhone. Çerçeve cihaz SDK'sındadır; simülatör ve Mac derlemesinde kod `canImport` ile dışarıda kalır. iPad'de çerçeve vardır; seçici ürün kararıyla yalnız iPhone'da açılır ve kapıyı çalışma anındaki cihaz türü tutar. Seçici ayrı süreçte açılır; uygulama yalnız kullanıcının seçtiği öneriyi alır (`App/Services/DiarySuggestionsService.swift`) |
 | Yerelleştirme | String Catalog: tr, en |
 
 ## Modül düzeni
@@ -75,7 +75,7 @@ flowchart TD
 
 | Klasör | İçerik |
 |---|---|
-| `App/Screens` | Konuya göre ekranlar: `Today`, `Days`, `Summaries`, `Tasks`, `Entities`, `Goals`, `Graph`, `Map`, `Onboarding`, `Settings` |
+| `App/Screens` | Konuya göre ekranlar: `Today`, `Days`, `Summaries`, `Tasks`, `Entities`, `Goals`, `Graph`, `Map`, `Calendar`, `Onboarding`, `Settings` |
 | `App/Screens/Shared` | Ortak görünüm parçaları |
 | `App/Navigation` | Platform gezinmesi |
 | `App/Model` | Ekran modelleri |
@@ -84,12 +84,12 @@ flowchart TD
 | `App/Mac` | Mac'e özgü parçalar |
 | `App/Design` | Ortak bileşenler ve tasarım belirteçleri |
 | `App/Resources` | String Catalog, lisans metinleri, gizlilik bildirimi |
-| `App/Support` | Yetki dosyaları ve plist ekleri |
-| `Widgets` | Widget hedefi: `WidgetBundle`, zaman çizelgesi, widget içi işaretleme niyeti (`MarkGoalInWidgetIntent`) ve yetki dosyası. String Catalog uygulamanınkidir: `App/Resources/Localizable.xcstrings` |
+| `App/Support` | Yetki dosyaları, kimlik sabitleri (`AppIdentifiers`), küçük yardımcılar, simge kaynağı (`AppIcon/`) |
+| `Widgets` | Widget hedefi: `WidgetBundle`, zincir widget'ının zaman çizelgesi, `LockScreenWidget`, `QuickEntryWidget`, `QuickEntryControl`, widget içi işaretleme niyeti (`MarkGoalInWidgetIntent`) ve yetki dosyası. String Catalog uygulamanınkidir: `App/Resources/Localizable.xcstrings` |
 | `Widgets/Shared` | Uygulamayla ortak: anlık görüntü biçimi, widget bağlantısı, widget içi işaretleme (`WidgetGoalMarker`), görünümler, renk belirteçleri |
 | `ShareExtension` | Paylaşım uzantısı hedefi: giriş noktası (`ShareViewController`), form modeli, Info.plist ve yetki dosyası |
 | `ShareExtension/Form` | Paylaşım formu (`ShareFormView`); uygulama da derler, ekran görüntüsü testleri çizer |
-| `Shared` | Uygulama ve paylaşım uzantısıyla ortak: olay yazıcısı ve App Group listeleri (`EntryWriting.swift`). Yalnız Foundation ve `Core` |
+| `Shared` | Uygulama ve paylaşım uzantısıyla ortak: olay yazıcısı ve paylaşım kuyruğu dosyaları (`EntryWriting.swift`), atılacak indeks (`ThrowawayIndex.swift`; widget hedefi de derler). Yalnız Foundation ve `Core` |
 
 ## Proje ayarları
 
@@ -331,7 +331,7 @@ Parça blok metnini taşımaz: paragraf, başlık, görev ve olay metni indekste
 
 ## Ekran sorguları
 
-**Tablo okuma modelinden çıkan yedi dilimi sırasıyla gösterir.**
+**Tablo okuma modelinden çıkan 14 sorguyu çıkış sırasıyla, 7 dilimde gösterir.**
 
 | Sıra | Dilim | Core sorgusu | `IndexStore` yöntemi | Ekran |
 |---|---|---|---|---|
@@ -406,7 +406,7 @@ Ekran tarafında `QueryOutcome` okumanın nasıl bittiğini ayırır: yanıt, ip
 
 ### Graph
 
-Okuma modeli Graph alanı tutmaz. Ekran açıkken ve her indeks yayımında `.task(id:)` sorguyu arka planda yeniden çalıştırır. Sorgu çözülmüş bağlantı toplamlarını ve gün dosyalarından gün başına anmaları getirir; yalnız `links`, `entities` ve `files` tablolarını okur, bloklara bakmaz. Başlık ve frontmatter bağlantıları da anma sayılır. Birlikte geçme grubu ve kenar ağırlığı hesabı yoktur (kullanıcı kararı 83, 2026-10-30: gün merkezli Graph). App dönem ve tür süzgeçlerini uygular. Gün düğümleri her zaman çizilir ve kenarları bütün gün anmalarından gelir. Varlıklar arasındaki tek kenar açık bağdır. Düğüm olacak varlıklar okuma modelinden gelir. Düğüm boyutu, ad tanımadaki gün düzeyli bağlam puanı ve içgörü kartı değişmez.
+Okuma modeli Graph alanı tutmaz. Ekran açıkken ve her indeks yayımında `.task(id:)` sorguyu arka planda yeniden çalıştırır. Sorgu çözülmüş bağlantı toplamlarını ve gün dosyalarından gün başına anmaları getirir; yalnız `links`, `entities` ve `files` tablolarını okur, bloklara bakmaz. Başlık ve frontmatter bağlantıları da anma sayılır. Birlikte geçme grubu ve kenar ağırlığı hesabı yoktur (karar 2026-10-30: gün merkezli Graph). App dönem ve tür süzgeçlerini uygular. Gün düğümleri her zaman çizilir ve kenarları bütün gün anmalarından gelir. Varlıklar arasındaki tek kenar açık bağdır. Düğüm olacak varlıklar okuma modelinden gelir. Düğüm boyutu, ad tanımadaki gün düzeyli bağlam puanı ve içgörü kartı değişmez.
 
 Özel tipler ana Graph'a süzgeçle girer. `computeGraphInput(customTypes:)` kişi ve konuma yalnız süzgeçte açılan tipleri ekler ve sorgu o türleri okur. Varsayılan sorgu kişi ve konumdur. Düğüm türü `GraphNode.Kind.custom(tip kimliği)`, tip adı kasanın tip kataloğundan gelir. Günün grafiği (`GraphFilter.scope == .day`) ayrı ve ucuz bir sorgu kullanır: `VaultIndex.dayGraphMentions(on:kinds:)`. Sorgu yalnız o tarihin gün dosyalarını okur (`files.date = ?`, `file_dates` indeksi). Sorgu ana sorgunun o günkü anmalarını döndürür. İki sorgu tek satır yürüyüşünü paylaşır (`graphRows(kinds:date:)`); gün sorgusu yalnız tarih koşulunu ekler. `IndexStore.computeDayGraphInput(on:)` kişi, konum ve kasanın bütün özel tiplerini ister. Gün sayfası aynı sorguyu gün yanıtıyla birlikte çalıştırır ve Graph simgesini yalnız grafikte gün dışında düğüm varken gösterir (`DayGraphEntry`). `DayGraphMentionsTests` her günün yanıtını bütün kasa sorgusunun o günüyle karşılaştırır.
 
@@ -505,6 +505,8 @@ Widget ekranlarla aynı hedef sorgusunu kullanır. Widget sorguyu kendisi çalı
 | Alan | Kullanan |
 |---|---|
 | `entities` | Graph düğümleri, bağlantılı metin ve bağlantı hedefleri, varlık listesi ve sayfası, arama, görev süzgeci ve görev ayrıntısı, kanban ve zaman çizelgesi kişi sütunları, proje sayfası, haftalık inceleme, harita, gün bağlamı ve geri bağlantılar, görüşme ritmi hatırlatması |
+| `counts` | Ayarlar → Tanılama sayıları |
+| Varlık kullanımı (`entityUsage`) | Varlık listesi sıralaması, Graph, arama ve harita |
 
 ## Bayat yanıt ve kasa değişimi
 
@@ -534,7 +536,7 @@ Widget ekranlarla aynı hedef sorgusunu kullanır. Widget sorguyu kendisi çalı
 | `NotificationService` | Yeniden planlamayı sırayla uygular ve izin durumunu yönetir. `UserNotifications` merkezine bir protokol üzerinden erişir |
 | `CadenceReminderPlan` | Bugünün kişi, ritim ve son görüşme verisinden pencere içindeki görüşme ritmi günlerini hesaplar |
 | `IntentActions` | Yer imi kapsamını ve indeksi açar; `IndexStore` üzerinden olay, görev ve hedef kaydı yazar |
-| `AppShortcutsProvider` | tr ve en Siri cümlelerini sunar |
+| `KenetShortcuts` (`AppShortcutsProvider`) | tr ve en Siri cümlelerini sunar |
 | `IntentNavigation` | Kullanıcıyı Bugün ekranına götürür; `openTodayForWriting` hızlı giriş odağı ister, kilitliyken `pendingFocus` kilit açılmasını bekler |
 | `OpenQuickEntryIntent` | Uygulamayı öne getirir; uygulama hedefindeki `perform` aynı odak isteğini bırakır. Widget hedefindeki `perform` yalnız sonuç döndürür; hedefe özgü uzantılar gezinmeyi widget sürecinden ayırır |
 | `QuickEntryControl` | Denetim Merkezi ve destekleyen iPhone’da Eylem düğmesi için `ControlWidgetButton` ile `OpenQuickEntryIntent` çalıştırır |
@@ -554,7 +556,7 @@ Widget ekranlarla aynı hedef sorgusunu kullanır. Widget sorguyu kendisi çalı
 
 ## Core paketi
 
-Açık ilişkiler `VaultIndex.relations(of:)` ile yönlü giden ve gelen listeler, `explicitRelations(kinds:)` ile Graph için yönsüz tekil çiftler olarak okunur. Şema 9 korunur: frontmatter bağlantılarının mevcut `links.key`, `block IS NULL` ve `resolvedFile` alanları kullanılır. `VaultStore.addRelation` ve `removeRelation` seri dosya yazma geçidinde yalnız ilgili frontmatter alanını düzenler, ardından indeksi günceller. Gelen bağlar dosyaya yazılmaz.
+Açık ilişkiler `VaultIndex.relations(of:)` ile yönlü giden ve gelen listeler, `explicitRelations(kinds:)` ile Graph için yönsüz tekil çiftler olarak okunur. Şema değişmez: frontmatter bağlantılarının mevcut `links.key`, `block IS NULL` ve `resolvedFile` alanları kullanılır. `VaultStore.addRelation` ve `removeRelation` seri dosya yazma geçidinde yalnız ilgili frontmatter alanını düzenler, ardından indeksi günceller. Gelen bağlar dosyaya yazılmaz.
 
 App katmanında `EntityRelationsModel` giden/gelen satırları ve bağ yazma hatalarını sunar; `IndexStore` mevcut dosya yazma geçidini kullanır. `EntityDetailModel.reservedKeys` bazı şema dışı alanları serbest alanlardan ayırır. Bu alanlar yalnız çözülen ve görünen metin ya da çapa taşımayan wikilinklerden oluşur. Karışık metinli, çözülmeyen ya da sayfanın kendisine bağlanan değer içeren alan görünür kalır. Şema alanları da görünür kalır. Graph girdisi açık bağları da taşır; `GraphModel` gün kenarlarından sonra görünür varlık çiftlerine sabit ağırlıklı yönsüz bağ ekler. Bağ dönemle süzülmez; iki varlık arasındaki tek kenar türüdür. Ana Graph ve günün grafiği aynı çizgi ve VoiceOver sunumunu kullanır; gün kipinde yalnız günün varlıkları arasındaki bağlar çizilir.
 
@@ -585,7 +587,7 @@ flowchart LR
 | Ayrıştırıcı | `VaultFormat` | Frontmatter, bölümler, olay ve görev satırları, bağlantılar, blok kimlikleri |
 | Yazıcı | `VaultFormat` | Yalnız hedef satırı değiştiren, dosyanın geri kalanını birebir koruyan düzenleme |
 | Birleştirme | `VaultFormat` | Çakışan iki sürümü tek içerikte birleştiren saf işlev. Kurallar: `vault-format.md` |
-| Modeller | `VaultFormat` | Gün, olay, görev, varlık, hedef. Varlık türleri: kişi, konum |
+| Modeller | `VaultFormat` | Gün, olay, görev, varlık, hedef, varlık tipi tanımı. Yerleşik tipler kişi ve konum; özel tipler `.app/types.json` ile gelir |
 | Yeniden adlandırma | `VaultStore` | Varlık dosyasını yeniden adlandırma ve kasadaki tüm bağlantıları güncelleme |
 | Varlık tanıma | `EntityRecognition` | Metinde bilinen adları ve takma adları bulma. Birden fazla aday varsa bağlama göre sıralama: konum, yakınlık, sıklık. Emin olmadığı durumu arayüze bildirme |
 | İndeksleyici | `VaultIndex` | Tam ve artımlı indeksleme |
@@ -596,7 +598,7 @@ flowchart LR
 | Kuvvet yerleşimi | `ForceLayout` | Graph'ın canlı kuvvet benzetimi: Barnes-Hut itmesi, yay, merkez çekimi, çarpışma, sönümleme. Sabit tohumlu ve belirlenimci |
 | Yazma kapısı | `VaultStore` | Kasa yazmalarını sıralama, dosya koordinasyonu, indeks güncellemesi |
 
-Kısıt: `Core` yalnız Foundation ve SQLite katmanını kullanır. Bu sayede aynı kod uygulamada, widget'ta ve testlerde çalışır. Kodu ileride başka dile çevirmek de kolay olur. `VaultFormat` hedefinin paket bağımlılığı yoktur ve Foundation dışında bir çerçeve kullanmaz. `VaultIndex` dosyalara yazmaz; tam yeniden üretim ve küçük bir sorgu API'si sunar.
+Kısıt: `Core` yalnız Foundation ve SQLite katmanını kullanır. Bu sayede aynı kod uygulamada, widget'ta ve testlerde çalışır. Kodu ileride başka dile çevirmek de kolay olur. `VaultFormat` hedefinin paket bağımlılığı yoktur. Hedef Foundation ve tek dosyada CoreFoundation (`VaultFormatVersion.swift`) dışında çerçeve kullanmaz. `VaultIndex` dosyalara yazmaz; tam yeniden üretim ve küçük bir sorgu API'si sunar.
 
 ### Bağlanmamış anmalar
 
@@ -618,7 +620,7 @@ Diary sonuna ekleme, `VaultStore`'un dosya-önce atomik yazma yolunu ve `RawDocu
 
 | Konu | Kural |
 |---|---|
-| Bağımlılık | `Summaries` yalnız `VaultFormat` ve `GoalTracking` bağımlılığı ve importu olan saf değer hesaplarıdır. Saat, dosya ya da indeks erişimi yok |
+| Bağımlılık | `Summaries` yalnız `VaultFormat` ve `GoalTracking` paket bağımlılığı olan saf değer hesaplarıdır; iki dosya Foundation kullanır. Saat, dosya ya da indeks erişimi yok |
 | Girdi | `VaultIndex.summaryInput(from:to:)` tek okuma işleminde dönem günlerini ve bağlantılarını, görevleri, hedef tanımlarını ve dönem sonuna kadarki hedef geçmişini toplar |
 | Hesaplama | App seçilen ve önceki dönemi arka planda hesaplatır. Süren dönemde `PeriodSummary` sayıları bugünde, önceki dönemi aynı tarihte bitirir |
 | Kasa değişimi | App özeti yeniden yükler ve eski isteklerin sonuçlarını eler |
@@ -700,7 +702,7 @@ Birimsiz `5/10` gibi yazımların tarih mi miktar mı olduğu metinden kesinleş
 | Kullanım | Kullanım toplamı bütün çözülen bağlantıları sayar. Son gün, kaynak gün dosyasının tarihidir |
 | Birlikte geçiş | Puan birlikte geçişi yalnız gün dosyalarında, aynı gün ve varlık çifti için bir kez sayar. Tekrar bağlantılar bu puanı artırmaz |
 | Şema | Bu veriler dosyalardan üretilen sorgu sonuçlarıdır; şema değişmez |
-| Unicode | Tanıyıcı her karakteri `VaultFormat` içindeki `nameComparisonFold` ile karşılaştırır: Türkçe büyük harf eşlemesi (`İ` → `i`, `I` → `ı`), sonra yerelden bağımsız küçük harf. Bu katlama Foundation kullanmaz. Foundation kullanmayan tanıma katmanında `String` anahtarların kanonik Unicode eşitliği ve hash davranışı NFC karşılaştırmasını sağlar. Anahtarın saklanan baytları normalleşmez. İndeksin fiziksel anahtarları NFC kuralıyla kalır |
+| Unicode | Tanıyıcı her karakteri `VaultFormat` içindeki `nameComparisonFold` ile karşılaştırır: Türkçe büyük harf eşlemesi (`İ` → `i`, `I` → `ı`), sonra yerelden bağımsız küçük harf; `i` sonrası U+0307 atılır. Bu katlama Foundation kullanmaz. Foundation kullanmayan tanıma katmanında `String` anahtarların kanonik Unicode eşitliği ve hash davranışı NFC karşılaştırmasını sağlar. Anahtarın saklanan baytları normalleşmez. İndeksin fiziksel anahtarları NFC kuralıyla kalır |
 
 ### Varlık tipleri
 
@@ -827,7 +829,7 @@ flowchart TD
 
 ## İndeks
 
-**Şema indeks tablolarını ve aralarındaki ilişkiyi gösterir.**
+**Şema indeks tablolarını ve aralarındaki ilişkiyi gösterir. Şema yalnız anahtar ve ilişki sütunlarını çizer; tam sütun listesi aşağıdaki tablodadır. `search` FTS5 tablosudur ve yabancı anahtar taşımaz.**
 
 ```mermaid
 erDiagram
@@ -920,11 +922,11 @@ erDiagram
 | Tablo | Anahtar | İçerik |
 |---|---|---|
 | `files` | NFC yol birincil anahtarı; tarih indeksi | Tür, gün tarihi, değişiklik zamanı (`mtime`), bayt boyutu, SHA-256, UTF-8 okunabilirliği, durum değişikliği zamanı (`ctime`), inode, son doğrulama anı |
-| `entities` | Dosya | Tip, görünen ad, ayırt edici, karşılaştırma anahtarı, hedef alanları |
-| `aliases` | Dosya + sıra | Takma ad ve karşılaştırma anahtarı |
-| `entity_fields` | Varlık dosyası + üst düzey anahtar, bayt karşılaştırmalı | Kişi, konum ve kayıtlı özel tip dosyalarının yalnız tarih `date`, sayı `number` ve evet/hayır `boolean` alanları |
+| `entities` | Dosya; karşılaştırma anahtarı indeksi `entity_names` | Tip, görünen ad, ayırt edici, karşılaştırma anahtarı, hedef alanları: `goalKey`, `period`, `goalKind`, `target`, `unit` |
+| `aliases` | Dosya + sıra; karşılaştırma anahtarı indeksi `alias_names` | Takma ad ve karşılaştırma anahtarı |
+| `entity_fields` | Varlık dosyası + üst düzey anahtar, bayt karşılaştırmalı; tür indeksi `entity_field_kinds` | Kişi, konum ve kayıtlı özel tip dosyalarının yalnız tarih `date`, sayı `number` ve evet/hayır `boolean` alanları |
 | `blocks` | Dosya + sıfır tabanlı sıra | Tür, bir tabanlı dahil satır aralığı, metin, bölüm, saat, görev durumu ve ham durum, isteğe bağlı kimlik, başlık düzeyi, sahiplik |
-| `links` | Kaynak dosya + sıra | Kaynak blok ya da frontmatter anahtarı ve kaydı, fiziksel satır ve bayt aralığı, hedef, indeksli `targetKey` karşılaştırma anahtarı, çapa türü ve metni, görünen metin, gömme, çözülen dosya |
+| `links` | Kaynak dosya + sıra; indeksler `link_targets` (`targetKey`) ve `incoming_links` (`resolvedFile`) | Kaynak blok ya da frontmatter anahtarı ve kaydı, fiziksel satır ve bayt aralığı, hedef, indeksli `targetKey` karşılaştırma anahtarı, çapa türü ve metni, görünen metin, gömme, çözülen dosya |
 | `goal_logs` | Dosya + hedef anahtarı; hedef anahtarı indeksi | Gün, değer türü, kaynak değer yazımı |
 | `search` | FTS5 | Blok metinleri, varlık adları, takma adlar |
 | `entity_type_state` | Tek satır | Dosyadan türeyen tip id imzası |
@@ -945,7 +947,7 @@ erDiagram
 
 ### Bağlantı çözümü
 
-`VaultIndex` bağlantı çözümünü kendisi yapar. Karşılaştırma anahtarı `VaultFormat` içindeki tek `nameComparisonKey` işlevidir. İşlev sırası: NFC, Türkçe büyük harf eşlemesi (`İ` → `i`, `I` → `ı`), yerelden bağımsız küçük harf, yeniden NFC. `VaultStore` aynı anahtarla yeniden adlandırma hedeflerini bulur. Ad çakışması denetimleri `NameCollision` kullanır: `filenameIsTaken`, yer tutucu kardeşi, hedef adı. Anahtar ya da yalnız varsayılan küçük harf eşlemesi aynıysa ad doludur. Uygulamada üç yer aynı `NameCollision` kuralını kullanır. Bunlar rehberden içe aktarma planı (`ContactImportPlan`), ayırt edici sorusu (`MentionComposer`, `UnresolvedEntityModel`) ve hedef adı denetimidir (`GoalDefinitionModel`). Dizin bildirimi kapsamı (`IndexUpdate`) indeks gibi `nameComparisonKey` ile karşılaştırır. Arama varlık adı önekini eşler. `@` önerisi (`MentionComposer`) ve varlık listesi süzgeci (`EntityListQuery`) ad içindeki parçayı eşler. Üçü de iki okumadan birini kullanır: `NameCollision.occurs(in:)`.
+`VaultIndex` bağlantı çözümünü kendisi yapar. Karşılaştırma anahtarı `VaultFormat` içindeki tek `nameComparisonKey` işlevidir. İşlevin 4 adımı `vault-format.md`, "Adlar ve karşılaştırma" tablosundadır. `VaultStore` aynı anahtarla yeniden adlandırma hedeflerini bulur. Ad çakışması denetimleri `NameCollision` kullanır: `filenameIsTaken`, yer tutucu kardeşi, hedef adı. Anahtar ya da yalnız varsayılan küçük harf eşlemesi aynıysa ad doludur. Uygulamada üç yer aynı `NameCollision` kuralını kullanır. Bunlar rehberden içe aktarma planı (`ContactImportPlan`), ayırt edici sorusu (`MentionComposer`, `UnresolvedEntityModel`) ve hedef adı denetimidir (`GoalDefinitionModel`). Dizin bildirimi kapsamı (`IndexUpdate`) indeks gibi `nameComparisonKey` ile karşılaştırır. Arama varlık adı önekini eşler. `@` önerisi (`MentionComposer`) ve varlık listesi süzgeci (`EntityListQuery`) ad içindeki parçayı eşler. Üçü de `NameCollision`'ın iki okumasını kullanır: arama önekle (`hasPrefix`), öteki ikisi `occurs(in:)` ile.
 
 **Tablo bağlantı hedefinin nasıl çözüldüğünü gösterir.**
 
@@ -1025,7 +1027,7 @@ flowchart TD
 
 `refresh(vaultRoot:)` ve `update(paths:vaultRoot:)` boş indekste tam kurulum yolunu kullanır. Boş indeks ilk açılışta, şema sürümü değişince ya da bozuk veritabanı silinince oluşur. Bu durumda bildirilen yol kasanın kalanını eksik bırakmaz. `refresh` ve `update` tip id imzası değişince aynı yolu kullanır; sonuç `rebuild` ile aynıdır. `update(paths:vaultRoot:)` bildirilen NFC kasa içi dosyalarla ve dizinlerle hem taramayı hem içeriği sınırlar. Silinen yollar gerçekten dolaşılan kapsamın alt kümesidir. Ayrıştırma ve indeks yazımı artımlıdır. Güncelleme kapsam dışı `files` satırlarına dokunmaz; `skippedPaths` yalnız tarama kapsamında görülenleri bildirir.
 
-Birleşmiş gün dosyası belirlenimci zaman taşır; yazma `ctime` değerini değiştirdiği için artımlı tarama aynı boyutlu farklı içeriği de okur. B5 bağlaması (yol haritasında açık) birleştirme sonrası dosyayı zorla yeniden okuyacaktır. Core sonucu `dayFileChanged` alanıyla gün dosyasının yazıldığını ya da taşındığını bildirir.
+Birleşmiş gün dosyası belirlenimci zaman taşır; yazma `ctime` değerini değiştirdiği için artımlı tarama aynı boyutlu farklı içeriği de okur. App bağlantısı birleşen günü yazma kuyruğunda yayımlar (`IndexStore+DayCopyMerge`); Core aynı sınırda indeksi günceller. Core sonucu `dayFileChanged` alanıyla gün dosyasının yazıldığını ya da taşındığını bildirir.
 
 Güncelleme değişen yolların dosya adı ve yol anahtarlarına sahip bağlantıları yeniden çözer. Çözülmüş yinelenen adlar ve yeni içerikteki bağlantılar da bu kümeye girer; `name` ve `aliases` varlık araması içindir. Güncelleme eski ve yeni blok kimliklerinin sahipliğini yol ve dosya içi sıra üzerinden yeniden hesaplar. Hata tüm değişiklikleri geri alır. Ortak `RebuildResult` eklenen, güncellenen ve silinen NFC yolları ve kapsamda atlanan fiziksel yolları bildirir.
 
@@ -1049,7 +1051,7 @@ Güncelleme değişen yolların dosya adı ve yol anahtarlarına sahip bağlant�
 | İçe aktarmanın klasör, şablon ve ayar dosyası oluşturması | Koordinasyonsuz |
 | Dosya sunucusu `NSFilePresenter` | Yok |
 | İndirilmemiş dosya için açık indirme isteği `startDownloadingUbiquitousItem` | Var: yalnız iCloud kasasında, her yer tutucu için bir kez. `CloudDownloading`; reddedilen istek Tanılama'da sayılır |
-| Çakışma birleştirme işlevi | `VaultFormat` içinde hazır ve sınanmış; uygulamaya bağlı değil |
+| Çakışma birleştirme işlevi | `VaultFormat` içinde (`ConflictMerge`); gün kopyası birleştirmesi çağırır. Çakışan sürümlere (`NSFileVersion`) uygulanmaz |
 | Yer tutucu tanıma | `Core` içinde hazır; App listeyi `IndexUpdate.pendingDownloads` ile alır |
 | Gün kopyası birleştirme | `Core` içinde hazır; App bağlantısı `IndexStore+DayCopyMerge`. Bayrak `SyncPolicy.mergesDayCopies` varsayılan açık (karar 2026-11-09); Ayarlar'da anahtar yok |
 | Arayüz | Eşitleme göstergesi `SyncStatusIndicator` ana pencerenin üstünde, yalnız iCloud kasasında. Birleştirme sonucu bandı aynı yerde |
@@ -1057,7 +1059,7 @@ Güncelleme değişen yolların dosya adı ve yol anahtarlarına sahip bağlant�
 | Çakışan sürüm `NSFileVersion` | Var: tespit ve listeleme; çözümleme yok. Yalnız iCloud Drive kasasında. `ConflictVersionSource` |
 | Çakışma kopyası listesi | `VaultIndex.conflictCopies(vaultRoot:)`; her kasada. Ad kuralı `ConflictCopyName` |
 
-**UYARI:** Eşitlenen bir klasörü kasa olarak seçme; uygulama bu klasörü şimdilik tam korumaz.
+**NOT:** Uygulama her kasada koordineli yazar. İndirme isteği ve gün kopyası birleştirmesi yalnız iCloud kapsayıcısındaki kasada çalışır. Öteki eşitlenen klasörde uygulama gün kopyasını birleştirmez; kopyayı Tanılama'da listeler.
 
 ### Eşitleme güvenliği
 
@@ -1077,7 +1079,7 @@ flowchart TD
 
 `Core` `.X.icloud` yer tutucularını indekslemez; tarama sonucunun `pendingDownloads` alanında bildirir. Özgün dosya varsa `Core` özgün dosyayı kullanır. Özgün dosya yoksa `Core` oluşturma ve yeniden adlandırma hedeflerini koordinasyon sınırında `awaitingDownload(path:)` ile reddeder. İndirilmemiş dosyaları okuma kuyruğu karşılar: indirme bekleyen okuma yalnız kendini bekletir.
 
-App her yenilemede listeyi `IndexUpdate.pendingDownloads` ile alır. Klasör yenilemesi yalnız kendi klasörlerinin satırlarını değiştirir; bu birleştirme `IndexUpdate.read` içinde, ana iş parçacığı dışında yapılır. Liste `.app/types.json` yer tutucusunu da taşır: `Core` yalnız Markdown yer tutucularını bildirir. Kasa iCloud kasasıysa `IndexStore` her yeni yer tutucunun özgün yolu için `startDownloadingUbiquitousItem` bir kez ister: istenenler kümesi yinelemeyi önler. İstek arka planda gider; yenileme yayımlamak ve yazmalar sıra almak için yanıtı beklemez. Gelen dosya kümeden çıkar; iCloud dosyayı yeniden boşaltırsa istek yeniden gider. Ön plana her dönüşte bekleyen bütün dosyalar yeniden istenir: reddedilen ya da düşen istek göstergeyi takılı bırakmaz. Kasa yeniden açılınca listeler, istekler, sayılar ve birleştirme bandı sıfırlanır. Yerel kasa ve seçilen klasör, iCloud Drive içinde olsa da, istek göndermez. Uygulama dosyanın gelmesini beklemez: izleyici ve sonraki yenileme dosyayı indeksler. Reddedilen istek sessizdir; Tanılama sayısını gösterir.
+App her yenilemede listeyi `IndexUpdate.pendingDownloads` ile alır. Klasör yenilemesi yalnız kendi klasörlerinin satırlarını değiştirir; bu birleştirme `IndexUpdate.read` içinde, ana iş parçacığı dışında yapılır. `Core` yalnız Markdown yer tutucularını bildirir. `IndexUpdate` listeye `.app/types.json` yer tutucusunu kendisi ekler. Kasa iCloud kasasıysa `IndexStore` her yeni yer tutucunun özgün yolu için `startDownloadingUbiquitousItem` bir kez ister: istenenler kümesi yinelemeyi önler. İstek arka planda gider; yenileme yayımlamak ve yazmalar sıra almak için yanıtı beklemez. Gelen dosya kümeden çıkar; iCloud dosyayı yeniden boşaltırsa istek yeniden gider. Ön plana her dönüşte bekleyen bütün dosyalar yeniden istenir: reddedilen ya da düşen istek göstergeyi takılı bırakmaz. Kasa yeniden açılınca listeler, istekler, sayılar ve birleştirme bandı sıfırlanır. Yerel kasa ve seçilen klasör, iCloud Drive içinde olsa da, istek göndermez. Uygulama dosyanın gelmesini beklemez: izleyici ve sonraki yenileme dosyayı indeksler. Reddedilen istek sessizdir; Tanılama sayısını gösterir.
 
 `Core` gün kopyalarını indekslemez. Örnek ad: `diary/2026-10-02 2.md`; ad kuralı `DayCopyName`. Tarama sonucu kopyaları `dayCopies` alanında birleştirme sırasıyla bildirir. Tanılama gün kopyalarını ve varlık kopyalarını `VaultIndex.dayCopies(vaultRoot:)` ve `entityCopies()` ile listeler; kopya kuralı `EntityCopyName`. Tanılama listeden hiçbir dosyayı birleştirmez, taşımaz ya da silmez.
 
@@ -1207,7 +1209,7 @@ flowchart LR
 | Konu | Kural |
 |---|---|
 | Hedef | `KenetWidgets`: WidgetKit uzantısı, yalnız iOS, `Widgets/` klasörü. Uygulama uzantıyı gömer. Sürüm ve yapı numarası uygulamanınkiyle aynı yazılır |
-| Kasa erişimi | Widget uygulamanın indeksini açmaz. Widget ayrı bir süreçtir ve belleği dardır (yaklaşık 30 MB). Süreç uygulamanın yer imini, `UserDefaults.standard` deposunu ve `Application Support` indeksini göremez. Widget gösterdiğini yalnız uygulamanın App Group'a yazdığı küçük anlık görüntüden okur. Kasaya yalnız iCloud kasasında ve yalnız işaretleme için erişir: aşağıda "Widget içinden yazma" |
+| Kasa erişimi | Widget uygulamanın indeksini açmaz. Widget ayrı bir süreçtir ve belleği dardır. **Varsayım:** sınır yaklaşık 30 MB'dir. Süreç uygulamanın yer imini, `UserDefaults.standard` deposunu ve `Application Support` indeksini göremez. Widget gösterdiğini yalnız uygulamanın App Group'a yazdığı küçük anlık görüntüden okur. Kasaya yalnız iCloud kasasında ve yalnız işaretleme için erişir: aşağıda "Widget içinden yazma" |
 | Ortak kaynak | `Widgets/Shared` iki hedefte derlenir: anlık görüntü biçimi (`WidgetSnapshot`, yalnız Foundation), widget bağlantısı (`WidgetLink`), widget içi işaretleme (`WidgetGoalMarker`; Core'un `VaultFormat`, `VaultIndex`, `VaultStore`, `GoalTracking` ürünleri ve `SystemFileCoordination`), görünümler ve renk belirteçleri (`WidgetTheme`). Testler işaretlemeyi de uygulama konağında koşar. Renkler uygulamanın varlık kataloğundaki adlardır; katalog widget hedefine de girer. Ekran görüntüsü testleri görünümleri uygulama konağında çizer |
 | Anlık görüntü | `<grup>/widget/today.json` dosyası. İçerik: biçim sürümü, yazılma zamanı, kasa kimliği (kasa yolunun SHA-256 özeti; App Intents'in `IntentGoal.id` öneki), kasa türü (`vaultKind`: `local`, `selected`, `icloud`), iCloud kasasının kapsayıcı içindeki yolu (`cloudRelativePath`, `Documents/Kenet`; öteki kasada yok), widget'ın kendi işaretlemesinin zamanı (`markedAt`; uygulama yazınca yok), bugün ve yarın için günlük hedefler. Kök `hideContent: Bool?` bildirim gizlilik tercihidir (yoksa gizli). Gün başına `events: [Event]?` (title, start, end, isAllDay; başlangıca göre en çok 5) ve `openTaskCount: Int?` eklenir. Görev metni saklanmaz; gizliyken etkinlik başlığı boştur. Takvim izni yoksa `events` yazılmaz. Yeni alanlar isteğe bağlıdır; biçim sürümü 1 kalır. Hedef başına: anahtar, ad, tür (evet/hayır ya da sayı), hedef miktar, birim, günün değeri, bekliyor mu, zincir, zincir günü bakiyesi. Haftalık hedefler, yıllık hedefler ve kilometre taşları girmez. Bekleyen hedefler önce gelir, sonra ada göre sıralanır |
 | Yazma | `WidgetSnapshotWriter` her yayımda çalışır (`IndexStore.onWidgetSnapshotChange`; bildirim servisinin `onSnapshotChange` dinleyicisinden ayrı). Sahne öne gelince ve kilit açılınca da çalışır. Yazıcı `goalStatuses(today:)` sorgusunu bugün ve yarın için ekranlarla aynı yoldan sorar. Görev sayısını `computeNotificationDays` kaynağındaki o güne vadesi gelen açık görevlerden alır (bildirimdeki “N görev bugün”; gecikmişler ayrı olduğundan bu sayıya girmez). Enjekte edilen `CalendarEventSource` uygulama sürecinde etkinlikleri okur; widget EventKit'e dokunmaz. Uygulama çalışmadan eklenen etkinlik widget'a yansımaz. `NotificationPreferences.hideContent` varsayılan true olarak dosyaya yazılır. Sonucu geçici dosyaya yazar ve yerine taşır (`Data.write(.atomic)`). Ardından `WidgetCenter.reloadTimelines(ofKind:)` çağırır. İçerik değişmediyse yazmaz ve yenilemez; `markedAt` ve yazılma zamanı içerik sayılmaz. Üst üste gelen yayımlar tek koşuda birleşir; son yayım kazanır |
@@ -1408,11 +1410,7 @@ Proje çekirdeği şimdiden ortak bir teknolojiyle yazmaz. Örnek teknolojiler: 
 | XCUITest dumanı ve erişilebilirlik | `KenetUITests`, `bundle.ui-testing`; `Kenet_iOS` şemasında |
 | Mac ekran turu | `KenetMacUITests`; Debug yapılandırmasında, kendi `….screentour` kimliğiyle |
 
-iOS uygulama testleri için komut:
-
-```sh
-xcodebuild test -scheme Kenet_iOS -destination 'platform=iOS Simulator,name=<simctl available iPhone>' -only-testing:KenetTests_iOS
-```
+iOS birim testlerinin komutu `README.md` içindedir: "Kurulum adımları", iOS birim testleri adımı. Komut CI gibi ekran görüntüsü kümelerini atlar.
 
 ### Test kimliği
 
@@ -1427,16 +1425,17 @@ Ekran görüntüsü testleri SwiftUI görünümünü sabit ortamda çizer ve `Sn
 | Varyantlar | Açık görüntü her kümede durur. Koyu, AX3 ve Kontrastı Artır yalnız temsilci kümelerde kalır. |
 | Temsilci kümeler | `TodayScreenSnapshotTests`, `TodayContextSnapshotTests`, `TasksSnapshotTests`, `EntitiesSnapshotTests`, `DiarySheetSnapshotTests`, `ShellSheetSnapshotTests`, `QuickEntryChipsSnapshotTests`, `QuickEntryNameChipSnapshotTests`, `MentionCreatedSnapshotTests`, `ComponentSnapshotTests` |
 | Varyant istisnası | Küme başına en çok bir istisna varyanta özgü yerleşimi korur: `PadShellSnapshotTests.todayLandscapeAX3` (geniş kenar çubuğu), `GoalsSummarySnapshotTests.goalDetailAX3` ve `GoalChartSnapshotTests.dailyAX3` (grafik aralığı ve eksen etiketleri), `SummariesSnapshotTests.weekAX3` (sayı listesi), `WeeklyReviewSnapshotTests.numbersAX3` (ritim satırları) |
+| Kurala uymayan referanslar | Şu temsilci dışı kümeler de varyant referansı taşır: `CloseDaySnapshotTests`, `DiarySuggestionsSnapshotTests`, `EntityAliasSnapshotTests`, `EntityRelationsSnapshotTests`, `GraceDaySnapshotTests`, `PadLargeTextSnapshotTests`, `ShareFormSnapshotTests`, `SupportSettingsSnapshotTests`, `WidgetViewSnapshotTests`, `TodayMacSnapshotTests`. |
 | Referans yeri | `Tests/KenetTests/Snapshots/__Snapshots__/` |
 | Referans tavanı | `Tests/**/__Snapshots__/**/*.png` en çok 360 dosya ve 90 MiB. Dosya tavanı 2026-10-23'te 300'den 320'ye çıktı. Boyut tavanı 2026-11-10'da Şafak'ın koyu referanslarıyla 61 MiB'den 80 MiB'ye çıktı. İki tavan 2026-11-14'te 360 dosyaya ve 90 MiB'ye çıktı. |
 | Tavan zorlanırsa | Her referans git geçmişinde kalır. Önce açık/koyu/AX3 üçlüsünü temsilci kümelerin dışında tutarak yer aç. |
 | Tavan denetimi | `.github/scripts/check-snapshot-budget.sh`, CI "Biçim ve kurallar" işinde; aşınca dosya listesiyle düşer. Betiğin testi `test-check-snapshot-budget.sh`. |
-| Kayıt | `sh .github/scripts/record-screen-snapshots.sh` ya da CI `record-snapshots` işi. Betik yalnız verilen kümeleri (`SNAPSHOT_SUITES`) ve yalnız eşleşmeyen referansı yazar. |
+| Kayıt | `sh .github/scripts/record-screen-snapshots.sh` ya da CI `record-snapshots` iş akışı. Betik yalnız verilen kümeleri (`SNAPSHOT_SUITES`) ve yalnız eşleşmeyen referansı yazar. |
 | Mac kümeleri | Adı `MacSnapshotTests` ile biter; yalnız macOS hedefindedir ve görünümü `NSHostingView` ile çizer. `ci` bu kümeleri atlar; haftalık `mac-snapshots` iş akışı kapı olmadan koşturur. |
 
-Mac referanslarının tek yetkili ortamı CI'dır (karar 68); Xcode sürümü "CI" bölümündeki Xcode satırındadır. `record-snapshots` iş akışında `target=mac` bütün Mac referanslarını `SNAPSHOT_TESTING_RECORD=all` ile baştan çizer; `both` da seçilebilir. `failed` kullanılmaz: eski ortamdan tolerans içinde kalan PNG'leri koruyabilir. Ardından iş `never` ile doğrular ve yalnız Mac referanslarını `mac-snapshot-references` artifact'ına yükler. `open_pr` varsayılanı `false`'tur. `open_pr=true` ise ayrı, yazma yetkili iş çıktıyı `dev` üzerine uygular. Bu iş `chore/mac-referanslar-<run>` dalından koşu bağlantısıyla PR açar; kayıt işleri yalnız okuma yetkilidir.
+Mac referanslarının tek yetkili ortamı CI'dır (karar 2026-10-21); Xcode sürümü "CI" bölümündeki Xcode satırındadır. `record-snapshots` iş akışında `target=mac` bütün Mac referanslarını `SNAPSHOT_TESTING_RECORD=all` ile baştan çizer; `both` da seçilebilir. `failed` kullanılmaz: eski ortamdan tolerans içinde kalan PNG'leri koruyabilir. Ardından iş `never` ile doğrular ve yalnız Mac referanslarını `mac-snapshot-references` artifact'ına yükler. `open_pr` varsayılanı `false`'tur. `open_pr=true` ise ayrı, yazma yetkili iş çıktıyı `dev` üzerine uygular. Bu iş `chore/mac-referanslar-<run>` dalından koşu bağlantısıyla PR açar; kayıt işleri yalnız okuma yetkilidir.
 
-`MacSnapshotEnvironment.shouldRun(environment:)` saf işlevi yalnız `CI=true` ya da `SNAPSHOT_MAC_LOCAL=1` için koşmaya izin verir. Yedi Mac kümesinin Swift Testing koşulu aksi durumda gerekçeli atlama bildirir; görüntü dışı testler etkilenmez. Mac şeması bu iki değişkeni test konağına aktarır. Yerel kayıt yalnız inceleme içindir; yerel PNG'ler commit edilmez. `MacSnapshotWindow` ekran bulunmasa da 2× ölçeği ve Display P3 renk uzayını sabitler; şema overlay kaydırma çubuklarını seçer. Kümeler görünümü, takvimi ve saati gerektiği yerde sabitler; pencere/odak davranışı ilk CI kaydında ve ardından doğrulama koşusunda incelenmelidir.
+`MacSnapshotEnvironment.shouldRun(environment:)` saf işlevi yalnız `CI=true` ya da `SNAPSHOT_MAC_LOCAL=1` için koşmaya izin verir. Her Mac kümesinin Swift Testing koşulu aksi durumda gerekçeli atlama bildirir; görüntü dışı testler etkilenmez. Mac şeması bu iki değişkeni test konağına aktarır. Yerel kayıt yalnız inceleme içindir; yerel PNG'ler commit edilmez. `MacSnapshotWindow` ekran bulunmasa da 2× ölçeği ve Display P3 renk uzayını sabitler; şema overlay kaydırma çubuklarını seçer. Kümeler görünümü, takvimi ve saati gerektiği yerde sabitler; pencere/odak davranışı ilk CI kaydında ve ardından doğrulama koşusunda incelenmelidir.
 
 **Tablo, iOS görüntü testlerinin tuvallerini gösterir: `SnapshotSupport.swift` içindeki `ShellCanvas`.**
 
@@ -1452,9 +1451,9 @@ Mac referanslarının tek yetkili ortamı CI'dır (karar 68); Xcode sürümü "C
 
 Adı `DuoSnapshotTests` ile biten kümeler Duo tuvallerini çizer: `ChromeSheetsDuoSnapshotTests`, `PhoneScreensDuoSnapshotTests`, `SafeAreaDuoSnapshotTests`. Bu kümeler 2026-11-16'dan beri CI kapısıdır: `snapshot-suites.sh` varsayılan listesindedir. iOS birim işi bu kümeleri atlar; "iPhone ekran görüntüsü" adımı koşar. `record-snapshots` iş akışının `target=ios` kaydı Duo'yu da kapsar. `target=duo` yalnız Duo referanslarını `SNAPSHOT_TESTING_RECORD=all` ile yeniden yazar. Betik önce kaydeder, sonra yeni referanslara karşı doğrular. İş referansları `duo-snapshot-references` artifact'ına yükler. Yerel Duo kaydı yalnız inceleme içindir. Referanslar `__Snapshots__/` altında test dosyasının adını taşır: `ChromeSheetsDuoSnapshotTests`, `DuoCanvasSnapshotTests`, `SafeAreaDuoSnapshotTests`. `ChromeSheetsDuoSnapshotTests` pencereyi 8 bit sRGB çizer: `preferredRange = .standard`.
 
-**NOT:** Duo ölçüleri ve güvenli alanları tahmindir: piksel ölçüsü 3× ölçekle bölünür. Tuval iPhone simülatöründe çizer ve boyut sınıfını trait geçersiz kılmayla verir. Tuval Duo simülatörünün yerine geçmez.
+**Varsayım:** Duo ölçüleri ve güvenli alanları tahmindir: piksel ölçüsü 3× ölçekle bölünür. Tuval iPhone simülatöründe çizer ve boyut sınıfını trait geçersiz kılmayla verir. Tuval Duo simülatörünün yerine geçmez.
 
-Adı `Pad` ile başlayan kümeler iPad tuvallerini çizer: `PadShellSnapshotTests`, `PadBoardSnapshotTests`, `PadSheetSnapshotTests`, `PadCompactSnapshotTests`. Bu kümeler yalnız iPad simülatöründe koşar. iPhone'da kendini atlar; bu yüzden iOS birim işi onları ayrıca dışlamaz. Kümeler içeriği tuval boyutunda bir pencerede barındırır ve pencerenin kendisini çizer. Boyut sınıfı ve Dynamic Type pencerenin trait geçersiz kılmasından gelir; açılan sheet de bunları alır. Kabuk vakaları gerçek `AdaptiveNavigation`'ı çizer. Kayıt ve doğrulama için `sh .github/scripts/record-screen-snapshots.sh --pad` komutunu kullan. Betik iPad Pro 13 inç (M5) simülatörünü seçer. Yoksa sıra şudur: M4, iPad Air 13 inç (M4), (M3), iPad Pro 13 inç. Referanslar `__Snapshots__/Pad…` klasörlerindedir.
+Adı `Pad` ile başlayan kümeler iPad tuvallerini çizer. Liste: `sh .github/scripts/snapshot-suites.sh --pad`. Bu kümeler yalnız iPad simülatöründe koşar. iPhone'da kendini atlar; bu yüzden iOS birim işi onları ayrıca dışlamaz. Kümeler içeriği tuval boyutunda bir pencerede barındırır ve pencerenin kendisini çizer. Boyut sınıfı ve Dynamic Type pencerenin trait geçersiz kılmasından gelir; açılan sheet de bunları alır. Kabuk vakaları gerçek `AdaptiveNavigation`'ı çizer. Kayıt ve doğrulama için `sh .github/scripts/record-screen-snapshots.sh --pad` komutunu kullan. Betik iPad Pro 13 inç (M5) simülatörünü seçer. Yoksa sıra şudur: M4, iPad Air 13 inç (M4), (M3), iPad Pro 13 inç. Referanslar `__Snapshots__/Pad…` klasörlerindedir.
 
 **NOT:** Kabuğun kendi görev modeli ve hedef sayfası duvar saatinin gününü alır; donmuş günü almaz. Bu yüzden Kanban, zaman çizelgesi ve hedef ayrıntısı kabuksuz sayfa olarak, donmuş günle çizilir. Kabuktaki Hedefler vakası hedef seçmez.
 
@@ -1471,9 +1470,9 @@ Ekran turu (`ScreenTourUITests`, `sh .github/scripts/screen-tour.sh`) aynı test
 | İş | Runner | Adımlar | Ne zaman | İş sınırı |
 |---|---|---|---|---|
 | Değişen dosyalar | Linux | Belge PR'ı mı: `.github/scripts/ci-changes.py` | Her zaman | 5 dk |
-| Biçim ve kurallar | Linux kabı, Swift 6.4 | `swift format lint`, dört denetim betiği (`check-docs.sh` kaynak–katalog denetimini de çalıştırır), CI betiklerinin testleri | Her zaman; belge PR'ında da | 15 dk |
+| Biçim ve kurallar | Linux kabı, Swift 6.4 | `swift format lint`, dört denetim betiği (`check-docs.sh` kaynak–katalog denetimini de çalıştırır), görüntü tavanı denetimi (`check-snapshot-budget.sh`), CI betiklerinin testleri (`test-record-snapshots.py` hariç; CI onu koşmaz) | Her zaman; belge PR'ında da | 15 dk |
 | Core (Linux) | Linux kabı, Swift 6.4 | `swift test` | Belge dışı her koşu | 20 dk |
-| Uygulama (macOS ve Core) | macOS | Core `swift test` yalnız Darwin dalı olan kümeler (tamamı Linux'ta), ölçek bütçesi, Mac testleri `TZ=UTC`, Mac testleri `TZ=Pacific/Auckland` (PR'da yalnız `timezone-suites.sh` kümeleri, `dev`'e itmede tam) | Belge dışı her koşu; ölçek bütçesi yalnız `dev`'e birleşince | 35 dk |
+| Uygulama (macOS ve Core) | macOS | Core `swift test` yalnız Darwin dalı olan kümeler (tamamı Linux'ta), ölçek bütçesi, Mac testleri `TZ=UTC`, Mac testleri `TZ=Pacific/Auckland` (PR'da yalnız `timezone-suites.sh` kümeleri, `dev`'e itmede tam) | Belge dışı her koşu; ölçek bütçesi yalnız `dev` itmesinde koşar ve düşse de iş geçer | 35 dk |
 | Uygulama (iPhone) | macOS | Derle, iPhone simülatörünü aç, birim testleri, iPhone görüntü kümeleri | Belge dışı her koşu | 30 dk |
 | Uygulama (iPhone arayüz) | macOS | Derle, iPhone simülatörünü aç, arayüz akışı (`KenetUITests`, `ui-audit-suites.sh` kümeleri hariç) | Belge dışı her koşu | 30 dk |
 | Uygulama (iPhone arayüz denetimi) | macOS | Derle, iPhone simülatörünü aç, iPhone'a özgü erişilebilirlik denetimi kümeleri (`.github/scripts/ui-audit-suites.sh --iphone`: adı `AccessibilityUITests` ya da `AuditUITests` ile biten sınıflar, iPad'in koştuğu ortak küme hariç) | Belge dışı her koşu | 25 dk |
@@ -1481,26 +1480,28 @@ Ekran turu (`ScreenTourUITests`, `sh .github/scripts/screen-tour.sh`) aynı test
 | ci | Linux | Bütün işlerin sonucu: `.github/scripts/ci-gate.py` | PR'da her zaman; `dev`'e itmede koşu iptal edilmediyse | 5 dk |
 | `testflight-check` (ayrı iş akışı, iki iş) | macOS | İmzasız arşiv ve paket denetimi: iOS işi `sh .github/scripts/testflight.sh --check`, Mac işi `--check --mac`. Yükleme yapmaz. Arşiv düşerse günlüğü yükler | `dev`'e her itmede; `KENET_CD_ON_PUSH` açıksa atlanır | 30 dk (her iş) |
 | `testflight` (ayrı iş akışı, CD) | macOS | Geçici anahtar zinciri ve API anahtarı kurar; imzalı arşiv, aynı paket denetimi ve TestFlight yüklemesi: `testflight.sh --ci`. Platform girdisi `ios` (varsayılan) ya da `mac` (`--mac`: `Kenet_macOS` arşivi, Mac App Store paketi). Tek kuyruk, yükleme kesilmez. Düşerse kimlikleri çıkarılmış günlükleri `testflight-logs` olarak yükler. Kurulum ve Secrets: README, "CI'dan TestFlight (CD)" | Elle (`gh workflow run testflight.yml --ref dev`, Mac için `-f platform=mac`); `dev`'e itmede yalnız depo değişkeni `KENET_CD_ON_PUSH=true` ise | 45 dk <!-- sır değil --> |
-| `mac-snapshots` (ayrı iş akışı) | macOS | Yalnız Mac görüntü kümeleri (`snapshot-suites.sh --mac`, Duo hariç), `SNAPSHOT_TESTING_RECORD=never`. Kapı değildir; düşerse farkları `mac-snapshot-diffs` olarak yükler. Referanslar CI'da kaydedilir (`record-snapshots target=mac`) | Haftada bir (pazartesi 05:00 UTC) ve elle | 40 dk |
+| `mac-snapshots` (ayrı iş akışı) | macOS | Yalnız Mac görüntü kümeleri (`snapshot-suites.sh --mac`), `SNAPSHOT_TESTING_RECORD=never`. Kapı değildir; düşerse farkları `mac-snapshot-diffs` olarak yükler. Referanslar CI'da kaydedilir (`record-snapshots target=mac`) | Haftada bir (pazartesi 05:00 UTC) ve elle | 40 dk |
+| `record-snapshots` (ayrı iş akışı) | macOS | `target` girdisi (`ios`, `mac`, `both`, `duo`) kayıt işlerini seçer: `record`, `pad`, `duo`, `mac`. Ayrıntı: aşağıdaki "Kayıt iş akışı" satırı | Elle | 40 dk (her kayıt işi) |
+| `codeql` (ayrı iş akışı) | Linux ve macOS | CodeQL çözümlemesi: `actions` Linux'ta, `swift` macOS'ta | `main` PR'ı, `main` itmesi, pazartesi 04:17 UTC | İş akışı sınır yazmaz |
 
-Sonuç paketi üreten her test adımının ardından "Vaka süreleri" adımı koşar. `case-durations.py` xcresult paketindeki vaka sürelerini en uzun önce günlüğe ve iş özetine yazar. Adım ölçüm içindir; eşik koymaz ve test adımının sonucunu değiştirmez. Girdi tanınan şemada değilse (`testNodes` ya da "Test Case" düğümü yok) `::warning::` basar. Kısaltma kararları bu sayılarla verilir. `.github/scripts/` altında `test-` öneki yalnız betik testlerine ayrılmıştır; `test-*.py` ve `test-*.sh` yalnız testleri seçer.
+Her iOS ve iPad test adımının ardından "Vaka süreleri" adımı koşar. Mac test adımlarında bu adım yoktur. `case-durations.py` xcresult paketindeki vaka sürelerini en uzun önce günlüğe ve iş özetine yazar. Adım ölçüm içindir; eşik koymaz ve test adımının sonucunu değiştirmez. Girdi tanınan şemada değilse (`testNodes` ya da "Test Case" düğümü yok) `::warning::` basar. Kısaltma kararları bu sayılarla verilir. `.github/scripts/` altında `test-` öneki yalnız betik testlerine ayrılmıştır; `test-*.py` ve `test-*.sh` yalnız testleri seçer.
 
 Arayüz testi adımı düşerse `a11y-issues.py` düşen vakaların "A11Y issue" satırlarını ve hata iletilerini günlüğe yazar. Kanıt, artifact yüklemesi düşse de günlükte kalır.
 
-İş sınırı beklenen sürenin yaklaşık 1,5 katıdır. Bir PR beş macOS işi tutar. `dev` itmesi iki TestFlight denetimiyle (iOS ve Mac arşivi) yedi tutar. GitHub aynı anda en çok beş macOS işi koşturur; fazlası sıra bekler.
+İş sınırı beklenen sürenin 1,3–1,7 katıdır; iş başına değer `ci.yml` yorumundadır. `dev`'e açılan PR beş macOS işi tutar. `main` PR'ı CodeQL `swift` işiyle altı tutar. `dev` itmesi iki TestFlight denetimiyle (iOS ve Mac arşivi) yedi tutar. **Varsayım:** GitHub aynı anda en çok beş macOS işi koşturur; fazlası sıra bekler.
 
 | Konu | Kural |
 |---|---|
-| Xcode | macOS işleri, `ios-build`, `testflight-check` ve `testflight` Xcode'u `.github/actions/xcode` eylemiyle seçer. Sürüm yalnız orada yazılıdır: Xcode 26.6, macOS 26 imajı. Eylem sürümü günlüğe yazar; sürüm imajdan kalkarsa iş açık bir hatayla düşer. |
+| Xcode | macOS işleri, `ios-build`, `testflight-check` ve `testflight` Xcode'u `.github/actions/xcode` eylemiyle seçer. Sürümü yalnız bu eylem seçer: Xcode 26.6, macOS 26 imajı. `record-snapshots.yml` PR gövdesi ve `mac-snapshots.yml` yorumu aynı sürümü sabit metinle yineler. Eylem sürümü günlüğe yazar; sürüm imajdan kalkarsa iş açık bir hatayla düşer. |
 | İş bölme | Her `xcodebuild test-without-building` çağrısının kurulum ve ilk açılış için ~3–4 dk sabit maliyeti vardır. Bu yüzden bölme yalnız uzun test adımında kazandırır. iPhone arayüz testleri iki işe bölünür: tek iş 28 dk sürüyordu ve kritik yoldu. Bölme ad kuralıyla yapılır (alt klasörler dahil); bölme süre dengesidir, anlam ayrımı değildir. |
 | Ortak denetim kümesi | `AccessibilityAuditUITests` aynı ekranları iPad'de bölünmüş kabukta denetler ve yalnız orada koşar. iPhone'da yinelemek denetim işine ~6 dk ekliyordu (koşu 40427534859: 6 vaka 370 sn). Denetim çağıran ama adı kurala uymayan kümeler akış işinde koşar. |
 | Seçim testi | `test-ui-audit-suites.sh` üç adımın `run` bloğunu sahte depoda çalıştırır ve `xcodebuild`'e giden seçimi ölçer. iPhone denetimi: ortak küme dışındaki liste (`--iphone`, `-only-testing`). iPad denetimi: yalnız ortak küme (`--shared`). Akış: `KenetUITests` eksi tam liste (`-skip-testing`). Kendi listesi boşsa adım düşer. |
 | Cihaz ailesi | Her iOS işi tek simülatör kullanır. Her iş kendi derlemesini yapar, simülatörü derlemeden sonra açar ve testleri derlemesiz koşar. Ortak başlangıç `.github/actions/ios-build` içindedir; `family` girdisi `iphone` ya da `ipad` alır. Derleme sırasında açılan simülatör 3 çekirdekli runner'da derlemeyi 4 dk'dan 10–19 dk'ya uzatıyordu. Bir runner'daki iki simülatör "Unable to find a device" ve asılma hatalarını üretiyordu. |
 | Sıra | Arayüz testleri yeni açılmış simülatörde 2 kattan fazla yavaş koşar. İki arayüz işi de bu bedeli öder ve yine de kısadır. iPhone görüntü adımı önce uygulamayı simülatörden kaldırır: birim testlerinin bıraktığı durum görüntüleri kaydırır. Birim ve görüntü adımları bu yüzden tek `xcodebuild` çağrısında birleşmez. Süreç dili de farklıdır: görüntüler Türkçe çizilir, birim testleri simülatörün dilinde koşar. iPad işinde görüntüler erişilebilirlik denetiminden önce koşar: denetim aygıtı döndürür. Bir test adımı düşse de aynı simülatördeki sonraki adımlar koşar; Core düşse de Mac testleri koşar. |
 | Yeniden deneme | iOS test adımları iki simülatör altyapı hatasında bir kez yeniden dener: "Unable to find a device matching the provided destination specifier" ve "hung before establishing connection". Betik aygıtın hazır olmasını bekler ve testi bir kez daha koşar: `.github/scripts/xcodebuild-retry.sh`. Bu hatalar test beklentilerinden kaynaklanmaz. Öteki her hata adımı düşürür. |
-| Zaman aşımı | Birim 20 dk, görüntü ve arayüz adımları 20 dk, iPad erişilebilirlik 15 dk, simülatör açılışı 10 dk. Birim ve arayüz adımlarında test başına sınır 300 sn'dir (`-test-timeouts-enabled YES`). Sessiz asılma adımı öldürmek yerine test adıyla düşer. |
+| Zaman aşımı | iOS: birim 20 dk, iPhone ve iPad görüntü 20 dk, arayüz akışı 20 dk, iPhone arayüz denetimi 15 dk, iPad erişilebilirlik 15 dk, simülatör açılışı 10 dk. macOS işi: Core 15 dk, ölçek bütçesi 15 dk, Mac testleri UTC 20 dk, Auckland 15 dk. Birim ve arayüz adımlarında test başına sınır 300 sn'dir (`-test-timeouts-enabled YES`). Sessiz asılma adımı öldürmek yerine test adıyla düşer. |
 | Önbellek | CI SwiftPM paket indirmelerini önbelleğe alır. iOS ve macOS işleri tek anahtarı paylaşır; anahtar `Packages/Core/Package.resolved` ve `project.yml` dosyalarından türer. Uygulama paketlerinin kilit dosyası repoya girmez: proje üretilir. Bu yüzden `project.yml` SnapshotTesting'i tam sürümle sabitler. |
-| Simülatör seçimi | iPhone kapısı (`.github/actions/ios-build`), kayıt betiği ve ekran turu aynı seçiciyi çağırır: `.github/scripts/pick-simulator.sh`. Seçici en eski kurulu iOS runtime'ındaki aygıtı kimliğiyle alır. iPad'de yalnız 13 inçlik tercih listesi sayılır. macos-26 imajı iOS 26.2 ve 26.5 taşır; kapı ve kayıt ikisi de 26.2'yi alır. |
+| Simülatör seçimi | iPhone kapısı (`.github/actions/ios-build`), kayıt betiği ve ekran turu aynı seçiciyi çağırır: `.github/scripts/pick-simulator.sh`. Seçici en eski kurulu iOS runtime'ındaki aygıtı kimliğiyle alır. iPad'de yalnız 13 inçlik tercih listesi sayılır. **Varsayım:** macos-26 imajı iOS 26.2 ve 26.5 taşır (ölçüm 2026-11-10); kapı ve kayıt ikisi de 26.2'yi alır. |
 | Referansların yetkili ortamı | iOS ve iPad referansları CI'da, Xcode satırındaki ortamda ve seçicinin aldığı runtime ile kaydedilir. Yerel simülatörün runtime'ı farklıysa yerel görüntü testi farklı çıkar; yerel kayıt commit edilmez. |
 | Kayıt iş akışı | `record-snapshots` iş akışında `target=ios` iki iş açar. `record` işi iPhone kümelerini kaydeder: `record-screen-snapshots.sh`. `pad` işi iPad kümelerini kaydeder: `record-screen-snapshots.sh --pad`. Artifact'lar `screen-snapshot-references` ve `pad-snapshot-references` adını taşır. `target=mac` Mac işini açar; `both` üçünü de açar. |
 | Erişilebilirlik muafiyeti | Denetimin kabul edilen bulgusu `AccessibilityAuditExemption.all` tablosunda tek satırdır: denetim türü, öğe (kimlik ya da katalog anahtarı) ve gerekçe. Aynı bileşen için var olan kalıp kullanılır; düzeltilmemiş gerçek bulgu `open: true` taşır. |
@@ -1520,7 +1521,7 @@ Yalnız belge değiştiren PR'da CI Core ve uygulama işlerini atlar. Belge yoll
 | Süreç yığın örnekleri | CI örnekleri 12. dakikada alır: `.github/scripts/ios-test-diagnostics.sh` |
 | Sonuç paketi | `IOSTests.xcresult` |
 
-CI'da iOS birim testleri adımı ara sıra asılı kalır. Kök neden henüz belli değil. Adımın kendi zaman aşımı 20 dk'dır. Adım düşünce ya da süre dolunca CI `ios-test-results` paketini yükler. Simülatör derlemeden sonra açılır ve ayrı adım hazır olmasını bekler. Adım süreleri asılmanın açılışta mı testte mi olduğunu gösterir.
+CI'da iOS birim testleri adımı asılı kalabilir. **Varsayım:** kök neden belli değildir (karar 2026-10-11). Adımın kendi zaman aşımı 20 dk'dır. Adım düşünce ya da süre dolunca CI `ios-test-results` paketini yükler. Simülatör derlemeden sonra açılır ve ayrı adım hazır olmasını bekler. Adım süreleri asılmanın açılışta mı testte mi olduğunu gösterir.
 
 ## İlgili belgeler
 

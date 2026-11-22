@@ -164,11 +164,19 @@ Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru 
 | `vaults/gallery/` | `VaultStoreTests/EntityTypeGalleryTests.swift`, `Tests/KenetTests/EntityTypeGalleryTests.swift` | Ad kodda |
 | `vaults/backlinks/` | `VaultIndexTests/DayBacklinksTests.swift` | Ad kodda |
 | `vaults/placeholder/` | `VaultStoreTests/PlaceholderTests.swift`, `Tests/KenetTests/CloudDownloadTests.swift`, `Tests/KenetTests/SyncStatusTests.swift` | Ad kodda |
-| `vaults/day-copies/` | `VaultStoreTests/DayCopyTests.swift`, `VaultStoreTests/ConflictCopyListingTests.swift`, `Tests/KenetTests/DayCopyMergeWiringTests.swift` | Ad kodda |
+| `vaults/day-copies/` | `VaultStoreTests/DayCopyTests.swift`, `VaultStoreTests/DayCopyMergeCaseTests.swift`, `VaultStoreTests/DayCopyFailureTests.swift`, `VaultStoreTests/ConflictCopyListingTests.swift`, `Tests/KenetTests/DayCopyMergeWiringTests.swift` | Ad kodda (`Support/DayCopyVault.swift`) |
 | `vaults/copy-files/` | `VaultIndexTests/CopyFileTests.swift`, `Tests/KenetTests/SyncedFolderNoticeTests.swift` | Ad kodda |
 | `vaults/conflict-copies/` | `VaultIndexTests/ConflictCopyTests.swift`, `Tests/KenetTests/SyncConflictTests.swift`, `Tests/KenetTests/DiagnosticsConflictWiringTests.swift`, `Tests/KenetTests/Snapshots/ConflictVersionsSnapshotTests.swift` | Ad kodda |
-| `vaults/nfd-names/` | `VaultIndexTests/ChangeDetectionTests.swift` | Ad kodda |
+| `vaults/nfd-names/` | `VaultIndexTests/ChangeDetectionTests.swift` (`DecomposedNameTests` kümesi) | Ad kodda |
 | `vaults/turkce-buyuk-harf/` | `VaultStoreTests/TurkishCapitalTests.swift` | Ad kodda |
+| `vaults/entity-fields/` | `VaultIndexTests/EntityFieldTests.swift` | Ad kodda |
+| `vaults/unlinked-mentions/` | `VaultStoreTests/UnlinkedMentionTests.swift`, `Tests/KenetTests/UnlinkedMentionsTests.swift`, `Tests/KenetUITests/UnlinkedMentionsAccessibilityUITests.swift` | Ad kodda; `write/mention-*` ve `recognition/unlinked-mentions/` JSON `vault` alanı |
+| `vaults/unlinked-mentions-hostile/` | `VaultStoreTests/UnlinkedMentionAdversarialTests.swift` | Ad kodda; `recognition/unlinked-mentions-hostile/` JSON `vault` alanı |
+| `vaults/cadence/` | `VaultIndexTests/CadenceFieldTests.swift`, `Tests/KenetTests/CadenceTests.swift`, `Tests/KenetTests/QueryOutcomeTests.swift`, `Tests/KenetTests/Snapshots/CadenceSnapshotTests.swift` | Ad kodda |
+| `vaults/anniversaries/` | `SummariesTests/ImportantDatesTests.swift` | Kasa adı JSON `vault` alanında (`summaries/important-dates.json`) |
+| `vaults/history/` | `SummariesTests/OnThisDayTests.swift` | Kasa adı JSON `vault` alanında (`summaries/on-this-day.json`) |
+| `vaults/rhythm/` | `SummariesTests/PeriodRhythmTests.swift`, `YearWritingCalendarTests.swift`, `WeeklyReviewRhythmTests.swift`, `WeekdayDistributionTests.swift` | Kasa adı JSON `vault` alanında |
+| `vaults/graph/` | `VaultStoreTests/GraphMentionsTests.swift`, `VaultStoreTests/DayGraphMentionsTests.swift`, `VaultIndexTests/RelationsIndexTests.swift`, `Tests/KenetTests/GraphMapTests.swift`, `DayGraphTests.swift`, `DayGraphMacHostedTests.swift`, `GraphCustomTypeTests.swift`, `EntityRelationsModelTests.swift`, `Snapshots/DayGraphSnapshotTests.swift`, `Snapshots/DayGraphMacSnapshotTests.swift` | Ad kodda |
 
 Tablodaki göreli yollar `Packages/Core/Tests/` altındadır; `Tests/KenetTests/` ile başlayanlar uygulama testleridir. **Klasör tarama** yeni klasörü kendiliğinden bulur. **Ad listesi** yeni klasörü yalnız test dosyasındaki `@Test(arguments:)` listesine eklenince koşar. **JSON vaka** yeni vakayı JSON dizisine eklenince koşar.
 
@@ -253,7 +261,7 @@ Dosyalar ve bayt özellikleri: `day-basic.md` olağan gün dosyasıdır (UTF-8, 
 | Ham alan | `frontmatter` | `raw-block-scalar`, `raw-anchor-alias-tag` | 4 |
 | Çözülemeyen blok | `frontmatter` | `unreadable-duplicate-key`, `unreadable-tab-indentation` | 38 |
 | Bayt özelliği | `frontmatter` | `bom`, `crlf`, `invalid-utf8-in-body` | 5 |
-| Gün dosyası bölümleri | `sections` | `section-duplicate`, `section-out-of-order`, `section-unclosed-fence` | 23 |
+| Gün dosyası bölümleri | `sections` | `section-duplicate`, `section-out-of-order`, `section-unclosed-fence` | 24 |
 | Olay ve görev blokları | `tasks`, `events` | `line-siblings`, `line-statuses`, `line-quote-blocks` | 12 |
 | Çitli kod içindeki satırlar | `tasks`, `events` | `line-fence-list`, `line-fence-tab`, `line-indented-fence` | 16 |
 | Görev alanları | `tasks`, `events` | `task-fields-mixed`, `task-fields-protected` | 6 |
@@ -460,11 +468,11 @@ flowchart LR
 | Ritim alanı | `frontmatter` | `cadence-days-add`, `cadence-snooze-replace` | 11 |
 | Takma ad ekleme ve kaldırma | `frontmatter` | `alias-add-missing-key`, `alias-remove-inline-keeps-spelling` | 8 |
 | Bölüme satır ekleme | `sections` | `section-append-end`, `section-unclosed-fence-create` | 39 |
-| Günlük yazısını değiştirme | `sections` | `section-diary-replace`, `section-diary-legacy-heading` | 18 |
+| Günlük yazısını değiştirme | `sections` | `section-diary-replace`, `section-diary-legacy-heading` | 21 |
 | Günlük yazısına ekleme | `sections` | `diary-append-new`, `diary-append-legacy-heading` | 37 |
-| Olay ve görev satırı: ekle, değiştir, sil, reddet | `lines` | `line-add-middle`, `line-fix-stale-task-text`, `line-reject-stale` | 101 |
+| Olay ve görev satırı: ekle, değiştir, sil, reddet | `lines` | `line-add-middle`, `line-fix-stale-task-text`, `line-reject-stale` | 103 |
 | Görev alanı ve durum | `lines` | `task-due-replace-middle`, `task-complete`, `task-cancelled-complete-new-date` | 31 |
-| Tekrar kuralı | `lines` | `task-recur-change`, `task-recur-when-done`, `task-recur-month-end` | 15 |
+| Tekrar kuralı | `lines` | `task-recur-canonical-change`, `task-recur-when-done`, `task-recur-month-end` | 15 |
 | Bağlanmamış anmayı bağlama | `mention` | `mention-alias`, `mention-nfd-bom-crlf-no-final-newline` | 16 |
 
 Her örnek bir klasördür. Başarılı örnek `input.md`, `operation.json` ve `expected.md` taşır. Ret örneğinde `expected.md` yoktur; `operation.json` içindeki `expectedError` beklenen hatayı adlandırır ve yazıcı dosyaya dokunmaz. Kök anahtar işlemin hedefini söyler; yeni işlem türü yeni kök anahtar getirir.
@@ -626,7 +634,9 @@ Bayat hedef örneklerini test aynı kasa üzerinde kodda kurar. Hiçbirinde dosy
 | Anma | Anma bu arada bağlandı |
 | Konum | Satır kaydı ya da silindi |
 | Dosya | Dosya ya da varlık silindi |
-| Takma ad | Takma ad kalktı | İkiz satır, ilk satırı aynı dosyada bayt bayt yinelenen olay ya da görevdir. İkiz satırı uygulama yalnız dosya sorgunun okuduğu haliyle duruyorsa bağlar. Dosya değiştiyse uygulama hangi ikizin onaylandığını ayırt edemez ve yazmaz. Örnek `vaults/unlinked-mentions-hostile` içindeki `2026-03-01` günüdür.
+| Takma ad | Takma ad kalktı |
+
+İkiz satır, ilk satırı aynı dosyada bayt bayt yinelenen olay ya da görevdir. İkiz satırı uygulama yalnız dosya sorgunun okuduğu haliyle duruyorsa bağlar. Dosya değiştiyse uygulama hangi ikizin onaylandığını ayırt edemez ve yazmaz. Örnek `vaults/unlinked-mentions-hostile` içindeki `2026-03-01` günüdür.
 
 ## `merge/` kümesi
 
@@ -871,7 +881,7 @@ erDiagram
 
 | Ölçü | Sayı |
 |---|---|
-| Dosya | 30 |
+| İndekslenen dosya | 30 |
 | Varlık | 13 |
 | Olay | 40 |
 | Kimlikli görev | 22 |
@@ -901,7 +911,7 @@ Tam döküm paragraf metinlerini, kod çitlerini ve frontmatter bağlantıların
 | `added.md` | Alan ekleme |
 | `removed.md` | Tüm alanların silinmesi |
 
-Tam ve artımlı eşdeğerlik, dosya silme ve yeniden kurulum aynı kasayı kullanır. Sürüm 6 indeksin silinip doldurulması da aynı kasayı kullanır; güncel şema sürümü 8'dir. Kasa `vaults/` altında durur, çünkü kökteki `.gitignore` `vault/` adlı klasörleri dışlar.
+Tam ve artımlı eşdeğerlik, dosya silme ve yeniden kurulum aynı kasayı kullanır. Sürüm 6 indeksin silinip doldurulması da aynı kasayı kullanır; güncel şema sürümü 10'dur (`Schema.swift`, `IndexSchema.version`). Kasa `vaults/` altında durur, çünkü kökteki `.gitignore` `vault/` adlı klasörleri dışlar.
 
 ### Ritim alanları
 
@@ -926,6 +936,7 @@ Tam ve artımlı eşdeğerlik, dosya silme ve yeniden kurulum aynı kasayı kull
 | `duplicate` | `input.json` | `expected.json` | Yinelenen id |
 | `create` | `operation.json` | `expected.md` | Oluşturma için tam Markdown çıktısı |
 | `preserve` | `input.json`, `operation.json` | `expected.json` | Bir tanım değişirken hedef dışındaki JSON baytları kalır |
+| `reserved-related` | `input.json` | `expected.json` | Şemada ayrılmış `related` alanını reddeder; fixture yazarı beklentiyi elle yazdı |
 
 `vaults/typed/` ana örnek kasanın sabit sayılarını değiştirmeden kitap tipini, 2 kurgusal kitabı ve bir şablonu taşır. `.app/types.json` text, date, number, boolean ve link alanlarını tanımlar. Uygulama `templates/` klasörünü indekslemez. `recognition/custom-book/` `@` anmasının özel tip wikilink'ine dönüşümünü dilden bağımsız tanıma biçimiyle tarif eder. Tip tanımı kalkınca uygulama kitapları not olarak indeksler ve dosya baytları değişmez.
 
@@ -1180,20 +1191,22 @@ Kasa 20 Eylül'ü 4 yılda taşır. 2023 bağlantısızdır: not bağlantısı, 
 | `backlinks` | 5 | Bu güne bağlananlar sorgusu | `DayBacklinksTests` |
 | `typed` | 4 | Özel kitap tipi; ayrıntı [`entity-types/` kümesi](#entity-types-kümesi) bölümünde | `entity-types/` |
 | `placeholder` | 12 | İndirilmeyi bekleyen yer tutucular | `PlaceholderTests`, `Tests/KenetTests/CloudDownloadTests`, `Tests/KenetTests/SyncStatusTests` |
-| `day-copies` | 41 | Gün kopyası birleştirme | `DayCopyTests`, `Tests/KenetTests/DayCopyMergeWiringTests` |
+| `day-copies` | 41 | Gün kopyası birleştirme | `DayCopyTests`, `DayCopyMergeCaseTests`, `DayCopyFailureTests`, `ConflictCopyListingTests`, `Tests/KenetTests/DayCopyMergeWiringTests` |
 | `rhythm` | 16 | Özetler'in yıl, süren dönem ve ritim hesabı | `summaries/period-rhythm.json`, `summaries/year-writing.json`, `summaries/weekly-rhythm.json`, `summaries/weekday-distribution.json` |
 | `copy-files` | 19 | Varlık kopyası ve gün kopyası listesi; birleştirme yok | `VaultIndexTests/CopyFileTests`, `Tests/KenetTests/SyncedFolderNoticeTests` |
 | `gallery` | 21 | Hazır tip galerisi: 10 tip, şablonları ve her şablondan bir varlık; ayrıntı [`entity-types/` kümesi](#entity-types-kümesi) bölümünde | `EntityTypeGalleryTests` |
-| `conflict-copies` | 20 | Çakışma kopyası ad kuralı ve `conflicts/` listesi; çakışan sürüm sorgusunun kasası | `VaultIndexTests/ConflictCopyTests`, `Tests/KenetTests/SyncConflictTests` |
-| `nfd-names` | 4 | Ayrışmış (NFD) dosya adı, ad, takma ad ve bağlantı yazımı | `DecomposedNameTests` |
+| `conflict-copies` | 20 | Çakışma kopyası ad kuralı ve `conflicts/` listesi; çakışan sürüm sorgusunun kasası | `VaultIndexTests/ConflictCopyTests`, `Tests/KenetTests/SyncConflictTests`, `Tests/KenetTests/DiagnosticsConflictWiringTests`, `Tests/KenetTests/Snapshots/ConflictVersionsSnapshotTests` |
+| `nfd-names` | 4 | Ayrışmış (NFD) dosya adı, ad, takma ad ve bağlantı yazımı | `DecomposedNameTests` (`VaultIndexTests/ChangeDetectionTests.swift` içinde) |
 | `turkce-buyuk-harf` | 6 | Türkçe büyük harf eşlemesi: anahtar, bağlantı, tanıma, ad çakışması | `TurkishCapitalTests` |
-| `graph` | 18 | Olay, alt satır, görev ve paragraf bağları; Diary madde listesi, devam satırı, alıntı öbeği ve numaralı liste; başlık, frontmatter, özel tip ve indekslenmeyen gün kopyası; tek günün grafiği | `GraphMentionsTests`, `GraphMapTests`, `DayGraphMentionsTests`, `DayGraphTests`, `GraphCustomTypeTests`, `DayGraphSnapshotTests` |
+| `graph` | 19 | Olay, alt satır, görev ve paragraf bağları; Diary madde listesi, devam satırı, alıntı öbeği ve numaralı liste; başlık, frontmatter, özel tip ve indekslenmeyen gün kopyası; tek günün grafiği; açık ilişkiler (`relations.json`) | `GraphMentionsTests`, `DayGraphMentionsTests`, `RelationsIndexTests`, `GraphMapTests`, `DayGraphTests`, `DayGraphMacHostedTests`, `GraphCustomTypeTests`, `EntityRelationsModelTests`, `DayGraphSnapshotTests`, `DayGraphMacSnapshotTests` |
 
 **Çakışma kopyaları:** Fixture yazarı `vaults/conflict-copies/expected.json` beklentisini elle yazdı. `names` saf ad kuralının tablosudur: yol ve gün dosyası (kopya değilse `null`). Tablo bazı adları kopya saymaz: sayısı 1 ya da başı sıfırlı, geçersiz gün, geçersiz saat ya da takvim günü. Eksik `Z`, büyük harfli `Conflict` ve tam genişlikli rakam da kopya değildir. Alt klasör, kök dizin ve yer tutucu adları da kopya değildir. `conflictCopies` diskteki listedir: gün, addaki zaman, sonra sayı sırasıyla 5 kopya; gün dosyası olmayan `2026-09-30` kopyası da listededir. `source/conflicts/` aynı benzer adları, `eski/` alt klasörünü ve bir `.icloud` yer tutucusunu taşır. Kökteki benzer adlı dosya sıradan nottur ve indekse girer. Yalnız harf boyu farklı iki ad koyma. Harf boyuna duyarsız birim ikisini tek dosya sayar; biri ötekinin üzerine yazılır. Uygulama testleri aynı kasayı iCloud Drive yolu altına kopyalar ve sahte sürüm kaynağıyla `IndexStore.computeConflictedFiles` sorgusunu sınar.
 
 **Graph:** `vaults/graph/expected.json` elle sayılmış `totals` ve tarih sıralı `days` (`date`, `mentions`) alanlarını taşır. Gün dosyasının başlık ve frontmatter bağlantıları o günün anmasına girer. 2026-10-02'de Selin'in başlıktaki anması 4'e katılır. Liman Ofis'in frontmatter ve başlık anmaları 3'e katılır. Gün kopyası mevcut kasa kuralı gereği indekse girmez. Varlık dosyalarının frontmatter bağları `totals` içinde anma sayılır, gün anması olmaz: `related`, `eşi`, kitabın `yazar` alanı. Selin 8 gün ve gövde anmasına 3 frontmatter bağlantısıyla 11 olur. Deniz 7 gün anmasına 2 frontmatter bağlantısıyla 9 olur. Özel kitap tipinin kendi tür sorgusunda yalnız tekil anması vardır; ana Graph'ta tipi süzgeçte açılınca düğüm olur. `diary/2026-10-04.md` boş satırsız tek Diary paragrafıdır. Madde, devam satırı, alıntı ve numaralı madde satırlarındaki her bağlantı o günün anmasına girer. Baran, Ece, Mert ve Ev ikişer anma alır.
 
 **Günün grafiği:** `vaults/graph/day-graph.json` tek gün sorgusunun beklentisini taşır: `kinds` (kişi, konum ve kitap) ve tarih başına elle sayılmış `mentions`. Liste kasada dosyası olmayan boş bir günü de içerir. Kitabın tek başına anıldığı 2026-10-01 ve tek paragraflı Diary listesi olan 2026-10-04 de listededir. Gün sorgusu bu günlerde `expected.json` günleriyle aynı yanıtı verir; kitap yalnız gün sorgusunda o güne girer.
+
+**İlişkiler:** Açık ilişki beklentileri `vaults/graph/relations.json` içindedir; yönlü giden/gelen sorgularını ve yönsüz tekilleştirmeyi `RelationsIndexTests` sınar. Beklentiler biçim kurallarından elle yazılmıştır.
 
 **Şema, `vaults/sample/` kasasının klasörlerini ve dosya sayılarını gösterir.**
 
@@ -1322,7 +1335,3 @@ Kopya olmayan benzer adlar (`2026-10-02 2 2.md`, `2026-10-02-2.md`, `2026-10-02 
 - [Kasa biçimi](vault-format.md): ayrıştırıcı ve yazıcı kuralları.
 - [Mimari](architecture.md): Core modülleri ve test hedefleri.
 - [Ekranlar](screens.md): özet sayılarının tanımı.
-
-Açık ilişki beklentileri `vaults/graph/relations.json` içindedir; yönlü giden/gelen sorgularını ve yönsüz tekilleştirmeyi `RelationsIndexTests` sınar. Beklentiler biçim kurallarından elle yazılmıştır.
-
-`entity-types/reserved-related/` özel tip şemasında `related` alanını reddeden elle yazılmış JSON sözleşmesidir; `EntityTypeTests.schemaFixtures` tarafından okunur.

@@ -16,7 +16,7 @@ Modüllerin durumunu [yol haritası](roadmap.md) izler; bu belge durum tutmaz.
 |---|---|
 | Ad | Kenet. Kod adı da Kenet'tir. |
 | Tek cümle | Gün içinde yazdığın kısa olayları kişilere, konumlara ve zamana kendiliğinden bağlayan; görevleri ve hedefleri de aynı yerde tutan, verisi düz Markdown olan kişisel günlük. |
-| Platform | iPhone, iPad ve Mac. iPad kararı 2026-10-16'dadır; mağaza listesinin iPad ekran görüntüleri sürümde gelir. Mac uygulaması mağazaya sonra girer. |
+| Platform | iPhone, iPad ve Mac. iPad kararı 2026-10-16'dadır; mağaza listesinin iPad ekran görüntüleri sürümde gelir. Mac uygulaması aynı mağaza kaydından çıkar; karar `2026-10-22`. |
 | Veri | Obsidian uyumlu Markdown kasa. SQLite yalnız indekstir. |
 | Arayüz dili | Kullanıcının dili. Başlangıçta Türkçe ve İngilizce. |
 
@@ -41,7 +41,8 @@ mindmap
     Veri kullanıcınındır
       Markdown gerçek kaynaktır
       SQLite yalnız indekstir
-      Kasa yereldir, hesap yoktur
+      Kasa cihazda ya da kullanıcının iCloud'undadır
+      Kenet hesabı ve sunucusu yoktur
       Uygulama gitse de dosyalar kalır
     Hiçbir şey kaybolmaz
       Önce dosyaya yaz, sonra indeksi güncelle
@@ -65,7 +66,7 @@ mindmap
 |---|---|---|
 | 1 | Bir satır yazmak 10 saniyeden kısa sürer | Widget, hızlı giriş ve otomatik bağlama süs değildir. Bu üçü uygulamanın yaşama şartıdır. |
 | 2 | Sen yaz, uygulama bağlasın | Kullanıcı klasörleme ve etiketleme yapmaz. |
-| 3 | Veri kullanıcınındır | Veri düz Markdown, yerel ve taşınabilirdir. Kullanıcı uygulamayı silse de dosyalar okunur durumda kalır. |
+| 3 | Veri kullanıcınındır | Veri düz Markdown'dır ve taşınabilirdir. Kasa cihazda ya da kullanıcının kendi iCloud'unda durur. Kullanıcı uygulamayı silse de dosyalar okunur durumda kalır. |
 | 4 | Tek çekirdek, çok ekran | Her yeni özellik aynı dosyaların üstünde yeni bir ekrandır. Hiçbir özellik yeni veri deposu açmaz. |
 | 5 | Geri bir şey verir | Uygulama yalnız kayıt tutmaz. Kişi geçmişi, zincirler ve özetler kullanıcıya yazmaya devam etmek için sebep verir. |
 | 6 | Belirsizse sor | Yanlış otomatik bağlama, sormaktan kötüdür. |
@@ -140,7 +141,7 @@ mindmap
       Konuma girince hedef işaretleme
       Siri ve Kısayollar
     Geri dönüş
-      Haftalık ve aylık özet
+      Haftalık, aylık ve yıllık özet
       Graph ve harita
       Bu gün geçmişte
       Haftalık inceleme ve günü kapat
@@ -154,7 +155,7 @@ mindmap
       Ana ekran zinciri
       Kilit ekranı
       Hızlı giriş widget'ı
-      Mac widget'ları
+      Mac widget'ları: planlı
       Paylaşım uzantısı
 ```
 
@@ -166,11 +167,11 @@ mindmap
 | Hedefler | Günlük, haftalık ve yıllık hedefler; zincir ve ilerleme takibi. Alışkanlık hedefin günlük biçimidir. | 3 |
 | Otomasyon | Görev ve hedef bildirimleri, akşam günlük hatırlatması, GPS konum önerisi, konuma girince hedef işaretleme, Siri ve Kısayollar | 4 |
 | Proje görünümleri | Kanban, zaman çizelgesi, proje sayfaları, tekrarlayan görevler, öncelik | 5 |
-| Özetler | Haftalık ve aylık örüntüler, sayılara dayalı; kişi sayfasında son görüşme özeti; graph ve harita | 6 |
+| Özetler | Haftalık, aylık ve yıllık örüntüler, sayılara dayalı; kişi sayfasında son görüşme özeti; graph ve harita | 6 |
 | Kasa ve güvenlik | İlk kullanım, var olan Obsidian kasasını yerinde açma, uygulama kilidi, özel varlık tipleri | 7 |
 | Bağlam ve geri dönüş | Bu gün geçmişte, takvimden olay taslağı, bağlanmamış anmalar, önemli tarihler, görüşme ritmi, zincir affı, suçlamasız taşıma, günü kapat, haftalık inceleme, rehberden kişi içe aktarma, bu güne bağlananlar | 10 |
 | Eşitleme | iCloud kasası, dosya koordinasyonu, gün kopyası birleştirme, eşitleme durumu göstergesi | 11 |
-| Widget'lar ve uzantılar | Zincir, günün görevleri, takvim etkinlikleri, hızlı giriş; kilit ekranı, Denetim Merkezi, Mac widget'ları, paylaşım uzantısı | 11 |
+| Widget'lar ve uzantılar | Zincir, vadesi gelen görev sayısı, sıradaki takvim etkinliği, hızlı giriş; kilit ekranı, Denetim Merkezi, paylaşım uzantısı. Mac widget'ları planlıdır; kodda yoktur. | 11 |
 
 ## Ayırt eden bağlam
 
@@ -226,10 +227,10 @@ Tarama sekiz alanın hepsini Ekim 2026'da eksik buldu.
 | İş | Not |
 |---|---|
 | Genel amaçlı veritabanı oluşturucu | Notion benzeri bir araç değildir. |
-| Tam özellikli Markdown editörü | İlk aşamalarda yoktur. |
+| Tam özellikli Markdown editörü | Yoktur. Mac'te serbest not düzenleme yol haritasının "Sonraki fikirler" bölümündedir. |
 | Kullanıcının var olan Obsidian kasasını yeniden düzenlemek ya da dosyalarını taşımak | Uygulama var olan kasayı yerinde açar ve hazırlar. Ayrıntı [Kasa biçimi](vault-format.md) belgesindedir. |
 | Ekip kullanımı, hesap sistemi, kendi eşitleme sunucusu | - |
-| Android ve Windows | Proje tutarsa ekip ayrı istemci yazar. Kasa biçimi açık olduğu için kilitlenme yoktur. |
+| Android ve Windows | Ürün tutarsa proje ayrı istemci yazar. Kasa biçimi açık olduğu için kilitlenme yoktur. |
 
 ## Ertelenen işler
 
@@ -255,10 +256,10 @@ Tarama sekiz alanın hepsini Ekim 2026'da eksik buldu.
 
 | Risk | Açıklama | Karşı önlem |
 |---|---|---|
-| Kapsam | Beş ayrı uygulamalık iş. | Aşamalar sırayla ilerler ve her modül gerçek kullanımda sınanır. |
+| Kapsam | Beş ayrı uygulamalık iş. | Her modül gerçek kullanım ölçütüyle sınanır. Ölçütleri yol haritası izler; aşamalar birlikte yürüyebilir. |
 | Yazmayı bırakmak | Kullanıcı veri girmezse uygulama boş kalır. | İlke 1 ve İlke 5. |
 | Hatalı tanıma | Aynı adlı kişiler ve yanlış bağlantılar. | İlke 6. |
-| Başkalarına ait kişisel veri | Günlük başka kişilerin bilgisini taşır. | Yerel depolama esastır. |
+| Başkalarına ait kişisel veri | Günlük başka kişilerin bilgisini taşır. | Kasa cihazda ya da kullanıcının kendi iCloud'unda durur. Kenet sunucusu yoktur. |
 
 **NOT:** Aşama 0–7 çıkış ölçütleri beklenmeden art arda yazıldı. Ölçütler geçerlidir ve gerçek kullanımla kapanır.
 

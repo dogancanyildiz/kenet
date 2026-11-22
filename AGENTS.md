@@ -86,7 +86,7 @@ flowchart LR
 | **Sonraki aşamaların özelliklerini erken yazma.** | Aktif aşama bitmeden ileriki özellikleri ekleme. İleriki özellikleri kolaylaştıran tasarım tercihleri serbesttir. Proje bu tercihleri teşvik eder. |
 | **Arayüz metnini koda gömme.** | String Catalog kullan: `App/Resources/Localizable.xcstrings`. Her anahtara Türkçe ve İngilizce çeviri yaz. |
 
-Değişmez kurallar zevk değil, ürünün temel vaatleridir. Veri kullanıcınındır, hiçbir şey kaybolmaz, kullanıcı veriyi başka platforma taşıyabilir. CI (sürekli bütünleştirme) Core kuralını `.github/scripts/check-core-imports.sh` ile denetler. Yol haritası sonraki aşamanın bir dilimini açıkça aktif aşamayla birlikte yürütebilir. Örnek: Aşama 11'in kimlik gerektirmeyen dilimleri ve Aşama 14 ile 15 birlikte yürür.
+Değişmez kurallar zevk değil, ürünün temel vaatleridir. Veri kullanıcınındır, hiçbir şey kaybolmaz, kullanıcı veriyi başka platforma taşıyabilir. CI (sürekli bütünleştirme) Core kuralını `.github/scripts/check-core-imports.sh` ile denetler. Yol haritası sonraki aşamanın bir dilimini açıkça aktif aşamayla birlikte yürütebilir. Birlikte yürüyen dilimleri `docs/roadmap.md` durum tablosu listeler.
 
 ## Belge kuralları
 
@@ -281,9 +281,10 @@ App/                      iOS ve macOS SwiftUI uygulaması
   Services/               Sistem hizmetleri (takvim, konum, bildirim, kilit)
   Support/                Entitlements, plist ekleri, küçük yardımcılar, simge kaynağı (AppIcon/)
 Widgets/                  WidgetKit hedefi (iOS: zincir, kilit ekranı, hızlı giriş, Denetim Merkezi kontrolü);
-                          Shared/: uygulamayla ortak;
+                          Shared/: uygulamayla ortak; Support/: Info.plist, entitlements, gizlilik bildirimi;
                           String Catalog'u App/Resources'tan derler
-ShareExtension/           Paylaşım uzantısı (iOS): paylaşılanı olay olarak ekler; Form/: uygulamayla ortak
+ShareExtension/           Paylaşım uzantısı (iOS): paylaşılanı olay olarak ekler; Form/: uygulamayla ortak;
+                          Support/: Info.plist, entitlements, gizlilik bildirimi
 Shared/                   Uygulama ve paylaşım uzantısıyla ortak olay yazıcısı ve kuyruk (Foundation, Core)
 Packages/Core/            Ayrıştırıcı, modeller, indeksleyici (Apple'a bağımsız): VaultFormat,
                           VaultIndex, VaultStore, EntityRecognition, DateParsing, GoalTracking,
@@ -294,17 +295,21 @@ Tests/KenetTests/       Uygulama katmanı birim testleri (macOS ve iOS simülat�
                           Mac kümeleri yerelde varsayılan atlanır (SNAPSHOT_MAC_LOCAL=1 ile açılır)
 Tests/KenetUITests/     XCUITest duman testi, erişilebilirlik denetimi, ekran turu (iOS)
 Tests/KenetMacUITests/  Mac ekran turu (yalnız screen-tour.sh --mac; CI'da koşmaz)
-Config/                   İmzalama ayarı (Signing.xcconfig); Local.xcconfig repoya girmez
+Config/                   İmzalama ayarı (Signing.xcconfig), örnek yerel ayar (Local.xcconfig.example),
+                          StoreKit yapılandırması (Support.storekit); Local.xcconfig repoya girmez
 docs/                     Belgeler
-.github/                  CI iş akışları (workflows/), ortak eylem (actions/), betikler (scripts/)
+.github/                  CI iş akışları (workflows/), ortak eylemler (actions/: xcode, ios-build), betikler (scripts/)
 project.yml, VERSION      XcodeGen tanımı ve sürüm numarası; Kenet.xcodeproj üretilir, repoya girmez
+LICENSE, .swift-format    Lisans metni ve swift format ayarı
 ```
 
 | Denetim betiği | Ne denetler |
 |---|---|
-| `.github/scripts/check-docs.sh` | Karar tablosu, README belge tablosu, roadmap ve karar sayıları, String Catalog tamlığı ve biçimi; koddaki sabit metinlerin katalogda olması (`check-catalog-keys.py`); uzun cümle tavanı; sır kalıpları |
+| `.github/scripts/check-docs.sh` | Karar tablosu, README belge tablosu, roadmap kutu sayıları; çeviri tamlığı (yalnız `Localizable.xcstrings`); katalog biçimi (`App/Resources/*.xcstrings`); koddaki sabit metinlerin katalogda olması (`check-catalog-keys.py`); uzun cümle tavanı; sır kalıpları |
 | `.github/scripts/check-doc-locations.sh` | `.md` yeri: yalnız `docs/`, `Fixtures/` ve kökteki `README.md`, `AGENTS.md`, `CLAUDE.md` |
 | `.github/scripts/check-core-imports.sh` | `Core` içindeki yasak import'lar |
 | `.github/scripts/check-team-id.sh` | Belgelerdeki gerçek takım kimliği |
+| `.github/scripts/check-snapshot-budget.sh` | Görüntü referansı tavanı: `__Snapshots__` altındaki PNG sayısı ve toplam boyutu |
+| `.github/scripts/check-frontmatter-yaml.rb` | Frontmatter fixture'larını bağımsız YAML okuyucularıyla karşılaştırır; CI koşmaz, elle çalışır |
 
-CI dört betiği de "Biçim ve kurallar" işinde çalıştırır. Öteki betiklerin kullanımını `README.md` içindeki Kurulum bölümü anlatır. CI işlerinin ayrıntısını `docs/architecture.md` anlatır.
+CI ilk beş betiği "Biçim ve kurallar" işinde çalıştırır. Kurulum, test, ekran turu ve dağıtım betiklerini `README.md` "Kurulum adımları" ve sonraki bölümleri anlatır. CI işlerinin ve öteki CI betiklerinin ayrıntısını `docs/architecture.md` anlatır.

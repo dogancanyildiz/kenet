@@ -26,7 +26,7 @@
 # dışa aktarımıyla yüklenir (Mac App Store paketi .pkg; Xcode "Mac Installer Distribution"
 # sertifikasını otomatik imzada kendisi oluşturur). Denetimler Mac paketine göredir: Contents/
 # Info.plist, en düşük macOS sürümü, imzalı pakette App Sandbox ve iCloud kapsayıcı yetkisi.
-# App Store Connect'te uygulama kaydına macOS platformu eklenmiş olmalı (README, Mac).
+# App Store Connect'te uygulama kaydına macOS platformu eklenmiş olmalı (docs/development.md, "Cihaza kurulum ve TestFlight").
 #
 # Koşullar: dal `dev` ve origin/dev ile aynı (TestFlight `dev`'den, mağaza `main`'den çıkar),
 # Config/Local.xcconfig içinde takım kimliği var ve Xcode'da aynı Apple hesabıyla oturum açık.

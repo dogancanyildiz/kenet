@@ -2,57 +2,27 @@
 
 **Amaç:** Bu belge `Fixtures/` klasöründeki test verisinin düzenini, girdi ve beklenen çıktı sözleşmesini ve yeni örnek ekleme yolunu tarif eder.
 
-**Kapsam:** `Fixtures/` altındaki kümeler ve kasalar; her kümenin davranış aileleri, test eşlemesi ve yeni fixture ekleme adımları.
+**Kapsam:** `Fixtures/` altındaki kümeler ve kasalar; her kümenin dosya biçimi, davranış aileleri, test eşlemesi ve yeni fixture ekleme adımları.
 
-Bu belgede **küme**, `Fixtures/` altındaki birinci düzey klasördür. **Örnek**, kümedeki tek vaka klasörü ya da bir JSON dosyasındaki tek vaka kaydıdır. **İstemci**, fixture dosyalarını okuyup sınayan test kodudur. Bugün Swift testleri istemcidir; ileride başka platformlardaki istemciler aynı dosyaları kullanır. Kasa biçiminin kendisi [Kasa biçimi](vault-format.md) belgesindedir.
+| Terim | Tanım |
+|---|---|
+| Küme | `Fixtures/` altındaki birinci düzey klasör. |
+| Örnek | Kümedeki tek vaka klasörü ya da bir JSON dosyasındaki tek vaka kaydı. |
+| İstemci | Fixture dosyalarını okuyup sınayan test kodu. Bugün Swift testleridir; başka platformlar aynı dosyaları kullanır. |
+| Kasa | `vaults/` altındaki tam örnek kasa. Birden çok küme aynı kasayı okur. |
 
-**NOT:** Bu belge vakaları tek tek değil, davranış ailesine göre listeler. Fixture yazarı bir kümenin güncel vakalarını `find Fixtures/<küme> -maxdepth 1` ile ya da ilgili `cases.json` dosyasında bulur.
+Kasa biçiminin kuralları [Kasa biçimi](vault-format.md) belgesindedir. Bu belge kural tanımlamaz; kuralın hangi dosyayla sınandığını söyler.
 
-## Dizin ağacı
+## Belgenin sınırı
 
-**Şema, `Fixtures/` altındaki kümeleri ve kasaları gösterir.**
-
-```mermaid
-flowchart LR
-  F["Fixtures/"]
-  F --> RT["roundtrip/"]
-  F --> PA["parse/"]
-  F --> WR["write/"]
-  F --> ME["merge/"]
-  F --> RE["recognition/"]
-  F --> IX["index/"]
-  F --> JO["diary/"]
-  F --> EN["entities/"]
-  F --> ET["entity-types/"]
-  F --> RN["rename/"]
-  F --> IM["import/"]
-  F --> MI["migration/ : legacy-vault"]
-  F --> DA["dates/ : JSON ve girdi dosyaları"]
-  F --> GO["goals/ : cases.json, series.json, creation/, writes/"]
-  F --> SU["summaries/ : JSON"]
-  F --> GC["goal-chain/ : cases.json, query/"]
-  F --> VA["vaults/"]
-  VA --> V1["sample"]
-  VA --> V2["entity-fields"]
-  VA --> V3["unlinked-mentions"]
-  VA --> V4["unlinked-mentions-hostile"]
-  VA --> V5["cadence"]
-  VA --> V6["anniversaries"]
-  VA --> V7["history"]
-  VA --> V8["backlinks"]
-  VA --> V9["typed"]
-  VA --> V10["placeholder"]
-  VA --> V11["day-copies"]
-  VA --> V12["rhythm"]
-  VA --> V13["copy-files"]
-  VA --> V14["gallery"]
-  VA --> V15["conflict-copies"]
-  VA --> V16["nfd-names"]
-  VA --> V17["turkce-buyuk-harf"]
-  VA --> V18["graph"]
-```
-
-Güncel örnek sayısını `find Fixtures -mindepth 2 -maxdepth 2 -type d` verir; belge sayı tutmaz. Kasalar `vaults/` altında durur ve birden çok küme aynı kasayı kullanır. Örneğin `recognition/unlinked-mentions/` beklentisi `vaults/unlinked-mentions/` kasasını okur.
+| Konu | Kural |
+|---|---|
+| Sayı | Belge örnek ve dosya sayısı tutmaz. Sayıyı disk verir. |
+| Küme ve kasa sayımı | `find Fixtures -mindepth 2 -maxdepth 2 -type d \| cut -d/ -f2 \| sort \| uniq -c` |
+| Bir kümenin vakaları | `ls Fixtures/<küme>` ya da kümenin `cases.json` dosyası |
+| Vaka listesi | Belge vakaları tek tek değil, davranış ailesine göre listeler. |
+| Vaka açıklaması | Açıklama fixture dosyasındaysa belge yinelemez. Bugün yalnız `summaries/entity-density.json` `description` alanı taşır. |
+| Açıklaması dosyada olmayan vaka | Belge vakanın ne sınadığını kümenin "Vakalar" tablosunda tutar. |
 
 ## Genel kurallar
 
@@ -62,374 +32,317 @@ Güncel örnek sayısını `find Fixtures -mindepth 2 -maxdepth 2 -type d` verir
 | Özel baytı `printf` ile yaz | Satır sonu, BOM ya da geçersiz bayt taşıyan dosyayı editörle değil `printf` ile oluştur. `xxd` ile doğrula. |
 | Ham bayt denetimi | Testler bu özellikleri ham baytlardan ayrıca denetler. Bir araç dosyayı dönüştürürse test kırmızıya döner. |
 | Kurgusal içerik | Repo herkese açıktır. Gerçek kişi, konum ya da günlük verisi girmez. |
-| Belge yok | Klasörde README ya da açıklama dosyası yoktur. Her `.md` dosyası test verisidir. Açıklama bu belgeye girer. |
+| Belge yok | Klasörde README ya da açıklama dosyası yoktur. Her `.md` dosyası test verisidir. |
 | `vault` adı yok | `Vault` ya da `vault` adında klasör açma. `.gitignore` bu adları her derinlikte dışarıda bırakır. |
 | `.obsidian/` istisnası | `.gitignore` her `.obsidian/` klasörünü dışlar. `!Fixtures/**/.obsidian/` satırı fixture içindekini geri alır. |
 | Kasa yeri | Yeni kasayı `Fixtures/vaults/<ad>/` altına koy. |
+| Beklentiyi elle yaz | Fixture yazarı beklenen çıktıyı kurallardan, uygulamadan bağımsız yazar. Testler fixture dosyasını güncellemez. |
+
+**Tablo, beklentisi koddan gelen 4 istisnayı verir.**
+
+| Fixture | Beklentinin kaynağı |
+|---|---|
+| `recognition/mixed-digit-names-baseline/` | Rakam ad kuralından önceki tanıyıcının çıktısı. Dosya eski davranışı kanıt olarak tutar. |
+| `recognition/unlinked-mentions-hostile/expected.json` | Çıktıdan üretildi; fixture yazarı satır satır elle gözden geçirdi. |
+| `vaults/day-copies/expected/` | Birleştirme kodu üretti; fixture yazarı kuralları elle uygulayıp her dosyayı doğruladı. |
+| `vaults/rhythm/` günlük hedef zinciri ve skoru | Fixture yazarı kodla karşılaştırdı; kurallar `SummaryGoalScoreTests` ile aynıdır. |
 
 **UYARI:** `Fixtures/` altındaki bir dosyayı editörle açıp kaydetme; editör satır sonunu ya da BOM'u değiştirebilir.
 
 **DİKKAT:** `Fixtures/vaults/sample` kasasına dosya ya da alan ekleme; yeni dosya testlerdeki elle sayımları ve ekran görüntüsü referanslarını bozar.
 
+**DİKKAT:** `mixed-digit-names-baseline` beklentisini elle düzeltme.
+
 **NOT:** Yeni bir fixture yolunu bitirmeden önce `git check-ignore -v <yol>` ile denetle.
 
 ## Kurgusal adlar
 
-| Tür | Adlar |
-|---|---|
-| Kişi | Deniz Arıkan, Deniz Arıkan Yılmaz (yeniden adlandırma örneği), Selin Korkmaz, Baran Tunç, Ece Yalın, Mert Aksu |
-| Konum | Çınaraltı Kafe, Liman Ofis, Tepe Spor Salonu, Ev |
-| Hedef | Spor, Kitap, Su |
-| Özel tip varlığı | Yeni Kitap, Örnek Kitap, Örnek Film, Örnek Kurum, Örnek Proje, Örnek Etkinlik, Örnek Seyahat, Örnek Tarif, Örnek Ürün, Örnek Evcil Hayvan, Örnek Araç |
-| Emoji örneği | Ev 🏠 |
+**Tablo, `vaults/sample/` kasasının kadrosunu verir. Yeni fixture önce bu adları kullanır.**
 
-Yalnız bu tablodaki adları kullan. Yeni ad gerekirse önce bu tabloya ekle.
+| Tür | Ad | Ayrıntı |
+|---|---|---|
+| Kişi | Deniz Arıkan | Takma adlar: Deniz, Deniz abi. Yeniden adlandırma örneği: Deniz Arıkan Yılmaz. |
+| Kişi | Selin Korkmaz | Takma ad: Selin |
+| Kişi | Baran Tunç | Takma ad: Baran |
+| Kişi | Ece Yalın | Takma ad: Ece |
+| Kişi | Mert Aksu | İkinci bir Mert Aksu `iş` ayırt edicisini taşır. |
+| Konum | Liman Ofis | Takma ad: ofis; koordinat: `[10.5000, 20.0290]`; yarıçap: 100 |
+| Konum | Çınaraltı Kafe | |
+| Konum | Tepe Spor Salonu | Takma ad: salon; koordinat: `[10.5210, 20.0415]`; yarıçap: 80 |
+| Konum | Ev | Emoji örneği: Ev 🏠 |
+| Hedef | Spor | `spor`; haftada 3 gün; boolean; konum: Tepe Spor Salonu |
+| Hedef | Kitap | `kitap`; günde 20; sayı; birim: sayfa |
+| Hedef | Su | `su`; günde 8; sayı; birim: bardak |
+| Özel tip varlığı | Yeni Kitap, Örnek Kitap, Örnek Film, Örnek Kurum, Örnek Proje, Örnek Etkinlik, Örnek Seyahat, Örnek Tarif, Örnek Ürün, Örnek Evcil Hayvan, Örnek Araç | `vaults/typed/`, `vaults/gallery/` |
+
+| Durum | Kural |
+|---|---|
+| Yeni fixture, olağan ad | Tablodaki adı kullan. |
+| Yeni fixture, tabloda karşılığı olmayan ad | Kurgusal bir ad seç. Ad `sample` kasasına girecekse önce tabloya ekle. |
+| Var olan öteki kasalar | Kendi kurgusal kadrolarını taşır: `cadence`, `rhythm`, `anniversaries`, `history`, `turkce-buyuk-harf`, `unlinked-mentions*`. |
+| Sentetik ad | Bir kuralı zorlamak için uydurulan ad ya da takma ad. Örnek: `Işık`, `Sayılar`, `12`, `2026-10-12`. |
+| Bir kasanın kadrosu | `find Fixtures/vaults/<kasa> -name '*.md' -not -path '*/diary/*'` |
+| Gerçek ad | Hiçbir kasada kullanma. |
 
 ## Klasör bulma
 
-**Şema, bir testin `Fixtures/` klasörünü nasıl bulduğunu gösterir.**
+| Sıra | Koşul | Sonuç |
+|---|---|---|
+| 1 | `FIXTURES_DIR` dolu ve yol bir klasör | Test o klasörü kullanır. |
+| 2 | `FIXTURES_DIR` dolu, yol klasör değil | Hata: geçersiz yol. |
+| 3 | `FIXTURES_DIR` boş | Test kaynak dosyasının klasöründen yukarı çıkar ve ilk `Fixtures` klasörünü kullanır. |
+| 4 | Dosya sisteminin köküne kadar `Fixtures` yok | Hata: `Fixtures` bulunamadı. |
 
-```mermaid
-flowchart TD
-  A["Test başlar"] --> B{"FIXTURES_DIR dolu mu?"}
-  B -- evet --> C{"Yol bir klasör mü?"}
-  C -- evet --> D["O klasörü kullan"]
-  C -- hayır --> E["Hata: geçersiz yol"]
-  B -- hayır --> G["Test kaynak dosyasının klasöründen başla"]
-  G --> H{"Bu düzeyde Fixtures var mı?"}
-  H -- evet --> D
-  H -- hayır --> I{"Dosya sisteminin kökü mü?"}
-  I -- hayır --> J["Bir üst klasöre çık"]
-  J --> H
-  I -- evet --> K["Hata: Fixtures bulunamadı"]
-```
-
-Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru çıkarak bulur. Paket deponun dışında derlenirse `FIXTURES_DIR` ortam değişkeni klasörün yolunu verir. Değişken doluysa test önce onu kullanır.
+Paket deponun dışında derlenirse `FIXTURES_DIR` ortam değişkeni klasörün yolunu verir.
 
 ## Fixture ve test eşlemesi
 
-**Tablo, her kümeyi koşan test dosyasını ve testin örnekleri nasıl bulduğunu verir.**
+**Tablo, her kümeyi ve kasayı, ne sınadığını, koşan test dosyasını ve testin örnekleri nasıl bulduğunu verir.**
 
-| Küme ya da kasa | Test dosyası | Örnek bulma |
-|---|---|---|
-| Bütün `.md` dosyaları | `Packages/Core/Tests/VaultFormatTests/RoundTripTests.swift` | Klasör tarama |
-| `roundtrip/` | `VaultFormatTests/FixtureByteGuardTests.swift` | Dosya adı kodda |
-| `parse/` | `VaultFormatTests/ParseFixtureTests.swift`, `FixtureCaseGuardTests.swift` | Klasör tarama |
-| `write/` | `VaultFormatTests/WriteFixtureTests.swift`, `FixtureCaseGuardTests.swift` | Klasör tarama |
-| `write/diary-append-*` | ek olarak `VaultStoreTests/DiaryAppendTests.swift` | Klasör tarama |
-| `write/relations/` | `VaultStoreTests/RelationsWriteTests.swift` | 86 iç klasörde elle yazılmış önce/sonra baytları ve `operation.json`: `related` tek değerlerinin her türü, boş alanlar, liste biçimleri, kırpılan/geçersiz/türe ayrılmış etiketler, çözülen hedefe göre değişmezlik, güvenli silme, hedef türü ve yol yazımı. `place-target`, `custom-target`, `place-source-label` ve `custom-source-label` konum ve özel tipi hedef ve kaynak olarak yazar. `label-zwj` emoji birleştiricili etiketi kabul eder; `invalid-label-nel` (U+0085) ve `invalid-label-only-newline` reddedilir. `remove-unreadable` çözülemeyen blokta kaldırmayı reddeder. `related-remove-all-block` çok satırlı listenin bütün öğelerini kaldırır, aradaki yorum kalır. `label-unresolved-link` çözülmeyen bağlantılı etiket alanına ekler. |
-| `write/mention-*` | ek olarak `VaultStoreTests/UnlinkedMentionTests.swift` | Klasör tarama |
-| `write/task-recur-trailing-text` | ek olarak `VaultFormatTests/RecurrenceTests.swift` | Ad kodda |
-| `write/cadence-*` | ek olarak `Tests/KenetTests/CadenceTests.swift` | Ad kodda |
-| `write/alias-*` | ek olarak `Tests/KenetTests/EntityAliasTests.swift` | Ad kodda |
-| `merge/` | `VaultFormatTests/MergeFixtureTests.swift`, `VaultStoreTests/DayCopyMergeCaseTests.swift` | Klasör tarama |
-| `recognition/<ad>/` | `EntityRecognitionTests/Fixtures.swift` | Ad listesi |
-| `recognition/attendees/` | `EntityRecognitionTests/AttendeeMatchingTests.swift` | Ad kodda |
-| `recognition/unlinked-mentions/` | `VaultStoreTests/UnlinkedMentionTests.swift`, `Tests/KenetTests/UnlinkedMentionsTests.swift` | Ad kodda |
-| `recognition/unlinked-mentions-hostile/` | `VaultStoreTests/UnlinkedMentionAdversarialTests.swift` | Ad kodda |
-| `index/sample/` | `VaultIndexTests/IndexTests.swift` | Ad kodda |
-| `index/continuation/` | `VaultIndexTests/IncrementalTests.swift` | Ad kodda |
-| `index/entity-fields/` | `VaultIndexTests/EntityFieldTests.swift` | Ad kodda |
-| `index/cadence/` | `VaultIndexTests/CadenceFieldTests.swift` | Ad kodda |
-| `diary/edit/` | `Tests/KenetTests/DiaryEditingTests.swift` | Ad kodda |
-| `diary/weekly-review/` | `Tests/KenetTests/WeeklyReviewTests.swift` | Ad kodda |
-| `entities/fields/` | `Tests/KenetTests/EntityPageTests.swift` | Ad kodda |
-| `entity-types/` | `VaultIndexTests/EntityTypeTests.swift`, `VaultStoreTests/EntityTypeStoreTests.swift` | Ad listesi |
-| `migration/legacy-vault/` | `VaultStoreTests/DayFolderMigrationTests.swift`, `VaultIndexTests/LegacyDayFolderIndexTests.swift`, `Tests/KenetTests/DayFolderMigrationWiringTests.swift` | Ad kodda |
-| `rename/` | `VaultStoreTests/RenameTests.swift` | Ad listesi |
-| `import/` | `Tests/KenetTests/VaultImportFixtureTests.swift` | Ad listesi |
-| `dates/cases.json` | `DateParsingTests/DateFixtureTests.swift` | JSON vaka |
-| `dates/quick-entry.json` | `DateParsingTests/QuickEntryTests.swift` | JSON vaka |
-| `dates/recurrence.json` | `DateParsingTests/RecurrenceTests.swift` | JSON vaka |
-| `dates/birthday.json`, `dates/birthday-person.md` | `VaultFormatTests/PersonBirthdayTests.swift` | JSON vaka, Markdown girdi |
-| `goals/cases.json` | `GoalTrackingTests/GoalFixtures.swift` | JSON vaka |
-| `goals/series.json` | `GoalTrackingTests/GoalSeriesTests.swift` | JSON vaka |
-| `goals/writes/` | `VaultStoreTests/GoalStoreFixtures.swift` | JSON vaka |
-| `goals/creation/` | `VaultStoreTests/GoalCreationTests.swift`, `MilestoneStoreTests.swift`, `Tests/KenetTests/GoalDefinitionTests.swift` | JSON vaka |
-| `goal-chain/cases.json` | `GoalTrackingTests/GraceDayTests.swift`, `SummariesTests/GraceDaySummaryTests.swift` | JSON vaka |
-| `goal-chain/query/` | `VaultIndexTests/GraceDayQueryTests.swift` | Markdown kasa, ad kodda |
-| `summaries/cases.json` | `SummariesTests/PeriodSummaryTests.swift`, `SummariesTests/TaskFlowSeriesTests.swift` | JSON vaka |
-| `summaries/weekly-review-text.json` | `SummariesTests/WeeklyReviewTextTests.swift` | JSON vaka |
-| `summaries/cadence.json` | `SummariesTests/MeetingCadenceTests.swift`, `Tests/KenetTests/CadenceTests.swift` | JSON vaka |
-| `summaries/important-dates.json` | `SummariesTests/ImportantDatesTests.swift` | JSON vaka |
-| `summaries/on-this-day.json` | `SummariesTests/OnThisDayTests.swift` | JSON vaka |
-| `summaries/period-rhythm.json` | `SummariesTests/PeriodRhythmTests.swift` | JSON vaka |
-| `summaries/year-writing.json` | `SummariesTests/YearWritingCalendarTests.swift` | JSON vaka |
-| `summaries/weekly-rhythm.json` | `SummariesTests/WeeklyReviewRhythmTests.swift` | JSON vaka |
-| `summaries/task-flow.json` | `SummariesTests/TaskFlowSeriesTests.swift` | JSON vaka |
-| `summaries/entity-density.json` | `SummariesTests/EntityMentionDensityTests.swift` | JSON vaka |
-| `summaries/weekday-distribution.json` | `SummariesTests/WeekdayDistributionTests.swift` | JSON vaka |
-| `vaults/sample/` | `IndexTests`, `PeriodSummaryTests`, `WikiLinkTests`, `MergeTests` ve uygulama testlerinin çoğu | Ad kodda |
-| `vaults/typed/` | `EntityTypeTests`, `EntityTypeStoreTests`, `InitialIndexTests`, `Tests/KenetTests/CustomEntityTypeTests.swift` | Ad kodda |
-| `vaults/gallery/` | `VaultStoreTests/EntityTypeGalleryTests.swift`, `Tests/KenetTests/EntityTypeGalleryTests.swift` | Ad kodda |
-| `vaults/backlinks/` | `VaultIndexTests/DayBacklinksTests.swift` | Ad kodda |
-| `vaults/placeholder/` | `VaultStoreTests/PlaceholderTests.swift`, `Tests/KenetTests/CloudDownloadTests.swift`, `Tests/KenetTests/SyncStatusTests.swift` | Ad kodda |
-| `vaults/day-copies/` | `VaultStoreTests/DayCopyTests.swift`, `VaultStoreTests/DayCopyMergeCaseTests.swift`, `VaultStoreTests/DayCopyFailureTests.swift`, `VaultStoreTests/ConflictCopyListingTests.swift`, `Tests/KenetTests/DayCopyMergeWiringTests.swift` | Ad kodda (`Support/DayCopyVault.swift`) |
-| `vaults/copy-files/` | `VaultIndexTests/CopyFileTests.swift`, `Tests/KenetTests/SyncedFolderNoticeTests.swift` | Ad kodda |
-| `vaults/conflict-copies/` | `VaultIndexTests/ConflictCopyTests.swift`, `Tests/KenetTests/SyncConflictTests.swift`, `Tests/KenetTests/DiagnosticsConflictWiringTests.swift`, `Tests/KenetTests/Snapshots/ConflictVersionsSnapshotTests.swift` | Ad kodda |
-| `vaults/nfd-names/` | `VaultIndexTests/ChangeDetectionTests.swift` (`DecomposedNameTests` kümesi) | Ad kodda |
-| `vaults/turkce-buyuk-harf/` | `VaultStoreTests/TurkishCapitalTests.swift` | Ad kodda |
-| `vaults/entity-fields/` | `VaultIndexTests/EntityFieldTests.swift` | Ad kodda |
-| `vaults/unlinked-mentions/` | `VaultStoreTests/UnlinkedMentionTests.swift`, `Tests/KenetTests/UnlinkedMentionsTests.swift`, `Tests/KenetUITests/UnlinkedMentionsAccessibilityUITests.swift` | Ad kodda; `write/mention-*` ve `recognition/unlinked-mentions/` JSON `vault` alanı |
-| `vaults/unlinked-mentions-hostile/` | `VaultStoreTests/UnlinkedMentionAdversarialTests.swift` | Ad kodda; `recognition/unlinked-mentions-hostile/` JSON `vault` alanı |
-| `vaults/cadence/` | `VaultIndexTests/CadenceFieldTests.swift`, `Tests/KenetTests/CadenceTests.swift`, `Tests/KenetTests/QueryOutcomeTests.swift`, `Tests/KenetTests/Snapshots/CadenceSnapshotTests.swift` | Ad kodda |
-| `vaults/anniversaries/` | `SummariesTests/ImportantDatesTests.swift` | Kasa adı JSON `vault` alanında (`summaries/important-dates.json`) |
-| `vaults/history/` | `SummariesTests/OnThisDayTests.swift` | Kasa adı JSON `vault` alanında (`summaries/on-this-day.json`) |
-| `vaults/rhythm/` | `SummariesTests/PeriodRhythmTests.swift`, `YearWritingCalendarTests.swift`, `WeeklyReviewRhythmTests.swift`, `WeekdayDistributionTests.swift` | Kasa adı JSON `vault` alanında |
-| `vaults/graph/` | `VaultStoreTests/GraphMentionsTests.swift`, `VaultStoreTests/DayGraphMentionsTests.swift`, `VaultIndexTests/RelationsIndexTests.swift`, `Tests/KenetTests/GraphMapTests.swift`, `DayGraphTests.swift`, `DayGraphMacHostedTests.swift`, `GraphCustomTypeTests.swift`, `EntityRelationsModelTests.swift`, `Snapshots/DayGraphSnapshotTests.swift`, `Snapshots/DayGraphMacSnapshotTests.swift` | Ad kodda |
+| Küme ya da kasa | Ne sınar | Test dosyası | Örnek bulma |
+|---|---|---|---|
+| Bütün `.md` dosyaları | Gidiş dönüş | `VaultFormatTests/RoundTripTests.swift` | Klasör tarama |
+| `roundtrip/` | Korunacak bayt özellikleri | `VaultFormatTests/FixtureByteGuardTests.swift` | Dosya adı kodda |
+| `parse/` | Okuma | `VaultFormatTests/ParseFixtureTests.swift`, `FixtureCaseGuardTests.swift` | Klasör tarama |
+| `write/` | Dosya yazma | `VaultFormatTests/WriteFixtureTests.swift`, `FixtureCaseGuardTests.swift` | Klasör tarama |
+| `write/diary-append-*` | Diary sonuna ekleme | ek olarak `VaultStoreTests/DiaryAppendTests.swift` | Klasör tarama |
+| `write/relations/` | Açık bağ ekleme ve kaldırma | `VaultStoreTests/RelationsWriteTests.swift` | Klasör tarama |
+| `write/mention-*` | Bağlanmamış anmayı bağlama | ek olarak `VaultStoreTests/UnlinkedMentionTests.swift` | Klasör tarama |
+| `write/task-recur-trailing-text` | Tekrar kuralı | ek olarak `VaultFormatTests/RecurrenceTests.swift` | Ad kodda |
+| `write/cadence-*` | Ritim alanı | ek olarak `Tests/KenetTests/CadenceTests.swift` | Ad kodda |
+| `write/alias-*` | Takma ad | ek olarak `Tests/KenetTests/EntityAliasTests.swift` | Ad kodda |
+| `merge/` | Çakışma birleştirme | `VaultFormatTests/MergeFixtureTests.swift`, `VaultStoreTests/DayCopyMergeCaseTests.swift` | Klasör tarama |
+| `recognition/<ad>/` | Ad tanıma | `EntityRecognitionTests/Fixtures.swift` | Ad listesi |
+| `recognition/attendees/` | Takvim katılımcısı eşleme | `EntityRecognitionTests/AttendeeMatchingTests.swift` | Ad kodda |
+| `recognition/unlinked-mentions/` | Bağlanmamış anma sorgusu | `VaultStoreTests/UnlinkedMentionTests.swift`, `Tests/KenetTests/UnlinkedMentionsTests.swift` | Ad kodda |
+| `recognition/unlinked-mentions-hostile/` | Sorguyu ve yazıcıyı zorlayan satırlar | `VaultStoreTests/UnlinkedMentionAdversarialTests.swift` | Ad kodda |
+| `index/sample/` | Kanonik indeks dökümü | `VaultIndexTests/IndexTests.swift` | Ad kodda |
+| `index/continuation/` | Görev devamındaki girintili başlık | `VaultIndexTests/IncrementalTests.swift` | Ad kodda |
+| `index/entity-fields/` | Varlık alanı satırları | `VaultIndexTests/EntityFieldTests.swift` | Ad kodda |
+| `index/cadence/` | Ritim alanı ve yıl dönümü satırları | `VaultIndexTests/CadenceFieldTests.swift` | Ad kodda |
+| `diary/edit/` | Diary yazısını değiştirme | `Tests/KenetTests/DiaryEditingTests.swift` | Ad kodda |
+| `diary/weekly-review/` | Haftalık inceleme yazımı | `Tests/KenetTests/WeeklyReviewTests.swift` | Ad kodda |
+| `entities/fields/` | Varlık sayfasından alan ve takma ad yazma | `Tests/KenetTests/EntityPageTests.swift` | Ad kodda |
+| `entity-types/` | Özel tip tanımları | `VaultIndexTests/EntityTypeTests.swift`, `VaultStoreTests/EntityTypeStoreTests.swift` | Ad listesi |
+| `migration/legacy-vault/` | Eski gün klasörünün geçişi | `VaultStoreTests/DayFolderMigrationTests.swift`, `VaultIndexTests/LegacyDayFolderIndexTests.swift`, `Tests/KenetTests/DayFolderMigrationWiringTests.swift` | Ad kodda |
+| `rename/` | Yeniden adlandırma | `VaultStoreTests/RenameTests.swift` | Ad listesi |
+| `import/` | Var olan klasörü kasa olarak hazırlama | `Tests/KenetTests/VaultImportFixtureTests.swift` | Ad listesi |
+| `dates/cases.json` | Doğal tarih ayrıştırma | `DateParsingTests/DateFixtureTests.swift` | JSON vaka |
+| `dates/quick-entry.json` | Hızlı giriş görev çözümlemesi | `DateParsingTests/QuickEntryTests.swift` | JSON vaka |
+| `dates/recurrence.json` | Tekrar kuralından sonraki tarih | `DateParsingTests/RecurrenceTests.swift` | JSON vaka |
+| `dates/birthday.json`, `dates/birthday-person.md` | Doğum günü alanı | `VaultFormatTests/PersonBirthdayTests.swift` | JSON vaka, Markdown girdi |
+| `goals/cases.json` | Hedef hesabı | `GoalTrackingTests/GoalFixtures.swift` | JSON vaka |
+| `goals/series.json` | Değer grafiği serisi | `GoalTrackingTests/GoalSeriesTests.swift` | JSON vaka |
+| `goals/writes/` | Hedef gün kaydı yazma | `VaultStoreTests/GoalStoreFixtures.swift` | JSON vaka |
+| `goals/creation/` | Hedef dosyası oluşturma | `VaultStoreTests/GoalCreationTests.swift`, `MilestoneStoreTests.swift`, `Tests/KenetTests/GoalDefinitionTests.swift` | JSON vaka |
+| `goal-chain/cases.json` | Zincir günü | `GoalTrackingTests/GraceDayTests.swift`, `SummariesTests/GraceDaySummaryTests.swift` | JSON vaka |
+| `goal-chain/query/` | Zincir günü indeks sorgusu | `VaultIndexTests/GraceDayQueryTests.swift` | Markdown kasa, ad kodda |
+| `summaries/cases.json` | Dönem özeti | `SummariesTests/PeriodSummaryTests.swift`, `TaskFlowSeriesTests.swift` | JSON vaka |
+| `summaries/weekly-review-text.json` | Haftalık gözden geçirme metni | `SummariesTests/WeeklyReviewTextTests.swift` | JSON vaka |
+| `summaries/cadence.json` | Görüşme ritmi | `SummariesTests/MeetingCadenceTests.swift`, `Tests/KenetTests/CadenceTests.swift` | JSON vaka |
+| `summaries/important-dates.json` | Önemli tarihler | `SummariesTests/ImportantDatesTests.swift` | JSON vaka |
+| `summaries/on-this-day.json` | Bu gün geçmişte | `SummariesTests/OnThisDayTests.swift` | JSON vaka |
+| `summaries/period-rhythm.json` | Dönem ritmi | `SummariesTests/PeriodRhythmTests.swift` | JSON vaka |
+| `summaries/year-writing.json` | Yazılan günler haritası | `SummariesTests/YearWritingCalendarTests.swift` | JSON vaka |
+| `summaries/weekly-rhythm.json` | Haftalık incelemenin kısa ritmi | `SummariesTests/WeeklyReviewRhythmTests.swift` | JSON vaka |
+| `summaries/task-flow.json` | Açık görev eğrisi | `SummariesTests/TaskFlowSeriesTests.swift` | JSON vaka |
+| `summaries/entity-density.json` | Kişi ve konum geçiş yoğunluğu | `SummariesTests/EntityMentionDensityTests.swift` | JSON vaka |
+| `summaries/weekday-distribution.json` | Haftanın günleri yazma oranı | `SummariesTests/WeekdayDistributionTests.swift` | JSON vaka |
+| `vaults/sample/` | Uçtan uca örnek kasa. Okuyan: `index/sample`, `summaries/cases.json`. | `IndexTests`, `PeriodSummaryTests`, `WikiLinkTests`, `MergeTests` ve uygulama testlerinin çoğu | Ad kodda |
+| `vaults/typed/` | Özel kitap tipi | `EntityTypeTests`, `EntityTypeStoreTests`, `InitialIndexTests`, `Tests/KenetTests/CustomEntityTypeTests.swift` | Ad kodda |
+| `vaults/gallery/` | Hazır tip galerisi | `VaultStoreTests/EntityTypeGalleryTests.swift`, `Tests/KenetTests/EntityTypeGalleryTests.swift` | Ad kodda |
+| `vaults/backlinks/` | Bu güne bağlananlar sorgusu | `VaultIndexTests/DayBacklinksTests.swift` | Ad kodda |
+| `vaults/placeholder/` | İndirilmeyi bekleyen yer tutucular | `VaultStoreTests/PlaceholderTests.swift`, `Tests/KenetTests/CloudDownloadTests.swift`, `SyncStatusTests.swift` | Ad kodda |
+| `vaults/day-copies/` | Gün kopyası birleştirme | `VaultStoreTests/DayCopyTests.swift`, `DayCopyMergeCaseTests.swift`, `DayCopyFailureTests.swift`, `ConflictCopyListingTests.swift`, `Tests/KenetTests/DayCopyMergeWiringTests.swift` | Ad kodda (`Support/DayCopyVault.swift`) |
+| `vaults/copy-files/` | Varlık kopyası ve gün kopyası listesi; birleştirme yok | `VaultIndexTests/CopyFileTests.swift`, `Tests/KenetTests/SyncedFolderNoticeTests.swift` | Ad kodda |
+| `vaults/conflict-copies/` | Çakışma kopyası ad kuralı, `conflicts/` listesi, çakışan sürüm sorgusu | `VaultIndexTests/ConflictCopyTests.swift`, `Tests/KenetTests/SyncConflictTests.swift`, `DiagnosticsConflictWiringTests.swift`, `Snapshots/ConflictVersionsSnapshotTests.swift` | Ad kodda |
+| `vaults/nfd-names/` | Ayrışmış (NFD) dosya adı, ad, takma ad ve bağlantı | `VaultIndexTests/ChangeDetectionTests.swift` (`DecomposedNameTests` kümesi) | Ad kodda |
+| `vaults/turkce-buyuk-harf/` | Türkçe büyük harf eşlemesi | `VaultStoreTests/TurkishCapitalTests.swift` | Ad kodda |
+| `vaults/entity-fields/` | Üst düzey tarih, sayı, evet/hayır alanları | `VaultIndexTests/EntityFieldTests.swift` | Ad kodda |
+| `vaults/unlinked-mentions/` | Bağlanmamış anma sorgusu | `VaultStoreTests/UnlinkedMentionTests.swift`, `Tests/KenetTests/UnlinkedMentionsTests.swift`, `Tests/KenetUITests/UnlinkedMentionsAccessibilityUITests.swift` | Ad kodda; JSON `vault` alanı |
+| `vaults/unlinked-mentions-hostile/` | Sorguyu ve yazıcıyı zorlayan satırlar | `VaultStoreTests/UnlinkedMentionAdversarialTests.swift` | Ad kodda; JSON `vault` alanı |
+| `vaults/cadence/` | Görüşme ritmi kadrosu | `VaultIndexTests/CadenceFieldTests.swift`, `Tests/KenetTests/CadenceTests.swift`, `QueryOutcomeTests.swift`, `Snapshots/CadenceSnapshotTests.swift` | Ad kodda |
+| `vaults/anniversaries/` | Yıl dönümü tarihleri | `SummariesTests/ImportantDatesTests.swift` | JSON `vault` alanı |
+| `vaults/history/` | Bu gün geçmişte | `SummariesTests/OnThisDayTests.swift` | JSON `vault` alanı |
+| `vaults/rhythm/` | Özetler'in yıl, süren dönem ve ritim hesabı | `SummariesTests/PeriodRhythmTests.swift`, `YearWritingCalendarTests.swift`, `WeeklyReviewRhythmTests.swift`, `WeekdayDistributionTests.swift` | JSON `vault` alanı |
+| `vaults/graph/` | Graph anmaları, günün grafiği, açık ilişkiler | `VaultStoreTests/GraphMentionsTests.swift`, `DayGraphMentionsTests.swift`, `VaultIndexTests/RelationsIndexTests.swift`, `Tests/KenetTests/GraphMapTests.swift`, `DayGraphTests.swift`, `DayGraphMacHostedTests.swift`, `GraphCustomTypeTests.swift`, `EntityRelationsModelTests.swift`, `Snapshots/DayGraphSnapshotTests.swift`, `Snapshots/DayGraphMacSnapshotTests.swift` | Ad kodda |
 
-Tablodaki göreli yollar `Packages/Core/Tests/` altındadır; `Tests/KenetTests/` ile başlayanlar uygulama testleridir. **Klasör tarama** yeni klasörü kendiliğinden bulur. **Ad listesi** yeni klasörü yalnız test dosyasındaki `@Test(arguments:)` listesine eklenince koşar. **JSON vaka** yeni vakayı JSON dizisine eklenince koşar.
+| Konu | Anlam |
+|---|---|
+| Göreli yol | `Packages/Core/Tests/` altındadır. `Tests/KenetTests/` ile başlayan yol uygulama testidir. Önü yazılmamış ad bir önceki yolun klasöründedir. |
+| Klasör tarama | Test yeni klasörü kendiliğinden bulur. |
+| Ad listesi | Test yeni klasörü yalnız `@Test(arguments:)` listesine eklenince koşar. |
+| JSON vaka | Test yeni vakayı JSON dizisine eklenince koşar. |
+| JSON `vault` alanı | Vaka kasanın adını `vault` alanında verir. |
 
 ## Yeni fixture ekleme
 
-**Şema, yeni bir örneğin hangi kümeye ve hangi bulma yoluna gittiğini gösterir.**
-
-```mermaid
-flowchart TD
-  A["Yeni davranış"] --> B{"Davranış hangi katmanda?"}
-  B -- "Okuma" --> P["parse/"]
-  B -- "Dosya yazma" --> W["write/"]
-  B -- "Birleştirme" --> M["merge/"]
-  B -- "Ad tanıma" --> R["recognition/"]
-  B -- "İndeks ya da sorgu" --> V["vaults/ altında yeni kasa ve beklenti JSON"]
-  B -- "Saf hesap" --> J["dates/, goals/ ya da summaries/ JSON vakası"]
-  P --> T1["Klasör tarama: kod değişmez"]
-  W --> T1
-  M --> T1
-  R --> T2["Ad listesine ekle"]
-  V --> T3["Test dosyasına kasa adını yaz"]
-  J --> T4["JSON dizisine vaka ekle"]
-```
+| Davranışın katmanı | Küme | Bulma yolu |
+|---|---|---|
+| Okuma | `parse/` | Klasör tarama: kod değişmez. |
+| Dosya yazma | `write/` | Klasör tarama: kod değişmez. |
+| Birleştirme | `merge/` | Klasör tarama: kod değişmez. |
+| Ad tanıma | `recognition/` | Ad listesine ekle. |
+| İndeks ya da sorgu | `vaults/` altında yeni kasa ve beklenti JSON | Test dosyasına kasa adını yaz. |
+| Saf hesap | `dates/`, `goals/` ya da `summaries/` | JSON dizisine vaka ekle. |
 
 1. Davranışın kuralını önce [Kasa biçimi](vault-format.md) belgesinde bul.
 2. Kural belgede yoksa önce belgeyi güncelle.
-3. Yukarıdaki şemadan kümeyi seç.
+3. Yukarıdaki tablodan kümeyi seç.
 4. Örnek klasörünü küme adlandırma desenine göre adlandır.
 5. Ad bir bayt özelliği söylüyorsa dosyaya o özelliği ver.
 6. Özel baytları `printf` ile yaz.
 7. Baytları `xxd` ile doğrula.
 8. Beklenen çıktıyı kurallardan elle yaz.
 9. Beklentiyi uygulamanın çıktısından kopyalama.
-10. Yeni kurgusal adı önce "Kurgusal adlar" tablosuna ekle.
+10. Kurgusal adı "Kurgusal adlar" kuralına göre seç.
 11. Küme ad listesi kullanıyorsa adı test dosyasındaki listeye ekle.
 12. Yeni kasayı `Fixtures/vaults/<ad>/` altına koy.
 13. Yeni yolu `git check-ignore -v` ile denetle.
 14. `RoundTripTests` testini koş; yeni `.md` dosyası gidiş dönüşten geçmeli.
 15. Kümenin testini koş.
-16. Bu belgeye kümenin tablosuna bir satır ekle.
+16. Yeni küme, kasa ya da davranış ailesi açtıysan bu belgedeki tabloya satır ekle.
 
-Klasör tarayan kümelerde yeni örnek için kod değişmez. Gidiş dönüş testi `Fixtures/` altındaki her `.md` dosyasını okur. Bu yüzden her yeni Markdown dosyası gidiş dönüş denetiminden de geçer.
+## Ortak alanlar
+
+**Tablo, birden çok kümenin JSON dosyalarında aynı anlamla geçen alanları verir. Küme tabloları bu alanları yinelemez.**
+
+| Alan | Tür | Anlam |
+|---|---|---|
+| `id` | metin | Vakanın adı. Ad vakanın ne sınadığını söyler. |
+| `description` | metin | Vakanın açıklaması; isteğe bağlı. |
+| `vault` | metin | `vaults/` altındaki kasanın adı. |
+| `today` | ISO gün ya da `null` | Hesabın "bugün"ü. Yoksa bütün dönem ölçülür. |
+| `expected` | nesne, dizi ya da `null` | Beklenen sonuç. |
+| `expectedError`, `error` | metin | Beklenen hatanın adı. Ret örneğinde yazıcı dosyaya dokunmaz. |
+| `period`, `containing` | `week`/`month`/`year`, ISO gün | Dönem türü ve dönemin içindeki bir gün. |
+| `days` | dizi | Satır içi günler: `date`, `events`, `hasDiary`. Vaka ya `vault` ya `days` taşır. |
+| `file`, `path` | metin | Kasa köküne göre göreli yol. |
+| `line` | tam sayı | Satır. Tabanı küme tablosu söyler. |
+| `firstLine`, `lastLine` | tam sayı | 1 tabanlı, iki ucu dahil aralık. BOM satır sayılmaz. |
+| `byteRange` | `[başlangıç, son]` | Satır içeriğinin UTF-8 baytlarında 0 tabanlı aralık. Son hariçtir. Sayım BOM'u ve satır sonunu dışarıda bırakır. |
+| `spelling` | metin | Anmanın kaynaktaki yazımı. `@` işaretini ve eki kapsamaz. |
+| `candidates` | dizi | Sıralı aday dosya yolları. |
+| Olmayan değer | `null` | Olmayan tarih ya da hesaplanmayan skor JSON `null` olur. |
 
 ## `roundtrip/` kümesi
 
-**Şema, gidiş dönüş testinin her Markdown dosyasına uyguladığı adımları gösterir.**
+| Adım | Ayrıntı |
+|---|---|
+| Girdi | `Fixtures/` altındaki her `.md` dosyası; öteki kümelerdekiler dahil. |
+| Türetilmiş haller | Bütün satır sonları LF, CRLF ya da CR; başa BOM; son satır sonu atılmış; her bayt konumunda kesilmiş. |
+| Kesme | 1.024 bayta kadar dosyada her bayt konumu. Daha büyük dosyada 257 eşit aralıklı konum. |
+| Denetim | Test dosyayı okur ve değiştirmeden yazar. Baytlar aynı kalmalıdır. |
+| Beklenen çıktı | Dosyanın kendisi; ayrı çıktı dosyası yoktur. |
 
-```mermaid
-flowchart LR
-  A["Fixtures altındaki her .md"] --> B["Özgün baytlar"]
-  A --> C["Türetilmiş haller"]
-  C --> C1["Bütün satır sonları LF"]
-  C --> C2["Bütün satır sonları CRLF"]
-  C --> C3["Bütün satır sonları CR"]
-  C --> C4["Başa BOM"]
-  C --> C5["Son satır sonu atılmış"]
-  C --> C6["Her bayt konumunda kesilmiş"]
-  B --> D["Oku, değiştirmeden yaz"]
-  C1 --> D
-  C2 --> D
-  C3 --> D
-  C4 --> D
-  C5 --> D
-  C6 --> D
-  D --> E{"Baytlar aynı mı?"}
-  E -- evet --> G["Geçer"]
-  E -- hayır --> H["Düşer"]
-```
+| Dosya | Bayt özelliği |
+|---|---|
+| `day-basic.md` | Olağan gün dosyası: UTF-8, LF, yeni satırla biter |
+| `crlf.md`, `cr.md` | Bütün satır sonları CRLF; tek CR |
+| `bom.md` | Başta UTF-8 BOM |
+| `no-final-newline.md` | Yeni satırla bitmez |
+| `mixed-line-endings.md` | LF, CRLF ve CR karışık; her biçimden boş satır |
+| `empty.md` | Sıfır bayt |
+| `invalid-utf8.md` | UTF-8 olarak çözülemeyen baytlar |
 
-Beklenen çıktı dosyanın kendisidir; ayrı çıktı dosyası yoktur. Test diğer kümelerdeki dosyaları da bu denetimden geçirir. 1.024 bayta kadar dosyayı test her bayt konumunda keser. Daha büyük dosyada test 257 eşit aralıklı konum seçer. Bu kümeye yalnız korunacak bir bayt özelliği taşıyan dosya koy.
-
-Dosyalar ve bayt özellikleri: `day-basic.md` olağan gün dosyasıdır (UTF-8, LF, yeni satırla biter). `crlf.md` bütün satır sonlarını CRLF, `cr.md` tek CR yazar. `bom.md` başta UTF-8 BOM taşır. `no-final-newline.md` yeni satırla bitmez. `mixed-line-endings.md` LF, CRLF ve CR karışık satır sonu ve her biçimden boş satır taşır. `empty.md` sıfır bayttır; `invalid-utf8.md` UTF-8 olarak çözülemeyen baytlar taşır.
+Bu kümeye yalnız korunacak bir bayt özelliği taşıyan dosya koy.
 
 ## `parse/` kümesi
 
 **Tablo, okuma örneklerini davranış ailesine göre verir.**
 
-| Davranış ailesi | `expected.json` kökü | Örnek vaka | Sayı |
-|---|---|---|---|
-| Okunabilir frontmatter yapısı | `frontmatter` | `person-basic`, `block-list`, `goals-with-comments` | 14 |
-| Frontmatter yok | `frontmatter` | `absent-no-closing`, `absent-plain-note` | 4 |
-| Ham alan | `frontmatter` | `raw-block-scalar`, `raw-anchor-alias-tag` | 4 |
-| Çözülemeyen blok | `frontmatter` | `unreadable-duplicate-key`, `unreadable-tab-indentation` | 38 |
-| Bayt özelliği | `frontmatter` | `bom`, `crlf`, `invalid-utf8-in-body` | 5 |
-| Gün dosyası bölümleri | `sections` | `section-duplicate`, `section-out-of-order`, `section-unclosed-fence` | 24 |
-| Olay ve görev blokları | `tasks`, `events` | `line-siblings`, `line-statuses`, `line-quote-blocks` | 12 |
-| Çitli kod içindeki satırlar | `tasks`, `events` | `line-fence-list`, `line-fence-tab`, `line-indented-fence` | 16 |
-| Görev alanları | `tasks`, `events` | `task-fields-mixed`, `task-fields-protected` | 6 |
-| Tekrar kuralı | `tasks`, `events` | `task-recurrence-supported`, `task-recurrence-unknown` | 3 |
-| Bağlantılar | `links` | `link-frontmatter`, `link-yaml-escapes`, `link-table-separator` | 16 |
+| Davranış ailesi | `expected.json` kökü | Örnek vaka |
+|---|---|---|
+| Okunabilir frontmatter yapısı | `frontmatter` | `person-basic`, `block-list`, `goals-with-comments` |
+| Frontmatter yok | `frontmatter` | `absent-no-closing`, `absent-plain-note` |
+| Ham alan | `frontmatter` | `raw-block-scalar`, `raw-anchor-alias-tag` |
+| Çözülemeyen blok | `frontmatter` | `unreadable-duplicate-key`, `unreadable-tab-indentation` |
+| Bayt özelliği | `frontmatter` | `bom`, `crlf`, `invalid-utf8-in-body` |
+| Gün dosyası bölümleri | `sections` | `section-duplicate`, `section-out-of-order`, `section-legacy-heading` |
+| Olay ve görev blokları | `tasks`, `events` | `line-siblings`, `line-statuses`, `line-quote-blocks` |
+| Çitli kod içindeki satırlar | `tasks`, `events` | `line-fence-list`, `line-fence-tab`, `line-indented-fence` |
+| Görev alanları | `tasks`, `events` | `task-fields-mixed`, `task-fields-protected` |
+| Tekrar kuralı | `tasks`, `events` | `task-recurrence-supported`, `task-recurrence-unknown` |
+| Bağlantılar | `links` | `link-frontmatter`, `link-yaml-escapes`, `link-table-separator` |
 
-Her örnek bir klasördür ve tam olarak `input.md` ile `expected.json` dosyalarını taşır. İstemci `input.md` dosyasını okur ve sonucu `expected.json` ile karşılaştırır. Yeni örnek için yalnız klasör aç.
-
-### Ortak kurallar
-
-| Kural | Değer |
+| Konu | Kural |
 |---|---|
+| Örnek | Bir klasör; tam olarak `input.md` ve `expected.json` taşır. |
 | Kök anahtarlar | `frontmatter`, `sections`, `tasks`, `events`, `links` |
-| Karşılaştırılan anahtar | Yalnız dosyada bulunan anahtarlar; boş `expected.json` hatadır |
-| Karşılaştırma | Katı: fazla ya da eksik alan hatadır; metinler bayt bayt karşılaştırılır |
-| Satır numarası | 1'den başlar; BOM satır sayılmaz |
+| Karşılaştırılan anahtar | Yalnız dosyada bulunan kök anahtarlar; boş `expected.json` hatadır. |
+| Karşılaştırma | Katı: fazla ya da eksik alan hatadır. İstemci metinleri bayt bayt karşılaştırır. |
+| Satır | 1 tabanlı. |
 
-### Frontmatter beklentisi
+**Tablo, `expected.json` alanlarını verir.**
+
+| Kök | Alan | Tür | Anlam |
+|---|---|---|---|
+| `frontmatter` | `state` | metin | `parsed`, `absent` ya da `unreadable`. Son ikisinde başka alan yoktur. |
+| `frontmatter` | `firstLine`, `lastLine` | tam sayı | Blokta açılış ve kapanış `---` satırları. Alanda anahtar satırı ve alanın boş ya da yorum olmayan son satırı. |
+| `frontmatter` | `fields` | dizi | Dosya sırasındaki alanlar. Her alan `key` ve aşağıdaki 4 anahtardan tam birini taşır. |
+| `fields[]` | `scalar` | nesne | `type` (`text`, `number`, `boolean`, `date`, `empty`), `text` (çözülmüş metin), `raw` (dosyadaki yazım, tırnaklar dahil) |
+| `fields[]` | `list` | nesne | `style` (`inline` ya da `block`) ve `items` (her biri bir `scalar`) |
+| `fields[]` | `mapping` | dizi | Sırayla `key`, `line` ve `value` (bir `scalar`) taşıyan kayıtlar |
+| `fields[]` | `raw` | metin | Alt küme dışı alanın ham metni: anahtardan sonraki kısım ve kalan satırlar, LF ile birleşik |
+| `fields[]` | `listItems` | dizi | Liste görünümü: öğelerin `text` değerleri. Tek değer tek öğeli, boş değer boş listedir. `mapping` ve `raw` alanlarında yoktur. |
+| `sections` | `preamble` | aralık ya da `null` | Ön içerik aralığı |
+| `sections` | `items[]` | dizi | Dosya sırasındaki bölümler: `kind`, `headingLine`, `level`, `firstLine`, `lastLine`. İç başlıklar ayrı öğe değildir. |
+| `items[]` | `kind` | metin ya da `null` | `Tasks`, `Events`, `Diary`. Tanınmayan ya da yinelenen başlıkta `null`. Eski `## Journal` başlığı da `Diary` verir. |
+| `items[]` | `firstLine`, `lastLine` | tam sayı | Aralık başlığı ve sondaki boş satırları içerir. |
+| `tasks`, `events` | `line`, `firstLine`, `lastLine` | tam sayı | İlk satır ve blok aralığı |
+| `tasks`, `events` | `id`, `text` | metin ya da `null` | Şapkasız kimlik; sadeleşmiş metin. Kimlik uzunluğu ve yinelenmesi aynen kalır. |
+| `events` | `time` | nesne ya da `null` | `{ "hour": 9, "minute": 5, "raw": "9:05" }` |
+| `tasks` | `dueDate`, `startDate`, `doneDate` | ISO gün ya da `null` | Görev tarihleri |
+| `tasks` | `priority` | metin, nesne ya da `null` | `"high"`, `"medium"`, `"low"`, `{ "other": "🔺" }`, `{ "other": "⏬" }` |
+| `tasks` | `project` | metin ya da `null` | İlk proje adı |
+| `tasks` | `recurrenceSource`, `recurrence` | metin | `🔁` alanının özgün yazımı ve okunan kural. Okunamayan kuralda `recurrence` `null` olur. Yalnız alan varsa yazılır. |
+| `tasks` | `fieldRanges[]` | dizi | `{ "kind", "byteRange" }`. `kind`: `dueDate`, `startDate`, `doneDate`, `priority`, `project`, `recurrence`. |
+| `tasks` | `rawStatus`, `status` | metin | Tek Unicode skaleri; `todo`, `inProgress`, `done`, `cancelled`, `unknown` |
+| `tasks` | `isClosed`, `isOpen` | boolean | Durumun kapalı ve açık görünümü |
+| `links` | `line`, `byteRange` | tam sayı, aralık | Satır ve `[[` ile `]]` dahil yazım. Gömmenin `!` işaretini kapsamaz. |
+| `links` | `targetRange`, `rawTarget` | aralık, metin | `.md` dahil özgün hedef yazımı ve aralığı. Çevredeki Unicode boşlukları ve `\|` ayırıcısının ters bölüsü hariç. Boş hedefte iki uç eşittir. |
+| `links` | `target` | metin | Çözülmüş hedef: çevredeki boşluklar ve tam `.md` soneki atılmış. |
+| `links` | `anchor` | nesne ya da `null` | `{ "kind": "heading"\|"block", "text": "..." }`. Hash ve blok şapkası hariç. |
+| `links` | `displayText` | metin ya da `null` | İlk borudan sonraki metin. Okuyucu çapayı ve görünen metni kırpmaz. |
+| `links` | `isEmbedded`, `isSameFile`, `isPath` | boolean | Gömme, aynı dosya ve yol hedefi işaretleri |
+| `links` | `source` | nesne | `{ "kind": "body" }` ya da `{ "kind": "frontmatter", "key": "...", "entry": null\|"..." }`. `entry` yalnız eşlem kaydında doludur. |
 
 ```json
-{
-  "frontmatter": {
-    "state": "parsed",
-    "firstLine": 1,
-    "lastLine": 3,
-    "fields": [
-      { "key": "name", "firstLine": 2, "lastLine": 2,
-        "scalar": { "type": "text", "text": "Deniz Arıkan", "raw": "\"Deniz Arıkan\"" },
-        "listItems": ["Deniz Arıkan"] }
-    ]
-  }
-}
+{ "tasks": [{ "line": 1, "firstLine": 1, "lastLine": 1, "id": null, "text": "kitap",
+  "dueDate": null, "startDate": null, "doneDate": null, "priority": null, "project": null,
+  "fieldRanges": [], "rawStatus": " ", "status": "todo", "isClosed": false, "isOpen": true }],
+  "events": [] }
 ```
 
-| Alan | Anlam |
-|---|---|
-| `state` | `parsed`, `absent` ya da `unreadable`. `absent`: frontmatter yok. `unreadable`: bütünü çözülemiyor. Son ikisinde başka alan yok. |
-| `firstLine`, `lastLine` | Blokta açılış ve kapanış `---` satırları. Alanda anahtar satırı ve alanın boş ya da yorum olmayan son satırı. |
-| `fields` | Dosya sırasındaki alanlar |
-| `scalar` | `type` (`text`, `number`, `boolean`, `date`, `empty`), `text` (tırnağı ve kaçışı çözülmüş metin), `raw` (dosyadaki yazım, tırnaklar dahil) |
-| `list` | `style` (`inline` ya da `block`) ve `items` (her biri bir `scalar`) |
-| `mapping` | Sırayla `key`, `line` ve `value` (bir `scalar`) taşıyan kayıtlar |
-| `raw` | Alt küme dışı alanın ham metni: anahtar satırında anahtardan sonraki kısım, ardından alanın kalan satırları, LF ile birleşik |
-| `listItems` | Alanın liste görünümü: öğelerin `text` değerleri. Tek değer tek öğeli, boş değer boş listedir. `mapping` ve `raw` alanlarında yok. |
+**Tablo, beklentinin dayandığı kuralın yerini ve yalnız beklenti dosyasına ait ayrıntıyı verir.**
 
-Her alan `scalar`, `list`, `mapping`, `raw` anahtarlarından tam birini taşır. Hangi bloğun hangi durumda olduğunu `vault-format.md` "Frontmatter" bölümü tanımlar. Türlerin yazımı `vault-format.md` "Türler" başlığındadır.
-
-### Bölüm beklentisi
-
-| Alan | Anlam |
-|---|---|
-| `sections.preamble` | Ön içerik aralığı; boşsa `null` |
-| `sections.items` | Dosya sırasındaki bölümler |
-| `kind` | `Tasks`, `Events`, `Diary` ya da tanınmayan veya yinelenen başlık için `null`. Eski `## Journal` başlığı da `Diary` verir. |
-| `headingLine`, `level` | Başlık satırı ve başlık düzeyi |
-| `firstLine`, `lastLine` | 1 tabanlı, iki ucu dahil aralık |
-
-`parse/section-<ad>/expected.json` kökü `sections` anahtarını taşır. Aralık başlığı ve sondaki boş satırları içerir. İç başlıklar ayrı öğe değildir. Örnek: `{ "sections": { "preamble": null, "items": [{ "kind": "Tasks", "headingLine": 1, "level": 2, "firstLine": 1, "lastLine": 2 }] } }`.
-
-### Görev ve olay beklentisi
-
-**Tablo, `tasks` ve `events` listelerindeki her öğenin alanlarını verir.**
-
-| Alan | Kimde | Anlam |
+| Konu | Kural kaynağı | Beklenti dosyasına ait ayrıntı |
 |---|---|---|
-| `line`, `firstLine`, `lastLine` | ikisi | İlk satır ve iki ucu dahil blok aralığı |
-| `id`, `text` | ikisi | Şapkasız kimlik ya da `null`; sadeleşmiş metin |
-| `time` | olay | `null` ya da `{ "hour": 9, "minute": 5, "raw": "9:05" }` |
-| `dueDate`, `startDate`, `doneDate` | görev | ISO gün ya da `null` |
-| `priority` | görev | `"high"`, `"medium"`, `"low"`, `{ "other": "🔺" }`/`{ "other": "⏬" }` ya da `null` |
-| `project` | görev | İlk proje adı ya da `null` |
-| `recurrenceSource`, `recurrence` | görev | `🔁` alanının özgün yazımı ve okunan kural; okunamayan kuralda `recurrence` değeri `null`. Yalnız alan varsa. |
-| `fieldRanges` | görev | Alan aralıkları listesi |
-| `rawStatus`, `status` | görev | Tek Unicode skaleri; `todo`, `inProgress`, `done`, `cancelled`, `unknown` |
-| `isClosed`, `isOpen` | görev | Durumun kapalı ve açık görünümü |
-
-`parse/line-<ad>/expected.json` kökü dosya sırasındaki `tasks` ve `events` listelerini taşır. Kimlik uzunluğu ve yinelenmesi aynen kalır. Örnek: `{ "tasks": [{ "line": 1, "firstLine": 1, "lastLine": 1, "id": null, "text": "kitap", "dueDate": null, "startDate": null, "doneDate": null, "priority": null, "project": null, "fieldRanges": [], "rawStatus": " ", "status": "todo", "isClosed": false, "isOpen": true }], "events": [] }`.
-
-**Tablo, blok aralığı kurallarını verir.**
-
-| Konu | Kural |
-|---|---|
-| Aralığın içi | İlk satırdan daha girintili devamlar ve aralarındaki boş satırlar |
-| Aralığın dışı | Sondaki boş satırlar |
-| İç içe görev | Aralıklar örtüşebilir |
-| Kardeş görev | Biri ötekinin aralığına girmez |
-| Girinti ölçüsü | Yalnız satır başındaki boşluk ve sekme. Boşluk bir sütun ilerler. Sekme bir sonraki dördün katına ilerler. `>` girinti sayılmaz. |
-| Alıntıdaki görev | Tek satırlık blok |
-
-**Tablo, metin sadeleştirme kurallarını verir.**
-
-| Konu | Kural |
-|---|---|
-| Metnin kaynağı | Yalnız ilk satır |
-| Görevde çıkan sözdizimi | Kutuya kadar olan liste ve alıntı sözdizimi |
-| Olayda çıkan sözdizimi | Liste işareti ve ardından gelen boşluk ve sekmeler |
-| Ayırıcı boşluk | Kutu ve saat sonrasındaki tek ayırıcı boşluk çıkar |
-| Olay metni | Diğer boşluklar ve metin aynen kalır |
-| Görev metni | Tanınan alanlar çıkar. Kalan boşluk ve sekmeler tek boşluğa iner. Baş ve son kırpılır. |
-| Alan benzeri yazım | Bağlantı ve kod içindeyse metindir |
-| Kimlik | Önündeki tek boşluk ve sonrasındaki boşluk ya da sekme çıkar |
-| Kimlik yoksa | Sondaki boşluklar metinde kalır |
-
-**Tablo, `fieldRanges` öğesinin biçimini verir.**
-
-Aralık biçimi şudur: `{ "kind": "dueDate"|"startDate"|"doneDate"|"priority"|"project", "byteRange": [başlangıç, son] }`.
-
-| Konu | Kural |
-|---|---|
-| Ek tür | Tekrar alanında `kind` değeri `recurrence` olur |
-| Bayt tabanı | Fiziksel ilk satırın UTF-8 baytları |
-| Aralık | Sıfır tabanlı, sonu hariç; ayırıcı boşluklar hariç |
-| Yinelenen alan | Geçerli yinelenen alanların hepsi aralıklarda yer alır. Değer ilk alandan gelir. |
-
-`task-fields-*` örnekleri karışık sırayı, geçersiz tarihi ve yinelenmeyi sınar. Aynı örnekler kod, satır içi bağlantı ve referans bağlantısı korumasını ve yalnız alan taşıyan görevleri de sınar. `task-recurrence-*` örnekleri destekli, bilinmeyen ve korumalı tekrar kurallarını sınar.
-
-### Bağlantı beklentisi
-
-**Tablo, `links` listesindeki her öğenin alanlarını verir.**
-
-| Alan | Anlam |
-|---|---|
-| `line` | 1 tabanlı satır |
-| `byteRange` | Bağlantı aralığı: `[[` ile `]]` dahil yazım. Gömmenin `!` işaretini kapsamaz. |
-| `targetRange` | Hedef aralığı: `.md` dahil özgün hedef yazımı. Çevredeki Unicode boşlukları ve tablo ayırıcısının ters bölüsü hariç. Boş hedefte iki uç eşit. |
-| `target` | Çözülmüş hedef. Çevredeki Unicode boşlukları ve tam `.md` soneki atılmış. |
-| `rawTarget` | Hedef aralığındaki özgün kaynak yazımı |
-| `anchor` | `null` ya da çapa nesnesi. Hash ve blok şapkası hariç. |
-| `displayText` | `null` ya da ilk borudan sonraki metin |
-| `isEmbedded`, `isSameFile`, `isPath` | Gömme, aynı dosya ve yol hedefi işaretleri |
-| `source` | Gövde ya da frontmatter kaynağı |
-
-Hedef aralığı `\|` ayırıcısının ters bölüsünü kapsamaz. Çapa nesnesi `{ "kind": "heading"|"block", "text": "..." }` biçimindedir. Kaynak `{ "kind": "body" }` ya da `{ "kind": "frontmatter", "key": "...", "entry": null|"..." }` biçimindedir.
-
-`parse/link-<ad>/expected.json` kökü fiziksel dosya sırasındaki `links` listesini taşır. `byteRange` ve `targetRange` satır içeriğinin UTF-8 baytlarında 0 tabanlı `[başlangıç, son]` çiftleridir. Başlangıç dahil, son hariçtir. Sayım BOM ve satır sonunu dışarıda bırakır.
-
-`entry` yalnız eşlem kaydında doludur. Okuyucu çapayı ve görünen metni kırpmaz. Dosyada var olan boş değer boş metin olarak kalır.
-
-**Tablo, frontmatter içindeki bağlantı taramasının kurallarını verir.**
-
-| Konu | Kural |
-|---|---|
-| Taranan metin | Çözülmüş metin; aralıklar fiziksel YAML satırına geri eşlenir |
-| Kaçış baytları | Bir kaçışın ürettiği baytlar kaçışın tamamını kapsar |
-| `rawTarget` | Kaçışları korur |
-| Kaçışlı ayraç | Bağlantı aralığının fiziksel uçları da kaçış yazımıdır |
-| Çözülmüş satır sonu | Bağlantıyı böler |
-| Kod, kaçış, gömme | Tanıma çözülmüş metinde çalışır |
-| Taranmayanlar | Ham alanlar, anahtarlar, yorumlar |
-| Yinelenen hedef | Ayrı öğeler |
-| `links: []` | Hiç bağlantı olmadığını denetler |
+| Frontmatter durumu ve türler | [Frontmatter](vault-format.md#frontmatter), [Türler](vault-format.md#türler) | Yok |
+| Blok aralığı ve girinti | [Blok kimliği](vault-format.md#blok-kimliği), "Satır bloğu" | Yok |
+| Metin sadeleştirme | [Görev alanları](vault-format.md#görev-alanları), "Olay ve görev metninin okunması" | Yok |
+| Görev alanı aralığı | [Görev alanları](vault-format.md#görev-alanları) | `byteRange` fiziksel ilk satırın baytlarıdır ve ayırıcı boşlukları kapsamaz. Geçerli yinelenen alanların hepsi aralıklarda yer alır. |
+| Bağlantı ayrıştırma | [Bağlantı ayrıştırma](vault-format.md#bağlantı-ayrıştırma) | `links` fiziksel dosya sırasındadır. `links: []` hiç bağlantı olmadığını denetler. |
+| Frontmatter bağlantısının aralığı | [Bağlantı ayrıştırma](vault-format.md#bağlantı-ayrıştırma) | Aralıklar fiziksel YAML satırına geri eşlenir. Bir kaçışın ürettiği baytlar kaçışın tamamını kapsar. `rawTarget` kaçışları korur. Kaçışlı ayraçta aralığın fiziksel uçları da kaçış yazımıdır. |
 
 ### Başka okuyucularla karşılaştırma
-
-**Tablo, `check-frontmatter-yaml.rb` geliştirici betiğinin karşılaştırdığı okuyucuları verir.**
 
 | Okuyucu | YAML sürümü | Koşul |
 |---|---|---|
 | Ruby Psych | YAML 1.1 | Her zaman |
 | js-yaml | YAML 1.2, Obsidian'ın okuyucusu | İstenirse |
 
-Uygulamanın okuyucusu ve yazıcısı aynı kuralları paylaşır. İkisinde birden yanlış olan bir kural kendi testlerinden geçer. `.github/scripts/check-frontmatter-yaml.rb` betiği `parse/` beklentilerini ve `write/` çıktılarını bu okuyucularla karşılaştırır. `write/relations/` altındaki hatasız bağ işlemlerinde okuyucu, etiket alanında (etiketsizse `related`) hedefe giden bağlantıyı dizgi olarak okumalı; kaldırmada okumamalı. Betik testlerin rastgele ürettiği blokları da aynı okuyuculara gösterebilir.
-
-CI (sürekli bütünleştirme) betiği koşmaz. Frontmatter kuralları ya da örnekler değişince betiği elle çalıştır. Kullanımı betiğin başındadır.
+| Konu | Ayrıntı |
+|---|---|
+| Betik | `.github/scripts/check-frontmatter-yaml.rb`; kullanımı betiğin başındadır. |
+| Neden | Uygulamanın okuyucusu ve yazıcısı aynı kuralları paylaşır. İkisinde birden yanlış olan kural kendi testlerinden geçer. |
+| Karşılaştırılan | `parse/` beklentileri, `write/` çıktıları ve istenirse testlerin rastgele ürettiği bloklar. |
+| `write/relations/` | Hatasız bağ işleminde okuyucu hedefe giden bağlantıyı dizgi olarak okumalıdır. Kaldırmada okumamalıdır. |
+| Ne zaman | CI betiği koşmaz. Frontmatter kuralları ya da örnekler değişince betiği elle çalıştır. |
 
 ### Adlandırma
 
-**Tablo, klasör adındaki sözcüğün dosyaya yüklediği bayt özelliğini verir.**
+**Tablo, `parse/` ve `write/` klasör adındaki sözcüğün dosyaya yüklediği bayt özelliğini verir.**
 
 | Addaki sözcük | Markdown dosyalarının taşıması gereken özellik |
 |---|---|
@@ -441,182 +354,131 @@ CI (sürekli bütünleştirme) betiği koşmaz. Frontmatter kuralları ya da ör
 | `invalid-utf8`, `read-only` | Geçersiz UTF-8 |
 | `exact-key-match` | Ayrışmış harf baytları |
 
-`parse/` ve `write/` klasör adları taşıdıkları bayt özelliğini söyler. `FixtureCaseGuardTests` bu özelliği ham baytlardan denetler. `crlf`, `cr` ve `bom` adda iki tire arasında tam sözcük olarak geçer. Diğer adlar addın herhangi bir yerinde geçebilir.
+`FixtureCaseGuardTests` bu özelliği ham baytlardan denetler. `crlf`, `cr` ve `bom` adda iki tire arasında tam sözcük olarak geçer. Diğer sözcükler adın herhangi bir yerinde geçebilir.
 
 ## `write/` kümesi
 
-**Şema, bir yazma örneğinin akışını gösterir.**
+**Tablo, yazma örneklerini davranış ailesine göre verir.**
 
-```mermaid
-flowchart LR
-  A["input.md"] --> C["Yazıcı"]
-  B["operation.json"] --> C
-  C --> D{"İşlem kabul edildi mi?"}
-  D -- evet --> E["Sonuç baytları"]
-  E --> F["expected.md ile bayt bayt karşılaştır"]
-  D -- hayır --> G["Hata adı"]
-  G --> H["expectedError ile karşılaştır"]
-  G --> I["Dosya değişmedi mi denetle"]
-```
+| Davranış ailesi | Kök anahtar | Örnek vaka |
+|---|---|---|
+| Tek değer yazma ve tırnaklama | `frontmatter` | `set-value-quotes-text-like-date`, `set-value-creates-frontmatter-crlf` |
+| Liste yazma | `frontmatter` | `set-list-block-adds-item`, `set-list-inline-stays-inline` |
+| Eşlem kaydı yazma ve alan silme | `frontmatter` | `set-entry-crlf`, `remove-entry`, `remove-field-mapping` |
+| Reddedilen frontmatter yazımı | `frontmatter` | `error-raw-field-set-value`, `error-unreadable-duplicate-key` |
+| Ritim alanı | `frontmatter` | `cadence-days-add`, `cadence-snooze-replace` |
+| Takma ad ekleme ve kaldırma | `frontmatter` | `alias-add-missing-key`, `alias-remove-inline-keeps-spelling` |
+| Bölüme satır ekleme | `sections` | `section-append-end`, `section-unclosed-fence-create` |
+| Günlük yazısını değiştirme | `sections` | `section-diary-replace`, `section-diary-legacy-heading` |
+| Günlük yazısına ekleme | `sections` | `diary-append-new`, `diary-append-legacy-heading` |
+| Olay ve görev satırı: ekle, değiştir, sil, reddet | `lines` | `line-add-middle`, `line-fix-stale-task-text`, `line-reject-stale` |
+| Görev alanı ve durum | `lines` | `task-due-replace-middle`, `task-complete`, `task-cancelled-complete-new-date` |
+| Tekrar kuralı | `lines` | `task-recur-canonical-change`, `task-recur-when-done`, `task-recur-month-end` |
+| Bağlanmamış anmayı bağlama | `mention` | `mention-alias`, `mention-nfd-bom-crlf-no-final-newline` |
+| Açık bağ ekleme ve kaldırma | `relations/` alt klasörü | `place-target`, `label-zwj`, `remove-unreadable` |
 
-| Davranış ailesi | Kök anahtar | Örnek vaka | Sayı |
+| Konu | Kural |
+|---|---|
+| Başarılı örnek | `input.md`, `operation.json` ve `expected.md`. İstemci sonucu `expected.md` ile bayt bayt karşılaştırır. |
+| Ret örneği | `expected.md` yoktur. `operation.json` içindeki `expectedError` hatayı adlandırır. İstemci dosyanın değişmediğini denetler. |
+| Kök anahtar | İşlemin hedefini söyler. Yeni işlem türü yeni kök anahtar getirir. |
+| Kural kaynağı | Beklenen her bayt [Kasa biçimi](vault-format.md) kurallarından türer. |
+
+**Tablo, `operation.json` işlemlerini ve alanlarını verir.**
+
+| Kök | `operation` | Alanlar | İşlem |
 |---|---|---|---|
-| Tek değer yazma ve tırnaklama | `frontmatter` | `set-value-quotes-text-like-date`, `set-value-creates-frontmatter-crlf` | 59 |
-| Liste yazma | `frontmatter` | `set-list-block-adds-item`, `set-list-inline-stays-inline` | 27 |
-| Eşlem kaydı yazma ve alan silme | `frontmatter` | `set-entry-crlf`, `remove-entry`, `remove-field-mapping` | 24 |
-| Reddedilen frontmatter yazımı | `frontmatter` | `error-raw-field-set-value`, `error-unreadable-duplicate-key` | 20 |
-| Ritim alanı | `frontmatter` | `cadence-days-add`, `cadence-snooze-replace` | 11 |
-| Takma ad ekleme ve kaldırma | `frontmatter` | `alias-add-missing-key`, `alias-remove-inline-keeps-spelling` | 8 |
-| Bölüme satır ekleme | `sections` | `section-append-end`, `section-unclosed-fence-create` | 39 |
-| Günlük yazısını değiştirme | `sections` | `section-diary-replace`, `section-diary-legacy-heading` | 21 |
-| Günlük yazısına ekleme | `sections` | `diary-append-new`, `diary-append-legacy-heading` | 37 |
-| Olay ve görev satırı: ekle, değiştir, sil, reddet | `lines` | `line-add-middle`, `line-fix-stale-task-text`, `line-reject-stale` | 103 |
-| Görev alanı ve durum | `lines` | `task-due-replace-middle`, `task-complete`, `task-cancelled-complete-new-date` | 31 |
-| Tekrar kuralı | `lines` | `task-recur-canonical-change`, `task-recur-when-done`, `task-recur-month-end` | 15 |
-| Bağlanmamış anmayı bağlama | `mention` | `mention-alias`, `mention-nfd-bom-crlf-no-final-newline` | 16 |
-
-Her örnek bir klasördür. Başarılı örnek `input.md`, `operation.json` ve `expected.md` taşır. Ret örneğinde `expected.md` yoktur; `operation.json` içindeki `expectedError` beklenen hatayı adlandırır ve yazıcı dosyaya dokunmaz. Kök anahtar işlemin hedefini söyler; yeni işlem türü yeni kök anahtar getirir.
-
-### Frontmatter işlemleri
+| `frontmatter` | `set-value` | `key`, `value` | Alana tek değer yazar |
+| `frontmatter` | `set-list` | `key`, `items` | Alana liste yazar |
+| `frontmatter` | `set-entry` | `key`, `entry`, `value` | `key` altındaki eşlemde `entry` kaydını yazar |
+| `frontmatter` | `remove-entry` | `key`, `entry` | Eşlemden kaydı siler |
+| `frontmatter` | `remove-field` | `key` | Alanı siler |
+| `sections` | `append` | `kind`, `lines` | Bölüme satır ekler; en az bir boş olmayan satır gerekir |
+| `sections` | `replace-diary` | `text` | Günlük yazısının tamamını değiştirir |
+| `sections` | `append-diary` | `lines` | Diary bölümüne satır ekler; dizgiler satır sonu taşıyabilir |
+| `lines` | `add-event` | `text`, `id`, isteğe bağlı `time` | Olay ekler |
+| `lines` | `add-task` | `text`, `id` | Görev ekler |
+| `lines` | `add-task-fields` | `text`, `id`, isteğe bağlı `due`, `start`, `priority`, `project` | Alanlı görev ekler |
+| `lines` | `text` | `line`, `text`, isteğe bağlı `id` | Metni değiştirir |
+| `lines` | `status` | `line`, `status`, isteğe bağlı `id`, tamamlamada `completionDate` | Durumu değiştirir |
+| `lines` | `time` | `line`, `time`, isteğe bağlı `id` | Olay saatini değiştirir |
+| `lines` | `delete` | `line` | Bloğu siler |
+| `lines` | `due`, `start`, `priority`, `project` | `line`, alanın anahtarında değer, isteğe bağlı `id` | Görev alanını yazar ya da siler |
+| `lines` | `recurrence` | `line`, `rule` (kural ya da `null`), isteğe bağlı `id` | `🔁` alanını yazar ya da siler |
+| `lines` | `complete-recurring` | `line`, `id`, `completionDate` | Tekrarlayan görevi tamamlar ve sonraki görevi ekler |
+| `lines` | `stale-delete`, `stale-text` | `replacement` | `replacement` içindeki Markdown belgeye eski bloğu uygulamayı dener |
+| `lines` | `wrong-status`, `wrong-time` | `line` | Yanlış türden hedefi sınar |
+| `lines` | `stale` | `line` | Hedef okunduktan sonra metni `Su` yapar ve eski hedefle düzenlemeyi dener |
+| `mention` | yok | `vault`, `file`, `entity`, `line`, `byteRange`, `spelling` | Tek bir bağlanmamış anmayı bağlantıya çevirir |
 
 ```json
-{
-  "frontmatter": { "operation": "set-entry", "key": "goals", "entry": "kitap", "value": { "integer": 30 } }
-}
+{ "frontmatter": { "operation": "set-entry", "key": "goals", "entry": "kitap", "value": { "integer": 30 } } }
 ```
 
-| `operation` | Alanlar | İşlem |
-|---|---|---|
-| `set-value` | `key`, `value` | Alana tek değer yazar |
-| `set-list` | `key`, `items` | Alana liste yazar |
-| `set-entry` | `key`, `entry`, `value` | `key` altındaki eşlemde `entry` kaydını yazar |
-| `remove-entry` | `key`, `entry` | Eşlemden kaydı siler |
-| `remove-field` | `key` | Alanı siler |
-
-**Tablo, değer nesnesinin türlerini verir.**
-
-| Tür | Örnek | Not |
-|---|---|---|
-| `text` | `{ "text": "..." }` | |
-| `boolean` | `{ "boolean": true }` | |
-| `integer` | `{ "integer": 25 }` | |
-| `number` | `{ "number": "20.029" }` | Yazılacak yazımı metin olarak taşır |
-| `date` | `{ "date": "2026-10-02" }` | |
-
-Değer, türünü adlandıran tek anahtarlı bir nesnedir. `number` yazımı metin olarak taşır; böylece beklenen çıktı bir dilin ondalık sayı biçimine bağlı kalmaz. Beklenen çıktının her baytı `vault-format.md` "Tırnaklama" ve "Yazma kuralları" başlıklarından türer.
-
-**Tablo, frontmatter hata adlarını verir.**
-
-| `expectedError` | Neden |
-|---|---|
-| `read-only-document` | Dosya UTF-8 değil |
-| `unreadable-frontmatter` | Frontmatter çözülemiyor |
-| `raw-field` | Ham alan |
-| `not-a-mapping` | Değeri olan alana kayıt yazma |
-| `invalid-key` | Boş anahtar ya da `<<` |
-| `invalid-value` | Sayı yazımına uymayan `number` |
-
-**Tablo, istemcinin her frontmatter yazma örneğinde ek olarak denetlediklerini verir.**
-
-| Denetim | Beklenti |
-|---|---|
-| Frontmatter dışındaki baytlar | Değişmez |
-| Frontmatter içi | Yalnız hedef anahtarın satırları değişir |
-| Yeniden okuma | Yazılan değer aynı değeri verir |
-| Eşgüçlülük | İşlem ikinci kez uygulanınca dosya değişmez |
-
-**Ritim alanı:** `cadence-*` örnekleri ritim alanını eklemeyi, değiştirmeyi ve silmeyi bayt bayt sınar. Yorum satırı, komşu alan, CRLF ve BOM hedef satırın dışında kalır. `cadence-days-replace-text` ve `cadence-paused-replace-text` yok sayılan yazımı (`aylık`, `yes`) seçilen değerle değiştirir ve yalnız o satırı yazar. `cadence-snooze-replace` eski erteleme tarihini yerinde değiştirir. Değerden önceki boşluk, satır sonu yorumu, komşu satırların sondaki boşlukları ve tırnaklar kalır. `cadence-snooze-remove-middle` sürdürmenin yalnız `cadence_paused` satırını sildiğini gösterir.
-
-**Takma ad:** `alias-*` örnekleri varlık sayfasından takma ad eklemeyi ve kaldırmayı bayt bayt sınar. İşlem `set-list` işlemidir; uygulama testi aynı baytları sayfanın ekleme ve kaldırma eylemiyle üretir. `alias-add-missing-key` anahtarı frontmatter'ın sonuna tek satırlı liste olarak ekler; yorum ve komşu alanlar kalır. `alias-add-inline-keeps-quotes-and-comment` ve `alias-add-block-keeps-comments` mevcut öğelerin tırnağını, liste biçimini ve yorumları korur. `alias-add-crlf-bom` BOM ve CRLF taşır. `alias-add-single-value` tek değeri listeye çevirir. `alias-add-comma-is-quoted` virgüllü takma adı tırnaklar. `alias-remove-inline-keeps-spelling` aradaki öğeyi çıkarır. `alias-remove-last-keeps-key` son öğeyi çıkarır ve `aliases: []` bırakır.
-
-### Bölüm işlemleri
-
-| Örnek deseni | Biçim | Kural |
-|---|---|---|
-| `section-diary-<ad>` | `{ "operation": "replace-diary", "text": "..." }` | Günlük yazısının tamamını değiştirir |
-| `section-<ad>` | `{ "operation": "append", "kind": "Tasks", "lines": ["- [ ] kitap"] }` | Bölüme satır ekler; en az bir boş olmayan satır gerekir |
-| `diary-append-<ad>` | `{ "operation": "append-diary", "lines": ["Yeni"] }` | Diary bölümüne satır ekler; `lines` dizgileri satır sonu taşıyabilir |
-
-**`replace-diary`:** Mevcut bölümde boş metin başlığı ve sondaki boş satırları korur. Bölüm yoksa boş ya da yalnız boşluktan oluşan metin dosyayı değiştirmez; beklenen çıktı girdinin aynısıdır. Gövdedeki `---` bir başarı örneğidir. Test beklenen baytları ve yapı kısıtlarından doğan hataları denetler. Test aynı metinle ikinci uygulamanın ilk uygulamayla bayt bayt aynı kaldığını da doğrular.
-
-**`append`:** Hata adları `section-not-writable`, `empty-section-append`, `line-break-in-content` ve `read-only-document` olur. Fixture yazarı beklenen çıktıyı bağımsız yazar. Test baytları ve yeniden okunan modeli karşılaştırır. Aynı ekleme ikinci kez gelince yazıcı yeni satırları tekrar ekler. Frontmatter işlemlerindeki eşgüçlülük denetimi burada çalışmaz.
-
-**`append-diary`:** Test beklenen tam baytları ve yeniden okumayı denetler. Test eski baytların tek bir yeni parçanın iki yanında aynen kaldığını da denetler. Boş ekleme değişiklik yapmaz; `expected.md` girdiyle aynıdır. Örnekler yeni, eksik, boş ve dolu bölümü ve sondaki boş satırları kapsar. Bayt durumları son satır sonu olmayan dosya, CRLF, CR, karışık satır sonu ve BOM'dur.
-
-Komşu yapılar sonraki bölüm, yorum bloğu, yinelenen ve benzer başlık, alt başlık, liste, çit, tablo ve frontmatter'dır. Girdi durumları çok satır, girintili satır ve satır sonu taşıyan dizgidir. `structure-lines` yapı satırlarının başına `· ` koyar. Ret örnekleri `section-not-writable` ve `read-only-document` hatasını sınar.
-
-### Satır işlemleri
-
-**Tablo, `lines` kökündeki işlemleri ve alanlarını verir.**
-
-| `operation` | Alanlar | İşlem |
-|---|---|---|
-| `add-event` | `text`, `id`, isteğe bağlı `time` | Olay ekler |
-| `add-task` | `text`, `id` | Görev ekler |
-| `add-task-fields` | `text`, `id`, isteğe bağlı `due`, `start`, `priority`, `project` | Alanlı görev ekler |
-| `text` | `line`, `text`, isteğe bağlı `id` | Metni değiştirir |
-| `status` | `line`, `status`, isteğe bağlı `id`, tamamlamada `completionDate` | Durumu değiştirir |
-| `time` | `line`, `time`, isteğe bağlı `id` | Olay saatini değiştirir |
-| `delete` | `line` | Bloğu siler |
-| `due`, `start`, `priority`, `project` | `line`, alanın anahtarında değer, isteğe bağlı `id` | Görev alanını yazar ya da siler |
-| `recurrence` | `line`, `rule` (kural ya da `null`), isteğe bağlı `id` | `🔁` alanını yazar ya da siler |
-| `complete-recurring` | `line`, `id`, `completionDate` | Tekrarlayan görevi tamamlar ve sonraki görevi ekler |
-
-**Tablo, satır işlemlerindeki değer biçimlerini verir.**
+**Tablo, işlem alanlarının değer biçimlerini verir.**
 
 | Alan | Biçim |
 |---|---|
-| `line` | Hedef bloğun 1 tabanlı ilk satırı |
+| `value` | Türünü adlandıran tek anahtarlı nesne: `{ "text": "..." }`, `{ "boolean": true }`, `{ "integer": 25 }`, `{ "number": "20.029" }`, `{ "date": "2026-10-02" }` |
+| `number` | Yazılacak yazımı metin olarak taşır. Böylece beklenti bir dilin ondalık sayı biçimine bağlı kalmaz. |
+| `line` | `lines` kökünde hedef bloğun 1 tabanlı ilk satırı. `mention` kökünde sıfır tabanlı satır. |
 | `time` | `null` ya da `{ "hour": 9, "minute": 5 }` |
 | `status` | `todo`, `inProgress`, `done`, `cancelled`; `unknown` yalnız ret örneğinde |
 | `id` | Düzenlemede yeni kimlik; yoksa özgün kimlik yazımı kalır |
 | Görev alanı değeri | ISO gün, öncelik adı, proje adı ya da `null` |
+| `mention.file`, `mention.entity` | Kasada `input.md` ile değiştirilen gün dosyası; bağlanacak varlık dosyası |
+| `mention.byteRange` | Açık anmada önündeki `@` işaretini de kapsar. |
 
-**Tablo, özel test işlemlerini verir.**
+**Tablo, hata adlarını verir.**
 
-| Örnek ya da işlem | Ne sınar |
+| `expectedError` | Kök | Neden |
+|---|---|---|
+| `read-only-document` | hepsi | Dosya UTF-8 değil |
+| `unreadable-frontmatter` | `frontmatter` | Frontmatter çözülemiyor |
+| `raw-field` | `frontmatter` | Ham alan |
+| `not-a-mapping` | `frontmatter` | Değeri olan alana kayıt yazma |
+| `invalid-key` | `frontmatter` | Boş anahtar ya da `<<` |
+| `invalid-value` | `frontmatter`, `lines` | Sayı yazımına uymayan `number`; geçersiz değer |
+| `section-not-writable` | `sections`, `lines` | Bölüm yazılamıyor |
+| `empty-section-append` | `sections` | Boş ekleme |
+| `line-break-in-content` | `sections`, `lines` | İçerikte satır sonu |
+| `target-not-found` | `lines` | Hedef blok yok |
+| `empty-text` | `lines` | Boş metin |
+| `content-not-representable` | `lines` | İçerik satırda yazılamıyor |
+| `identifier-exhausted` | `lines` | Kimlik üreticisinin deneme sınırı doldu |
+
+**Tablo, istemcinin beklenen baytların yanında yaptığı ek denetimleri verir.**
+
+| Kök ya da işlem | Ek denetim |
 |---|---|
-| `stale-delete`, `stale-text` | `replacement` içindeki Markdown belgeye eski bloğu uygulamayı dener |
-| `wrong-status`, `wrong-time` | Yanlış türden hedefi sınar |
-| `stale` | Hedef okunduktan sonra metni `Su` yapar ve eski hedefle tekrar düzenlemeyi dener |
+| `frontmatter` | Frontmatter dışındaki baytlar değişmez. İçeride yalnız hedef anahtarın satırları değişir. Yeniden okuma yazılan değeri verir. İkinci uygulama dosyayı değiştirmez. |
+| `sections`, `append` | Yeniden okunan model. Aynı ekleme ikinci kez gelince yazıcı satırları tekrar ekler; eşgüçlülük denetimi burada çalışmaz. |
+| `sections`, `replace-diary` | Yapı kısıtlarından doğan hatalar. Aynı metinle ikinci uygulama ilkiyle bayt bayt aynıdır. |
+| `sections`, `append-diary` | Yeniden okuma. Eski baytlar tek bir yeni parçanın iki yanında aynen kalır. Boş eklemede `expected.md` girdiyle aynıdır. |
+| `lines` | Yeniden okunan model. Hedef dışında kalan satırların baytları. |
+| `mention` | Aşağıdaki "Anma bağlama" tablosu. |
 
-**Tablo, satır işlemlerinin hata adlarını verir.**
+**Tablo, vaka adından anlaşılmayan aile ayrıntısını verir. Kural kaynağı ilgili [Kasa biçimi](vault-format.md) bölümüdür.**
 
-| `expectedError` | Neden |
-|---|---|
-| `target-not-found` | Hedef blok yok |
-| `empty-text` | Boş metin |
-| `content-not-representable` | İçerik satırda yazılamıyor |
-| `identifier-exhausted` | Kimlik üreticisinin deneme sınırı doldu |
-| `invalid-value` | Geçersiz değer |
-| `line-break-in-content` | İçerikte satır sonu |
-| `read-only-document` | Dosya UTF-8 değil |
-| `section-not-writable` | Bölüm yazılamıyor |
+| Aile | Sınanan ayrıntı | Kural kaynağı |
+|---|---|---|
+| `cadence-*` | Yorum satırı, komşu alan, CRLF ve BOM hedef satırın dışında kalır. `cadence-*-replace-text` yok sayılan yazımı (`aylık`, `yes`) seçilen değerle değiştirir. `cadence-snooze-replace` eski erteleme tarihini yerinde değiştirir. `cadence-snooze-remove-middle` sürdürmenin yalnız `cadence_paused` satırını sildiğini gösterir. | [Görüşme ritmi](vault-format.md#görüşme-ritmi) |
+| `alias-*` | İşlem `set-list` işlemidir. Uygulama testi aynı baytları sayfanın ekleme ve kaldırma eylemiyle üretir. Vakalar eksik anahtarı, tırnağı, yorumu, CRLF ve BOM'u, tek değeri, virgüllü adı ve son öğeyi kapsar. | [Yazma kuralları](vault-format.md#yazma-kuralları) |
+| `section-diary-*` | Bölüm yoksa boş metin dosyayı değiştirmez. Gövdedeki `---` bir başarı örneğidir. | [Diary yazısını değiştirme](vault-format.md#diary-yazısını-değiştirme) |
+| `diary-append-*` | Yeni, eksik, boş ve dolu bölüm; sondaki boş satırlar; her bayt özelliği. Komşu yapılar: sonraki bölüm, yorum bloğu, yinelenen ve benzer başlık, alt başlık, liste, çit, tablo, frontmatter. `structure-lines` yapı satırlarının başına `· ` koyar. | [Diary bölümüne ekleme](vault-format.md#diary-bölümüne-ekleme) |
+| `task-*` | Alanın yerinde değişmesi, kaldırma, yinelenmeler, salt okunur öncelikler, tamamlama, yeniden açma ve iptal. `task-text-keeps-positions` alan konumlarını korur. `task-due-reference-link` referans bağlantısında baytları değiştirmez. | [Görev düzenleme](vault-format.md#görev-düzenleme) |
+| `task-recur-*` | Kuralı değiştirme, kaldırma ve onarma; ay sonu, taşma, iç içe görev, CRLF ve BOM, yinelenen kimlik, tamamlanınca tekrar. | [Tekrarlayan görevler](vault-format.md#tekrarlayan-görevler) |
+| `*-legacy-heading` | Yazıcı eski `## Journal` başlığına yazar ve başlığı değiştirmez. | [Eski adlar ve geçiş](vault-format.md#eski-adlar-ve-geçiş) |
+| `relations/` | `related` tek değerlerinin her türü, boş alanlar, liste biçimleri, kırpılan, geçersiz ve ayrılmış etiketler, güvenli silme, hedef türü ve yol yazımı. İç klasörler elle yazılmış önce ve sonra baytlarını ve `operation.json` taşır. | [İlişkiler](vault-format.md#i̇lişkiler) |
+| `relations/`, hedef ve kaynak | `place-target`, `custom-target`, `place-source-label` ve `custom-source-label` konumu ve özel tipi hedef ve kaynak olarak yazar. `label-unresolved-link` çözülmeyen bağlantılı etiket alanına ekler. | [İlişkiler](vault-format.md#i̇lişkiler) |
+| `relations/`, etiket | `label-zwj` emoji birleştiricili etiketi kabul eder. `invalid-label-nel` (U+0085) ve `invalid-label-only-newline` reddedilir. | [İlişkiler](vault-format.md#i̇lişkiler) |
+| `relations/`, kaldırma | `remove-unreadable` çözülemeyen blokta kaldırmayı reddeder. `related-remove-all-block` çok satırlı listenin bütün öğelerini kaldırır; aradaki yorum kalır. | [İlişkiler](vault-format.md#i̇lişkiler) |
 
-Başarıda test beklenen baytları ve yeniden okunan modeli denetler. Test hedef dışında kalan satırların baytlarını da denetler.
+### Anma bağlama
 
-`task-*` örnekleri alanın yerinde değişmesini, kaldırmayı, yinelenmeleri ve salt okunur öncelikleri sınar. Tamamlama, yeniden açma ve iptal de bu ailededir. Metin düzenlerken alan konumları, BOM, CRLF ve son satır korunur; örnek `task-text-keeps-positions`. `task-due-reference-link` referans bağlantısında alan silmenin baytları değiştirmediğini doğrular.
+İşlem kasa ve indeks gerektirir. Biçim testleri bu örnekleri yalnız dosya düzeni açısından denetler; depo katmanı işlemi uygular. `expected.md` girdiden yalnız `byteRange` aralığında farklıdır.
 
-`task-add-fields-preserves-spacing` eklemede kod ve bağlantı boşluklarının kaldığını doğrular. `task-cancelled-complete-*` iptalden tamamlanmaya geçişte yeni tarihin zorunlu olduğunu doğrular. `task-recur-*` kuralı değiştirmeyi, kaldırmayı ve onarmayı sınar. Aynı aile ay sonu, taşma, iç içe görev, CRLF ve BOM, yinelenen kimlik ve tamamlanınca tekrar durumlarını taşır.
-
-### Anma bağlama işlemi
-
-**Tablo, `mention` kökünün alanlarını verir.**
-
-| Alan | Anlam |
-|---|---|
-| `vault` | `vaults/` altındaki kasa |
-| `file` | Kasada `input.md` ile değiştirilen gün dosyası |
-| `entity` | Bağlanacak varlık dosyası |
-| `line` | Sıfır tabanlı satır |
-| `byteRange` | Satır içeriğinde UTF-8 aralığı |
-| `spelling` | Anmanın yazımı |
-
-`write/mention-<ad>/operation.json` tek bir bağlanmamış anmayı bağlantıya çevirir. İşlem kasa ve indeks gerektirir. Bu yüzden biçim testleri bu örnekleri yalnız dosya düzeni açısından denetler; depo katmanı işlemi uygular. `expected.md` girdiden yalnız o aralıkta farklıdır. Açık anmada aralık önündeki `@` işaretini de kapsar. Fixture yazarı `expected.md` dosyasını uygulamadan bağımsız üretti.
-
-**Tablo, `UnlinkedMentionTests` testinin her anma örneğinde ek olarak denetlediklerini verir.**
-
-| Denetim | Beklenti |
+| `UnlinkedMentionTests` denetimi | Beklenti |
 |---|---|
 | Kasadaki diğer dosyalar | Değişmez |
 | Yeniden okunan belge | Yalnız o bağlantı eklenmiştir |
@@ -626,282 +488,204 @@ Başarıda test beklenen baytları ve yeniden okunan modeli denetler. Test hedef
 | Artımlı indeks | Tam yeniden kurulumla eşittir |
 | İkinci uygulama | Aynı anma ikinci kez uygulanamaz |
 
-Bayat hedef örneklerini test aynı kasa üzerinde kodda kurar. Hiçbirinde dosya ve indeks değişmez.
-
-| Bayat hedef türü | Örnek durum |
+| Bayat hedef türü | Testin kodda kurduğu durum |
 |---|---|
 | Satır | Satır ya da yazım değişti |
 | Anma | Anma bu arada bağlandı |
 | Konum | Satır kaydı ya da silindi |
 | Dosya | Dosya ya da varlık silindi |
 | Takma ad | Takma ad kalktı |
+| İkiz satır | Dosya değişti. Örnek: `vaults/unlinked-mentions-hostile` içindeki `2026-03-01` günü. |
 
-İkiz satır, ilk satırı aynı dosyada bayt bayt yinelenen olay ya da görevdir. İkiz satırı uygulama yalnız dosya sorgunun okuduğu haliyle duruyorsa bağlar. Dosya değiştiyse uygulama hangi ikizin onaylandığını ayırt edemez ve yazmaz. Örnek `vaults/unlinked-mentions-hostile` içindeki `2026-03-01` günüdür.
+Bayat hedefte dosya ve indeks değişmez. Kural: [Tek geçişi bağlantıya çevirme](vault-format.md#tek-geçişi-bağlantıya-çevirme).
 
 ## `merge/` kümesi
 
-**Şema, bir birleştirme örneğinin iki test yolunu gösterir.**
+| Davranış ailesi | Örnek vaka |
+|---|---|
+| Aynı, boş ya da eş zamanlı sürüm | `identical`, `empty-newer`, `equal-times-tie` |
+| Satır sonu ve BOM | `crlf-newer-keeps-older-endings`, `bom-only`, `no-final-newline-older` |
+| Salt okunur sürüm | `read-only-newer`, `read-only-older` |
+| Frontmatter alanı ve yorumu | `frontmatter-comment-in-both`, `frontmatter-unreadable-newer`, `frontmatter-value-differs` |
+| Hedef ilerlemesi | `goals-progress`, `goals-type-mismatch`, `goals-not-a-mapping` |
+| Görev durumu ve metni | `task-closed-vs-text-changed`, `task-both-closed-date-only` |
+| Olay ve blok | `events-both-added`, `event-text-both-changed`, `blocks-with-children` |
+| Blok kimliği | `duplicate-ids`, `id-kind-mismatch`, `id-less-repeated-lines` |
+| Serbest yazı | `free-text-diverged`, `free-text-reordered` |
+| Bölge ve düzen | `region-only-in-newer`, `code-fence-lines`, `older-layout-keeps-newer-trailing-blank` |
+| Son güvence | `unclosed-fence-falls-back` |
 
-```mermaid
-flowchart TD
-  A["a.md, b.md"] --> C["ConflictMerge"]
-  B["case.json: times, preserved"] --> C
-  C --> D["expected.md ile karşılaştır"]
-  C --> E["Saklanacak sürümleri preserved ile karşılaştır"]
-  A --> G["VaultStore.mergingDayCopy"]
-  B --> G
-  G --> H["Gün dosyası expected.md olur"]
-  G --> I["Her saklanan sürümü conflicts/ altına yaz"]
-  G --> K["Kasada başka dosya kalmaz"]
-```
+**Tablo, örnek dosyalarını ve `case.json` alanlarını verir.**
 
-| Davranış ailesi | Örnek vaka | Sayı |
+| Dosya ya da alan | Tür | Anlam |
 |---|---|---|
-| Aynı, boş ya da eş zamanlı sürüm | `identical`, `empty-newer`, `equal-times-tie` | 5 |
-| Satır sonu ve BOM | `crlf-newer-keeps-older-endings`, `bom-only`, `no-final-newline-older` | 10 |
-| Salt okunur sürüm | `read-only-newer`, `read-only-older` | 2 |
-| Frontmatter alanı ve yorumu | `frontmatter-comment-in-both`, `frontmatter-unreadable-newer`, `frontmatter-value-differs` | 17 |
-| Hedef ilerlemesi | `goals-progress`, `goals-type-mismatch`, `goals-not-a-mapping` | 6 |
-| Görev durumu ve metni | `task-closed-vs-text-changed`, `task-both-closed-date-only` | 8 |
-| Olay ve blok | `events-both-added`, `event-text-both-changed`, `blocks-with-children` | 5 |
-| Blok kimliği | `duplicate-ids`, `id-kind-mismatch`, `id-less-repeated-lines` | 5 |
-| Serbest yazı | `free-text-diverged`, `free-text-reordered` | 5 |
-| Bölge ve düzen | `region-only-in-newer`, `code-fence-lines`, `older-layout-keeps-newer-trailing-blank` | 7 |
-| Son güvence | `unclosed-fence-falls-back` | 1 |
+| `a.md`, `b.md` | Markdown | İki sürümün baytları |
+| `expected.md` | Markdown | Birleşmiş baytlar |
+| `case.json`, `times` | `{ "a": 10, "b": 20 }` | Her sürümün değişiklik zamanı. Tam sayıdır; birim yoktur, yalnız sıra anlamlıdır. |
+| `case.json`, `preserved` | dizi | Saklanacak sürümlerin alfabetik adları; hiçbiri saklanmıyorsa `[]` |
 
-Her örnek `a.md` ve `b.md` (iki sürümün baytları), `case.json` (zamanlar ve saklanacak sürümler) ve `expected.md` (birleşmiş baytlar) taşır. Kuralların kaynağı [Eşitleme çakışması](vault-format.md#eşitleme-çakışması) bölümüdür. Beklenen çıktılar koddan gelmez; fixture yazarı kuralları elle uygulayarak yazar. **Saklanan sürüm**, birleştirmenin `conflicts/` klasörüne yazdığı eski sürüm dosyasıdır.
+**Saklanan sürüm**, birleştirmenin `conflicts/` klasörüne yazdığı eski sürüm dosyasıdır. Kuralların kaynağı [Eşitleme çakışması](vault-format.md#eşitleme-çakışması) bölümüdür.
 
-```json
-{ "times": { "a": 10, "b": 20 }, "preserved": ["a"] }
-```
-
-`times` her sürümün değişiklik zamanıdır ve tam sayıdır; birim yoktur, yalnız sıra anlamlıdır. Eşit zamanlar yeni sürümün bayt sırasıyla seçildiğini sınar. `preserved` saklanacak sürümlerin alfabetik adlarıdır; hiçbiri saklanmıyorsa `[]` olur. İstemci iki veriliş sırasının aynı baytları ve aynı saklanacak sürümleri verdiğini denetler. Sonuç, iki zamandan da büyük bir zamanla her sürümle yeniden birleşince değişmez. Sonuç okunup yazılınca da aynı kalır.
-
-Bağımsız kayıp denetimi her sürümün bloklarını, bölge bölge ve sayımlı serbest yazı satırlarını, frontmatter alanlarını ve yorum satırlarını arar. Her biri sonuçta vardır ya da birleştirme o sürümü saklar. Dört durum kayıp sayılmaz. Kapalı görev açık görevin yerini alabilir. İki kapalı görev yalnız `✅` tarihiyle ayrılabilir. `goals` altında ilerleme ve yalnız yazım farkı da kayıp değildir. Adında `falls-back` geçmeyen örnekte işlev son güvenceye düşmez; `fellBack` yanlıştır. Adında `crlf`, `cr`, `bom`, `mixed-line-endings`, `no-final-newline`, `invalid-utf8` ya da `read-only` geçen örnekte en az bir Markdown dosyası o özelliği taşır.
-
-**Gün kopyası yolu:** Core her örneği `VaultStore.mergingDayCopy` üzerinden de koşar: önce `a` gün dosyası ve `b` kopyadır, sonra tersi. Zamanlar UTC saniyesidir ve test saniyenin bir kesrini ekler; kesir adı ve sırayı değiştirmemelidir. Gün dosyası `expected.md` olur. Her saklanan sürüm `conflicts/2026-10-02 (conflict 19700101T0000SSZ).md` adıyla bayt bayt kendisi olur ve kasada başka dosya kalmaz. Kopya aynı baytlarla yeniden gelince kasa değişmez; örneğin ikinci cihaz ya da yarım kalan birleştirme.
+| Test yolu | Denetim |
+|---|---|
+| `ConflictMerge` | Sonuç `expected.md`, saklanacak sürümler `preserved` ile aynıdır. |
+| `ConflictMerge`, sıra | İki veriliş sırası aynı baytları ve aynı saklanacak sürümleri verir. |
+| `ConflictMerge`, kararlılık | Sonuç daha büyük bir zamanla her sürümle yeniden birleşince değişmez. Okunup yazılınca da aynı kalır. |
+| Bağımsız kayıp denetimi | Her sürümün blokları, serbest yazı satırları, frontmatter alanları ve yorum satırları sonuçta vardır. Yoksa birleştirme o sürümü saklar. İstisnalar: [Birleştirme işlevi](vault-format.md#birleştirme-işlevi). |
+| Son güvence | Adında `falls-back` geçmeyen örnekte `fellBack` yanlıştır. |
+| Eşit zaman | Yeni sürümün bayt sırasıyla seçildiğini sınar. |
+| Addaki bayt özelliği | [Adlandırma](#adlandırma) tablosundaki sözcüğü taşıyan örnekte en az bir Markdown dosyası o özelliği taşır. |
+| `VaultStore.mergingDayCopy` | Core her örneği gün kopyası yolundan da koşar: önce `a` gün dosyası ve `b` kopyadır, sonra tersi. |
+| Gün kopyası yolu, zaman | Zamanlar UTC saniyesidir. Test saniyenin bir kesrini ekler; kesir adı ve sırayı değiştirmemelidir. |
+| Gün kopyası yolu, sonuç | Gün dosyası `expected.md` olur. Her saklanan sürüm `conflicts/2026-10-02 (conflict 19700101T0000SSZ).md` adıyla bayt bayt kendisidir. Kasada başka dosya kalmaz. |
+| Gün kopyası yolu, tekrar | Kopya aynı baytlarla yeniden gelince kasa değişmez. |
 
 ## `recognition/` kümesi
 
-**Şema, bir tanıma örneğinin akışını gösterir.**
+| Davranış ailesi | Örnek vaka |
+|---|---|
+| Ad, takma ad ve belirsizlik | `names`, `ambiguous`, `alias-collision` |
+| Türkçe harf, ek ve Unicode | `turkish`, `suffix`, `nfd` |
+| Sözcük sınırı ve örtüşme | `boundaries`, `overlap`, `overlap-tie-first` |
+| Korunan metin | `escaped-code`, `protected-addresses`, `markdown-links` |
+| Bayt özelliği ve boş girdi | `crlf`, `bom-mixed-line-endings`, `table-crlf` |
+| Yol hedefi | `path-link-target`, `root-path-link-target`, `unrepresentable-path-target` |
+| Rakam adlar | `digit-names`, `mixed-digit-names-baseline` |
+| Görev alanlı gün gövdesi | `task-fields` |
+| Özel tip | `custom-book` |
+| Takvim katılımcıları | `attendees` |
+| Bağlanmamış anma sorgusu | `unlinked-mentions`, `unlinked-mentions-hostile` |
 
-```mermaid
-flowchart LR
-  A["input.md"] --> C["Tanıyıcı"]
-  B["entities.json"] --> C
-  C --> D["mentions ve unknownMentions"]
-  D --> E["expected.json ile karşılaştır"]
-  C --> F["Kesin anmaları bağla"]
-  F --> G["linked.md ile bayt bayt karşılaştır"]
-```
+Kuralların kaynağı [Otomatik tanıma ve belirsizlik](vault-format.md#otomatik-tanıma-ve-belirsizlik) ve [Bağlantı yazımı](vault-format.md#bağlantı-yazımı) bölümleridir.
 
-| Davranış ailesi | Örnek vaka | Sayı |
+**Tablo, örnek dosyalarını ve alanlarını verir.**
+
+| Dosya | Alan | Anlam |
 |---|---|---|
-| Ad, takma ad ve belirsizlik | `names`, `ambiguous`, `alias-collision` | 8 |
-| Türkçe harf, ek ve Unicode | `turkish`, `suffix`, `nfd` | 5 |
-| Sözcük sınırı ve örtüşme | `boundaries`, `overlap`, `overlap-tie-first` | 5 |
-| Korunan metin | `escaped-code`, `protected-addresses`, `markdown-links` | 7 |
-| Bayt özelliği ve boş girdi | `crlf`, `bom-mixed-line-endings`, `table-crlf` | 4 |
-| Yol hedefi | `path-link-target`, `root-path-link-target`, `unrepresentable-path-target` | 3 |
-| Rakam adlar | `digit-names`, `mixed-digit-names-baseline` | 2 |
-| Görev alanlı gün gövdesi | `task-fields` | 1 |
-| Özel tip | `custom-book` | 1 |
-| Takvim katılımcıları | `attendees` | 1 |
-| Bağlanmamış anma sorgusu | `unlinked-mentions`, `unlinked-mentions-hostile` | 2 |
+| `entities.json` | `entities[]` | `file`, `kind` (`person` ya da `place`), `name`, isteğe bağlı `qualifier`, `aliases`, isteğe bağlı `linkTarget` |
+| `entities.json` | `linkTarget` | Yazılacak wikilink hedefi; yoksa tanıyıcı uzantısız gövde adını kullanır. |
+| `entities.json` | `usage[]` | İsteğe bağlı: `file`, `totalCount`, `lastDate`, `cooccurrences` (dosya yolundan birlikte geçilen gün sayısına eşlem) |
+| `expected.json` | `mentions[]` | `line` (sıfır tabanlı), `byteRange`, `spelling`, `candidates`, `isAmbiguous`, `isCaseMismatch`, `isCertain` |
+| `expected.json` | `unknownMentions[]` | Aynı konum ve yazım alanları; aday içermez. |
+| `linked.md` | — | Yalnız kesin anmaların bağlandığı bayt çıktısı |
+| `attendees.json` | `attendees[]` | Yalnız `attendees/`: `name` (takvimin verdiği ad; boş ya da e-posta olabilir) ve `isCurrentUser` |
+| `expected.json` | `certain`, `ambiguous`, `unknown` | Yalnız `attendees/`, katılımcı sırasında. `certain`: `spelling` ve `file`. `ambiguous`: kırpık ad ve `candidates`. `unknown`: kırpık adlar. |
+| `expected.json` | `vault`, `queries[]` | Yalnız `unlinked-mentions*`: her sorgu `entity` ve sıralı `mentions` taşır. |
+| `expected.json` | `queries[].mentions[]` | `file`, `date`, `line` (sıfır tabanlı), `byteRange`, `spelling`, `isExplicit`, `isAmbiguous`, `isCaseMismatch` |
 
-Olağan örnek `entities.json`, `input.md`, `expected.json` ve `linked.md` taşır. `entities.json` kökündeki `entities` öğeleri `file`, `kind` (`person` ya da `place`), `name`, isteğe bağlı `qualifier`, `aliases` ve isteğe bağlı `linkTarget` taşır. `linkTarget` yazılacak wikilink hedefidir; yoksa tanıyıcı uzantısız gövde adını kullanır. İsteğe bağlı `usage` dizisi `file`, `totalCount`, `lastDate` (ISO gün ya da `null`) ve `cooccurrences` taşır. `cooccurrences` dosya yolundan birlikte geçilen gün sayısına bir eşlemdir.
+| Konu | Denetim |
+|---|---|
+| Yeniden tanıma | `linked.md` içinde kesin anma kalmaz. Temsil edilemeyen hedef yüzünden düz kalan anma istisnadır. |
+| Bekleyenler | Öneri, belirsiz ve bilinmeyen anmalar kalabilir. |
+| Rastgele testler | Bütün bilinen anmalara seçim verir ve tam bağlamanın eşgüçlülüğünü denetler. |
+| `attendees/` | `input.md` ve `linked.md` yoktur. |
+| `unlinked-mentions*` | `input.md` ve `entities.json` yoktur; girdi kasanın kendisidir. Kasadaki her varlığın bir sorgusu vardır. |
+| Sorgu sırası | Yeni günden eskiye; gün içinde satır ve bayt sırası. |
 
-`expected.json` kökündeki `mentions` öğeleri `line` (sıfır tabanlı), `byteRange`, `spelling`, `candidates`, `isAmbiguous`, `isCaseMismatch` ve `isCertain` taşır. `byteRange` satır içeriğinde UTF-8 aralığıdır, başlangıç dahil ve son hariç; `@` işaretini ve ekleri kapsamaz. `candidates` sıralı aday yollarıdır. `unknownMentions` öğeleri aynı konum ve yazım alanlarını taşır, aday içermez. Karşılaştırma anahtarları adlardan türer; fixture yazarı beklentileri uygulamadan bağımsız yazar.
+**Tablo, vaka adından anlaşılmayan içeriği verir. Bu vakaların açıklaması fixture dosyasında yoktur.**
 
-`linked.md` yalnız kesin anmaların bağlandığı bayt çıktısıdır. Yeniden tanımada kesin anma kalmaz; temsil edilemeyen hedef yüzünden düz kalan anmalar istisnadır. Kullanıcı seçimi bekleyen öneri, belirsiz ve bilinmeyen anmalar kalabilir. Rastgele testler bütün bilinen anmalara seçim verir ve tam bağlamanın eşgüçlülüğünü ayrıca denetler.
-
-**Sentetik adlar ve aile ayrıntısı:** `Işık`, yalnız Türkçe harf kuralını sınamak için Deniz'in sentetik takma adıdır. Ek örneğindeki `e`, Ece için eki ayrı ad saymayı engelleyen sentetik takma addır. Örtüşme örneğindeki `Arıkan Selin Korkmaz` kadronun adlarından gelen sentetik konum takma adıdır. Eşit uzunlukta örtüşmedeki `Deniz Ece` ve `Ece Selin` kadronun ad parçalarından gelir. `path-link-target` aynı gövde adı başka klasörde de varsa yol hedefini yazar; benzersiz ad kısa kalır. `root-path-link-target` kasa kökündeki varlığı baştaki `/` ile yazar.
-
-`unrepresentable-path-target` temsil edilemeyen yol hedefinde anmayı düz bırakır ve diğer kesin anmaları bağlar. `escaped-code` içinde kaçışlı wikilink düz metin kalır. E-posta, alan adı, etiket, kimlik, Markdown bağlantısı, sözdizimi komşuları ve frontmatter örnekleri değişmeyen baytları denetler. Tablo örneğinde bağlayıcı görünen metin ayırıcısını kaçırır. `custom-book` `@` anmasının özel tip wikilink'ine dönüşümünü tarif eder.
-
-**Rakam adlar:** `recognition/digit-names/` tamamı rakam olan adların (`12`, `2026`, `7`, `34`, `1907`) yalnız `@` ile bağlandığını sınar. `Sayılar` ve `Rakamlar` sentetik varlıklarının rakam takma adları da aynı kurala uyar. Çıplak yazım düz kalır: tek başına sayı, parantez ve tırnak içi, cümle sonu, `12'de`, `12 Ekim 2026`, `1. Elma`. Telefon numarası, `12—14`, `12+5`, saat, tarih, ondalık, binlik ve aralık yazımları da düz kalır. Tanıyıcı `@12`, `(@12)` ve `@12'de` yazımlarını bağlar ve ardındaki sayı düz kalır; `@12:30` → `[[12]]:30` olur. Takma adla `@30` yazımı `[[Sayılar|30]]`, `Sayılar 30` ise `[[Sayılar]] 30` olur.
-
-Aynı örnek şunları taşır: Arap-Hint ve tam genişlik rakamlar, karışık ad `Daire 12:30`, NFD komşu metin. Var olan bağlantının yanındaki sayı da oradadır: `[[12]]:30`, `[[Deniz]]:12`. `recognition/task-fields/` Tasks, Events ve Diary bölümlerindeki görev satırlarını taşıyan tam bir gün gövdesidir. Tanıyıcı liste işaretini, kutuyu, kimliği ve olay satırında baştaki saati taramaz. Tanıyıcı `📅`, `🛫`, `✅`, `⏳`, `➕`, öncelik, okunan ve okunamayan `🔁` kuralı alanlarını da taramaz. Okunamayan kural sonraki alanda biter; ardındaki ad yine metindir: `🔁 her hafta ⏫ Deniz ile`.
-
-Tanıyıcı adı alan yazımıyla çakışan sentetik varlıkları yalnız metinde geçtiklerinde bağlar. Bu varlıklar `2026-10-12` (takma adlar `12:30 Vapuru`, `⏫`) ve `Takvim` (takma adlar `📅`, `⏳`, `every`, `week`, `1`) olur. Rakam adlar `12`, `2026` ve takma ad `1` çıplak yazımda düz kalır; tanıyıcı `@` ile yazılanları alanlara dokunmadan bağlar. Fixture yazarı `digit-names` ve `task-fields` beklentilerini uygulamadan bağımsız, işaretli bir şablondan üretti.
-
-`recognition/mixed-digit-names-baseline/` rakam içeren ama tamamı rakam olmayan adların davranışının değişmediğini kanıtlar: `Daire 12`, `3. Kat`, `2. Dünya Savaşı`, `7/24`, `1.250`, `12:30 Vapuru`, `R2-D2`. Fixture yazarı girdinin ilk 7 satırını elle yazdı; kalan 140 satırı tohumlu rastgele parçalar oluşturur. `expected.json` ve `linked.md`, rakam ad kuralları eklenmeden önceki tanıyıcının çıktısıdır. Bu örnekte beklentiyi bilerek uygulama üretti.
-
-**DİKKAT:** `mixed-digit-names-baseline` beklentisini elle düzeltme; dosya eski tanıyıcının çıktısını kanıt olarak tutar.
+| Vaka | İçerik |
+|---|---|
+| `turkish` | `Işık`, yalnız Türkçe harf kuralını sınamak için Deniz'in sentetik takma adıdır. |
+| `suffix` | `e`, Ece için eki ayrı ad saymayı engelleyen sentetik takma addır. |
+| `overlap` | `Arıkan Selin Korkmaz` kadronun adlarından gelen sentetik konum takma adıdır. |
+| `overlap-tie-first` | `Deniz Ece` ve `Ece Selin` kadronun ad parçalarından gelir. |
+| `path-link-target` | Aynı gövde adı başka klasörde de varsa yol hedefini yazar; benzersiz ad kısa kalır. |
+| `root-path-link-target` | Kasa kökündeki varlığı baştaki `/` ile yazar. |
+| `unrepresentable-path-target` | Temsil edilemeyen yol hedefinde anmayı düz bırakır ve diğer kesin anmaları bağlar. |
+| `escaped-code` | Kaçışlı wikilink düz metin kalır. |
+| Korunan metin ailesi | E-posta, alan adı, etiket, kimlik, Markdown bağlantısı, sözdizimi komşuları ve frontmatter örnekleri değişmeyen baytları denetler. |
+| `table-crlf` | Bağlayıcı, tabloda görünen metin ayırıcısını kaçırır. |
+| `custom-book` | `@` anmasının özel tip wikilink'ine dönüşümü |
+| `digit-names` | Tamamı rakam olan adlar: `12`, `2026`, `7`, `34`, `1907`. `Sayılar` ve `Rakamlar` sentetik varlıklarının rakam takma adları da aynı kurala uyar. |
+| `digit-names`, düz kalanlar | Tek başına sayı, parantez ve tırnak içi, cümle sonu, `12'de`, `12 Ekim 2026`, `1. Elma`, telefon numarası, `12—14`, `12+5`, saat, tarih, ondalık, binlik ve aralık |
+| `digit-names`, bağlananlar | `@12`, `(@12)`, `@12'de`; `@12:30` → `[[12]]:30`; `@30` → `[[Sayılar\|30]]`; `Sayılar 30` → `[[Sayılar]] 30` |
+| `digit-names`, öteki içerik | Arap-Hint ve tam genişlik rakamlar, karışık ad `Daire 12:30`, NFD komşu metin, var olan bağlantının yanındaki sayı (`[[12]]:30`, `[[Deniz]]:12`) |
+| `task-fields` | Tasks, Events ve Diary bölümlerindeki görev satırlarını taşıyan tam bir gün gövdesi. Tanıyıcı satırın yapısını ve görev alanlarını taramaz. |
+| `task-fields`, sentetik varlıklar | Adı alan yazımıyla çakışan `2026-10-12` (takma adlar `12:30 Vapuru`, `⏫`) ve `Takvim` (takma adlar `📅`, `⏳`, `every`, `week`, `1`). Tanıyıcı bunları yalnız metinde geçtiklerinde bağlar. |
+| `task-fields`, okunamayan kural | Kural sonraki alanda biter; ardındaki ad yine metindir: `🔁 her hafta ⏫ Deniz ile`. |
+| `digit-names`, `task-fields` beklentisi | Fixture yazarı uygulamadan bağımsız, işaretli bir şablondan üretti. |
+| `mixed-digit-names-baseline` | Rakam içeren ama tamamı rakam olmayan adlar: `Daire 12`, `3. Kat`, `2. Dünya Savaşı`, `7/24`, `1.250`, `12:30 Vapuru`, `R2-D2`. İlk 7 satır elle yazıldı; kalan 140 satırı tohumlu rastgele parçalar oluşturur. |
 
 ### Bağlanmamış anma sorguları
 
-`recognition/unlinked-mentions/expected.json`, `vaults/unlinked-mentions/` kasasındaki her varlık için bağlanmamış anma sorgusunun beklenen çıktısıdır. Bu klasörde `input.md` ve `entities.json` yoktur; girdi kasanın kendisidir. Kökte `vault` ve `queries` vardır. Her sorgu `entity` ile sıralı `mentions` taşır.
-
-Her anma `file`, `date`, sıfır tabanlı `line`, UTF-8 `byteRange`, `spelling`, `isExplicit`, `isAmbiguous`, `isCaseMismatch` taşır. `byteRange` `@` işaretini ve eki kapsamaz. Sıra yeni günden eskiye, gün içinde satır ve bayt sırasıdır. Kasadaki her varlığın bir sorgusu vardır.
-
-Sorgu yalnız gün dosyalarındaki olay ve görev ilk satırlarının metnini tarar. Görev alt satırları, Diary paragrafı ve notlar listede yoktur. Olay saati ve görev alanları da yoktur; örneğin `📅 2026-10-12` içindeki `2026`. Kod, var olan bağlantı, Markdown bağlantısı, URL ve çitli kod da listede yoktur. Var olan bağlantı başka varlığa bağlı aynı yazımı da kapsar.
-
-Kasa Türkçe ek (`Elif'le`, `İstanbul'da`), takma ad ve iki varlığın ortak takma adını taşır. Kasa yalnız harf büyüklüğüyle ayrışan yazımı, aynı satırda iki geçişi ve tireyle bitişik adları da taşır. Ek durumlar `@` ile açık anma, ayırt edicili varlık, emoji takma ad, NFD yazım ve çift boşluklu çok sözcüklü addır. Kasa `İSTANBUL` ve `istanbul` yazımlarını taşır: Türkçe büyük harf eşlemesi ikisini de `İstanbul` okur, `istanbul` harf boyu farkıyla öneridir. Kasa BOM, CRLF ve son satır sonu olmayan bir gün dosyasını da taşır. Fixture yazarı beklentileri uygulamadan bağımsız üretti.
-
-`recognition/unlinked-mentions-hostile/expected.json` aynı biçimde `vaults/unlinked-mentions-hostile/` kasasının beklenen çıktısıdır. Bu kasa sorguyu ve yazıcıyı zorlayan satırları toplar.
-
-| Grup | Durumlar |
+| Kasa | İçerik |
 |---|---|
-| Ad yerleşimi | Aynı adın satırda 4 geçişi; biri ötekinin içinde geçen iki ad (`Ece`, `Ece Yalın`); 2 tür kesme işareti ve ek; noktalamaya bitişik ad |
-| Sözdizimi | Satır içi kod, köşeli parantez, takma adlı ve kapanmamış bağlantı, Markdown bağlantısı, URL, e-posta, etiket, HTML yorumu, tablo satırı, alıntı ve iç içe liste, saat biçimleri |
-| Özel varlık ve takma ad | Adı sayı ya da alan simgesi (`📅`, `🔁`, `x`) olan varlıklar; `^kimlik` ile ad çakışması; özel karakterli takma adlar |
-| Unicode, dosya, kasa | Emoji ve birleşik karakter, NFC/NFD, Unicode satır ayırıcıları; `İ` ve `ı` takma adlı varlıkta `i` ve `I` yazımları, Türkçe büyük harf eşlemesiyle harf boyu farklı öneri; aynı dosya adlı iki varlık (yol hedefi), ayırt edicili varlık, çitli kod, ikiz satırlar, karışık satır sonlu bir gün |
-| Listelenmez | Görev alanının içi, yinelenen ikinci `📅` alanı ve `⏳ 2026-10-11` dahil; okunamayan tekrar kuralının içi (`🔁 every week Elif ile`: kural satır sonuna kadar sürer); bağlantı içine yazılamayan yazım (`a]b`, `a[b`) |
-| Listelenmez | Çıplak rakam ad ve takma ad: `people/Sayı.md` adı `12`, takma adları `2026`, `7`, `30`; `12 kişi`, `- 12`, `12.30`, `2026-10-12` içindekilerin hiçbiri |
-| Listelenir | `people/Sayı.md` dosyasının rakam olmayan takma adı `09:05`; HTML yorumu içindeki olay, çünkü uygulamada da olaydır |
-
-Özel karakterli takma adlar `|`, `^`, `\`, `` ` `` içerir. Fixture yazarı bu beklentiyi çıktıdan üretti ve satır satır elle gözden geçirdi. Testler bu kasada ve tohumlu rastgele satırlarda listedeki her anmayı tek tek bağlar. Sonuç ya yalnız o bağlantının eklendiği dosyadır ya da anma listede hiç yoktur. Sorgu, yazıcının reddettiği anmayı listelemez.
+| `unlinked-mentions`, sorgunun kapsamı | Sorgu yalnız gün dosyalarındaki olay ve görev ilk satırlarının metnini tarar. Görev alt satırları, Diary paragrafı ve notlar listede yoktur. |
+| `unlinked-mentions`, listelenmeyenler | Olay saati ve görev alanları (örnek: `📅 2026-10-12` içindeki `2026`), kod, var olan bağlantı, Markdown bağlantısı, URL, çitli kod. Var olan bağlantı başka varlığa bağlı aynı yazımı da kapsar. |
+| `unlinked-mentions`, ad durumları | Türkçe ek (`Elif'le`, `İstanbul'da`), takma ad, iki varlığın ortak takma adı, yalnız harf büyüklüğüyle ayrışan yazım, aynı satırda iki geçiş, tireyle bitişik adlar |
+| `unlinked-mentions`, ek durumlar | `@` ile açık anma, ayırt edicili varlık, emoji takma ad, NFD yazım, çift boşluklu çok sözcüklü ad |
+| `unlinked-mentions`, Türkçe harf | `İSTANBUL` ve `istanbul`: ikisi de `İstanbul` okunur; `istanbul` harf boyu farkıyla öneridir. |
+| `unlinked-mentions`, bayt | BOM, CRLF ve son satır sonu olmayan bir gün dosyası |
+| `hostile`, ad yerleşimi | Aynı adın satırda 4 geçişi; biri ötekinin içinde geçen iki ad (`Ece`, `Ece Yalın`); 2 tür kesme işareti ve ek; noktalamaya bitişik ad |
+| `hostile`, sözdizimi | Satır içi kod, köşeli parantez, takma adlı ve kapanmamış bağlantı, Markdown bağlantısı, URL, e-posta, etiket, HTML yorumu, tablo satırı, alıntı ve iç içe liste, saat biçimleri |
+| `hostile`, özel varlık ve takma ad | Adı sayı ya da alan simgesi (`📅`, `🔁`, `x`) olan varlıklar; `^kimlik` ile ad çakışması; `\|`, `^`, `\`, `` ` `` içeren takma adlar |
+| `hostile`, Unicode | Emoji ve birleşik karakter, NFC/NFD, Unicode satır ayırıcıları; `İ` ve `ı` takma adlı varlıkta `i` ve `I` yazımları |
+| `hostile`, dosya ve kasa | Aynı dosya adlı iki varlık (yol hedefi), ayırt edicili varlık, çitli kod, ikiz satırlar, karışık satır sonlu bir gün |
+| `hostile`, listelenmez | Görev alanının içi, yinelenen ikinci `📅` alanı ve `⏳ 2026-10-11` dahil. Okunamayan tekrar kuralının içi: `🔁 every week Elif ile`. Bağlantı içine yazılamayan yazım: `a]b`, `a[b`. |
+| `hostile`, listelenmez | Çıplak rakam ad ve takma ad. `people/Sayı.md` adı `12`, takma adları `2026`, `7`, `30`. `12 kişi`, `- 12`, `12.30`, `2026-10-12` içindekilerin hiçbiri listelenmez. |
+| `hostile`, listelenir | `people/Sayı.md` dosyasının rakam olmayan takma adı `09:05`; HTML yorumu içindeki olay, çünkü uygulamada da olaydır. |
+| `hostile`, test | Testler bu kasada ve tohumlu rastgele satırlarda listedeki her anmayı tek tek bağlar. Sonuç ya yalnız o bağlantının eklendiği dosyadır ya da anma listede hiç yoktur. Sorgu, yazıcının reddettiği anmayı listelemez. |
 
 ### Takvim katılımcıları
 
-`recognition/attendees/` takvim katılımcılarının kasadaki varlıklarla eşlenmesini sınar. Bu örnekte `input.md` ve `linked.md` yoktur; `entities.json` yukarıdaki biçimdedir. `attendees.json` kökünde sıralı `attendees` dizisi vardır: `name` ve `isCurrentUser`. `name` takvimin verdiği addır; boş ya da e-posta olabilir. `expected.json` katılımcı sırasında 3 dizi taşır.
-
-`certain` öğesi `spelling` ve `file` taşır; `spelling` varlığın kendi ad ya da takma ad yazımıdır. `ambiguous` öğesi katılımcının kırpık adını `spelling` olarak ve `candidates` taşır. `candidates` varlıkların verildiği sırada dosya yollarıdır. `unknown` kırpık adlardır.
-
-Eşleme ad ya da takma adın tamamını tanıyıcının karşılaştırma anahtarıyla karşılaştırır. Anahtar `vault-format.md` ad karşılaştırma kuralıdır. Kural: Türkçe büyük harf eşlemesi (`İ` → `i`, `I` → `ı`), yerelden bağımsız küçük harf, kanonik Unicode eşitliği.
+Eşleme ad ya da takma adın tamamını [ad karşılaştırma anahtarıyla](vault-format.md#adlar-ve-karşılaştırma) karşılaştırır. `Irmak İnce` yalnız bu örnekte geçen kurgusal bir kişidir.
 
 | Durum | Sonuç |
 |---|---|
 | Adla ya da takma adla (`Selin`) eşleşme; yalnız birinin takma adı (`Mert`) | Kesin |
 | Aynı adı taşıyan ayırt edicili iki varlık (`Mert Aksu`) | Belirsiz |
-| Bilinmeyen ad; noktalı küçük harfli `irmak ince`, çünkü Türkçe büyük harf eşlemesi `I` harfini `ı` okur | Bilinmeyen |
+| Bilinmeyen ad; noktalı küçük harfli `irmak ince`, çünkü varlığın anahtarı `ırmak ince` olur | Bilinmeyen |
 | E-posta, boş, yalnız boşluk, cihaz sahibi | Hiçbir diziye girmez |
 | NFD yazım `Baran Tunc` ve birleşen çengel; büyük harfli `IRMAK İNCE`: anahtarı `ırmak ince` | Eşleşir |
 | Baştan sona boşluklu yinelenen ad | İkinci kez listelenmez |
 
-`Irmak İnce` yalnız bu örnekte geçen kurgusal bir kişidir. Fixture yazarı beklentileri uygulamadan bağımsız yazdı.
-
 ## `index/` kümesi
-
-**Şema, `index/sample/expected.json` dökümündeki dizileri ve bağlarını gösterir.**
-
-```mermaid
-erDiagram
-  FILES ||--o| ENTITIES : "file"
-  ENTITIES ||--o{ ALIASES : "file"
-  FILES ||--o{ BLOCKS : "file"
-  FILES ||--o{ LINKS : "file"
-  BLOCKS ||--o{ LINKS : "block"
-  FILES ||--o{ GOALLOGS : "file"
-  FILES ||--o{ ENTITYFIELDS : "file"
-  FILES {
-    string path
-    string kind
-    string date
-    bool readable
-  }
-  ENTITIES {
-    string file
-    string kind
-    string name
-    string comparisonKey
-  }
-  ALIASES {
-    string file
-    int ordinal
-    string name
-    string comparisonKey
-  }
-  BLOCKS {
-    string file
-    int ordinal
-    string kind
-    int firstLine
-    int lastLine
-  }
-  LINKS {
-    string file
-    int ordinal
-    int line
-    string target
-    string targetKey
-  }
-  GOALLOGS {
-    string file
-    string key
-    string date
-    string value
-  }
-  ENTITYFIELDS {
-    string file
-    string key
-    string kind
-    string value
-  }
-```
 
 | Örnek | Girdi | Beklenen |
 |---|---|---|
 | `index/sample/` | `vaults/sample/` | `expected.json`: kanonik indeks dökümü |
-| `index/continuation/` | `input.md`: 3 satırlık tek görev bloğu | `expected.json`: kanonik döküm |
-| `index/entity-fields/` | `vaults/entity-fields/`, `changed.md`, `added.md`, `removed.md` | `expected.json`: `file/key/kind/value` satırları |
+| `index/continuation/` | `input.md`: 3 satırlık tek görev bloğu | `expected.json`: kanonik döküm. Girintili başlık ayrı başlık ya da paragraf üretmez. |
+| `index/entity-fields/` | `vaults/entity-fields/`, `changed.md`, `added.md`, `removed.md` | `expected.json`: `file`, `key`, `kind`, `value` satırları |
 | `index/cadence/` | `vaults/cadence/` | `fields.json`, `anniversaries.json` |
 
-### Örnek kasa dökümü
+**Tablo, kanonik döküm dizilerinin alanlarını ve sırasını verir.**
 
-**Tablo, döküm dizilerinin alanlarını verir.**
-
-| Dizi | Zorunlu alanlar | İsteğe bağlı alanlar |
-|---|---|---|
-| `files` | `path`, `kind`, `readable` | `date` |
-| `entities` | `file`, `kind`, `name`, `comparisonKey` | `qualifier`, `goalKey`, `period`, `goalKind`, `target`, `unit` |
-| `aliases` | `file`, `ordinal`, `name`, `comparisonKey` | |
-| `blocks` | `file`, `ordinal`, `kind`, `firstLine`, `lastLine`, `text`, `section`, `ownsIdentifier` | `time`, `status`, `rawStatus`, `identifier`, `headingLevel`, `dueDate`, `startDate`, `doneDate`, `priority`, `project` |
-| `links` | `file`, `ordinal`, `line`, `byteStart`, `byteEnd`, `target`, `targetKey`, `embedded` | `block`, `key`, `entry`, `anchorKind`, `anchor`, `displayText`, `resolvedFile` |
-| `goalLogs` | `file`, `key`, `date`, `kind`, `value` | |
-| `entityFields` | `file`, `key`, `kind`, `value` | |
-
-**Tablo, döküm dizilerinin sıra ve aralık kurallarını verir.**
-
-| Konu | Kural |
-|---|---|
-| `files` sırası | NFC yolun kod noktası sırası |
-| Diğer dizilerin sırası | Dosya yolu, ardından kaynak sıra (`ordinal`) ya da hedef anahtarı |
-| `entityFields` sırası | Dosya yolu, ardından anahtarın bayt sırası |
-| Sıra numarası | Sıfır tabanlı |
-| Satır | Bir tabanlı, iki ucu dahil |
-| Bayt aralığı | Sıfır tabanlı, sonu hariç |
+| Dizi | Zorunlu alanlar | İsteğe bağlı alanlar | Sıra |
+|---|---|---|---|
+| `files` | `path`, `kind`, `readable` | `date` | NFC yolun kod noktası sırası |
+| `entities` | `file`, `kind`, `name`, `comparisonKey` | `qualifier`, `goalKey`, `period`, `goalKind`, `target`, `unit` | Dosya yolu |
+| `aliases` | `file`, `ordinal`, `name`, `comparisonKey` | | Dosya yolu, `ordinal` |
+| `blocks` | `file`, `ordinal`, `kind`, `firstLine`, `lastLine`, `text`, `section`, `ownsIdentifier` | `time`, `status`, `rawStatus`, `identifier`, `headingLevel`, `dueDate`, `startDate`, `doneDate`, `priority`, `project` | Dosya yolu, `ordinal` |
+| `links` | `file`, `ordinal`, `line`, `byteStart`, `byteEnd`, `target`, `targetKey`, `embedded` | `block`, `key`, `entry`, `anchorKind`, `anchor`, `displayText`, `resolvedFile` | Dosya yolu, `ordinal` ya da hedef anahtarı |
+| `goalLogs` | `file`, `key`, `date`, `kind`, `value` | | Dosya yolu |
+| `entityFields` | `file`, `key`, `kind`, `value` | | Dosya yolu, anahtarın bayt sırası |
 
 **Tablo, döküm değerlerinin yazım kurallarını verir.**
 
 | Konu | Kural |
 |---|---|
 | Eksik isteğe bağlı alan | JSON anahtarı yazılmaz |
+| `ordinal` | Sıfır tabanlı kaynak sırası |
+| `line`, `firstLine`, `lastLine` | Bir tabanlı, iki ucu dahil |
+| `byteStart`, `byteEnd` | Sıfır tabanlı, sonu hariç |
 | `headingLevel` | `heading` bloğunda 1–6 |
-| `dueDate`, `startDate`, `doneDate` | ISO gün |
 | `priority` | Kaynak emoji |
 | `project` | İlk proje adı |
 | Görev `text` | Alanları çıkarılmış sadeleştirilmiş metin |
 | `goalLogs.value` | Metin: boolean standart `true`/`false`, sayı özgün yazım, diğer tür ham yazım |
-| `entityFields.kind` | `date`, `number` ya da `boolean`; `value` özgün yazım |
+| `entityFields.kind` | `date`, `number` ya da `boolean`; `value` özgün yazımdır |
 | Dökümün dışı | Değişiklik zamanı, boyut ve içerik özeti |
 
-**Tablo, örnek kasanın tam yeniden üretiminden beklenen sayıları verir.**
-
-| Ölçü | Sayı |
+| Konu | Ayrıntı |
 |---|---|
-| İndekslenen dosya | 30 |
-| Varlık | 13 |
-| Olay | 40 |
-| Kimlikli görev | 22 |
-| Kimliksiz görev | 2 |
-| Paragraf | 31 |
-| Başlık | 6 |
-| Bağlantı | 61 |
-| Ayrı hedef adı | 14 |
-| Çözülmemiş hedef | 1 |
-| Hedef kaydı | 31: `spor` 6, `kitap` 12, `su` 13; 27 Eylül'de kayıt yok |
-
-Tam döküm paragraf metinlerini, kod çitlerini ve frontmatter bağlantılarını da denetler. Sentetik test kasalarını testler geçici dizinlerde kurar. Testler fixture dosyasını test sırasında güncellemez.
-
-`index/continuation/` görev devamındaki girintili başlığın ayrı başlık ya da paragraf üretmediğini kanonik dökümle doğrular.
+| `index/sample/` sayıları | `expected.json` dizilerinin uzunluğudur; belge yinelemez. `templates/`, `conflicts/` ve `.app/` dosyaları dökümde yoktur. |
+| Tam döküm | Paragraf metinlerini, kod çitlerini ve frontmatter bağlantılarını da denetler. |
+| Sentetik kasalar | Testler bunları geçici dizinlerde kurar. |
 
 ### Varlık alanları
 
-`vaults/entity-fields/` kasası üst düzey tarih, sayı ve evet/hayır alanlarını sınar. `index/entity-fields/expected.json` dosya ve anahtar bayt sırasındaki `file/key/kind/value` satırlarıdır.
-
-| Grup | Durumlar |
+| Grup | `vaults/entity-fields/` içeriği |
 |---|---|
 | İndekslenen | Kişi: boşluklu, Türkçe karakterli ve tırnaklı anahtar, satır sonu yorumu, büyük harfli `Name` |
 | İndekslenen | BOM ve CRLF taşıyan kişi, konum, `date` alanlı özel kitap tipi |
@@ -911,20 +695,22 @@ Tam döküm paragraf metinlerini, kod çitlerini ve frontmatter bağlantıların
 | `added.md` | Alan ekleme |
 | `removed.md` | Tüm alanların silinmesi |
 
-Tam ve artımlı eşdeğerlik, dosya silme ve yeniden kurulum aynı kasayı kullanır. Sürüm 6 indeksin silinip doldurulması da aynı kasayı kullanır; güncel şema sürümü 10'dur (`Schema.swift`, `IndexSchema.version`). Kasa `vaults/` altında durur, çünkü kökteki `.gitignore` `vault/` adlı klasörleri dışlar.
+Tam ve artımlı eşdeğerlik, dosya silme ve yeniden kurulum aynı kasayı kullanır. Eski sürümlü indeksin silinip doldurulması da aynı kasayı kullanır. Güncel şema sürümü `Schema.swift` içindedir.
 
 ### Ritim alanları
 
-| Dosya | İçerik |
-|---|---|
-| `index/cadence/fields.json` | Kişi dosyalarındaki ritim alanlarının indeks satırları; dosya, ardından anahtar bayt sırası |
-| `index/cadence/anniversaries.json` | Önemli tarih sorgusunun beklenen satırları |
-
-`fields.json` metin ve geçersiz tarih yazımlarını içermez. Kitabın `cadence_snoozed_until` alanı da yoktur, çünkü kitap kişi değildir. `anniversaries.json` içinde doğum günü ve `bitirme` kalır; 3 ritim anahtarı kalmaz.
+| Dosya | İçerik | Dışarıda kalan |
+|---|---|---|
+| `index/cadence/fields.json` | Kişi dosyalarındaki ritim alanlarının indeks satırları | Metin ve geçersiz tarih yazımları; kitabın `cadence_snoozed_until` alanı, çünkü kitap kişi değildir |
+| `index/cadence/anniversaries.json` | Önemli tarih sorgusunun beklenen satırları: doğum günü ve `bitirme` | 3 ritim anahtarı |
 
 ## Tek dosyalı uygulama kümeleri
 
-`diary/edit/input.md` bir gün dosyasıdır; `expected.md` Diary bölümü değiştikten sonraki tam dosyadır. Frontmatter ve Events bölümü bayt bayt aynı kalır; testi `Tests/KenetTests/DiaryEditingTests.swift` koşar. `diary/weekly-review/input.md` haftalık incelemeden önceki gün dosyasıdır; `expected.md` soru kartları yazıldıktan sonraki tam dosyadır. Her dolu kart soru ve cevabı birlikte taşıyan tek serbest not satırıdır: "Ne iyi gitti: …". Görev gibi görünen cevap yazı olarak kalır. Testi `Tests/KenetTests/WeeklyReviewTests.swift` koşar. `entities/fields/input.md` kurgusal bir kişi dosyasıdır. `value.md` bir alan değeri değiştikten, `aliases.md` takma ad listesi yazıldıktan sonraki tam dosyadır. Yalnız hedef anahtarın satırı değişir; testi `Tests/KenetTests/EntityPageTests.swift` koşar.
+| Örnek | Girdi | Beklenen | Denetim |
+|---|---|---|---|
+| `diary/edit/` | `input.md`: gün dosyası | `expected.md`: Diary bölümü değiştikten sonraki tam dosya | Frontmatter ve Events bölümü bayt bayt aynı kalır. |
+| `diary/weekly-review/` | `input.md`: incelemeden önceki gün dosyası | `expected.md`: soru kartları yazıldıktan sonraki tam dosya | Her dolu kart tek serbest not satırıdır: "Ne iyi gitti: …". Görev gibi görünen cevap yazı olarak kalır. |
+| `entities/fields/` | `input.md`: kurgusal kişi dosyası | `value.md`: alan değeri değişti. `aliases.md`: takma ad listesi yazıldı. | Yalnız hedef anahtarın satırı değişir. |
 
 ## `entity-types/` kümesi
 
@@ -936,44 +722,40 @@ Tam ve artımlı eşdeğerlik, dosya silme ve yeniden kurulum aynı kasayı kull
 | `duplicate` | `input.json` | `expected.json` | Yinelenen id |
 | `create` | `operation.json` | `expected.md` | Oluşturma için tam Markdown çıktısı |
 | `preserve` | `input.json`, `operation.json` | `expected.json` | Bir tanım değişirken hedef dışındaki JSON baytları kalır |
-| `reserved-related` | `input.json` | `expected.json` | Şemada ayrılmış `related` alanını reddeder; fixture yazarı beklentiyi elle yazdı |
+| `reserved-related` | `input.json` | `expected.json` | Şemada ayrılmış `related` alanını reddeder |
 
-`vaults/typed/` ana örnek kasanın sabit sayılarını değiştirmeden kitap tipini, 2 kurgusal kitabı ve bir şablonu taşır. `.app/types.json` text, date, number, boolean ve link alanlarını tanımlar. Uygulama `templates/` klasörünü indekslemez. `recognition/custom-book/` `@` anmasının özel tip wikilink'ine dönüşümünü dilden bağımsız tanıma biçimiyle tarif eder. Tip tanımı kalkınca uygulama kitapları not olarak indeksler ve dosya baytları değişmez.
+| Kasa | İçerik | Denetim |
+|---|---|---|
+| `vaults/typed/` | Kitap tipi, 2 kurgusal kitap ve bir şablon. `.app/types.json` text, date, number, boolean ve link alanlarını tanımlar. | Tip tanımı kalkınca uygulama kitapları not olarak indeksler; dosya baytları değişmez. |
+| `vaults/gallery/` | Hazır tip galerisinin 10 tipi. `.app/types.json` galerinin tanımlarıdır. `templates/<id>.md` uygulamanın yeni tip için yazdığı şablondur. | Testler Core galerisini bu dosyalarla karşılaştırır. Testler her tipi boş kasada oluşturur ve aynı baytları bekler. |
+| `vaults/gallery/`, `Örnek <Ad>.md` | O şablondan oluşturulan varlığın tam baytları: `type`, `name` ve tanımdaki sırayla boş alanlar. | Aynı karşılaştırma |
 
-`vaults/gallery/` hazır tip galerisinin 10 tipini taşır. `.app/types.json` galerinin tanımlarıdır; `templates/<id>.md` uygulamanın yeni tip için yazdığı şablondur: `type`, boş `name` ve tanımdaki sırayla boş alanlar. Her tipin klasöründeki `Örnek <Ad>.md` o şablondan oluşturulan varlığın tam baytlarıdır. Testler Core galerisini bu dosyalarla karşılaştırır ve her tipi boş kasada oluşturup aynı baytları bekler.
+Kural kaynağı: [Varlık tipleri](vault-format.md#varlık-tipleri).
 
 ## `rename/` kümesi
 
-| Davranış ailesi | Örnek vaka | Sayı |
+| Davranış ailesi | Örnek vaka | Sınanan ayrıntı |
 |---|---|---|
-| Gövde bağlantıları ve bayt özelliği | `body-mixed-line-endings-bom-no-final-newline` | 1 |
-| Frontmatter bağlantıları ve ham alan bildirimi | `frontmatter` | 1 |
-| Ayırt edici ve aynı dosya adı | `qualifier`, `same-filename` | 2 |
-| Geçersiz UTF-8 kaynakta kısmi başarı | `read-only-invalid-utf8` | 1 |
-| Aynı satırda tırnaklı çoklu bağlantı | `list-2-grows`, `list-3-shrinks` | 4 |
-| Hedef taşımayan alanların korunması | `unrelated-fields`, `empty-list-item` | 2 |
+| Gövde bağlantıları ve bayt özelliği | `body-mixed-line-endings-bom-no-final-newline` | Hedef çevresindeki boşluk, çapa, görünen metin, `\|` tablo ayırıcısı, `.md` ve yol önekleri, gömme, kod koruması |
+| Frontmatter bağlantıları | `frontmatter` | Scalar, liste ve eşlem bağlantıları, YAML kaçışı, ham alan bildirimi |
+| Ayırt edici ve aynı dosya adı | `qualifier`, `same-filename` | `same-filename` yalnız metadata yazar. |
+| Geçersiz UTF-8 kaynak | `read-only-invalid-utf8` | Kısmi başarı |
+| Aynı satırda tırnaklı çoklu bağlantı | `list-2-grows`, `list-2-shrinks`, `list-3-grows`, `list-3-shrinks` | İç içe tırnaklı 2 ya da 3 bağlantı güncellenir. Tırnaksız ve tırnaklı blok öğeleri ve komşu değerler kalır. |
+| Hedef taşımayan alanlar | `unrelated-fields`, `empty-list-item` | BOM, kaçışlı tırnak, yorumlar, ham, eşlem ve liste alanları bayt bayt kalır. Boş blok liste öğesi yerinde kalır. |
 
-Her örnek `input/` altında küçük girdi kasasını, `expected/` altında tam beklenen dosyaları ve `case.json` taşır. `case.json` alanları `path`, `name`, isteğe bağlı `qualifier`, `newPath`, `failures` (beklenen bildirim sayısı), sıralı `updatedFiles` ve `failureDetails` olur. `failureDetails` öğeleri `path`, `kind`, `detail` taşır; `detail` ham alan adı ya da hata mesajının beklenen parçasıdır. İsteğe bağlı `afterIndex` (`path`, ham bayt dizisi `bytes`) indeksten sonra diskte değişen kaynak dosyayı modeller. Fixture yazarı beklentileri elle yazdı. Test dosya listesini, tüm baytları ve artımlı indeksin sıfırdan üretimle eşdeğerliğini denetler.
+**Tablo, örnek dosyalarını ve `case.json` alanlarını verir.**
 
-`body-mixed-line-endings-bom-no-final-newline` hedef çevresindeki boşluğu, çapayı, görünen metni, `\|` tablo ayırıcısını, `.md` ve yol öneklerini sınar. Aynı örnek gömmeyi, kod korumasını, BOM, CRLF ve sonlandırılmamış satırı da sınar. `frontmatter` scalar, liste ve eşlem bağlantılarını, YAML kaçışını ve ham alan bildirimini sınar. `same-filename` aynı dosya adında yalnız metadata yazar.
+| Dosya ya da alan | Anlam |
+|---|---|
+| `input/`, `expected/` | Küçük girdi kasası; tam beklenen dosyalar |
+| `path`, `name`, `qualifier`, `newPath` | Yeniden adlandırılan dosya, yeni ad, isteğe bağlı ayırt edici, beklenen yeni yol |
+| `failures`, `failureDetails[]` | Beklenen bildirim sayısı ve ayrıntısı: `path`, `kind`, `detail`. `detail` ham alan adı ya da hata mesajının beklenen parçasıdır. |
+| `updatedFiles` | Sıralı güncellenen dosyalar |
+| `afterIndex` | İsteğe bağlı: `path` ve ham bayt dizisi `bytes`. İndeksten sonra diskte değişen kaynak dosyayı modeller. |
 
-`list-2-grows`, `list-2-shrinks`, `list-3-grows` ve `list-3-shrinks` aynı satırda iç içe tırnaklı 2 ya da 3 bağlantıyı günceller. Tırnaksız ve tırnaklı blok öğeleri ve komşu değerler kalır. `unrelated-fields` BOM değerini, kaçışlı tırnağı, yorumları ve hedef taşımayan ham, eşlem ve liste alanlarını bayt bayt korur. `empty-list-item` boş blok liste öğesini yerinde bırakır ve diğer öğelerdeki bağlantıları günceller.
+Test dosya listesini, tüm baytları ve artımlı indeksin sıfırdan üretimle eşdeğerliğini denetler. Kural kaynağı: [Yeniden adlandırma](vault-format.md#yeniden-adlandırma).
 
 ## `import/` kümesi
-
-**Şema, kasa hazırlama örneğinin akışını gösterir.**
-
-```mermaid
-flowchart LR
-  A["before/"] --> B["Geçici köke kopyala"]
-  B --> C["VaultImportScanner.inspect"]
-  C --> D["report ile karşılaştır"]
-  C --> E{"apply doğru mu?"}
-  E -- evet --> G["VaultImportWriter.apply"]
-  G --> H["result ile karşılaştır"]
-  G --> I["Dosya baytlarını expected/ ile karşılaştır"]
-  E -- hayır --> J["Yalnız tarama"]
-```
 
 | Örnek | Girdi | Beklenen sonuç |
 |---|---|---|
@@ -985,282 +767,277 @@ flowchart LR
 | `unreadable-frontmatter` | Okunamayan frontmatter | Dosya atlanır; uygulama dosyaya dokunmaz |
 | `newer-format-version` | Desteklenmeyen `vault.json` sürümü | Hazırlama yazmaz |
 
-Her örnek `before/` altında girdi kasasını, `expected/` altında hazırlama sonrası dosya ağacını ve `case.json` taşır. Örnek, var olan bir klasörü kasa olarak açmayı ve hazırlamayı sınar. Boş girdiyi `emptyBefore: true` işaretler, çünkü git boş `before/` klasörünü tutmaz.
+**Tablo, örnek dosyalarını, `case.json` alanlarını ve test adımını verir.**
 
-```json
-{
-  "options": { "folders": true, "settings": true, "types": true },
-  "apply": true,
-  "emptyBefore": false,
-  "report": {
-    "missingFolders": ["notes"],
-    "caseVariantFolders": ["Diary"],
-    "missingTemplates": ["templates/person.md"],
-    "needsSettings": true,
-    "canPrepare": true,
-    "markdownCount": 2,
-    "diaryDays": [],
-    "externalDays": [],
-    "typed": { "person": 1 },
-    "candidates": [{ "path": "people/Deniz Arıkan.md", "kind": "person" }],
-    "skipped": ["people/Broken.md"]
-  },
-  "result": {
-    "created": ["notes/", "templates/person.md", ".app/vault.json"],
-    "typed": ["people/Deniz Arıkan.md"],
-    "skipped": ["people/Broken.md"],
-    "failures": []
-  },
-  "expectedDirectories": [".app", "Diary", "notes", "people", "templates"],
-  "generatedTemplates": { "templates/person.md": "person" }
-}
-```
+| Dosya ya da alan | Tür | Anlam |
+|---|---|---|
+| `before/` | klasör | Girdi kasası. Test geçici köke kopyalar. |
+| `expected/` | klasör | Hazırlama sonrası dosya ağacı. Test dosya baytlarını karşılaştırır. Ağaç eşitliği için yer tutucu dosya taşır. |
+| `options` | nesne | Yazıcıya verilen onay seçenekleri: `folders`, `settings`, `types` |
+| `apply` | boolean | `false` ise test yalnız taramayı karşılaştırır ve yazmaz. |
+| `emptyBefore` | boolean | Doğruysa girdi boştur ve test `before/` klasörünü kopyalamaz. Git boş klasör tutmaz. |
+| `report` | nesne | `VaultImportScanner.inspect` özeti: `missingFolders`, `caseVariantFolders`, `missingTemplates`, `needsSettings`, `canPrepare`, `markdownCount`, `diaryDays`, `externalDays`, `typed`, `candidates`, `skipped` |
+| `result` | nesne | `VaultImportWriter.apply` özeti: `created`, `typed`, `skipped`, `failures`. `created` içinde sonu `/` olan öğe klasördür. |
+| `expectedDirectories` | dizi | Hazırlama sonrası var olması gereken klasör adları |
+| `generatedTemplates` | eşlem | Yolu `person` ya da `place` değerine eşler. Şablon baytları süreç diline bağlıdır; test içeriği `VaultImportBootstrap.template` ile üretir. |
 
-`options` yazıcıya verilen onay seçenekleridir (`folders`, `settings`, `types`). `apply` `false` ise test yalnız taramayı karşılaştırır ve yazmaz. `emptyBefore` doğruysa girdi kasası boştur ve test `before/` klasörünü kopyalamaz. `report` `VaultImportScanner.inspect` özetidir: klasörler, şablonlar, adaylar, atlananlar, gün yolları.
-
-`result` `VaultImportWriter.apply` özetidir; `created` içinde sonu `/` olan öğe klasördür. `expectedDirectories` hazırlama sonrası var olması gereken klasör adlarıdır, çünkü git boş klasör tutmaz. `generatedTemplates` yolu `person` ya da `place` değerine eşler. Şablon baytları süreç diline bağlıdır. Bu yüzden test beklenen içeriği `VaultImportBootstrap.template` ile üretir. `expected/` ağaç eşitliği için yer tutucu dosya taşır.
+Kural kaynağı: [Var olan kasayı açma ve hazırlama](vault-format.md#var-olan-kasayı-açma-ve-hazırlama).
 
 ## `dates/` kümesi
 
-| Dosya | İçerik | Vaka sayısı |
-|---|---|---|
-| `cases.json` | Doğal tarih ayrıştırmanın dilden bağımsız sözleşmesi | 226 |
-| `regression-inputs.md` | Aşama 8 tarih, miktar ve gelecek hafta günü düzeltmelerinin kurgusal ham girdileri; beklentileri `cases.json` içinde | |
-| `quick-entry.json` | Hızlı giriş görev çözümlemesinin beklenen sonuçları | 26 |
-| `quick-entry-inputs.md` | `quick-entry.json` vakalarının ham girdileri | |
-| `recurrence.json` | Tekrar kuralından sonraki görev tarihinin hesabı | 11 |
-| `birthday.json` | Kişi dosyasındaki doğum günü alanının okunması | 18 |
-| `birthday-person.md` | Kurgusal kişi dosyası; ilk okunabilen doğum günü alanı ikincisidir | |
+| Dosya | İçerik |
+|---|---|
+| `cases.json` | Doğal tarih ayrıştırmanın dilden bağımsız sözleşmesi |
+| `regression-inputs.md` | Tarih, miktar ve gelecek hafta günü düzeltmelerinin kurgusal ham girdileri; beklentileri `cases.json` içinde |
+| `quick-entry.json` | Hızlı giriş görev çözümlemesinin beklenen sonuçları |
+| `quick-entry-inputs.md` | `quick-entry.json` vakalarının ham girdileri |
+| `recurrence.json` | Tekrar kuralından sonraki görev tarihinin hesabı |
+| `birthday.json` | Kişi dosyasındaki doğum günü alanının okunması |
+| `birthday-person.md` | Kurgusal kişi dosyası; ilk okunabilen doğum günü alanı ikincisidir |
 
 **NOT:** `regression-inputs.md` ve `quick-entry-inputs.md` dosyalarını yalnız gidiş dönüş testi okur; tarih testleri girdiyi JSON dosyasından alır.
 
-**`cases.json`:** Her kayıt `today` (ISO gün), `language` (sıralı `tr`/`en` listesi), `input` ve `expectedDate` (ISO gün ya da `null`) taşır. Kayıt ayrıca `remainder` (ham kalan metin) ve `confidence` (`exact`, `assumed` ya da `null`) taşır. İsteğe bağlı alanlar `expression` (beklenen özgün ifade) ve `weekStartsOnMonday` (varsayılan `true`) olur. Tarih yoksa metin aynen kalır.
+| Dosya | Alan | Anlam |
+|---|---|---|
+| `cases.json` | `language`, `input` | Sıralı `tr`/`en` listesi; ham girdi |
+| `cases.json` | `expectedDate`, `remainder` | ISO gün ya da `null`; ham kalan metin. Tarih yoksa metin aynen kalır. |
+| `cases.json` | `confidence` | `exact`, `assumed` ya da `null` |
+| `cases.json` | `expression`, `weekStartsOnMonday` | İsteğe bağlı: beklenen özgün ifade; hafta başı (varsayılan `true`) |
+| `quick-entry.json` | `language`, `input`, `remainder` | `cases.json` ile aynı anlam |
+| `quick-entry.json` | `suppressed` | Özgün UTF-8 `[başlangıç, bitiş)` çiftleri |
+| `quick-entry.json` | `tokens[]` | `range`, `expression`, `kind` (`recurrence`, `priority`, `date`), `value` (tekrar kuralı, öncelik adı ya da ISO gün), `confidence` <!-- sır değil --> |
+| `birthday.json` | `key`, `value` | Alanın anahtarı ve değeri |
+| `birthday.json` | `expected` | `{month, day, year}`; yılsızda `year` `null`, okunamayan değerde `expected` `null` |
+| `recurrence.json` | `rule` | Tekrar kuralı: `every month`, `every monday`, `every month when done` |
+| `recurrence.json` | `after`, `completedOn` | Görevin önceki tarihi; tamamlama günü |
+| `recurrence.json` | `expected` | Beklenen sonraki tarih; hesap taşarsa `null` |
 
-Test ifade aralığını özgün ifadenin UTF-8 baytlarıyla bağımsız karşılaştırır. Vaka aileleri göreli, haftalık ve mutlak tarih, geçersiz günler, yıl ve artık yıl sınırları ve dil sırasıdır. Diğer aileler Türkçe harfler, sözcük sınırı, anma, kod ve bağlantı koruması, saatlerin korunması ve silmede boşluk baytlarıdır.
+| Dosya | Vaka aileleri | Ek denetim |
+|---|---|---|
+| `cases.json` | Göreli, haftalık ve mutlak tarih; geçersiz günler; yıl ve artık yıl sınırları; dil sırası; Türkçe harfler; sözcük sınırı; anma, kod ve bağlantı koruması; saatlerin korunması; silmede boşluk baytları | Test ifade aralığını özgün ifadenin UTF-8 baytlarıyla bağımsız karşılaştırır. |
+| `quick-entry.json` | Türkçe ve İngilizce zincirler; Türkçe bayt ofsetleri; iki uçtaki ünlemler; miktar ve gelecek hafta günü; kod, bağlantı ve anma koruması; tam ve kısmi bastırma; çıkarma sonrası birleşen tarih parçaları | Test özgün aralıkları çıkarır ve kalan metni yeniden kurar. 2.000 belirlenimci rastgele girdi mevcut zincirle değer ve metin eşitliğini denetler. |
+| `birthday.json` | Anahtar yazımları, harf boyu, yıllı ve yılsız biçim, artık gün, geçersiz değerler | Yok |
+| `recurrence.json` | Ay sonu, artık gün, `when done`, yıl geçişi; son 2 vaka tarih sınırını ve sayı taşmasını sınar | Yok |
 
-**`quick-entry.json`:** Her vaka `id`, `today`, sıralı `language`, `input`, `suppressed`, `remainder` ve `tokens` taşır. `suppressed` özgün UTF-8 `[başlangıç, bitiş)` çiftleridir. Her simge `range`, `expression`, `kind`, `value` ve `confidence` taşır. `kind` değeri `recurrence`, `priority` ya da `date` olur. `value` tekrar kuralı, öncelik adı ya da ISO gündür. Vaka aileleri Türkçe ve İngilizce zincirler, Türkçe bayt ofsetleri, iki uçtaki ünlemler, miktar ve gelecek hafta günüdür. <!-- sır değil -->
-
-Diğer aileler kod, bağlantı ve anma koruması, tam ve kısmi bastırma ve çıkarma sonrası birleşen tarih parçalarıdır. Test özgün aralıkları çıkarır, boşluk birleştirmesini uygular ve kalan metni yeniden kurar. 2.000 belirlenimci rastgele girdi ayrıca mevcut zincirle değer ve metin eşitliğini denetler.
-
-**`birthday.json`:** Her vaka `key`, `value` ve `expected` taşır. `expected` `{month, day, year}` nesnesidir; yılsızda `year` `null`, okunamayan değerde `expected` `null` olur. Vaka aileleri anahtar yazımları, harf boyu, yıllı ve yılsız biçim, artık gün ve geçersiz değerlerdir.
-
-**`recurrence.json`:** Her vaka `rule`, `after`, `completedOn` ve `expected` taşır. `rule` tekrar kuralıdır; örneğin `every month`, `every monday`, `every month when done`. `after` görevin önceki tarihi, `completedOn` tamamlama günüdür. `expected` beklenen sonraki tarihtir; hesap taşarsa `null` olur. Vakalar ay sonunu, artık günü, `when done` kuralını ve yıl geçişini kapsar; son 2 vaka tarih sınırını ve sayı taşmasını sınar.
+Kural kaynağı: [Tekrarlayan görevler](vault-format.md#tekrarlayan-görevler), [Hızlı girişte öncelik ve tekrar](vault-format.md#hızlı-girişte-öncelik-ve-tekrar), [Tarih ifadesindeki ekler](vault-format.md#tarih-ifadesindeki-ekler), [Doğum günü alanı](vault-format.md#doğum-günü-alanı).
 
 ## `goals/` kümesi
 
-| Parça | Girdi | Beklenen | Vaka sayısı |
-|---|---|---|---|
-| `cases.json` | Hedef tanımı ve günlük kayıtlar | Hesap sonucu | 75 |
-| `series.json` | Günlük değerler ve dönem tanımı | Günlük seri, hareketli ortalama, hafta ve ay toplamları | 18 |
-| `writes/` | `cases.json` ve aynı klasördeki Markdown çiftleri | Yazma sonrası tam baytlar | 15 |
-| `creation/` | Boş `input.md` | `boolean-expected.md`, `number-expected.md`, `milestone-expected.md` | 3 |
+| Parça | Girdi | Beklenen |
+|---|---|---|
+| `cases.json` | Hedef tanımı ve günlük kayıtlar | Hesap sonucu |
+| `series.json` | Günlük değerler ve dönem tanımı | Günlük seri, hareketli ortalama, hafta ve ay toplamları |
+| `writes/` | `cases.json` ve aynı klasördeki Markdown çiftleri | Yazma sonrası tam baytlar |
+| `creation/` | Boş `input.md` | `boolean-expected.md`, `number-expected.md`, `milestone-expected.md` |
 
-**Hesap vakaları:** Her durum `id`, `definition`, `logs` ve `today` taşır. `definition` alanları: `id`, `key`, `name`, `period`, `kind`, `target`. `logs` ISO `day` ile boolean ya da sayı `value` taşır. Durum ayrıca iki ucu dahil `heatmapFrom`/`heatmapTo` ve `expected` taşır. Beklenti alanları `done`, `target`, `streak`, `longestStreak`, `isPendingToday`, `score`, `yearDone`, `periodStart`, `periodEnd`, `heatmap` olur. `score` günlük hedefte 0–100 tam sayıdır; haftalık, yıllık, kilometre taşı ve ölçülen günü olmayan günlük hedefte `null` olur. `heatmap` ISO günü `none`, `partial`, `full`, `forgiven` ya da `forgivenPartial` değerine eşler. Fixture yazarı beklentileri Swift hesaplarından değil, sözleşmeden bağımsız sabitler olarak yazar; haftalık ve yıllık zincir afsız kurala uyar.
+**Tablo, JSON alanlarını verir.**
 
-Vaka aileleri şunlardır: günlük, haftalık ve yıllık boolean ve sayı hedefleri. Eşik, boşluk, bugün ve dönem bekliyor durumları da ailedir. Pazartesi ve pazar, yıl ve artık yıl da sınanır. Bozuk veri aileleri yinelenen gün, tür uyuşmazlığı ve gelecek kayıtlarıdır. Günlük af ailesi şu dizileri kapsar:
+| Dosya | Alan | Anlam |
+|---|---|---|
+| `cases.json` | `definition` | `id`, `key`, `name`, `period`, `kind`, `target` |
+| `cases.json` | `logs[]` | ISO `day` ve boolean ya da sayı `value` |
+| `cases.json` | `heatmapFrom`, `heatmapTo` | İki ucu dahil harita aralığı |
+| `cases.json` | `expected` | `done`, `target`, `streak`, `longestStreak`, `isPendingToday`, `score`, `yearDone`, `periodStart`, `periodEnd`, `heatmap` |
+| `cases.json` | `expected.score` | Günlük hedefte 0–100 tam sayı. Haftalık, yıllık, kilometre taşı ve ölçülen günü olmayan günlük hedefte `null`. |
+| `cases.json` | `expected.heatmap` | ISO günü `none`, `partial`, `full`, `forgiven` ya da `forgivenPartial` değerine eşler. |
+| `series.json` | `daily[]` | Girdi: `span`, `target`, `logs`. Beklenti: `values`, `indices`, `segments`, `average`, `metCount`, `peakIndex`, `averages` (`index`, `value`, `segment`). |
+| `series.json` | `periods[]` | Girdi: `period`, `kind`, `target`, `count`, `logs`. Beklenti: `totals`, `starts`, `pace`, `total`, `peakIndex`. |
+| `series.json` | `logs[].value` | `"nan"`, `"inf"` ve `"-inf"` dizgileri bu sayıları gösterir; JSON NaN taşımaz. |
+| `writes/cases.json` | `day`, `key`, `value` | Gün, hedef anahtarı, değer (boolean, sayı ya da `null`) |
+| `writes/cases.json` | `input`, `expected` | Aynı klasördeki Markdown yolları; eksik girdi için `input` `null` |
+| `creation/cases.json` | `input`, `expected`, `name`, `period`, `kind` | İsteğe bağlı `target` ve `unit`; kilometre taşı vakası `target` taşımaz. |
 
-| Durum | Dizi |
+**Tablo, vaka ailelerini verir. Vakaların açıklaması dosyada yoktur; `id` vakayı adlandırır.**
+
+| Parça | Vaka aileleri |
 |---|---|
-| Önceki iki günü yapılmış tek kaçırma | yapıldı, yapıldı, kaçtı, yapıldı |
-| Önünde iki yapılmış gün olmayan kaçırma | yapıldı, kaçtı, yapıldı |
-| Gün aşırı kaçırma: af yok | yapıldı, kaçtı, yapıldı, kaçtı, yapıldı |
-| Affedilen günün ardındaki kaçırma: yalnız ilk kaçırma affedilir | yapıldı, yapıldı, kaçtı, yapıldı, kaçtı, yapıldı |
-| Baştaki kaçırmanın ardından af | kaçtı, yapıldı, yapıldı, kaçtı, yapıldı |
-| Art arda 2 kaçırma | - |
-| Baştaki ve sondaki kaçırma | - |
+| `cases.json`, temel | Günlük, haftalık ve yıllık boolean ve sayı hedefleri; eşik, boşluk, bugün ve dönem bekliyor durumları; pazartesi ve pazar, yıl ve artık yıl |
+| `cases.json`, bozuk veri | Yinelenen gün, tür uyuşmazlığı, gelecek kayıtları |
+| `cases.json`, günlük af | [Zincir](vault-format.md#zincir) tablosundaki dizilerin her biri; ek olarak art arda 2 kaçırma ve baştaki ile sondaki kaçırma |
+| `cases.json`, bekleme | Dün kaçmış ve bugün bekleyen hedef; 2 gün kaçmış ve bugün bekleyen hedef |
+| `cases.json`, en uzun zincir | Gün aşırı geçmiş (en uzun 2); iki af tek koşuda (en uzun 5) |
+| `cases.json`, öteki af | Bugün yapılınca süren zincir; hedefin ilk ve ikinci günü; katkısız ve kısmi katkılı affedilen gün |
+| `cases.json`, skor | 30 günden uzun geçmiş; paydaya girmeyen bugün; ölçüm günü olmayan hedef; skora girmeyen eşik altı gün |
+| `cases.json`, uç tarih | Çok eski tek kayıt; geçmişte kalan af almış en uzun seri; yaz saati gün sınırı; yıl ve artık gün sınırı |
+| `series.json`, `daily` | Boş, seyrek ve dolu seri; görünür aralıktan önceye uzanan 7 günlük pencere; üç kayıt eşiği; çizgi kırılması; eşit hedef; son, gelecek ve türü uymayan kayıt; negatif ve NaN; sıfır; eşit tepede en yeni gün |
+| `series.json`, `periods` | Her iki dönemde boş, süren dönem sınırı ve dolu veri; haftada pazartesi ve pazar; yılda yıl geçişi, ilk kova ve bugün; haftalıkta negatif ve NaN; özel dönem sayısı; grafik gösterilmeyen türlerde `expected: null` |
+| `writes/` | Örnek kasanın 31 kaydı ve Spor, Kitap, Su tanımları korunur. Spor 14 ve 21 Eylül 2026 haftalarında üçer günle başarılıdır. `milestone-*` kilometre taşının tamamlanmasını ve geri alınmasını sınar. |
+| `creation/` | Her `*-expected.md` yeni hedef dosyasının tam baytlarıdır ve bir vakaya bağlıdır. |
 
-Dün kaçmış ve bugün bekleyen hedefte zincir yalnız önceki iki gün yapılmışsa düşmez. Önceki iki günden biri yapılmamış ya da affedilmişse zincir 0 olur. 2 gün kaçmış ve bugün bekleyen hedefte de zincir 0 olur. En uzun zincir vakaları gün aşırı geçmişi (en uzun 2) ve iki affı tek koşuda (en uzun 5) sınar.
+| Konu | Kural ya da denetim |
+|---|---|
+| Beklentinin kaynağı | Swift hesapları değil, sözleşmeden bağımsız sabitler. Haftalık ve yıllık zincir afsız kurala uyar. |
+| Seri hesabı | Kayıtsız gün sıfır sayılmaz. Bir günün son kaydı geçerlidir. Türü uymayan ya da geçersiz son kayıt o günü 0 yapar; kural `GoalProgress` ile aynıdır. |
+| `writes/` testi | Tam çıktı baytları ve artımlı indeksin yeniden üretimle eşitliği |
+| `creation/` testi | Test her vakayı boş kasada oluşturur; tam baytları ve indeksin okuduğu tanımı sınar. |
 
-Diğer af durumları bugün yapılınca süren zincir, hedefin ilk ve ikinci günü, katkısız ve kısmi katkılı affedilen gündür. Skor ailesi 30 günden uzun geçmişi, paydaya girmeyen bugünü, ölçüm günü olmayan hedefi ve skora girmeyen eşik altı günü kapsar. Uç tarih ailesi çok eski tek kaydı ve geçmişte kalan af almış en uzun seriyi kapsar. Yaz saati gün sınırı ile yıl ve artık gün sınırı da bu ailededir.
-
-**Değer grafiği:** `series.json` iki dizi taşır: `daily` (6 vaka) ve `periods` (12 vaka). Günlük girdiler `id`, `today`, `span`, `target`, `logs`; beklentiler `values`, `indices`, `segments`, `average`, `metCount`, `peakIndex`, `averages` (`index`, `value`, `segment`). Günlük vakalar boş, seyrek ve dolu seriyi sınar. Görünür aralıktan önceye uzanan 7 günlük pencere, üç kayıt eşiği ve çizgi kırılması da sınanır. Eşit hedef, son kayıt, gelecek kayıt ve tür uyuşmazlığı da vakadır. Geçersiz sayı (negatif ve NaN), sıfır ve eşit tepede en yeni gün de sınanır. Dönem girdileri `period`, `kind`, `target`, `today`, `count`, `logs`; beklentiler `totals`, `starts`, `pace`, `total`, `peakIndex` olur. Her iki dönem için boş, süren dönem sınırı ve dolu veri vardır. Haftada pazartesi ve pazar, yılda yıl geçişi, ilk kova ve bugün dahildir. Haftalık dönemde negatif ve NaN kayıt da vardır. Özel dönem sayısı ve grafik gösterilmeyen türlerde `expected: null` da sınanır. JSON NaN taşımadığı için `value` alanında `"nan"`, `"inf"` ve `"-inf"` dizgileri bu sayıları gösterir. Beklentiler sözleşmeden elle hesaplanır. Kayıtsız gün sıfır sayılmaz ve bir günün son kaydı geçerlidir. Türü uymayan ya da geçersiz son kayıt o günü 0 yapar; kural `GoalProgress` ile aynıdır.
-
-**Yazma ve oluşturma:** `goals/writes/cases.json` her vakada `id`, `day`, `key`, `value` (boolean, sayı ya da `null`), `input` ve `expected` taşır. `input` ve `expected` aynı klasördeki Markdown yollarıdır; eksik girdi için `input` `null` olur. İsteğe bağlı `error` beklenen hatayı adlandırır; örneğin `notAMapping`. Test tam çıktı baytlarını ve artımlı indeksin yeniden üretimle eşitliğini sınar.
-
-Örnek kasa mevcut 31 kaydı ve Spor, Kitap, Su tanımlarını korur. Spor 14 ve 21 Eylül 2026 haftalarında üçer günle başarılıdır. `milestone-*` vakaları kilometre taşının tamamlanmasını ve geri alınmasını sınar. `goals/creation/input.md` boştur; 3 beklenen dosya yeni hedef dosyasının tam baytlarıdır. `cases.json` her vakada `input`, `expected`, `name`, `period`, `kind` ve isteğe bağlı `target` ve `unit` taşır; kilometre taşı vakası `target` taşımaz. Test her vakayı boş kasada oluşturur, tam baytları ve indeksin okuduğu tanımı sınar. Klasördeki her `*-expected.md` dosyası bir vakaya bağlıdır.
+Kural kaynağı: [Hedef dosyası](vault-format.md#hedef-dosyası), [Zincir](vault-format.md#zincir), [İlerleme skoru](vault-format.md#i̇lerleme-skoru), [Isı haritası](vault-format.md#isı-haritası).
 
 ## `goal-chain/` kümesi
 
-`cases.json` karar 67 için 21 bağımsız beklenti taşır. `start` ilk ISO gün, `sequence` gün başına `1` (yapıldı), `0` (yapılmadı), `?` (kayıt yok) dizisidir; son gün bugündür. `period` ve `kind` hedef tanımını seçer. Sayı hedefinde hedef 2, yapılmış katkı 2 ve kaçırılmış katkı 1'dir. `expected` zincir, en uzun zincir, bekleme bayrağı, skor, bakiye ve kesinleşmiş ISO harcama tarihlerini taşır. Beklentiler kuraldan elle sayılmıştır; üretim hesabından üretilmez.
+| Alan | Anlam |
+|---|---|
+| `start`, `sequence` | İlk ISO gün ve gün başına `1` (yapıldı), `0` (yapılmadı), `?` (kayıt yok) dizisi. Son gün bugündür. |
+| `period`, `kind` | Hedef tanımını seçer. Sayı hedefinde hedef 2, yapılmış katkı 2, kaçırılmış katkı 1'dir. |
+| `expected` | Zincir, en uzun zincir, bekleme bayrağı, skor, bakiye ve kesinleşmiş ISO harcama tarihleri |
+| `summary` | `true` ise test dönem özetinin zincirini de sınar. |
 
-Vakalar 6/7 gün eşiğini, af önceliğini, iki harcamayı, tavanı ve düşen ödülü kapsar. 35. gün ödülü, sıfır bakiye, bekleme ve tükenen bakiye de vakadır. Kırılınca sayacı sıfırlama ve yapılmış sayılmayan af/harcama da sınanır. Eski harcama tarihleri, yıl sınırı ve günlük olmayan hedefler de kapsamdadır. `summary: true` vakası 31 Ağustos–20 Eylül geçmişinden bitmiş 14–20 Eylül haftasının zincirini de sınar. `query/` aynı iki ardışık harcama vakasının gerçek Markdown hedefini ve 17 gün dosyasını taşır. İndeks sorgusu bakiyeyi ve harcama listesini döndürür. Test dosya baytlarının sorgudan önce ve sonra aynı olduğunu denetler. `sample` kasası değişmez.
+| Parça | İçerik |
+|---|---|
+| `cases.json` | [Zincir günü](vault-format.md#zincir-günü) kuralının elle sayılmış beklentileri. `id` vakayı adlandırır: `seventh-reward`, `cap-three`, `pending-exhausted`, `weekly-no-grace`. |
+| `summary-ended-spends` | 31 Ağustos–20 Eylül geçmişinden bitmiş 14–20 Eylül haftasının zincirini sınar. |
+| `query/` | `two-consecutive-spends` vakasının gerçek Markdown hedefi ve gün dosyaları. İndeks sorgusu bakiyeyi ve harcama listesini döndürür. |
+| `query/` denetimi | Dosya baytları sorgudan önce ve sonra aynıdır. `sample` kasası değişmez. |
 
 ## `summaries/` kümesi
 
-| Dosya | Kasa | Vaka sayısı | Ne sınar |
+| Dosya | Kasa | Ne sınar | Vaka açıklaması |
 |---|---|---|---|
-| `weekly-review-text.json` | yok | | Haftalık gözden geçirme metni |
-| `cases.json` | `vaults/sample/` | 5 | Dönem özeti |
-| `cadence.json` | `vaults/cadence/` ve satır içi | | Görüşme ritmi |
-| `important-dates.json` | `vaults/anniversaries/` | 10 | Önemli tarihler |
-| `on-this-day.json` | `vaults/history/` | 9 | Bu gün geçmişte |
-| `period-rhythm.json` | `vaults/rhythm/` | 4 | Yıl dönemi, aynı tarihe kadar karşılaştırma, ritim birimleri, ilk kez geçenler, boş dönemde açık görevler |
-| `year-writing.json` | `vaults/rhythm/` ve satır içi | 6 | Özetler'in yazılan günler haritası |
-| `weekly-rhythm.json` | `vaults/rhythm/` ve satır içi | 5 | Haftalık incelemenin kısa ritmi |
-| `task-flow.json` | yok | 9 | Açık görev eğrisinin birim sonu envanteri, başlangıç, bitiş ve en yüksek birim |
-| `entity-density.json` | yok | 6 | Kişi ve konum geçiş sıklığı, aylık yoğunluk ve 90 günlük aralık hesabı |
-| `weekday-distribution.json` | `vaults/rhythm/` ve satır içi | 6 | Özetler'in haftanın günleri yazma oranı |
+| `weekly-review-text.json` | yok | Haftalık gözden geçirme metni | `id` |
+| `cases.json` | `vaults/sample/` | Dönem özeti | Aşağıdaki tablo |
+| `cadence.json` | `vaults/cadence/` ve satır içi | Görüşme ritmi | Aşağıdaki tablo |
+| `important-dates.json` | `vaults/anniversaries/` | Önemli tarihler | `id` ve aşağıdaki tablo |
+| `on-this-day.json` | `vaults/history/` | Bu gün geçmişte | `id` ve aşağıdaki tablo |
+| `period-rhythm.json` | `vaults/rhythm/` | Yıl dönemi, aynı tarihe kadar karşılaştırma, ritim birimleri, ilk kez geçenler, boş dönemde açık görevler | Aşağıdaki tablo |
+| `year-writing.json` | `vaults/rhythm/` ve satır içi | Özetler'in yazılan günler haritası | Aşağıdaki tablo |
+| `weekly-rhythm.json` | `vaults/rhythm/` ve satır içi | Haftalık incelemenin kısa ritmi | Aşağıdaki tablo |
+| `task-flow.json` | yok | Açık görev eğrisi: birim sonu envanteri, başlangıç, bitiş ve en yüksek birim | Aşağıdaki tablo |
+| `entity-density.json` | yok | 12 takvim ayı çubuğu ve 90 günlük şerit hesabı | Dosyadadır: `description` |
+| `weekday-distribution.json` | `vaults/rhythm/` ve satır içi | Özetler'in haftanın günleri yazma oranı | Aşağıdaki tablo |
 
-**Açık görev eğrisi:** `task-flow.json` elle sayılmış 9 vaka taşır. Vakalar: boş veri, bugüne kadar süren hafta, artık yıldaki bitmiş Şubat, iptal ve tamamlanma tarihsiz görevler. Süren yıl, başlamamış dönem ve takvimin alt sınırı da vakadır. Son vaka önceki ayından daha fazla dilimi olan süren aydır. Dokuzuncu vaka `source-less-opens-today` kaynak günü olmayan görevi sınar. Görev bugünden itibaren açıktır: 7 Ekim noktası 3, önceki günler 1 ve önceki hafta değişmez. `today` `null` olan `inventory-exclusions` vakasında bu görev sayılmaz. Her vaka `id`, `period`, `containing`, isteğe bağlı `today`, satır içi `tasks` ve `expected` taşır. Görev `created`, `status`, `due`, `done` alanlarını taşır; olmayan tarih JSON `null` olur. Beklenti `units` ve `previous` için `id`, `range`, `measuredEnd`, `open`; ayrıca `unitCount`, `opening`, `closing`, `peak` (ilk en yüksek birimin kimliği) taşır. Önceki seri bütün dönemi ölçer; süren birim bugünde kesilir, başlamamış birim yoktur. Açık sayımı dönem özetiyle ortak koşulu kullanır; bitiş tarihi gelecekte olan görev de envantere girer.
+Fixture yazarı bütün beklentileri elle saydı. Sayıların tanımı [Ekranlar](screens.md) "Özetler" bölümündedir. `period`, `containing`, `today`, `vault` ve `days` alanları "Ortak alanlar" tablosundadır.
 
-**Haftalık gözden geçirme metni:** Dosya başlığı, isteğe bağlı `summaryLines`, `selectedLines`, `note` ve beklenen `[String]` `expected` çıktısını taşır. Çıktıda önce hazır yerel özet satırları, sonra seçili satırlar ve not gelir. Test çıktıyı gerçek ayrıştırıcıyla yeniden okur; çıktı görev, olay, bölüm ve frontmatter üretmez. Test günlük ekleme yazıcısının bu satırları değiştirmeden yazdığını da denetler.
+**Tablo, her dosyanın kendine özgü alanlarını verir.**
 
-**Geçiş yoğunluğu:** `entity-density.json` kişi ve konum içgörülerindeki 12 takvim ayı çubuğu ve 90 günlük şerit hesabını sınar. Her vaka `id`, `description`, `today`, `days` ve `expected` taşır. Beklenti alanları `months`, `totalYearDays`, `busiestMonth`, `busiestMonthCount`, `recentDays`, `recentDayCount`, `averageInterval` ve `hasHistory` olur. `months` 12 ayın `month`, `count`, `isCurrentMonth` dilimleridir. `recentDays` 90 günün `date`, `isMentioned`, `isToday` kayıtlarıdır. Sınır vakaları 90 gün eşiğini, 12 ay başlangıç sınırını ve süren ayı sınar. Gelecek tarihlerin dışlanması, 12 ayda 0 gün geçmişi ve tek gün aralığı da sınanır.
+| Dosya | Girdi alanları | Beklenti alanları |
+|---|---|---|
+| `cases.json` | Ortak alanlar | `range`, `previousRange`, `counts`, `previous`, `change`, `people`, `places`, `goals`, `empty` |
+| `cases.json`, `people`, `places` | — | İlk 5 öğe: yol kimliği, görünen ad, `count`, `change` |
+| `cases.json`, `goals` | — | `done`, `target`, `contribution`, `streak`, `change`, `streakChange`, `score`, `completionDate` |
+| `period-rhythm.json` | Ortak alanlar | `cases.json` alanları, ölçülen aralıklar, `isRunning`, `units`, `previousUnits`, `firstPeople`, `firstPlaces`. Birim: `start`, `end`, `events`, `writtenDays`, `measuredDays`, `writing`. |
+| `year-writing.json` | `year` | `measuredEnd` (ölçümün son günü; `null`: yıl başlamadı), `monthDays`, `monthWritten`, `writtenDays`, `eventDays`, `diaryDays` (yalnız günlük yazısı olan günler) |
+| `weekday-distribution.json` | Ortak alanlar | Pazartesi'den Pazar'a 7 elemanlı `totalDays`, `writtenDays`, `events`; `leadingWeekday` (0 Pazartesi, 6 Pazar; `null`: yazılan gün yok) |
+| `weekly-rhythm.json` | `range`, `previousRange` | Gün başına `date`, `events`, `previousEvents`, `writing` (`full`, `none`, `notStarted`); toplam `events`, `previousEvents`, `change`, `isRunning` |
+| `task-flow.json` | `tasks[]`: `created`, `status`, `due`, `done` | `units` ve `previous` için `id`, `range`, `measuredEnd`, `open`; ayrıca `unitCount`, `opening`, `closing`, `peak` (ilk en yüksek birimin kimliği) |
+| `entity-density.json` | `days` | `months` (`month`, `count`, `isCurrentMonth`), `totalYearDays`, `busiestMonth`, `busiestMonthCount`, `recentDays` (`date`, `isMentioned`, `isToday`), `recentDayCount`, `averageInterval`, `hasHistory` |
+| `weekly-review-text.json` | `title`, isteğe bağlı `summaryLines`, `selectedLines`, `note` | `[String]`: önce hazır yerel özet satırları, sonra seçili satırlar ve not |
+| `cadence.json` | `spellings`; vakada `source`, `threshold` | Sıralı `overdue` (`id`, `elapsedDays`, `overdueDays`) ve ad sıralı `never` |
+| `important-dates.json` | Ortak alanlar | Tarih, `daysUntil`, `year`, `file` ve `key` satırları |
+| `on-this-day.json` | Ortak alanlar | `null` ya da `day`, `people` (en çok 2: yol kimliği ve ad), `place` (`null` olabilir), `otherYears` |
 
-**Dönem özeti:** Yalnız görevleri getiren `summaryTasks()` sorgusu da bu dosyanın dört görev sayısını aynı beklentilerle sınar. Fixture yazarı 5 dönemi `sample/` kasasından elle saydı. 14–20 Eylül ve 21–27 Eylül 2026 pazartesi haftalarında 19 ve 21 olay, 7'şer yazılan gün vardır. Eylül ayında 40 olay ve 14 gün, boş Ekim ayında 0 olay ve 0 gün vardır. Ekim'de de dönem sonu taşınan geciken görev sayısı 11, tarihsiz açık görev sayısı 1'dir. `october-running-source-less` Ekim'i 11 Ekim'de süren ay olarak ölçer. Proje dosyasındaki 2 görev bugün açıktır: tarihsiz sayısı 3, Görevler listesiyle aynıdır. Önceki dönem bu 2 görevi aynen taşır: önceki tarihsiz 2, fark 1. Bu vaka yalnız aralık ve sayı alanlarını taşır. Test bir vakada yalnız taşınan alanları karşılaştırır. Her durum `period`, `containing`, isteğe bağlı `today` ve `expected` taşır. Beklenti `range`, `previousRange`, `counts`, `previous`, `change`, `people`, `places`, `goals` ve `empty` taşır.
+**Tablo, hesap kurallarını ve ek denetimleri verir. Kurallar bu belgeye ait değildir; asıl kaynakları yazılana kadar burada durur.**
 
-`people` ve `places` ilk 5 öğedir: yol kimliği, görünen ad, `count`, `change`. `goals` öğeleri `done`, `target`, `contribution`, `streak`, `change`, `streakChange`, `score`, `completionDate` taşır. Olmayan tarih ve haftalık, yıllık, kilometre taşı skoru JSON `null` olur. Günlük skor dönemin son günüyle biten 30 günün hesabıdır; fixture yazarı ilk 4 beklentiyi bugünsüz, dönemi bitmiş sayarak yazdı. Son gün kaçırılmışsa paydaya girer; sayı tanımları `screens.md` Özetler bölümündedir. Eylül'de Spor hedefi 15'tir, çünkü Eylül 5 pazartesi haftasına değer; Kitap 600, Su 240'tır.
-
-Kitap'ta 17 ve 18 Eylül art arda kaçtığı için zincir biter. Su'da 17 ve 24 Eylül af alır ama zincire katkı vermez. 19 Eylül af almaz, çünkü önündeki iki günden 17 Eylül affedilmiş gündür ve yapılmış sayılmaz. Zincir 20 Eylül'de 1, 23 Eylül'de 4, 27 Eylül'de 6'dır. Core testleri JSON'u indeks girdisinden çıkan hesap sonucuyla karşılaştırır. Testler pazartesi, yıl ve artık ay sınırlarını, geçmiş görev envanterini, yıllık ve kilometre taşı katkısını da sınar. Ek denetimler hedef zinciri için dönem öncesi geçmiş, ilk 5'in kararlı sırası ve çözülemeyen bağlantılardır. Sentetik geçici kasa frontmatter bağlantısının dışlanmasını, eski ilk geçiş tarihini ve artımlı indeks eşitliğini kanıtlar; örnek dosyalar değişmez.
-
-**Dönem ritmi:** Fixture yazarı `vaults/rhythm/` kasasının 4 beklentisini elle saydı. Her durum `vault`, `period`, `containing`, isteğe bağlı `today` ve `expected` taşır. Beklenti `cases.json` alanlarına ek olarak ölçülen aralıkları, `isRunning`, `units`, `previousUnits`, `firstPeople` ve `firstPlaces` taşır. Birim `start`, `end`, `events`, `writtenDays`, `measuredDays` ve `writing` taşır.
-
-| Durum | Ne sınar |
+| Dosya | Kural ya da denetim |
 |---|---|
-| `year-running-to-same-date` | 2026 yılı 7 Ekim'de sürer. Sayılar 1 Ocak–7 Ekim 2026 arasıdır: 10 olay, 7 yazılan gün. Core önceki yılı 7 Ekim 2025'e kadar sayar: 3 olay. 9 Ekim'in 4 olayı sayıya girmez. Kasım ve Aralık başlamamış birimdir. |
-| `week-running-to-same-weekday` | 5–11 Ekim haftası çarşamba sürer: 4 olay. Core önceki haftayı çarşambaya kadar sayar: 3 olay. Bütün önceki haftanın değeri 6'dır. |
-| `month-slices-from-the-first` | Ekim 2025: 1–7, 8–14, 15–21, 22–28, 29–31. Eylül 2025 dilimlerinin sonuncusu 29–30'dur. İlk kez geçen kişi Nehir Ak, konum Rüzgâr Kafe'dir. |
-| `empty-week-carries-open-tasks` | 10–16 Ağustos 2026 boştur. 3 Ağustos'tan 1 devreden ve 1 tarihsiz açık görev kalır. |
+| `cases.json` | Test bir vakada yalnız taşınan alanları karşılaştırır. `summaryTasks()` sorgusu aynı dört görev sayısını aynı beklentilerle sınar. |
+| `cases.json`, skor | Günlük skor dönemin son günüyle biten 30 günün hesabıdır. Son gün kaçırılmışsa paydaya girer. İlk 4 beklenti bugünsüz, dönemi bitmiş sayarak yazıldı. |
+| `cases.json`, ek testler | Core testleri pazartesi, yıl ve artık ay sınırlarını, geçmiş görev envanterini, yıllık ve kilometre taşı katkısını da sınar. Sentetik geçici kasa frontmatter bağlantısının dışlanmasını ve artımlı indeks eşitliğini kanıtlar. |
+| `task-flow.json` | Önceki seri bütün dönemi ölçer. Süren birim bugünde kesilir; başlamamış birim yoktur. Açık sayımı dönem özetiyle ortak koşulu kullanır. Bitiş tarihi gelecekte olan görev de envantere girer. |
+| `weekday-distribution.json` | Süren dönemde payda bugüne kadarki günlerdir. Eşit oranda olayı çok olan gün seçilir. Yine eşitse haftanın ilk günü seçilir. |
+| `weekly-rhythm.json` | Aralığın N. günü önceki aralığın N. günüyle karşılaştırılır. Toplamlar yalnız bugüne kadarki günleri sayar. Önceki günün çubuğu bugünden sonraki gün için de durur. |
+| `weekly-review-text.json` | Test çıktıyı gerçek ayrıştırıcıyla yeniden okur; çıktı görev, olay, bölüm ve frontmatter üretmez. Günlük ekleme yazıcısı satırları değiştirmeden yazar. |
+| `cadence.json`, `spellings` | `cadence_days` yazımının pozitif tam sayıya dönüp dönmediği: `30` ve `+30` döner. `0`, negatif, kesir (`30.0` dahil), başı sıfırlı, başı boşluklu, `Int` sınırını aşan ve metin dönmez. |
+| `cadence.json`, sıra | Sıra eşiğin ne kadar aşıldığına bakar. Eşitlikte yol sırası geçerlidir ve girdi sırasından bağımsızdır. Taşan ritim yazımı genel eşiğe düşer. |
+| `cadence.json`, hiç görüşülmemiş | Kişi ritmi olsa da ayrı gruptadır; önce ad, sonra yol sırasındadır. Duraklatma ya da erteleme taşıyan kişi orada da görünmez. |
+| `important-dates.json` | Sıra tarih, alan adı, dosya yoludur. Pencere bugün dahil 7 gündür. |
 
-Kasada 3 kişi, 1 konum, 1 günlük hedef ve 11 gün dosyası vardır. Fixture yazarı günlük hedefin zincir ve skor değerlerini kodla karşılaştırdı; kurallar `SummaryGoalScoreTests` ile aynıdır.
+### Vakalar
 
-**Yazılan günler haritası:** Fixture yazarı 6 beklentiyi elle saydı. Her durum `year`, isteğe bağlı `today` ve ya `vault` ya da satır içi `days` taşır. Satır içi gün `date`, `events` ve `hasDiary` taşır. Beklenti alanları:
+**Tablo, açıklaması fixture dosyasında olmayan vakaların ne sınadığını verir.**
 
-| Alan | Anlamı |
+| Dosya | Vaka | Ne sınar |
+|---|---|---|
+| `cases.json` | `week-14-20`, `monday-21-27` | Pazartesi haftaları: 19 ve 21 olay, 7'şer yazılan gün |
+| `cases.json` | `september` | 40 olay ve 14 gün. Spor hedefi 15'tir, çünkü Eylül 5 pazartesi haftasına değer; Kitap 600, Su 240. |
+| `cases.json` | `october-transition-empty` | Boş Ekim: 0 olay ve 0 gün; dönem sonu taşınan geciken görev 11, tarihsiz açık görev 1 |
+| `cases.json` | `october-running-source-less` | Ekim 11 Ekim'de süren aydır. Proje dosyasındaki 2 görev bugün açıktır: tarihsiz sayısı 3. Önceki dönem bu 2 görevi aynen taşır: önceki tarihsiz 2, fark 1. Vaka yalnız aralık ve sayı alanlarını taşır. |
+| `cases.json` | Kitap zinciri | 17 ve 18 Eylül art arda kaçtığı için zincir biter. |
+| `cases.json` | Su zinciri | 17 ve 24 Eylül af alır ama zincire katkı vermez. 19 Eylül af almaz: önündeki 17 Eylül affedilmiş gündür. Zincir 20 Eylül'de 1, 23 Eylül'de 4, 27 Eylül'de 6'dır. |
+| `task-flow.json` | `empty`, `running-week`, `finished-leap-month`, `running-year`, `future-period`, `calendar-lower-bound` | Boş veri; bugüne kadar süren hafta; artık yıldaki bitmiş Şubat; süren yıl; başlamamış dönem; takvimin alt sınırı |
+| `task-flow.json` | `running-month` | Önceki ayından daha fazla dilimi olan süren ay |
+| `task-flow.json` | `inventory-exclusions` | İptal ve tamamlanma tarihsiz görevler. `today` `null` olduğu için kaynak günü olmayan görev sayılmaz. |
+| `task-flow.json` | `source-less-opens-today` | Kaynak günü olmayan görev bugünden itibaren açıktır: 7 Ekim noktası 3, önceki günler 1; önceki hafta değişmez. |
+| `period-rhythm.json` | `year-running-to-same-date` | 2026 yılı 7 Ekim'de sürer: 1 Ocak–7 Ekim arası 10 olay, 7 yazılan gün. Önceki yıl 7 Ekim 2025'e kadar sayılır: 3 olay. 9 Ekim'in 4 olayı sayıya girmez. Kasım ve Aralık başlamamış birimdir. |
+| `period-rhythm.json` | `week-running-to-same-weekday` | 5–11 Ekim haftası çarşamba sürer: 4 olay. Önceki hafta çarşambaya kadar sayılır: 3 olay. Bütün önceki haftanın değeri 6'dır. |
+| `period-rhythm.json` | `month-slices-from-the-first` | Ekim 2025: 1–7, 8–14, 15–21, 22–28, 29–31. Eylül 2025 dilimlerinin sonuncusu 29–30'dur. İlk kez geçen kişi Nehir Ak, konum Rüzgâr Kafe'dir. |
+| `period-rhythm.json` | `empty-week-carries-open-tasks` | 10–16 Ağustos 2026 boştur. 3 Ağustos'tan 1 devreden ve 1 tarihsiz açık görev kalır. |
+| `year-writing.json` | `running-year-ends-today` | 2026 yılı 7 Ekim'de sürer: Ekim'in 7 günü ölçülür, Kasım ve Aralık boştur. 4 Ekim yalnız günlük yazısıdır. 3 Ağustos'ta yalnız görev vardır; gün yazılmamıştır. 9 Ekim sayılmaz. |
+| `year-writing.json` | `ended-year-counts-every-day` | 2025 bitmiştir: 365 gün ölçülür, 2 olaylı gün. |
+| `year-writing.json` | `year-not-begun` | 2027 başlamamıştır: hiçbir gün ölçülmez. |
+| `year-writing.json` | `empty-leap-year-without-today` | `today` yoksa bütün yıl ölçülür; 2024'te Şubat 29 gündür. |
+| `year-writing.json` | `first-day-adds-rows-of-one-date` | 1 Ocak'ın iki satırı toplanır ve gün olaylıdır. 2025 satırı ve bugünden sonraki 2 Ocak sayılmaz. |
+| `year-writing.json` | `last-day-ends-the-year` | 31 Aralık bugündür ve yıl biter. 29 Şubat yalnız günlük yazısıdır. Eksi olay sayısı ve boş dosya yazılmış gün değildir. |
+| `weekday-distribution.json` | `empty-month` | Ağustos 2026'da yazılan gün yoktur: 31 gün ölçülür (Pazartesi, Cumartesi ve Pazar 5'er). `leadingWeekday` `null` olur. |
+| `weekday-distribution.json` | `running-month-ends-today` | Ekim 2026 çarşamba 7 Ekim'de sürer: her günden 1 gün ölçülür. Beş gün 1/1'dir; Cuma 3 olayla öndedir (`leadingWeekday = 4`). |
+| `weekday-distribution.json` | `ended-month-higher-ratio-beats-higher-events` | Ekim 2025: Pazartesi 1/4 ve 1 olay, Çarşamba 1/5 ve 2 olay. Oran olaydan önce gelir: `leadingWeekday = 0`. |
+| `weekday-distribution.json` | `running-year-ends-today` | 280 gün ölçülür (her günden 40), 7 yazılan gün. Pazartesi ve Çarşamba 2/40 ile eşittir; Pazartesi 3 olayla Çarşamba'yı (2 olay) geçer. |
+| `weekday-distribution.json` | `tie-on-ratio-and-events-picks-earlier-weekday` | Şubat 2026: Çarşamba ve Cuma 1/4 ve 2 olayla eşittir; erken gün seçilir (`leadingWeekday = 2`). Eksi olay 0 sayılır. Dönem dışındaki 31 Ocak ve 1 Mart sayılmaz. |
+| `weekday-distribution.json` | `period-not-begun` | Bugün dönemden öncedir: her günde `totalDays` 0 ve `leadingWeekday` `null` olur. |
+| `weekly-rhythm.json` | `monday-week-running-to-wednesday` | 5–11 Ekim 2026 haftası çarşamba sürer: 4 olay, önceki haftanın pazartesi–çarşambası 3 olay. 9 Ekim'in 4 olayı sayılmaz; arkadaki çubukta 2 Ekim'in 3 olayı durur. |
+| `weekly-rhythm.json` | `sunday-week-ended-on-saturday` | 4–10 Ekim pazar haftası bugün biter: 8 olay, önceki pazar haftası 6 olay. 4 Ekim yalnız günlük yazısıyla yazılmıştır. |
+| `weekly-rhythm.json` | `week-not-begun`, `empty-week` | Bugün haftadan öncedir: her gün başlamamıştır. 10–16 Ağustos boştur: her gün yazılmamıştır. |
+| `weekly-rhythm.json` | `rows-of-one-date-add-up-without-today` | `today` yoksa her gün ölçülür. Aynı günün satırları toplanır; eksi olay sayısı 0'dır. |
+| `cadence.json` | `source: vault`, 2 gün | Erteleme günü (2026-10-11) Fela'yı gizler. Ertesi gün Fela ve süresi dolan Sera döner; eşiğe eşit Eda listeye girer. Gizem, daha uzun süredir görülmeyen Tuna'dan önce gelir. |
+| `cadence.json` | `source: inline` | Test kasadan okumaz: eşik günü, hiç görüşülmemiş kişi ve eşitlikte yol sırası |
+| `important-dates.json` | 10 vaka | Bugün, yarın, 7. ve 8. gün, yıl sonu, gelecek yıl, 0. yıl, henüz gelmemiş ilk yıl dönümü. 29 Şubat artık olmayan yılda 28 Şubat beklenir. |
+| `on-this-day.json` | 9 vaka | En yakın yıl ve bir yıl daha; bağlantısız gün; yalnız konumlu gün; artık gün ve artık olmayan yıl; dosyası olmayan gün |
+
+**Tablo, özet kasalarının içeriğini verir.**
+
+| Kasa | İçerik |
 |---|---|
-| `measuredEnd` | Ölçümün son günü; `null`: yıl başlamadı |
-| `monthDays` | Ay başına ölçülen gün sayısı |
-| `monthWritten` | Ay başına yazılan gün |
-| `writtenDays` | Toplam yazılan gün |
-| `eventDays` | Olaylı günler |
-| `diaryDays` | Yalnız günlük yazısı olan günler |
-
-| Durum | Ne sınar |
-|---|---|
-| `running-year-ends-today` | 2026 yılı 7 Ekim'de sürer: Ekim'in 7 günü ölçülür, Kasım ve Aralık boştur. 7 yazılan gün `period-rhythm.json` yıl beklentisiyle aynıdır. 4 Ekim yalnız günlük yazısıdır. 3 Ağustos'ta yalnız görev vardır; gün yazılmamıştır. 9 Ekim sayılmaz. |
-| `ended-year-counts-every-day` | 2025 bitmiştir: 365 gün ölçülür, 2 olaylı gün. |
-| `year-not-begun` | 2027 başlamamıştır: hiçbir gün ölçülmez. |
-| `empty-leap-year-without-today` | `today` yoksa bütün yıl ölçülür; 2024'te Şubat 29 gündür. |
-| `first-day-adds-rows-of-one-date` | 1 Ocak'ın iki satırı toplanır ve gün olaylıdır. 2025 satırı ve bugünden sonraki 2 Ocak sayılmaz. |
-| `last-day-ends-the-year` | 31 Aralık bugündür ve yıl biter. 29 Şubat yalnız günlük yazısıdır. Eksi olay sayısı ve boş dosya yazılmış gün değildir. |
-
-**Haftanın günleri yazma oranı:** Fixture yazarı 6 beklentiyi elle saydı. Her durum `period`, `containing`, isteğe bağlı `today` ve ya `vault` ya da satır içi `days` taşır. Satır içi gün `date`, `events` ve `hasDiary` taşır. Beklenti Pazartesi'den Pazar'a 7 elemanlı üç dizi taşır: ölçülen gün `totalDays`, yazılan gün `writtenDays` ve olay `events`. Beklenti en yüksek yazma oranlı günü de taşır: `leadingWeekday` (0 Pazartesi, 6 Pazar; `null`: yazılan gün yok). Süren dönemde payda bugüne kadarki günlerdir. Eşit oranda olayı çok olan gün, yine eşitse haftanın ilk günü seçilir.
-
-| Durum | Ne sınar |
-|---|---|
-| `empty-month` | Ağustos 2026'da yazılan gün yoktur: 31 gün ölçülür (Pazartesi, Cumartesi ve Pazar 5'er). 3 Ağustos'ta yalnız görev vardır; gün yazılmamıştır. `leadingWeekday` `null` olur. |
-| `running-month-ends-today` | Ekim 2026 çarşamba 7 Ekim'de sürer: her günden 1 gün ölçülür. 4 Ekim yalnız günlük yazısıdır. Beş gün 1/1'dir; Cuma 3 olayla öndedir (`leadingWeekday = 4`). 9 Ekim sayılmaz. |
-| `ended-month-higher-ratio-beats-higher-events` | Ekim 2025 bitmiştir: 31 gün ölçülür (Çarşamba–Cuma 5'er). Pazartesi 1/4 ve 1 olayla, Çarşamba 1/5 ve 2 olayla yazılır. Oran olaydan önce gelir: `leadingWeekday = 0`. |
-| `running-year-ends-today` | 2026 yılı 7 Ekim'de sürer: 280 gün ölçülür (her günden 40), 7 yazılan gün vardır. Pazartesi ve Çarşamba 2/40 ile eşittir; Pazartesi 3 olayla Çarşamba'yı (2 olay) geçer. |
-| `tie-on-ratio-and-events-picks-earlier-weekday` | Şubat 2026'da her günden 4 gün ölçülür. Aynı tarihin satırları toplanır, eksi olay 0 sayılır ve o gün yazılmamıştır. Çarşamba ve Cuma 1/4 ve 2 olayla eşittir; erken gün seçilir (`leadingWeekday = 2`). Dönem dışındaki 31 Ocak ve 1 Mart sayılmaz. |
-| `period-not-begun` | Bugün dönemden öncedir: 7 günün her birinde `totalDays` 0 ve `leadingWeekday` `null` olur. |
-
-**Haftalık incelemenin kısa ritmi:** Fixture yazarı 5 beklentiyi elle saydı. Her durum `range`, `previousRange`, isteğe bağlı `today` ve ya `vault` ya da satır içi `days` taşır. Beklenti gün başına `date`, `events`, `previousEvents` ve `writing` (`full`, `none`, `notStarted`) ile toplam `events`, `previousEvents`, `change` ve `isRunning` taşır. Aralığın N. günü önceki aralığın N. günüyle karşılaştırılır. Toplamlar yalnız bugüne kadarki günleri sayar; önceki günün çubuğu bugünden sonraki gün için de durur.
-
-| Durum | Ne sınar |
-|---|---|
-| `monday-week-running-to-wednesday` | 5–11 Ekim 2026 haftası çarşamba sürer: 4 olay, önceki haftanın pazartesi–çarşambası 3 olay. 9 Ekim'in 4 olayı sayılmaz; arkadaki çubukta 2 Ekim'in 3 olayı durur. |
-| `sunday-week-ended-on-saturday` | 4–10 Ekim pazar haftası bugün biter: 8 olay, önceki pazar haftası 6 olay. 4 Ekim yalnız günlük yazısıyla yazılmıştır. |
-| `week-not-begun` | Bugün haftadan öncedir: her gün başlamamıştır ve toplamlar 0'dır. |
-| `empty-week` | 10–16 Ağustos boştur: her gün yazılmamıştır. |
-| `rows-of-one-date-add-up-without-today` | `today` yoksa her gün ölçülür. Aynı günün satırları toplanır; eksi olay sayısı 0'dır. |
-
-**Görüşme ritmi:** Fixture yazarı `cadence.json` sözleşmesini elle yazdı. `spellings` `cadence_days` yazımının pozitif tam sayıya dönüp dönmediğini taşır: `30` ve `+30` döner. `0`, negatif, kesir (`30.0` dahil), başı sıfırlı, başı boşluklu, `Int` sınırını aşan ve metin dönmez. `source: vault` olan 2 gün `vaults/cadence/` kadrosunu kullanır ve `today`, `threshold`, sıralı `overdue` (`id`, `elapsedDays`, `overdueDays`) ve ad sıralı `never` taşır. Erteleme günü (2026-10-11) Fela'yı gizler; ertesi gün Fela ve süresi dolan Sera döner, eşiğe eşit Eda listeye girer. Gizem, daha uzun süredir görülmeyen Tuna'dan önce gelir, çünkü sıra eşiğin ne kadar aşıldığına bakar.
-
-Test `source: inline` vakalarını kasadan okumaz; eşik gününü, hiç görüşülmemiş kişiyi ve eşitlikte yol sırasını sınar. Hiç görüşülmemiş kişi ritmi olsa da ayrı gruptadır ve önce ad, sonra yol sırasındadır. Orada da duraklatma ya da erteleme taşıyan kişi görünmez. Yol sırası girdi sırasından bağımsızdır; taşan ritim yazımı genel eşiğe düşer.
-
-`vaults/cadence/` kişi dosyaları ritimi, ertelemeyi, duraklatmayı ve yok sayılan yazımları (`0`, `-4`, `7.5`, `+30`, `TRUE`, `aylık`, `yes`, `2026-13-40`) taşır. `people/Zeki Mor.md` 3 ritim anahtarına tarih yazar; `books/Fable.md` kayıtlı kitap tipindedir ve `cadence_snoozed_until` yanında `bitirme` tutar. Gün dosyaları son görüşmeyi olay satırında kurar; `diary/2026-10-10.md` içindeki görev `[[Ada Kaya]]` anması son görüşmeyi değiştirmez.
-
-**Önemli tarihler:** Fixture yazarı `vaults/anniversaries/` kasasının 10 yıl dönümü beklentisini elle yazdı. Her durum `vault`, `today` ve `expected` taşır; beklenti tarih, `daysUntil`, `year`, `file` ve `key` satırlarıdır. Sıra tarih, alan adı, dosya yoludur ve pencere bugün dahil 7 gündür. Kasa bugün, yarın, 7. ve 8. gün, yıl sonu, gelecek yıl, 0. yıl ve henüz gelmemiş ilk yıl dönümünü taşır. 29 Şubat artık ve artık olmayan yılda vardır; artık olmayan yılda beklenti 28 Şubat'tır. Geçersiz, tırnaklı ve kısa yazımlar da vardır; `books/Fable.md` pencereye girer, `places/Kıyı.md` aynı gündeki tarih alanıyla dışarıdadır.
-
-**Bu gün geçmişte:** Fixture yazarı `vaults/history/` kasasının 9 beklentisini elle yazdı. Her durum `vault`, `today` ve `expected` taşır. Beklenti `null` ya da `day`, `people`, `place` ve `otherYears` alanlarıdır. `people` en çok 2 öğedir ve yol kimliği ile ad taşır; `place` `null` olabilir.
-
-Kasa 20 Eylül'ü 4 yılda taşır. 2023 bağlantısızdır: not bağlantısı, çözülemeyen bağlantı ve frontmatter kişi bağlantısı. 2024 ve 2025 bağlantılıdır; 2025'te 3 kişi, 2 konum ve yinelenen kişi vardır; 2026 ve 2027 "bugün ve sonrası" içindir. 21 Eylül 2025 bağlantısız, 22 Eylül 2025 yalnız konumlu, 28 Şubat 2026 yalnız kişili, 29 Şubat 2024 artık gün örneğidir.
+| `vaults/rhythm/` | 3 kişi, 1 konum, 1 günlük hedef ve gün dosyaları |
+| `vaults/cadence/`, kişi dosyaları | Ritim, erteleme, duraklatma ve yok sayılan yazımlar: `0`, `-4`, `7.5`, `+30`, `TRUE`, `aylık`, `yes`, `2026-13-40` |
+| `vaults/cadence/`, özel dosyalar | `people/Zeki Mor.md` 3 ritim anahtarına tarih yazar. `books/Fable.md` kayıtlı kitap tipindedir; `cadence_snoozed_until` yanında `bitirme` tutar. |
+| `vaults/cadence/`, gün dosyaları | Son görüşmeyi olay satırında kurar. `diary/2026-10-10.md` içindeki görev `[[Ada Kaya]]` anması son görüşmeyi değiştirmez. |
+| `vaults/anniversaries/` | Geçersiz, tırnaklı ve kısa yazımlar. `books/Fable.md` pencereye girer; `places/Kıyı.md` aynı gündeki tarih alanıyla dışarıdadır. |
+| `vaults/history/`, 20 Eylül | 4 yılda vardır. 2023 bağlantısızdır: not bağlantısı, çözülemeyen bağlantı ve frontmatter kişi bağlantısı. 2024 ve 2025 bağlantılıdır. 2025'te 3 kişi, 2 konum ve yinelenen kişi vardır. |
+| `vaults/history/`, öteki günler | 2026 ve 2027 "bugün ve sonrası" içindir. 21 Eylül 2025 bağlantısız, 22 Eylül 2025 yalnız konumlu, 28 Şubat 2026 yalnız kişili, 29 Şubat 2024 artık gün örneğidir. |
 
 ## `vaults/` kümesi
 
-| Kasa | Dosya | Amaç | Kullanan küme |
-|---|---|---|---|
-| `sample` | 34 | Uçtan uca örnek kasa | `index/sample`, `summaries/cases.json`, uygulama testleri |
-| `entity-fields` | 9 | Üst düzey tarih, sayı, evet/hayır alanları | `index/entity-fields` |
-| `unlinked-mentions` | 10 | Bağlanmamış anma sorgusu | `recognition/unlinked-mentions`, `write/mention-*` |
-| `unlinked-mentions-hostile` | 22 | Sorguyu ve yazıcıyı zorlayan satırlar | `recognition/unlinked-mentions-hostile` |
-| `cadence` | 35 | Görüşme ritmi kadrosu | `summaries/cadence.json`, `index/cadence` |
-| `anniversaries` | 18 | Yıl dönümü tarihleri | `summaries/important-dates.json` |
-| `history` | 19 | Bu gün geçmişte | `summaries/on-this-day.json` |
-| `backlinks` | 5 | Bu güne bağlananlar sorgusu | `DayBacklinksTests` |
-| `typed` | 4 | Özel kitap tipi; ayrıntı [`entity-types/` kümesi](#entity-types-kümesi) bölümünde | `entity-types/` |
-| `placeholder` | 12 | İndirilmeyi bekleyen yer tutucular | `PlaceholderTests`, `Tests/KenetTests/CloudDownloadTests`, `Tests/KenetTests/SyncStatusTests` |
-| `day-copies` | 41 | Gün kopyası birleştirme | `DayCopyTests`, `DayCopyMergeCaseTests`, `DayCopyFailureTests`, `ConflictCopyListingTests`, `Tests/KenetTests/DayCopyMergeWiringTests` |
-| `rhythm` | 16 | Özetler'in yıl, süren dönem ve ritim hesabı | `summaries/period-rhythm.json`, `summaries/year-writing.json`, `summaries/weekly-rhythm.json`, `summaries/weekday-distribution.json` |
-| `copy-files` | 19 | Varlık kopyası ve gün kopyası listesi; birleştirme yok | `VaultIndexTests/CopyFileTests`, `Tests/KenetTests/SyncedFolderNoticeTests` |
-| `gallery` | 21 | Hazır tip galerisi: 10 tip, şablonları ve her şablondan bir varlık; ayrıntı [`entity-types/` kümesi](#entity-types-kümesi) bölümünde | `EntityTypeGalleryTests` |
-| `conflict-copies` | 20 | Çakışma kopyası ad kuralı ve `conflicts/` listesi; çakışan sürüm sorgusunun kasası | `VaultIndexTests/ConflictCopyTests`, `Tests/KenetTests/SyncConflictTests`, `Tests/KenetTests/DiagnosticsConflictWiringTests`, `Tests/KenetTests/Snapshots/ConflictVersionsSnapshotTests` |
-| `nfd-names` | 4 | Ayrışmış (NFD) dosya adı, ad, takma ad ve bağlantı yazımı | `DecomposedNameTests` (`VaultIndexTests/ChangeDetectionTests.swift` içinde) |
-| `turkce-buyuk-harf` | 6 | Türkçe büyük harf eşlemesi: anahtar, bağlantı, tanıma, ad çakışması | `TurkishCapitalTests` |
-| `graph` | 19 | Olay, alt satır, görev ve paragraf bağları; Diary madde listesi, devam satırı, alıntı öbeği ve numaralı liste; başlık, frontmatter, özel tip ve indekslenmeyen gün kopyası; tek günün grafiği; açık ilişkiler (`relations.json`) | `GraphMentionsTests`, `DayGraphMentionsTests`, `RelationsIndexTests`, `GraphMapTests`, `DayGraphTests`, `DayGraphMacHostedTests`, `GraphCustomTypeTests`, `EntityRelationsModelTests`, `DayGraphSnapshotTests`, `DayGraphMacSnapshotTests` |
+Her kasanın amacı ve testi [Fixture ve test eşlemesi](#fixture-ve-test-eşlemesi) tablosundadır. Bu bölüm kasaların içeriğini ve beklenti dosyalarını verir. Özel tip kasaları [`entity-types/` kümesi](#entity-types-kümesi), özet kasaları [`summaries/` kümesi](#summaries-kümesi), `entity-fields` kasası [`index/` kümesi](#index-kümesi) bölümündedir.
 
-**Çakışma kopyaları:** Fixture yazarı `vaults/conflict-copies/expected.json` beklentisini elle yazdı. `names` saf ad kuralının tablosudur: yol ve gün dosyası (kopya değilse `null`). Tablo bazı adları kopya saymaz: sayısı 1 ya da başı sıfırlı, geçersiz gün, geçersiz saat ya da takvim günü. Eksik `Z`, büyük harfli `Conflict` ve tam genişlikli rakam da kopya değildir. Alt klasör, kök dizin ve yer tutucu adları da kopya değildir. `conflictCopies` diskteki listedir: gün, addaki zaman, sonra sayı sırasıyla 5 kopya; gün dosyası olmayan `2026-09-30` kopyası da listededir. `source/conflicts/` aynı benzer adları, `eski/` alt klasörünü ve bir `.icloud` yer tutucusunu taşır. Kökteki benzer adlı dosya sıradan nottur ve indekse girer. Yalnız harf boyu farklı iki ad koyma. Harf boyuna duyarsız birim ikisini tek dosya sayar; biri ötekinin üzerine yazılır. Uygulama testleri aynı kasayı iCloud Drive yolu altına kopyalar ve sahte sürüm kaynağıyla `IndexStore.computeConflictedFiles` sorgusunu sınar.
+### `sample`
 
-**Graph:** `vaults/graph/expected.json` elle sayılmış `totals` ve tarih sıralı `days` (`date`, `mentions`) alanlarını taşır. Gün dosyasının başlık ve frontmatter bağlantıları o günün anmasına girer. 2026-10-02'de Selin'in başlıktaki anması 4'e katılır. Liman Ofis'in frontmatter ve başlık anmaları 3'e katılır. Gün kopyası mevcut kasa kuralı gereği indekse girmez. Varlık dosyalarının frontmatter bağları `totals` içinde anma sayılır, gün anması olmaz: `related`, `eşi`, kitabın `yazar` alanı. Selin 8 gün ve gövde anmasına 3 frontmatter bağlantısıyla 11 olur. Deniz 7 gün anmasına 2 frontmatter bağlantısıyla 9 olur. Özel kitap tipinin kendi tür sorgusunda yalnız tekil anması vardır; ana Graph'ta tipi süzgeçte açılınca düğüm olur. `diary/2026-10-04.md` boş satırsız tek Diary paragrafıdır. Madde, devam satırı, alıntı ve numaralı madde satırlarındaki her bağlantı o günün anmasına girer. Baran, Ece, Mert ve Ev ikişer anma alır.
+`vaults/sample/` tam ve tutarlı kurgusal örnek kasadır. Kasa ayrıştırıcıyı, modelleri, indeksleyiciyi, Obsidian uyumluluğunu, arayüzü ve aramayı uçtan uca sınar. Kadro "Kurgusal adlar" tablosundadır.
 
-**Günün grafiği:** `vaults/graph/day-graph.json` tek gün sorgusunun beklentisini taşır: `kinds` (kişi, konum ve kitap) ve tarih başına elle sayılmış `mentions`. Liste kasada dosyası olmayan boş bir günü de içerir. Kitabın tek başına anıldığı 2026-10-01 ve tek paragraflı Diary listesi olan 2026-10-04 de listededir. Gün sorgusu bu günlerde `expected.json` günleriyle aynı yanıtı verir; kitap yalnız gün sorgusunda o güne girer.
-
-**İlişkiler:** Açık ilişki beklentileri `vaults/graph/relations.json` içindedir; yönlü giden/gelen sorgularını ve yönsüz tekilleştirmeyi `RelationsIndexTests` sınar. Beklentiler biçim kurallarından elle yazılmıştır.
-
-**Şema, `vaults/sample/` kasasının klasörlerini ve dosya sayılarını gösterir.**
-
-```mermaid
-flowchart LR
-  S["vaults/sample/"] --> J["diary/ : 14 gün dosyası"]
-  S --> P["people/ : 6 kişi"]
-  S --> L["places/ : 4 konum"]
-  S --> G["goals/ : 3 hedef"]
-  S --> N["notes/ : 3 not"]
-  S --> T["templates/ : 2 şablon"]
-  S --> C["conflicts/ : 1 saklanan sürüm"]
-  S --> A[".app/ : vault.json"]
-```
-
-`vaults/sample/` tam ve tutarlı kurgusal örnek kasadır; ayrıştırıcıyı, modelleri, indeksleyiciyi, Obsidian uyumluluğunu, arayüzü ve aramayı uçtan uca sınar. `diary/` 2026-09-14 ile 2026-09-27 arası 14 gün dosyasında 40 olay ve 22 görev taşır. `goals/` `Spor.md`, `Kitap.md`, `Su.md`; `notes/` `Proje Fikirleri.md`, `Okuma Listesi.md`, `Toplantı Notları.md` taşır. `templates/` `person.md` ve `place.md`, `conflicts/` 1 eşitleme çakışmasının saklanan sürümünü taşır. `.app/vault.json` format sürümüdür.
-
-**Tablo, örnek kasanın kurgusal kadrosunu verir.**
-
-| Tür | Ad | Ayrıntı |
-|---|---|---|
-| Kişi | Deniz Arıkan | Takma adlar: Deniz, Deniz abi |
-| Kişi | Selin Korkmaz | Takma ad: Selin |
-| Kişi | Baran Tunç | Takma ad: Baran |
-| Kişi | Ece Yalın | Takma ad: Ece |
-| Kişi | Mert Aksu | İkinci bir Mert Aksu iş ayırt edicisini taşır |
-| Konum | Liman Ofis | Takma ad: ofis; koordinat: `[10.5000, 20.0290]`; yarıçap: 100 |
-| Konum | Çınaraltı Kafe | |
-| Konum | Tepe Spor Salonu | Takma ad: salon; koordinat: `[10.5210, 20.0415]`; yarıçap: 80 |
-| Konum | Ev | |
-| Hedef | Spor | `spor`; haftada 3 gün; boolean; konum: Tepe Spor Salonu |
-| Hedef | Kitap | `kitap`; günde 20; sayı; birim: sayfa |
-| Hedef | Su | `su`; günde 8; sayı; birim: bardak |
+| Klasör | İçerik |
+|---|---|
+| `diary/` | 2026-09-14 ile 2026-09-27 arası gün dosyaları |
+| `people/`, `places/`, `goals/` | Kadrodaki kişiler, konumlar ve hedefler |
+| `notes/` | `Proje Fikirleri.md`, `Okuma Listesi.md`, `Toplantı Notları.md` |
+| `templates/` | `person.md`, `place.md` |
+| `conflicts/` | 1 eşitleme çakışmasının saklanan sürümü |
+| `.app/` | `vault.json`: format sürümü |
 
 **Tablo, örnek kasaya bilerek konmuş 6 özel durumu verir.**
 
 | No | Durum | Ayrıntı |
 |---|---|---|
-| 1 | Aynı adlı iki kişi | `people/Mert Aksu.md` ve ayırt edicili `people/Mert Aksu (iş).md` (`qualifier: iş`). Bağlantı yazımları tablonun altında. |
+| 1 | Aynı adlı iki kişi | `people/Mert Aksu.md` ve ayırt edicili `people/Mert Aksu (iş).md` (`qualifier: iş`). Bağlantılar: `[[Mert Aksu]]` ve `[[Mert Aksu (iş)\|Mert]]`. |
 | 2 | Var olmayan hedefe bağlantı | `diary/2026-09-18.md` içinde `[[Henüz Yazılmamış Not]]`; kasada hedef dosyası olmayan tek bağlantı |
-| 3 | Frontmatter'sız not | `notes/Proje Fikirleri.md` frontmatter taşımaz. Not, elle yazılmış gibi blok kimliği olmayan görev satırları (`- [ ]`) ve bağlantılar içerir. Toplam 2 kimliksiz görev var. |
-| 4 | Kod bloğu içindeki bağlantı ve başlık | `notes/Toplantı Notları.md` içinde çitli kod bloğunda `[[Deniz Arıkan]]` ve `## Events`. Ayrıştırıcı bunları varlık bağlantısı ya da bölüm başlığı saymamalıdır. |
-| 5 | Saklanan sürüm | `conflicts/2026-09-20 (conflict 20260920T183000Z).md`, `diary/2026-09-20.md` dosyasının bir olay metni farklı sürümüdür. Taranmayan klasörler kuralı gereği indekse girmez. |
-| 6 | Çok satırlı `aliases` | `people/Deniz Arıkan.md` dosyasında Obsidian'ın yazdığı gibi blok liste biçiminde (`- Deniz\n  - Deniz abi`). Diğer varlıklarda tek satırlı liste (`[Selin]`) biçiminde. |
+| 3 | Frontmatter'sız not | `notes/Proje Fikirleri.md` frontmatter taşımaz. Not, blok kimliği olmayan 2 görev satırı (`- [ ]`) ve bağlantılar içerir. |
+| 4 | Kod bloğu içindeki bağlantı ve başlık | `notes/Toplantı Notları.md` içinde çitli kod bloğunda `[[Deniz Arıkan]]` ve `## Events`. Ayrıştırıcı bunları bağlantı ya da bölüm başlığı saymamalıdır. |
+| 5 | Saklanan sürüm | `conflicts/2026-09-20 (conflict 20260920T183000Z).md`, `diary/2026-09-20.md` dosyasının bir olay metni farklı sürümüdür. İndekse girmez. |
+| 6 | Çok satırlı `aliases` | `people/Deniz Arıkan.md` dosyasında blok liste biçiminde. Diğer varlıklarda tek satırlı liste (`[Selin]`) biçiminde. |
 
-Aynı adlı iki kişi bağlantılarda `[[Mert Aksu]]` ve `[[Mert Aksu (iş)|Mert]]` olarak geçer.
+### Sorgu ve ad kasaları
 
-**Küçük sorgu kasaları:** `vaults/backlinks/` "bu güne bağlananlar" sorgusu ve arayüzü için kasadır. Hedef gün `diary/2026-10-02.md` kendi içine, `diary/2026-10-01.md` hedefe bağlantı verir. `notes/Proje Fikirleri.md` 2 ayrı satırda hedefe bağlantı verir; bir satırda 2 yinelenen bağlantı, kod içi bağlantı ve çözülmeyen hedef taşır. `people/Deniz Arıkan.md` ve `places/Liman Ofis.md` hedefe bağlantılı kişi ve konumdur. Kasa günün kendisinin, kod içi bağlantının ve çözülmeyen hedefin dışarıda kaldığını kanıtlar. Kasa aynı kaynaktan 2 satırın 2 ayrı satır olarak listelendiğini de kanıtlar.
+| Kasa | İçerik | Kanıtladığı |
+|---|---|---|
+| `backlinks` | Hedef gün `diary/2026-10-02.md` kendi içine, `diary/2026-10-01.md` hedefe bağlantı verir. `notes/Proje Fikirleri.md` 2 ayrı satırda hedefe bağlantı verir. Bir satırda 2 yinelenen bağlantı, kod içi bağlantı ve çözülmeyen hedef vardır. `people/Deniz Arıkan.md` ve `places/Liman Ofis.md` hedefe bağlantılıdır. | Günün kendisi, kod içi bağlantı ve çözülmeyen hedef dışarıda kalır. Aynı kaynaktan 2 satır 2 ayrı satır olarak listelenir. |
+| `placeholder` | Gün, kişi, hedef ve kök klasördeki not için indirilmemiş yer tutucular; bildirilmeyen `.app/.types.json.icloud`. Bir gün hem yer tutucusunu hem yerel özgün dosyasını taşır. Diğer dosyalar sıradan gizli Markdown ve kişi yeniden adlandırma kaynağıdır. | Uygulama oluşturma ya da taşıma işlemini reddedince tüm kasa ve SQLite baytları aynı kalır. |
+| `placeholder`, dosyalar | `expected.json` bekleyen ve indekslenen yolları tanımlar; bekleyen liste indirme isteğinin de beklentisidir. `names.json` düşman adlar, boşluk ve NFD baytlarını koruyan saf ad eşlemesidir. | Uygulama testleri kasayı iCloud kasası, yerel kasa ve seçilen klasör olarak açar. |
+| `nfd-names` | `people/Baran Tunç.md` ve `places/Çınaraltı Kafe.md` adı ve takma adı NFD baytlarıyla yazar. `diary/2026-10-01.md` 3 bağlantı taşır: NFD `[[Baran Tunç]]`, NFD ve küçük harfli `[[places/çınaraltı kafe]]`, NFC `[[Baran Tunç]]`. | Ayrışmış yazım indekste birleşik (NFC) karşılaştırma anahtarına döner. |
+| `nfd-names`, test | Git ayrışmış dosya adlarını birleşik biçime döndürür. Test her yol parçasını NFD biçimiyle geçici kasada oluşturur. Test baytları karşılaştırır, çünkü Swift `==` NFC ve NFD yazımını eşit sayar. | Diskteki ad NFD kalır. NFD yolla silinen ve geri eklenen kişinin gelen bağlantıları yeniden çözülür. |
+| `nfd-names`, `expected.json` | NFC yollar, varlık ve takma ad anahtarları; her bağlantının satırı, `targetKey` değeri ve çözülen dosyası | — |
+| `turkce-buyuk-harf` | `people/Deniz.md`, `people/Işık.md` (takma ad `Irmak`), `people/Ian.md`, `places/İstanbul.md`. `diary/2026-10-05.md` elle yazılmış bağlantılar ve düz yazımlar taşır. | [Ad karşılaştırma anahtarı](vault-format.md#adlar-ve-karşılaştırma) ve ad çakışması denetimi |
+| `turkce-buyuk-harf`, bağlantılar | `[[DENİZ]]`, `[[IŞIK]]`, `[[işık]]`, `[[istanbul]]`, `[[ISTANBUL]]`, `i` + U+0307 yazımlı `[[i̇stanbul]]`, `[[IAN]]`, `[[ian]]` | — |
+| `turkce-buyuk-harf`, düz yazımlar | `DENİZ`, `IŞIK`, `İSTANBUL'a`, `IRMAK`, `irmak` | — |
+| `turkce-buyuk-harf`, test | Ad çakışması iki okumayı sınar: Türkçe anahtar (`DENİZ`, `ışık`, `istanbul`) ve varsayılan küçük harf eşlemesi (`ian`, `.SELIN KAYA.md.icloud`). Her oluşturma ve yeniden adlandırma kasanın ayrı kopyasında çalışır. | Reddedilen işlem kasanın baytlarını değiştirmez. Eski şema sürümlü, eski anahtarlı indeks açılışta silinir. |
 
-`vaults/placeholder/` gün, kişi, hedef ve kök klasördeki not için indirilmemiş yer tutucular ve bildirilmeyen `.app/.types.json.icloud` taşır. Bir gün hem yer tutucusunu hem yerel özgün dosyasını taşır; diğer dosyalar sıradan gizli Markdown ve kişi yeniden adlandırma kaynağıdır. `expected.json` bekleyen ve indekslenen yolları tanımlar. `names.json` düşman adlar, boşluk ve NFD baytlarını koruyan saf ad eşlemesini tanımlar. Uygulama oluşturma ya da taşıma işlemini reddedince tüm kasa ve SQLite baytları aynı kalır. Uygulama testleri kasayı iCloud kasası, yerel kasa ve seçilen klasör olarak açar; `expected.json` bekleyen listesi indirme isteğinin beklentisidir.
-
-`vaults/nfd-names/` ayrışmış (NFD) yazımın indekste birleşik (NFC) karşılaştırma anahtarına döndüğünü sınar. Git ayrışmış dosya adlarını birleşik biçime döndürür. Bu yüzden test her yol parçasını NFD biçimiyle geçici kasada oluşturur. Test diskteki adın NFD kaldığını da denetler. `people/Baran Tunç.md` ve `places/Çınaraltı Kafe.md` adı ve takma adı NFD baytlarıyla yazar. `diary/2026-10-01.md` 3 bağlantı taşır: NFD `[[Baran Tunç]]`, NFD ve küçük harfli `[[places/çınaraltı kafe]]`, NFC `[[Baran Tunç]]`. `expected.json` NFC yolları, varlık ve takma ad anahtarlarını ve her bağlantının satırını, `targetKey` değerini ve çözülen dosyasını taşır. Test baytları karşılaştırır, çünkü Swift `==` NFC ve NFD yazımını eşit sayar. Test NFD yolu bildirerek kişiyi siler ve geri ekler; gelen bağlantılar iki yönde de yeniden çözülür.
-
-`vaults/turkce-buyuk-harf/` ad karşılaştırma anahtarındaki Türkçe büyük harf eşlemesini (`İ` → `i`, `I` → `ı`) sınar. Kasa kurgusal `people/Deniz.md`, `people/Işık.md` (takma ad `Irmak`), `people/Ian.md` ve `places/İstanbul.md` taşır. `diary/2026-10-05.md` elle yazılmış bağlantılar ve düz yazımlar taşır. Bağlantılar: `[[DENİZ]]`, `[[IŞIK]]`, `[[işık]]`, `[[istanbul]]`, `[[ISTANBUL]]`, `i` + U+0307 yazımlı `[[i̇stanbul]]`, `[[IAN]]`, `[[ian]]`. Düz yazımlar: `DENİZ`, `IŞIK`, `İSTANBUL'a`, `IRMAK`, `irmak`. `expected.json` şu dizileri taşır:
+**Tablo, `turkce-buyuk-harf/expected.json` dizilerini verir.**
 
 | Dizi | İçerik |
 |---|---|
@@ -1270,47 +1047,62 @@ Aynı adlı iki kişi bağlantılarda `[[Mert Aksu]]` ve `[[Mert Aksu (iş)|Mert
 | `named` | `entities(named:)` sorgusu ve dönen dosyalar |
 | `mentions` | Varlık başına bağlanmamış anmalar: sıfır tabanlı satır, UTF-8 `byteRange`, yazım, harf boyu farkı |
 | `creations`, `renames` | Oluşturma ya da yeniden adlandırma ve sonucu: yeni yol ya da `nameTaken` |
-| `placeholders` | Test kasaya yazdığı yer tutucu, oluşturulan ad ve `awaitingDownload` yolu |
+| `placeholders` | Testin kasaya yazdığı yer tutucu, oluşturulan ad ve `awaitingDownload` yolu |
 
-Ad çakışması iki okumayı birden sınar: Türkçe anahtar (`DENİZ`, `ışık`, `istanbul`) ve yalnız varsayılan küçük harf eşlemesi (`ian`, `.SELIN KAYA.md.icloud`). Her oluşturma ve yeniden adlandırma kasanın ayrı kopyasında çalışır. Reddedilen işlem kasanın baytlarını değiştirmez. Test sürüm 8 olarak işaretlenmiş, eski anahtarlı bir indeksin açılışta silindiğini de sınar. Fixture yazarı beklentileri uygulamadan bağımsız, elle yazdı.
+### Kopya kasaları
 
-**Şema, `vaults/day-copies/` kasasında her gün için kopyaların sonucunu gösterir.**
+**Gün kopyası**, iCloud'un `diary/` içinde bir gün dosyasının yanına ayırdığı `2026-10-02 2.md` biçimindeki dosyadır. Kural kaynağı: [Gün kopyası adları](vault-format.md#gün-kopyası-adları) ve [Çakışma kopyası](vault-format.md#çakışma-kopyası).
 
-```mermaid
-flowchart TD
-  D1["2026-10-01: ana dosya ve kopya"] --> R1["merged: olaylar birleşir, ana dosya saklanır"]
-  D2["2026-10-02 2.md, sonra 2026-10-02 3.md"] --> R2["merged: sırayla iki birleştirme"]
-  D3["2026-10-03 2.md, ana dosya yok"] --> R3["renamed: kopya ana dosyanın adını alır"]
-  D4["2026-10-04: aynı baytlar"] --> R4["identical: kopya silinir"]
-  D5["2026-10-05: eski kopya UTF-8 değil"] --> R5["Kopya bayt bayt saklanır, ana dosya değişmez"]
-  D6["Kopya olmayan benzer adlar"] --> R6["Sıradan not; hiç değişmez"]
-  D7["2026-10-08: gün kopyadan yeni"] --> R7["Gün yine yazılır; zaman max+1 sn"]
-  D8["three-versions: gün, kopya 2, kopya 3"] --> R8["2→3 ve 3→2 aynı gün dosyası"]
-```
+| Kasa | Dosya | İçerik |
+|---|---|---|
+| `day-copies` | `source/` | Başlangıç kasası |
+| `day-copies` | `expected/` | Bildirilen bütün kopyalar sırayla birleştikten sonraki kasanın tamamı, bayt bayt |
+| `day-copies` | `cases.json` | Her dosyanın değişiklik zamanı (UTC saniyesi), beklenen `dayCopies` sırası, indekslenen yollar, her kopyanın sonucu |
+| `day-copies` | `cases.json`, sonuç | `renamed`, `identical` ya da `merged`; saklanan sürüm yolları ve `fellBack` değeri |
+| `day-copies` | `names.json` | Saf ad kuralının tablosu: yol, gün (kopya değilse `null`) ve `mergeOrder` sırası |
+| `conflict-copies` | `expected.json`, `names` | Saf ad kuralının tablosu: yol ve gün dosyası (kopya değilse `null`) |
+| `conflict-copies` | `expected.json`, `conflictCopies` | Diskteki liste: gün, addaki zaman, sonra sayı sırasıyla kopyalar. Gün dosyası olmayan `2026-09-30` kopyası da listededir. |
+| `conflict-copies` | `source/conflicts/` | Aynı benzer adlar, `eski/` alt klasörü ve bir `.icloud` yer tutucusu. Kökteki benzer adlı dosya sıradan nottur ve indekse girer. |
 
-**Gün kopyası**, iCloud'un `diary/` içinde bir gün dosyasının yanına ayırdığı `2026-10-02 2.md` biçimindeki dosyadır. `source/` başlangıç kasası, `expected/` bütün kopyalar sırayla birleştikten sonraki kasanın tamamıdır. `cases.json` değişiklik zamanlarını, beklenen `dayCopies` sırasını, indekslenen yolları ve her kopyanın sonucunu taşır. Sonuç `renamed`, `identical` ya da `merged`, saklanan sürüm yolları ve `fellBack` değeridir. Zamanlar UTC saniyesidir; test zamanları kasanın geçici kopyasına uygular.
+**Tablo, `day-copies` kasasındaki gün durumlarını verir.**
+
+| Gün | Sonuç | Ayrıntı |
+|---|---|---|
+| `2026-10-01` | `merged` | Ana dosya ve kopya farklı olaylar ve farklı yönde değişmiş günlük yazısı taşır. Olaylar birleşir; eski sürüm olan ana dosya saklanır. `conflicts/` içinde o ad başka bir nota aittir; kopya `… 20261001T090000Z 2).md` adını alır. Var olan not değişmez. |
+| `2026-10-02` | `merged`, iki kez | Kopyanın kopyası: önce `2026-10-02 2.md`, sonra `2026-10-02 3.md` birleşir. İkincisi yalnız `## Tasks` bölgesi getirir. |
+| `2026-10-03 2.md` | `renamed` | Ana dosya yok; kopya onun adını ve değişiklik zamanını alır. |
+| `2026-10-04` | `identical` | İki sürüm bayt bayt aynı; kopya silinir, `conflicts/` yazılmaz. |
+| `2026-10-05` | Saklanır | Eski kopya UTF-8 olarak çözülemez ve salt okunurdur. Ana dosya değişmez; kopya bayt bayt saklanır. |
+| `2026-10-08` | `merged` | Gün kopyadan yenidir. Kopya ayrı bir olay getirir; gün yazılır ve günün zamanı artı 1 saniyeyi alır. |
+| `three-versions/` | İki sıra, aynı gün | X/Y/Z aynı olayı değiştirir. `source/` üç sürümü, `expected.md` beklenen günü taşır. `case.json` zamanları, iki sırayı ve her sıranın beklenen `conflicts/` adlarını taşır. |
+| Benzer adlar | Değişmez | `2026-10-02 2 2.md`, `2026-10-02-2.md`, `2026-10-02 02.md`, `2026-13-40 2.md`, `diary/eski/…`, `notes/…` sıradan not olarak indekse girer. |
+
+| Konu | Ayrıntı |
+|---|---|
+| `names.json`, kopya sayılmayan adlar | Ayrışmış (NFD) işaret, tam genişlikli ve Arap-Hint rakam, bölünmez boşluk; büyük harfli klasör, yer tutucu ve alt klasör adları |
+| `conflict-copies`, kopya sayılmayan adlar | Sayısı 1 ya da başı sıfırlı; geçersiz gün, saat ya da takvim günü; eksik `Z`; büyük harfli `Conflict`; tam genişlikli rakam; alt klasör, kök dizin ve yer tutucu adları |
+| NFD adlar | Git ayrışmış adları birleşik biçime döndürür; test o dosyaları geçici kasada oluşturur. |
+| Harf boyu | Yalnız harf boyu farklı iki ad koyma. Harf boyuna duyarsız birim ikisini tek dosya sayar; biri ötekinin üzerine yazılır. |
+| `day-copies` testleri | Testler zamanları kasanın geçici kopyasına uygular. Her adımda gün dosyasını ve `conflicts/` dosyasını `ConflictMerge` sonucuyla karşılaştırırlar. |
+| `day-copies` uygulama testi | `source/` kasasını iCloud kasası olarak açar ve birleştirme bayrağını açar. Kasa sonunda `expected/` ile bayt bayt aynıdır. |
+| `conflict-copies` uygulama testi | Kasayı iCloud Drive yolu altına kopyalar. Sahte sürüm kaynağıyla `IndexStore.computeConflictedFiles` sorgusunu sınar. |
+
+### `graph`
 
 | Dosya | İçerik |
 |---|---|
-| `source/` | Başlangıç kasası |
-| `expected/` | Bildirilen bütün kopyalar sırayla birleştikten sonraki kasanın tamamı, bayt bayt |
-| `cases.json` | Her dosyanın değişiklik zamanı, beklenen `dayCopies` sırası, indekslenen yollar, her kopyanın sonucu |
-| `names.json` | Saf ad kuralının tablosu: yol, gün (kopya değilse `null`) ve `mergeOrder` sırası |
+| `expected.json` | Elle sayılmış `totals` ve tarih sıralı `days` (`date`, `mentions`) |
+| `day-graph.json` | Tek gün sorgusunun beklentisi: `kinds` (kişi, konum, kitap) ve tarih başına elle sayılmış `mentions` |
+| `relations.json` | Açık ilişki beklentileri: yönlü giden ve gelen sorgular, yönsüz tekilleştirme. `RelationsIndexTests` sınar. |
 
-**Tablo, gün kopyası durumlarının ayrıntısını verir.**
-
-| Gün | Ayrıntı |
+| Konu | Kasadaki durum |
 |---|---|
-| `2026-10-01` | Ana dosya ve kopya farklı olaylar ve farklı yönde değişmiş günlük yazısı taşır. Olaylar birleşir; eski sürüm olan ana dosya saklanır. `conflicts/` içinde o ad başka bir nota ait olduğu için kopya `… 20261001T090000Z 2).md` adını alır. Var olan not değişmez. |
-| `2026-10-02` | Kopyanın kopyası: önce `2026-10-02 2.md`, sonra `2026-10-02 3.md` birleşir. İkincisi yalnız `## Tasks` bölgesi getirir. |
-| `2026-10-03 2.md` | Ana dosya yok; kopya onun adını ve değişiklik zamanını alır. |
-| `2026-10-04` | İki sürüm bayt bayt aynı; kopya silinir, `conflicts/` yazılmaz. |
-| `2026-10-05` | Eski kopya UTF-8 olarak çözülemez ve salt okunurdur. Ana dosya değişmez; kopya bayt bayt saklanır. |
-| `2026-10-08` | Gün kopyadan yenidir. Kopya ayrı bir olay getirir; gün yazılır ve günün zamanı artı 1 saniyeyi alır. |
-| `three-versions/` | X/Y/Z aynı olayı değiştirir. `source/` üç sürümü, `expected.md` beklenen günü taşır. `case.json` zamanları, iki sırayı ve her sıranın beklenen `conflicts/` adlarını taşır. İki sıra bu örnekte aynı günü üretir. |
-| Benzer adlar | `2026-10-02 2 2.md`, `2026-10-02-2.md`, `2026-10-02 02.md`, `2026-13-40 2.md`, `diary/eski/…`, `notes/…` sıradan not olarak indekse girer ve hiçbir aşamada değişmez. |
-
-Kopya olmayan benzer adlar (`2026-10-02 2 2.md`, `2026-10-02-2.md`, `2026-10-02 02.md`, `2026-13-40 2.md`, `diary/eski/…`, `notes/…`) sıradan not olarak indekse girer ve değişmez. `names.json` saf ad kuralının tablosudur: yol, gün (kopya değilse `null`) ve `mergeOrder`. Tablo bazı adları kopya saymaz: ayrışmış (NFD) işaret, tam genişlikli ve Arap-Hint rakam, bölünmez boşluk. Büyük harfli klasör, yer tutucu ve alt klasör adları da kopya değildir. Git ayrışmış adları birleşik biçime döndürür; bu yüzden test o dosyaları geçici kasada oluşturur. `expected/` klasörünü birleştirme kodu üretti; fixture yazarı kuralları elle uygulayıp her dosyayı doğruladı. Testler her adımda gün dosyasını ve `conflicts/` dosyasını `ConflictMerge` sonucuyla karşılaştırır. Uygulama testi `source/` kasasını iCloud kasası olarak açar ve birleştirme bayrağını açar. Test kasanın sonunda `expected/` ile bayt bayt aynı olduğunu sınar.
+| Gün dosyasının başlık ve frontmatter bağlantıları | O günün anmasına girer. 2026-10-02'de Selin'in başlıktaki anması 4'e, Liman Ofis'in frontmatter ve başlık anmaları 3'e katılır. |
+| Gün kopyası | İndekse girmez. |
+| Varlık dosyalarının frontmatter bağları | `totals` içinde anma sayılır, gün anması olmaz: `related`, `eşi`, kitabın `yazar` alanı. Selin 8 + 3 ile 11, Deniz 7 + 2 ile 9 olur. |
+| Özel kitap tipi | Kendi tür sorgusunda yalnız tekil anması vardır. Ana Graph'ta tipi süzgeçte açılınca düğüm olur. |
+| `diary/2026-10-04.md` | Boş satırsız tek Diary paragrafı. Madde, devam satırı, alıntı ve numaralı madde satırlarındaki her bağlantı anmaya girer. Baran, Ece, Mert ve Ev ikişer anma alır. |
+| `day-graph.json` günleri | Kasada dosyası olmayan boş bir gün; kitabın tek başına anıldığı 2026-10-01; 2026-10-04. Kitap yalnız gün sorgusunda o güne girer. |
 
 ## `migration/` kümesi
 
@@ -1328,10 +1120,11 @@ Kopya olmayan benzer adlar (`2026-10-02 2 2.md`, `2026-10-02-2.md`, `2026-10-02 
 
 `outcome.json` geçişin raporunu taşır: `moved`, `copies`, `leftInPlace`, `removedLegacyFolder`. Test kaynağı geçici klasöre kopyalar ve her dosyaya sabit zaman verir. Yarım kalan geçiş, yer tutucu ve `Diary/` durumlarını test kodda kurar.
 
-`parse/section-legacy-heading/` iki başlığı birlikte okur. `write/diary-append-legacy-heading/` ve `write/section-diary-legacy-heading/` eski başlığa yazar; yazıcı başlığı değiştirmez.
+Kural kaynağı: [Eski adlar ve geçiş](vault-format.md#eski-adlar-ve-geçiş). Eski başlık örnekleri `parse/section-legacy-heading/` ve `write/*-legacy-heading/` klasörleridir.
 
 ## İlgili belgeler
 
 - [Kasa biçimi](vault-format.md): ayrıştırıcı ve yazıcı kuralları.
-- [Mimari](architecture.md): Core modülleri ve test hedefleri.
+- [Mimari](architecture.md): Core modülleri.
+- [Geliştirme](development.md): test katmanları ve CI.
 - [Ekranlar](screens.md): özet sayılarının tanımı.

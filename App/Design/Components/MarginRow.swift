@@ -77,7 +77,7 @@ struct MarginRow<Mark: View, Primary: View, Secondary: View, Trailing: View>: Vi
         }
     }
 
-    /// Accessibility sizes: the mark sits above the text (design.md "Erişilebilirlik"). The edge
+    /// Accessibility sizes: the mark sits above the text (design.md "Büyük yazı"). The edge
     /// column scales with the text (`gutter` is ~137 pt at AX5): beside the text it left a
     /// 320 pt row a few letters per line, so words broke mid-word.
     private var accessibilityLayout: some View {

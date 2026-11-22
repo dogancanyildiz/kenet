@@ -8,7 +8,7 @@
 - Bütün ekranlar için ortak kurallar ve denetim kalıpları.
 - Renk, parıltı, yazı, yarıçap, boşluk, yüzey ve gölge belirteçleri; uygulama simgesi.
 - Bileşen ailesi ve ekran başına uygulama.
-- Erişilebilirlik: Kontrastı Artır, Saydamlığı Azalt, Hareketi Azalt.
+- Erişilebilirlik: Kontrastı Artır, Saydamlığı Azalt, Hareketi Azalt; büyük yazıda yerleşim.
 - Widget, rozetler, terim sözlüğü, doğrulama ve bilinen riskler.
 
 ## Durum
@@ -64,7 +64,7 @@ Parıltının yeri ve gücü bu yüzden sayıyla tanımlıdır.
 | 9 | iOS'ta hiçbir metin 12 pt'nin altında değildir. Etiketler cümle düzenindedir: hafta şeridinde "Pzt". Büyük harfli, geniş aralıklı etiket yoktur. |
 | 10 | Dokunma hedefleri en az 44 pt'dir. iOS'ta kısa sözcüklü metin düğmesi ("Geri", "İleri") 44 pt genişliğe uzar; sözcük başta kalır. Tek satırlık satır ve anahtar satırı 44 pt yüksekliktedir. Hafta şeridinin her günü 44 × 56 pt'dir. |
 | 11 | İçerikte zeminle zıt parlaklıkta büyük yüzey yoktur. Parıltı zeminin parlaklık ailesinde kalır; parıltı üstündeki ikincil metin en az 4,5:1 taşır. Böylece altından geçen sistem camı açık ile koyu arasında çevrilmez. |
-| 12 | Mac'te kenar çubuğunun seçili satırı `accentSoft` ile dolar. Seçili satırın simgesi vurgu rengindedir: mürdüm. Seçili satırın yazısı `text` rengindedir ve yarı kalındır. Öteki satırların simgesi `secondaryText` rengindedir. Kontrast `accentSoft` üstünde yazıda açıkta 13,41:1, koyuda 13,50:1'dir. Simgede açıkta 6,45:1, koyuda 5,87:1'dir. Karar: `decisions.md` 2026-11-11 kenar çubuğu satırı. Kenar çubuğu `elevated` zemindedir; parıltı yoktur. Yalnız seçili girdi vurgu alır: Görevler'in altındaki Kanban, Zaman çizelgesi ve projeler ayrı satırdır. Seçimin kendisi sistemindir: ok tuşları, odak, VoiceOver. Yalnız çizim uygulamanındır. Bölünmüş kabukta (iPhone Duo iç ekranı, iPad) aynı kural geçerlidir: sistemin seçim vurgusu ve odak çerçevesi dolgunun üstüne çizilmez. |
+| 12 | Mac'te kenar çubuğunun seçili satırı `accentSoft` ile dolar; yalnız seçili girdi vurgu alır. Seçimin kendisi sistemindir: ok tuşları, odak, VoiceOver; yalnız çizim uygulamanındır. Renkler, kontrast ve bölünmüş kabuk [Mac kenar çubuğu satırı](#mac-kenar-çubuğu-satırı) bölümündedir. |
 | 13 | Hareket sistem varsayılanlarıyla sınırlıdır ve Hareketi Azalt ayarına uyar. Parıltı ve hale durağandır: nabız, dönme ve renk geçişi yoktur. Tek istisna Graph'tır: düğümler kuvvet benzetimiyle hareket eder, çünkü içerik hareketin kendisidir. Hareketi Azalt açıkken Graph da canlı oynamaz; uygulama oturmuş düzeni tek seferde gösterir. |
 
 **DİKKAT:** Kural numaralarını değiştirme; kod kural 12'ye `MacSidebar.swift` içinde, Şafak kuralı 4'e `InkLinkStyle.swift` içinde numarayla gönderme yapar.
@@ -117,7 +117,7 @@ Parıltının yeri ve gücü bu yüzden sayıyla tanımlıdır.
 
 Ayrım renge dayanmaz; kalınlık anlamı taşır. Graph bir bağ çizdiğinde gösterge "Bağ" öğesini kalın düz çizgi örneğiyle gösterir, örnek çizginin kendi rengindedir (`ink.rule`); özel tip öğesi gibi, bağ yoksa öğe yoktur. "Düğüm seç ⌄" her zaman göstergenin altındadır. Açık bağ dönemden bağımsızdır, yay ağırlığı 1’dir. Birlikte geçme kenarı yoktur: iki varlık arasındaki her çizgi açık bağdır. Gösterge tekil adlarla yazar ve "Gün" öğesini her zaman gösterir: Kişi, Konum, Gün, özel tipler, Bağ.
 
-**Günün grafiği düzeni.** Ana Graph ile aynı sayfa düzenidir: manşet, denetim satırı, tuval, gösterge, açıklama. Manşet "Günün grafiği"dir ve künye günün tam tarihidir. Manşet satırında yalnız arama durur. Denetim satırında dönem yoktur; yalnız yakınlaştırma, uzaklaştırma ve Ortala kalır. Göstergede gün tek öğedir: "Gün". Gün ekranındaki giriş simgesi `point.3.connected.trianglepath.dotted`'dur, Graph kenar çubuğu girdisiyle aynı simgedir.
+**Günün grafiği.** Düzeni ve denetimleri [Ekranlar](screens.md#günün-grafiği) belgesindedir. Gün ekranındaki giriş simgesi `point.3.connected.trianglepath.dotted`'dur; Graph kenar çubuğu girdisiyle aynı simgedir.
 
 ## Denetim kalıpları
 
@@ -129,11 +129,13 @@ Aşağıdaki 8 kalıp tek tanımdır. Her ekran kalıpları ortak bileşenlerle 
 |---|---|
 | Kök ekran, iPhone | Sayfa adı solda sans manşettir (`display`). Sayfanın eylem simgeleri aynı satırın sağında durur. Sistem gezinme çubuğu ve cam kapsül yoktur. |
 | Bugün ve Gün ekranı | Manşet gün başlığıdır: Bugün'de gün halkası, gün rakamı ve gün adı; altında hafta şeridi durur. Gün ekranında üst satır geri, ay seçici, Günün grafiği ve aramadır; altında hafta şeridi durur. |
-| Mac | Sayfa adı yine sayfanın içinde sans manşettir. Her liste sütunu manşetle başlar. Pencere araç çubuğunda başlık yoktur. Pencerenin adı seçili kenar çubuğu girdisidir ve yalnız Pencere menüsünde görünür. Araç çubuğunda arama düğmesi yoktur; arama kenar çubuğunun tepesindeki alandır. Araç çubuğu `paper` renginde ve opaktır. |
+| Mac | Sayfa adı yine sayfanın içinde sans manşettir. Her liste sütunu manşetle başlar. Pencere araç çubuğunda başlık yoktur; araç çubuğu `paper` renginde ve opaktır. |
 | Alt sayfa, iPhone | Manşetin üstünde gezinme satırı durur: solda "‹ Üst sayfa" metinli geri öğesi, sağda sayfanın simgeleri. Sistem çubuğu gizlenir; kenardan kaydırma yine üst sayfaya döner. Başlık `title1` boyutundadır (`subpageTitle`); künye tek satır `footnote`tur. |
 | Alt sayfa, iPad bölünmüş kabuk, Mac ve sheet | Sistem çubuğunda yalnız geri düğmesi kalır. Sayfanın eylemleri manşet satırındadır. |
 | Kaydırma, iPhone ve iPad | Manşet satırı içerikle birlikte kayar. Bugün'de gün başlığı kaydırınca tek satıra iner ve üstte kalır. İstisna Ara sayfasıdır: manşet ve arama alanı sabittir, sonuçlar altta kayar. |
-| Kaydırma, Mac | Pencere sütunlarında manşet satırı sütunun üstünde sabittir; içerik altından kayar. İçerik kaydırılınca manşetin altında ince bir çizgi belirir, sayfa en üstteyken çizgi yoktur. Görevler'de sayfa üstünün tamamı sabittir: manşet, görünüm sekmeleri ve menü satırı. Günlük sütununda manşetle birlikte Özetler ve Haftalık inceleme çipleri sabittir; takvim ve günler kayar. Sheet'te açılan sayfa da manşetini sheet'in üstünde sabit tutar: kişi, konum, bulunamayan bağlantı, gün ve not sayfası. Haftalık inceleme ve günlük yazısı sheet'leri bu kalıbı kullanmaz. |
+| Kaydırma, Mac | Pencere sütunlarında manşet satırı sütunun üstünde sabittir; içerik altından kayar. İçerik kaydırılınca manşetin altında ince bir çizgi belirir, sayfa en üstteyken çizgi yoktur. |
+| Kaydırma, Mac: sabit parçalar | Görevler'de sayfa üstünün tamamı sabittir: manşet, görünüm sekmeleri ve menü satırı. Günlük sütununda manşetle birlikte Özetler ve Haftalık inceleme çipleri sabittir; takvim ve günler kayar. |
+| Kaydırma, Mac: sheet | Sheet'te açılan sayfa da manşetini sheet'in üstünde sabit tutar: kişi, konum, bulunamayan bağlantı, gün ve not sayfası. Haftalık inceleme ve günlük yazısı sheet'leri bu kalıbı kullanmaz. |
 | Kenar çubuğu, Mac | Satırlar arama alanının altına kayınca kenar çubuğunun üstünde aynı ince çizgi belirir. |
 
 Kod karşılığı: `InkPageTitle`, `InkPageTitleRow`, `inkRootPageNavigationTitle` ve `inkPageNavigationTitle`. Sayfa manşeti bir kez tanımlar ve aynı değeri iki yere verir: kaydırılan içerikteki `InkScrolledMasthead` yuvasına ve kaydırma görünümünün üstündeki `inkPinnedMasthead` değiştiricisine. `InkMastheadPlacement` hangisinin çizeceğini platforma göre seçer. Kenar çubuğu çizgisi `inkScrollEdgeRule` değiştiricisidir.
@@ -147,8 +149,8 @@ Kod karşılığı: `InkPageTitle`, `InkPageTitleRow`, `inkRootPageNavigationTit
 | Mac alanı | Tıklama alanı en az 28 pt. Simge semantik `title2` boyutundadır. Komşu tıklama alanları arasında 4 pt boşluk vardır. |
 | Renk | Yardımcı eylemler ikincil metin rengindedir: ara, sırala, filtrele, Ayarlar, günün grafiği. Kayıt açan ya da içeriği değiştiren eylem vurgu rengindedir: ekle, düzenle. "Eylem tek renktir" kuralı bu eylemler içindir. |
 | Sayı | Bir satırda en çok 3 simge durur. Fazlası sayfanın en üstünde ayrı satır olur; örneğin Günlük'teki Özetler ve Haftalık inceleme çipleri. |
-| Sıra | Sıra sabittir. iPhone'da en sağda ara durur, solunda ekrana özgü simgeler durur. Mac'te manşet satırında arama simgesi yoktur. |
-| Erişilebilirlik boyutu | Erişilebilirlik boyutunda simgeler manşetin üstünde ayrı satıra çıkar. Satıra sığmayan simge ikinci satıra iner. Alt sayfada geri öğesinin yanına sığmayan simgeler onun altına iner. Manşet ve künye sarar, kırpılmaz. Varsayılandan büyük her boyutta (xL ve üstü) manşet ve künye satırlarının yüksekliğini alır. |
+| Sıra | Sıra sabittir. iPhone'da en sağda ara durur, solunda ekrana özgü simgeler durur. |
+| Büyük yazı | [Büyük yazı](#büyük-yazı) tablosundadır. |
 
 Kod karşılığı: `InkHeaderAction`, `InkHeaderMenu` ve `InkHeaderActionChrome`. Sınırlar `maximumCount = 3`, `spacing = 4` ve `macMinimumSide = 28` değerleridir.
 
@@ -157,8 +159,7 @@ Kod karşılığı: `InkHeaderAction`, `InkHeaderMenu` ve `InkHeaderActionChrome
 | Yer | Kural |
 |---|---|
 | iPhone | Genel arama manşet satırının en sağındadır. Bugün istisnadır: arama Ayarlar'ın solundadır (çizim). Simge her ekranda aynıdır. |
-| Mac | Genel arama kenar çubuğunun tepesindeki tek alandır: "Ara" ve ⌘F. ⌘F alana odak verir. Yazılan sorgu Ara sheet'ini sonuçlarla açar. Araç çubuğunda ve manşet satırlarında büyüteç yoktur. |
-| Mac, Ara sheet'i | Sonuçlardan açılan sayfada manşet büyüteci Mac'te de durur ve sonuçlara döndürür. Sayfa not, kişi, konum ya da gün olabilir. Neden: kenar çubuğunun arama alanı sheet'in arkasında kalır. |
+| Mac ve bölünmüş kabuk | Mac'te araç çubuğunda ve manşet satırlarında büyüteç yoktur. Aramanın yeri ve Ara sheet'i istisnası [Ekranlar](screens.md#geniş-düzen) belgesindedir. |
 | Kapsam çipleri | Ara sayfasında sonuç gruplarının üstünde: Hepsi, Olaylar, Görevler, Kişiler, Günler. Çip `well` zeminli, ince çizgili, yaklaşık 28 pt yüksekliğinde kapsüldür; dokunma hedefi 44 pt'dir. Seçili çip `accentSoft` zeminli, vurgu renginde ve kalındır; "Renksiz ayırt et" açıkken onay işareti de taşır. |
 | Süzgeç alanı | Sayfa içi süzgeç alanı Ara sayfasındaki alanla aynı bileşendir: `well` zemin, 12 pt köşe, 1 pt `rule` sınır, odakta vurgu çizgisi. Yer tutucu italik değildir. |
 
@@ -207,16 +208,16 @@ flowchart TD
 
 | Konu | Kural |
 |---|---|
-| Zemin ve başlık | Zemin `elevated`'dır. Başlık sans manşettir. İçerikte bölümler karttır: bölüm başlığı kartın üstünde, satırlar kartın içinde. |
+| Zemin ve başlık | Zemin `elevated`'dır; tarih seçici yalnız hızlı girişteki küçük pencerede `surface` üstündedir. Başlık sans manşettir. İçerikte bölümler karttır: bölüm başlığı kartın üstünde, satırlar kartın içinde. |
 | Başlık, iOS | Salt okunur sheet'in başlığı sistem çubuğunda, "Kapat" ile aynı satırdadır. Künyeli sheet başlığı sayfada tutar: "Günü kapat". Kullanıcı metni olan başlık da sayfada, "Kapat"ın altındadır: etkinlik ayrıntısı. Düzenleme sheet'inde başlık "Vazgeç" ve onay satırının altındadır. |
 | Düğme biçimi | Çubuktaki düğmeler düz yazıdır; dolu kapsül yoktur. "Vazgeç" ikincil renkte düz yazıdır. Onay vurgu renginde, yarı kalın düz yazıdır. "Bitti" yoktur. |
 | Toplu yazan akış | Örnek: kasa hazırlığı. Eylem taslak kaydetmek değildir. Çubukta yalnız "Vazgeç" durur. Eylem kendi adıyla sayfada birincil düğmedir ve Return tuşuna bağlı değildir. |
 | Paylaşım formu | Çubukta yalnız "Vazgeç" durur. Onay sayfada birincil düğmedir: "Kenet'e ekle". |
-| Adım akışı | Örnek: günü kapat. Uygulama hedef işaretini anında yazar. Görev seçimlerini "Uygula" ile, günlük cümlesini "Yaz" ile yazar. Kapatmak yazılmış adımı geri almaz; bu yüzden çubukta "Vazgeç" yerine "Kapat" durur. |
+| Adım akışı | Örnek: günü kapat. Kapatmak yazılmış adımı geri almaz; bu yüzden çubukta "Vazgeç" yerine "Kapat" durur. Adımların yazma sırası `screens.md` "Günü kapat" bölümündedir. |
 | Yazma sırasında | Yazma sürerken "Vazgeç" devre dışıdır. Adım akışında "Kapat" da yazma bitene dek bekler. |
 | Mac | Sistem pencere başlığı yoktur; tek sans manşet vardır. Araç çubuğu ve alt eylem çubuğu `elevated` zemindedir. Alt çubukta "Vazgeç" solda, onay ya da "Kapat" sağda durur. |
 | Boyut | Sheet gövdesinin yüksekliği hiçbir zaman sıfır olmaz. iOS bölünmüş kabukta kısa tarih, tekrar, metin ve hedef miktarı sheet’leri form genişliğini korur, yüksekliği manşet ve içeriğe göre değişir; uzun sheet’ler ortak ideal boyutu kullanır. Sekme kabuğu ve Mac boyutları değişmez. |
-| Seçim sheet'i | Örnek: varlık tipi galerisi. Çubukta yalnız "Vazgeç" durur; satırlar simge, ad ve özetle listelenir, seçim bir sonraki adımı (editörü) sheet içinde açar; kullanılamayan satır soluk ve nedeniyle ("Zaten var") gösterilir. |
+| Seçim sheet'i | Örnek: varlık tipi galerisi. Çubukta yalnız "Vazgeç" durur; satırlar simge, ad ve özetle listelenir. Kullanılamayan satır soluktur ve nedenini yazar: "Zaten var". |
 
 Kod karşılığı: `.inkSheet`, `InkSheetScaffold` ve `InkSheetConfirmation`. `InkSheetConfirmation.save` "Kaydet" sözünü, `InkSheetConfirmation.create` "Oluştur" sözünü verir.
 
@@ -226,17 +227,16 @@ Kod karşılığı: `.inkSheet`, `InkSheetScaffold` ve `InkSheetConfirmation`. `
 |---|---|
 | Açma kapama anahtarı | Vurgu rengindedir: `inkToggle()`. |
 | Kutu | Liste satırları kartın içindedir (`surface`). Alan zemini `well`'dir. Sistemin gri gruplu liste kutusu yoktur. |
-| Yüzey rengi | Kart yalnız bölüm kabıdır. Kart içinde kart yoktur; iç alan `well` rengini alır. |
+| Yüzey rengi | Kart yalnız bölüm kabıdır; iç alan `well` rengini alır. |
 
 ### 8. Bağlam menüsü
 
 | Konu | Kural |
 |---|---|
-| Açma | iPhone ve iPad'de satıra uzun basma; iPad ve Mac'te ikincil tık aynı menüyü açar. Satıra normal dokunma seçimi ve gezinmeyi korur. |
-| Gruplar | Birincil eylemler (düzenle, işaretle ya da miktar gir), bağlantı (kopyala), yıkıcı (sil). Boş gruplar görünmez; gruplar `Divider` ile ayrılır. |
-| Sil | Her zaman sonda ve kırmızıdır (`role: .destructive`). Varlık ve hedef dosyasını silmeden önce kayıtların kalacağını açıklayan onay ister. |
-| Erişim | Düzenle, Sil, işaretleme ve Miktar gir ana arayüzde de bulunur; menü onlara kestirme yoldur. Bağlantıyı kopyala yalnız menüdedir: bağlantı yazarken ad yazılarak da kurulur. |
+| Gruplar | Birincil eylemler, bağlantı, yıkıcı. Boş gruplar görünmez; gruplar `Divider` ile ayrılır. |
+| Sil | Her zaman sonda ve kırmızıdır (`role: .destructive`). |
 | Sayı | En çok 5 öğe. |
+| Açma, içerik ve erişim | [Ekranlar](screens.md#bağlam-menüsü) belgesinin "Bağlam menüsü" bölümündedir. |
 
 ### Koruma
 
@@ -396,15 +396,6 @@ Parıltı bilgi taşımaz. Kod karşılığı `.inkGlow()` değiştiricisidir; K
 
 ## Yarıçap, boşluk ve biçim
 
-**Mac ana penceresinin üç sütunu.**
-
-```mermaid
-flowchart LR
-    A[Kenar çubuğu: en az 180, ideal 200, en çok 240 pt] --> B[Liste sütunu: en az 280, ideal 320, en çok 400 pt]
-    B --> C[Ayrıntı: en dar pencerede 480 pt]
-    C --> D[Okuma sütunu: en çok 680 pt, ortada]
-```
-
 ### Yarıçap
 
 | Ad | Değer | Kullanım |
@@ -423,15 +414,15 @@ Kod karşılığı `InkCorner`: `xs`, `sm`, `md`, `lg`, `xl`. `InkCorner.card` b
 | Ad | Değer | Kullanım |
 |---|---|---|
 | `margin` | 16 pt | Sayfa yatay kenar boşluğu; `@ScaledMetric` ile büyür |
-| `cardPadding` | 16 pt | Kartın iç boşluğu; `@ScaledMetric` ile büyür, erişilebilirlik boyutunda en çok 22 pt |
+| `cardPadding` | 16 pt | Kartın iç boşluğu; `@ScaledMetric` ile büyür. Tavanı [Büyük yazı](#büyük-yazı) tablosundadır. |
 | `gutter` | 44 pt | Kartın içindeki işaret sütunu; `@ScaledMetric` ile büyür |
 | `row` | 12 pt | Kart içinde satırlar arası dikey boşluk; satırlar arasında ayraç vardır |
 | `section` | 16 pt | Kartlar arası dikey boşluk |
 | Yok: `tapTarget()` değiştiricisi | 44 pt | En küçük dokunma hedefi; `InkSpacing` belirteci değildir |
 | `macPageWidth` | 680 pt | Mac okuma sütununun en çok genişliği |
-| `macSidebarMinWidth`, `macSidebarIdealWidth`, `macSidebarMaxWidth` | 180, 200, 240 pt | Mac kenar çubuğu |
+| `macSidebarMinWidth`, `macSidebarIdealWidth`, `macSidebarMaxWidth` | 180, 200, 240 pt | Mac kenar çubuğu; iOS bölünmüş kabukta iki sütunun kenar çubuğu |
 | `macListMinWidth`, `macListIdealWidth`, `macListMaxWidth` | 280, 320, 400 pt | Mac liste sütunu |
-| `macWindowMinWidth`, `macWindowMinHeight` | 1000 × 560 pt | Mac ana penceresi |
+| `macWindowMinWidth`, `macWindowMinHeight` | 1000 × 560 pt | Mac ana penceresi; en dar pencerede ayrıntı sütununa 480 pt kalır |
 | `macSettingsMinWidth`, `macSettingsMinHeight` | 480 × 520 pt | Mac Ayarlar penceresi |
 | `listSelectionHorizontal`, `listSelectionVertical` | 4, 2 pt | Liste seçim dolgusunun satır kenarından içe payı |
 | `ShellStyle.threeColumnSidebarWidth` | 200, 240, 280 pt | iOS bölünmüş kabukta üç sütunun kenar çubuğu (iPad, 1000 pt ve üstü) |
@@ -488,7 +479,7 @@ flowchart LR
 | Birincil ekleme düğmesi: gönder, "+" | 1 pt `line` | `glowShadow`: hale |
 | Kanban kartı sürüklenirken | 1 pt `line` | `shadow` |
 
-Kart içinde kart yoktur. Gölge yalnız yüzen öğeyi zeminden ayırır. Doku ve kart zemininde gradyan yoktur.
+Gölge yalnız yüzen öğeyi zeminden ayırır. Doku ve kart zemininde gradyan yoktur.
 
 ## Uygulama simgesi
 
@@ -600,7 +591,7 @@ Kutu `@ScaledMetric` ile büyür; dokunma alanı en az 44 pt kalır. Öncelik i�
 | Zincir günüyle korunan gün, katkısız | `graceSpent` | Yok; ortada vurgu noktası | 2 pt kesik vurgu | "Zincir günüyle korundu" |
 | Zincir günüyle korunan gün, hedefin altında katkı | `graceSpentPartial` | `well`, alttan %45 vurgu; boş kısmın ortasında vurgu noktası | 2 pt kesik vurgu | "Kısmi katkı, zincir günüyle korundu" |
 
-Affedilen gün yalnız günlük hedefte olur. Affedilen gün, önceki iki günü ve sonraki günü yapılmış bir kaçırmadır. Affedilen gün yapılmış gün sayılmaz; bu yüzden gün aşırı ikinci kaçırma affedilmez. Kesik çizgi af işaretini bugünün kesiksiz çerçevesinden renge bağlı olmadan ayırır. Kesik desen hücre boyuyla büyür: kenar başına 3 çizgi. Hücre köşesi sabit 2 pt'dir.
+Af ve zincir kuralı [Ekranlar](screens.md#hedefler) belgesinin "Zincir kuralı" paragrafındadır. Kesik çizgi af işaretini bugünün kesiksiz çerçevesinden renge bağlı olmadan ayırır. Kesik desen hücre boyuyla büyür: kenar başına 3 çizgi; hücre köşesi sabit 2 pt'dir.
 
 **Hedef ısı haritasının etiketleri ve göstergesi.**
 
@@ -608,7 +599,7 @@ Affedilen gün yalnız günlük hedefte olur. Affedilen gün, önceki iki günü
 |---|---|
 | Ay etiketi | Kısa ay adı, ayın ilk haftasının üstünde. Etiket sonraki etiketten önce 10 pt boşluk bırakır. Sığmayan etiket çizilmez: "Ağu Eyl" yerine yalnız "Eyl". |
 | Gün harfi | Ortam yerel ayarının tek harfli gün adı, pazartesiden başlar: "P S Ç P C C P". |
-| Gösterge | Haftaların altında, yatay kaydırmanın dışındadır. Satıra sığmayan tür alt satıra iner. Erişilebilirlik boyutunda her tür ayrı satırdadır ve adı sarar. |
+| Gösterge | Haftaların altında, yatay kaydırmanın dışındadır. Satıra sığmayan tür alt satıra iner. |
 
 VoiceOver çizilmeyen ay etiketini de okur.
 
@@ -627,7 +618,9 @@ Zincir günüyle korunan gün de zinciri koruyan bir kaçırmadır; bu yüzden a
 | Haftalık / aylık toplam | 12 dolu çubuk, sıfır toplamda iz yok | Vurgu | Aralık, toplam, en yüksek dönem ve değeri |
 | Eksen ve özet | `ink.meta`, sayılarda eş aralıklı rakamlar; ızgara yok | İkincil metin; eksen işareti kontrol çizgisi | Görsel özet yinelenmez |
 
-Grafik hedef ayrıntısında kendi kartındadır. Grafik yüksekliği 160 pt'dir. Y ekseninde hedef etiketi her zaman vardır; 0 ve tepe etiketi hedefe bir etiket satırından (en az eksenin %15'i) yakınsa çizilmez. Günlük grafikte ay başları etiketlidir. Toplam çubuklarında üç dönemde bir etiket vardır. Erişilebilirlik boyutunda günlük grafik son 30 günü çizer. Erişilebilirlik boyutunda X ekseni etiket taşımaz; ilk ve son dönemde birer çentik durur. Grafiğin altındaki tek satır aralığı yazar: "12 Eyl – 11 Eki". Bu satır sözcük arasından sarar. Neden: eksendeki iki uç etiketi 320 pt ekranda üst üste biner. Hareketi Azalt açıkken animasyon yoktur. VoiceOver atlanan etiket dahil her ayın tam adını okur.
+Grafik hedef ayrıntısında kendi kartındadır ve 160 pt yüksekliğindedir. Y ekseninde hedef etiketi her zaman vardır; 0 ve tepe etiketi hedefe bir etiket satırından (en az eksenin %15'i) yakınsa çizilmez. Günlük grafikte ay başları etiketlidir; toplam çubuklarında üç dönemde bir etiket vardır.
+
+Hareketi Azalt açıkken animasyon yoktur. VoiceOver atlanan etiket dahil her ayın tam adını okur.
 
 ### Ritim şeridi ve yığılı çubuk
 
@@ -648,7 +641,7 @@ Grafik hedef ayrıntısında kendi kartındadır. Grafik yüksekliği 160 pt'dir
 
 Yığılı çubukta devreden parça çizimdeki gibi uyarı renginde taranır; tarama rengi tek başına anlam taşımaz. Tamamlanan parça yeşil değildir: biten iş ikincil metin rengini alır. Önceki dönemin rengi `well` değildir, çünkü `well` kart üstünde seçilmez.
 
-Kısa ritim şeridi (`RhythmStrip` `isCompact`) haftalık incelemenin ilk adımında durur. Çubuk yüksekliği 40 pt'dir. Sütunların üstündeki sayılar ve açıklama yoktur. Erişilebilirlik boyutunda şerit satıra döner ve her satır sayıyı yazar. Şeridin altındaki fark satırı ikincil metin ve `monospacedDigit()` kullanır.
+Kısa ritim şeridi (`RhythmStrip` `isCompact`) haftalık incelemenin ilk adımında durur. Çubuk yüksekliği 40 pt'dir; sütunların üstündeki sayılar ve açıklama yoktur. Şeridin altındaki fark satırı ikincil metin ve `monospacedDigit()` kullanır.
 
 ### Açık görev eğrisi
 
@@ -661,7 +654,6 @@ Kısa ritim şeridi (`RhythmStrip` `isCompact`) haftalık incelemenin ilk adım�
 | X ekseni | Bütün birim etiketleri; yılda her ikinci ay; `fixedSize()`, iki yanda yarım birim pay | İkincil metin | Birim adı en yüksek değerin özetinde |
 | Y ekseni | Sıfırdan başlar; `desiredCount: 3`; yatay ızgara | Etiket ikincil metin, ızgara kontrol çizgisi | Sayılar eğri özetinde |
 | Açıklama ve envanter | "— açık görev ┄ Önceki ay/hafta/yıl"; altında "Dönem sonunda 23 açık · dönem başında 14" | İkincil metin | Ayrı öğe değildir |
-| Erişilebilirlik boyutu | Grafik yerine birim adı ve sayı listesi | İkincil metin | Aynı tek öğelik özet |
 
 Eksen, açıklama ve sayılar `Font.ink.meta` ve `monospacedDigit()` kullanır. Grafik 164 pt yüksekliğindedir. Çizim işlemi animasyonu kapatır.
 
@@ -679,7 +671,7 @@ Eksen, açıklama ve sayılar `Font.ink.meta` ve `monospacedDigit()` kullanır. 
 | Olmayan tarih, gelecek gün | Hücre çizilmez | — | Yok |
 | Sayaç | `SectionHeader` sayacı: "243 gün" | İkincil metin | Başlıkla |
 
-Hücre en çok 9 pt'dir; dar sütunda 31 gün sığacak kadar küçülür. Erişilebilirlik boyutunda hücreler pazartesi haftalarına dizilir; harita yatay kayar ve son ölçülen haftayla açılır.
+Hücre en çok 9 pt'dir; dar sütunda 31 gün sığacak kadar küçülür.
 
 ### Haftanın günleri satırları
 
@@ -689,7 +681,7 @@ Hücre en çok 9 pt'dir; dar sütunda 31 gün sığacak kadar küçülür. Eriş
 | En yüksek oranlı gün | Satır başında 6 pt dolu nokta, gün adı ve sayaç yarı kalın | Metin | Satır öğesinde |
 | Oran çubuğu | 10 pt yüksekliğinde kapsül ve 1 px çerçeve | Dolu kısım vurgu, boş kısım `well`, çerçeve kontrol çizgisi | Satır öğesinde |
 
-Yazılan günün çubuğu en az 3 pt genişlik alır. Eşit oranda olay sayısı yüksek olan gün, yine eşitse haftanın ilk günü işaretlenir. Erişilebilirlik boyutunda gün adı ve sayaç üst satıra çıkar, çubuk altta tam genişlik alır.
+Yazılan günün çubuğu en az 3 pt genişlik alır. Eşit oranda olay sayısı yüksek olan gün, yine eşitse haftanın ilk günü işaretlenir.
 
 ### Geçiş çubuğu ve 90 gün şeridi
 
@@ -700,8 +692,6 @@ Yazılan günün çubuğu en az 3 pt genişlik alır. Eşit oranda olay sayısı
 | 90 günlük şerit | İki satır (45+45), en fazla 8 pt kare `HeatmapCell`, bugün çerçeveli | Geçilen gün tam vurgu, geçilmeyen gün `well` ve kontrol çerçevesi | Şerit tek öğe: "Son 90 günde 43 gün · ortalama aralık 2,1 gün" |
 | Aralık özeti | Şerit altında tek satır metin | İkincil metin | Şerit etiketiyle okunur |
 | Liste satırı mini çubuğu | 12 aylık geçiş çubuğunun etiketsiz küçük biçimi | Vurgu | Satır öğesinde: "son 12 ayda 163 gün" |
-
-Erişilebilirlik boyutunda 12 aylık çubuğun sütunları satıra döner. 90 günlük şerit her boyutta iki satır kalır.
 
 ### Zaman kartı
 
@@ -719,7 +709,15 @@ Erişilebilirlik boyutunda 12 aylık çubuğun sütunları satıra döner. 90 g�
 
 **Proje rengi.** Proje adından kararlı türetilir: adın FNV-1a özeti 4 belirteçlik diziye bölünür: `accent`, `person`, `place`, `control`. Amber (`warning`) dizide yoktur; amber "devreden" demektir. Projesiz görev `control` alır. Renk her zaman proje adı metniyle birlikte görünür; renk tek başına anlam taşımaz. Türetme tek yardımcıdadır: `ProjectColor` (`App/Model/ProjectColor.swift`). Kanban kartı, zaman kartı, zaman çizelgesi çubuğu, proje grubu başlığı ve proje kartı noktası aynı yardımcıyı kullanır.
 
-Renk tek başına anlam taşımaz; proje adı ve durum metni yanında durur.
+**Zaman çizelgesi çubuğu ve ekseni.**
+
+| Parça | Biçim |
+|---|---|
+| Açık çubuk | Mac ve iPad'de vurgu dolgulu; iPhone'da proje renginde. |
+| Tamamlanan çubuk | Soluk gri dolgulu ve dolu uçlu. |
+| Devreden çubuk | Uyarı rengi çerçeve ve açık uyarı dolgusu. |
+| Eksen | Dikey çizgiler tarih satırının altında başlar. "Bugün" kapsülü vurgu dolguludur. |
+| Hafta sonu | Sütun `well` renktedir; Çeyrek'te hafta sonu bandı yoktur. |
 
 ### Liste seçimi
 
@@ -733,7 +731,6 @@ Renk tek başına anlam taşımaz; proje adı ve durum metni yanında durur.
 | Yazı | Seçili satırdaki yazı belirteçleri `surface` ve `accentSoft` zeminde alt sınır kontrastını taşır. |
 | iPad ve Duo, bölünmüş kabuk | Liste sütunlarında Mac'teki seçim. Arama sonucunda da aynı çizim. Sistemin odak çerçevesi satıra çizilmez. İşaretçi üstünde durduğu sütun satırını sistemin hafif vurgusuyla gösterir. |
 | iPhone | Sekme kabuğunda satır `surface` kalır. Yalnız arama sonucunda klavye seçimi `accentSoft` alır. |
-| Görev sütunu | Kutu görevi tamamlar. Metindeki bağlantı kendi sayfasını açar. Satıra tıklamak ayrıntıyı seçer. Bağlam menüsündeki silme onay diyaloğuna gider. |
 
 Kod karşılığı: `InkListSelectionBackground` ve `inkListRow(columnSelected:)`.
 
@@ -749,43 +746,51 @@ Kod karşılığı: `InkListSelectionBackground` ve `inkListRow(columnSelected:)
 
 | Konu | Kural |
 |---|---|
-| Zemin | Kenar çubuğu `elevated` zemindedir. Tepede arama alanı, altta hızlı giriş kartı durur. |
+| Zemin | Kenar çubuğu `elevated` zemindedir; parıltı yoktur. Tepede arama alanı, altta hızlı giriş kartı durur. |
 | Dolgu yeri | Dolgu sistem seçiminin yerindedir: kenarlardan 10 pt içeride ve 12 pt köşeli (`r-sm`). |
-| iPad ve Duo, bölünmüş kabuk | Aynı dolgu, yazı ve simge. Simgeler çizgidir; sistemin kenar çubuğu onları doldurmaz. Yüzen panel `elevated` rengindedir. Odak çerçevesi çizilmez; klavyeyle seçim odağı izler, dolgu odağın yerini gösterir. Satır adı tek satırdır, uzun ad sonda "…" ile kısalır. Erişilebilirlik boyutunda simge gizlenir ve satır yalnız addır: ad kısalmaz, sözcük aralarından sarılır. VoiceOver her boyutta yalnız adı okur. İşaretçi üstünde durduğu satırı sistemin hafif vurgusuyla gösterir. Kanban kartı işaretçi altında hafifçe kalkar. |
+| Girdiler | Yalnız seçili girdi vurgu alır: Görevler'in altındaki Kanban, Zaman çizelgesi ve projeler ayrı satırdır. |
+| Kontrast | `accentSoft` üstünde yazı açıkta 13,41:1, koyuda 13,50:1'dir. Simge açıkta 6,45:1, koyuda 5,87:1'dir. Karar: `decisions.md` 2026-11-11 kenar çubuğu satırı. |
+| iPad ve Duo, bölünmüş kabuk | Aynı dolgu, yazı ve simge. Simgeler çizgidir; sistemin kenar çubuğu onları doldurmaz. Yüzen panel `elevated` rengindedir. |
+| Bölünmüş kabuk: odak ve işaretçi | Sistemin seçim vurgusu ve odak çerçevesi dolgunun üstüne çizilmez; dolgu odağın yerini gösterir. İşaretçi üstünde durduğu satırı sistemin hafif vurgusuyla gösterir. Kanban kartı işaretçi altında hafifçe kalkar. |
+| Bölünmüş kabuk: ad | Satır adı tek satırdır; büyük yazıdaki davranışı [Büyük yazı](#büyük-yazı) tablosundadır. VoiceOver her boyutta yalnız adı okur. |
 | Kaydırma göstergesi | Uygulama dikey kaydırma göstergesini çizmez. Fare bağlıyken yer kaplayan çubuk satırı sağdan daraltmaz. |
-| Odak | Yerleşimi değiştiren her seçimden sonra uygulama odağı yeni kenar çubuğuna bir kez geri verir, yalnız odak serbestse. Odak o pencerede başka bir denetimdeyse uygulama isteği bırakır. |
+| Odak davranışı | [Ekranlar](screens.md#kabuğun-öğeleri) belgesinin "Odak" satırındadır. |
 
 ## Ekran başına görünüm
 
-**Ekranların görünümü; sıra `screens.md` ekran listesini izler.** Ayrıntı `screens.md` belgesindedir. Hedef ayrıntısı ve Widget'lar satırları o listede yoktur.
+**Her ekranın yalnız kendine özgü görünümü.** İçerik ve yerleşim [Ekranlar](screens.md) belgesindedir; bu tablo onu yinelemez.
 
 | Ekran | Görünüm |
 |---|---|
-| Bugün | Parıltı; gün başlığı: gün halkası, gün rakamı, gün adı; hafta şeridi; künye cümlesi ve 3 çip; her bölüm kart. İlk olay kaydırmadan görünür kalır. |
-| Gün ekranı | Üstte geri, ay seçici, Günün grafiği ve arama; hafta şeridi; saatli program: saat sütunu ve simge kutulu kartlar. Alt sayfa olduğu için parıltı yok. |
+| Bugün | Parıltı; her bölüm kart. İlk olay kaydırmadan görünür kalır. |
+| Gün ekranı | Alt sayfa olduğu için parıltı yok. Saatli programda simge kutulu kartlar durur; seçili kart `accentSoft` zeminlidir. |
+| Gün ekranı, geniş düzen | Program satırının solunda renkli çubuk durur: kişi bağı kişi rengi, konum bağı konum rengi, görev vurgu rengi. Tamamlanan görev kesik çizgili ve zeminsizdir. Başlıkta gün adı gri, sayılar koyudur. |
 | Günü kapat | Sheet, `elevated`; adımlar kart. |
-| Hızlı giriş | iPhone'da altta sabit iki satırlı kart: üstte kip, yana kayan ad çipleri ve saat ya da tarih çipi; altta alan ve gönder. Kart klavye açıkken satır eklemez. Zemin `surface`, sınır `line`. Yüzen "+" yok. Mac'te kenar çubuğunun altında kart. |
-| Günlük | Parıltı; ay takvimi kartta; Özetler ve Haftalık inceleme iki çip; gün satırları kart içinde. |
-| Özetler | Hafta \| Ay \| Yıl sekmesi; sayı kartları; Ay'da 30 günlük kare ritim; grafikler kart içinde. |
-| Haftalık inceleme | Sheet, 3 adım; soru kartları. |
-| Görevler | Parıltı; haftalık özet kartı ("Bu hafta 3/8 görev" ve ilerleme çubuğu); proje kartları; bölümler kart içinde. |
-| Kanban | Sütun başlığı kartın üstünde; iPhone'da sütun kutusu yok. Kart `surface`, 12 pt köşe, sol çubuk projeyi gösterir; Bitti sütunu soluk. |
-| Zaman çizelgesi | Gün \| Hafta \| Çeyrek sekmesi; saat ekseni, dikey kesik çizgiler, zaman kartları, "şimdi" çizgisi ve saat rozeti; Çeyrek'te kartlı Gantt. |
-| Kişiler ve Konumlar | Parıltı; Graph ve Harita yan yana iki kart; liste kart içinde: baş harf rozeti ve mini geçiş çubuğu. |
-| Varlık ekranı | Son görüşme kartı en üstte; bölümler kart; zaman akışı kart satırları. |
+| Hızlı giriş | Zemin `surface`, sınır `line`; yüzen "+" yok. Seçili kip yarı kalındır ve altında vurgu çizgisi taşır. Gönder düğmesi dolu dairedir; alan boşken soluktur. |
+| Anma şeridi | Kendi `surface` kartıdır; sayfanın üstüne saydam binmez. Aday kapsüldür. |
+| Günlük | Parıltı; ay takvimi kartta. Özetler ve Haftalık inceleme içerik genişliğinde, 44 pt yüksekliğinde iki kapsül çiptir. Gün satırında bugünün rakamı vurgu rengindedir. |
+| Günlük: ay takvimi | Haftalar arasında ek boşluk yoktur; 44 pt dokunma hedefleri satırları ayırır. Bugünün rakamı ile halkası arasında boşluk kalır. |
+| Özetler | Sayı kartları ve grafikler kart içinde. Grafik biçimleri "Bileşen ailesi" bölümündedir. |
+| Haftalık inceleme | Sheet; soru kartları. |
+| Görevler | Parıltı; bölümler kart içinde. Künyede sayı kalın, devreden parça uyarı rengindedir; devreden satırın alt satırı da bütünüyle uyarı rengindedir. İlerleme çubuğu haftalık özet kartında vurgu, proje kartında proje rengindedir. |
+| Görev ayrıntısı | Öncelik altı çizili sözcük seçimidir. "Bitti" birincil dolu düğmedir. Devreden bitiş tarihi uyarı rengindedir. |
+| Kanban | Kart `surface`, gölgesiz, 12 pt köşe; sol çubuk projeyi gösterir. Bitti sütunu soluk; proje çipi renkli noktalı dolu kapsüldür. Erişilebilirlik boyutunda davranış [Büyük yazı](#büyük-yazı) tablosundadır. |
+| Kanban, iPhone | Sütun kutusu yok; kartlar sayfanın üstündedir. Sütun başlığındaki sayaç çerçeveli kapsüldür. |
+| Zaman çizelgesi | Kesik çizgili saat çizgileri, zaman kartları, "şimdi" çizgisi ve saat rozeti; Çeyrek'te kartlı Gantt. Çubuk ve eksen biçimi "Zaman kartı" bölümündedir. |
+| Kişiler ve Konumlar | Parıltı. Graph ve Harita kartında parıltı tonu vardır, ok yoktur. Liste satırında baş harf rozeti renklidir. |
+| Varlık ekranı | Bölümler kart; zaman akışı kart satırları. Öteki alanlar ve tanınmayan anahtarlar ikincil renktedir; "Graph'ta göster" vurgu çipidir. |
 | Bağlantı bulunamadı | Sheet, `elevated`; seçenek satırları Graph düğüm biçimini taşır. |
-| Rehberden aktar | Özet sheet'inde liste kart içinde. |
-| Graph | Tuval `surface` kart; parıltı yok; dönem sekmesi; seçim kartı; Mac'te sağ ayrıntı paneli. |
-| Harita | MapKit koyu stil; elmas iğneler; altta yatay konum kartları. |
-| Hedefler | Parıltı; günlük ve haftalık hedef halkaları kartı; hedef kartları: çetele, zincir, 44 pt "+". |
-| Hedef ayrıntısı | Tek sayfa: büyük değer ve halka, istatistik şeridi, grafik kartı, son kayıtlar, altta "Hedefi düzenle" ve "Hedefi sil". |
-| Arama | Süzgeç alanı `well`; kapsam çipleri; sonuçlar kart içinde; parıltı yok. |
-| Serbest not | Alt sayfa; okuma metni kart dışında, tam genişlik. |
-| Ayarlar | Sheet; en üstte kasa kartı; 7 bölüm satırı kart içinde. Mac Settings sahnesi sistem biçiminde kalır. |
-| İlk açılış | Tek ekran; parıltı var; adımlar 24 pt köşeli kart. |
-| Uygulama kilidi örtüsü | Parıltılı zemin, "Kenet kilitli", Face ID düğmesi. |
-| Paylaşım formu | Sheet; Olay \| Görev kipi, saat çipi, "Kenet'e ekle" birincil düğme. |
-| Widget'lar | Ana ekran widget'ı `surface` zemin, parıltı yok; kilit ekranı sistemin vibrant ön planında kalır. |
+| Graph | Tuval `surface` kart; parıltı yok. |
+| Harita | MapKit koyu stil; açık modda açık stil. İşaretçi tam opak konum renginde elmastır; konum kartındaki simge de elmastır. Seçili pin vurgu çerçevesi ve durağan vurgu halesi taşır. |
+| Harita: konum kartı | Mini geçiş çubuğu konum rengindedir. |
+| Hedefler | Parıltı; hedef kartında 44 pt "+". Yeni hedef sheet'inde ve tanım formunda alan dolgulu kutudur; odaktaki kutu vurgu çerçevesi alır. Hazır hedef satırında simge kutusu renklidir. |
+| Hedef ayrıntısı | Grafikte hedefte ya da üstünde nokta dolu, altında boştur; hedef çizgisi kesiktir. "Hedefi düzenle" kalem simgeli küçük düz yazıdır. "Hedefi sil" çöp kutusu simgeli, tehlike renginde küçük düz yazıdır. |
+| Arama | Parıltı yok. Sonuç grubunun başlığı küçük gri yazıdır. Eşleşen metin kalın değil, `accentSoft` zeminlidir. |
+| Serbest not | Okuma metni kart dışında, tam genişlik. |
+| Ayarlar | En üstteki kasa kartı parıltı tonludur. Eylem satırı mürdüm metin düğmesidir. Mac Settings sahnesi sistem biçiminde kalır. |
+| İlk açılış | Parıltılı zemin; adımlar 24 pt köşeli kart. Birincil seçenek dolu düğmedir; "Bu cihazda" tam genişliktedir. |
+| Uygulama kilidi örtüsü | Parıltılı `paper` zemin. |
+| Paylaşım formu | Alan `well` zemindedir. "Kenet'e ekle" birincil dolu düğmedir; "Vazgeç" kapsülsüz düz sözcüktür. |
 
 Mac'te parıltı yalnız ayrıntı sütununun üstündedir. iPad üç sütunda Mac kuralı geçerlidir.
 
@@ -799,12 +804,87 @@ Mac'te parıltı yalnız ayrıntı sütununun üstündedir. iPad üç sütunda M
 | Saydamlığı Azalt | Parıltı kalkar. |
 | Hareketi Azalt | Parıltı ve hale zaten durağandır. Hafta şeridinde gün değişimi canlandırma taşımaz. Graph oturmuş düzeni tek seferde gösterir. |
 | Kalın Metin | Sistem yazısı ağırlığı artırır. Künye cümlesinde sayı ile bağlaç arasındaki ayrım renkle de sürer. |
-| Dynamic Type, erişilebilirlik boyutu (AX1–AX5) | Hafta şeridi 2 satıra iner: 4 + 3 gün. Gün halkası gün rakamının üstüne çıkar. İşaret sütunu metnin üstüne iner. Kart iç boşluğu en çok 22 pt olur. Bölüm başlığının sayacı başlığın altındaki satırdadır. Sayfa künyesi sarar, kırpılmaz. Metin sözcük ortasından bölünmez; 320 pt ekranda AX5'te de sözcük arasından sarar. Satırdan geniş tek sözcük bölünmez, yazı küçülür: bölüm başlığında ve Kanban kartında en çok yarısına kadar. Küçülme ilk çizimde, tek yerleşim geçişinde olur; metin önce büyük çizilip sonra küçülmez. Kanban kartında görev kutusu metnin üstüne çıkar. Süzgeç alanının büyüteci AX2'den büyük çizilmez; yuvası 48 pt olur. Bugün sayfası ekrandan geniş olmaz; ayrıntı [Ekranlar](screens.md) belgesinin "Gün başlığı" tablosundadır. |
-| Dynamic Type, xxL ve xxxL, dar ekran | Eşik ekran değil, satır genişliğidir: sayfa satırı 320 pt'den, kart satırı 280 pt'den darsa satır dardır. 320 pt ekranda satır dardır; 375 pt ekranda dar değildir. Saat sütunu dar satırda metnin ya da kartın üstündeki satıra çıkar. Kural Bugün'ün Olaylar kartında, gün ekranının saatli programında ve Zaman çizelgesi'nin Gün ölçeğinde geçerlidir. Hedef kartında dönem çipi ada sığmazsa adın altına iner; bu kural her genişlikte geçerlidir. Sınırlar `InkSpacing.narrowPageRowWidth` (320 pt) ve `narrowCardRowWidth` (280 pt) değerleridir; `timeStackingWidth` kuralı yalnız xxL ve xxxL boyutunda çalıştırır. |
+| Dynamic Type | [Büyük yazı](#büyük-yazı) bölümündedir. |
 | Renk Olmadan Ayırt Et | Devreden: işaret ve tarih metni. Zaman kartı çubuğu: metin etiketi. Graph: biçim. |
 | VoiceOver | Künye cümlesi tek öğedir. Hafta şeridi her gün için "20 Eylül Pazar, bugün, 3 olay" okur. Gün halkası "3 hedef kaldı" okur. Alt sayfanın geri öğesi üst sayfanın adını okur. |
 
 Parıltı bilgi taşımaz. Bu yüzden kalktığında hiçbir bilgi kaybolmaz.
+
+## Büyük yazı
+
+**Yazı büyüdükçe hangi bileşenin nasıl yer değiştirdiğini gösterir.** Büyük yazı, varsayılandan büyük her Dynamic Type boyutudur.
+
+| Eşik | Anlamı |
+|---|---|
+| xL ve üstü | Varsayılandan büyük her boyut. |
+| xxL ve üstü | xxL, xxxL ve erişilebilirlik boyutu. |
+| xxL ve xxxL, dar satır | Sayfa satırı 320 pt'den, kart satırı 280 pt'den dar: `InkSpacing.narrowPageRowWidth` ve `narrowCardRowWidth`. 320 pt ekranda satır dardır; 375 pt ekranda dar değildir. `timeStackingWidth` kuralı yalnız bu iki boyutta çalıştırır. |
+| AX1–AX5 | Erişilebilirlik boyutu: `isAccessibilitySize`. |
+| AX2 tavanı | Öğe AX2 boyutundan sonra büyümez. |
+| Sığmazsa | Her boyutta, öğe yanındakine sığmadığında. |
+
+**Ortak bileşenler.**
+
+| Bileşen | Eşik | Davranış |
+|---|---|---|
+| Sayfa | Her boyut | Hiçbir yazı boyutunda ekrandan geniş olmaz. |
+| Manşet ve künye | xL ve üstü | Satırlarının yüksekliğini alır; sarar, kırpılmaz (`PageHeadline`). |
+| Manşet satırı simgeleri | AX1–AX5 | Manşetin üstünde ayrı satıra çıkar; satıra sığmayan simge ikinci satıra iner. Alt sayfada geri öğesinin yanına sığmayan simgeler onun altına iner. |
+| Geri çipi, manşet simgeleri, gün başlığı düğmeleri | AX2 tavanı | AX2 boyutundan sonra büyümez. |
+| Süzgeç alanının büyüteci | AX2 tavanı | AX2'den büyük çizilmez; yuvası 48 pt olur. |
+| Metin | AX1–AX5 | Sözcük ortasından bölünmez; 320 pt ekranda AX5'te de sözcük arasından sarar. |
+| Satırdan geniş tek sözcük | AX1–AX5 | Bölünmez, yazı küçülür: bölüm başlığında ve Kanban kartında en çok yarısına kadar. Küçülme ilk çizimde, tek yerleşim geçişinde olur (`InkWordFit`). |
+| Kart iç boşluğu | AX1–AX5 | En çok 22 pt olur: `accessibilityCardPaddingCeiling`. |
+| İşaret sütunu | AX1–AX5 | Metnin üstüne iner. |
+| Bölüm başlığı | AX1–AX5 | Sayaç başlığın altındaki satırdadır (`SectionHeader`). |
+| Saat sütunu | AX1–AX5; xxL ve xxxL, dar satır | Saat metnin ya da kartın üstündeki satıra çıkar (`InkTimeRowLayout`). Kural Bugün'ün Olaylar kartında, gün ekranının saatli programında ve Zaman çizelgesi'nin Gün ölçeğinde geçerlidir. Gün ölçeğinde "şimdi" rozeti de üst satırdadır. |
+| Saat sütunu | Her boyut | Sütun saat kadar genişler; saat satır kırmaz. Gün ekranında sütun en az 52 pt'dir. |
+| Meta satırı | Sığmazsa | Sığmayan parça bütün olarak alt satıra iner; sözcük bölünmez. Satır sonunda ve satır başında "·" ayırıcısı kalmaz (`InkSeparatedFlowLayout`). |
+| Hafta şeridi | AX1–AX5 | 2 satıra iner: 4 + 3 gün. Hücreler ekrana sığacak kadar daralır. |
+| Hızlı giriş | AX1–AX5 | Parçalar üst üste dizilir; köşe 20 pt'dir. Çip satırı hızlı girişin üstüne çıkar. Kip, saat çipi ve gönder bir satıra sığmazsa saat çipi ve gönder alt satıra iner. |
+| Bölünmüş kabuk kenar çubuğu | AX1–AX5 | Genişlik 240, 280, 320 pt olur. Simge gizlenir ve ad sözcük aralarından sarar; ad kısalmaz. Proje adı tek satırda kalır ve en çok %60'a küçülür (`MacSidebarChrome`). |
+| Bölünmüş kabuk kenar çubuğu | Sığmazsa | Tek satırlık ad önce %90'a küçülür, sonra sonda "…" ile kısalır. |
+| Isı haritası göstergesi | AX1–AX5 | Her tür ayrı satırdadır ve adı sarar. |
+
+**Ekrana özgü yerleşim.**
+
+| Ekran | Öğe | Eşik | Davranış |
+|---|---|---|---|
+| Bugün | Gün başlığı, iPhone | AX1–AX5 | Gün halkası ve düğmeler üst satırdadır; gün rakamı ve gün adı alt satırdadır. Halka ile düğmeler yan yana sığmazsa düğmeler kendi satırına çıkar. |
+| Bugün | Gün başlığı, iPhone | Sığmazsa | Gün rakamı düğmelerin yanına sığmazsa başlık aynı düzene geçer. |
+| Bugün | Hedef kartları | AX1–AX5 | Üç kart sığmazsa kartlar yana kayar. |
+| Gün ekranı | Ay seçici | AX1–AX5 | Ay tek satıra sığmazsa yıl ve ok ayın altına iner. |
+| Gün ekranı | Gün başlığının sayıları | AX1–AX5 | Tarihin altında sarar, kırpılmaz. |
+| Gün ekranı | Saatli program kartı | AX1–AX5 | Simge kutusu ve "›" metnin üstündeki satıra çıkar; metin kartın tüm genişliğini alır. |
+| Günlük | Özetler ve Haftalık inceleme çipleri | AX1–AX5 | Alt alta durur. |
+| Özetler | Sayı kartları | AX1–AX5 | Alt alta durur. |
+| Özetler | Ritim şeridi | AX1–AX5 | Sütunlar satıra döner. Kısa ritim şeridinde her satır sayıyı yazar. |
+| Özetler | Yazılan günler haritası | AX1–AX5 | Hücreler büyür ve pazartesi haftalarına dizilir. Harita yatay kayar ve son ölçülen haftayla açılır. |
+| Özetler | Haftanın günleri | AX1–AX5 | Gün adı ve sayaç üst satıra çıkar; çubuk altta tam genişlik alır. |
+| Özetler | Açık görev eğrisi | AX1–AX5 | Grafik yerine birim adı ve sayı listesi durur; VoiceOver özeti aynıdır. |
+| Görevler | Proje kartları | AX1–AX5 | Alt alta durur; nokta sayı satırının başına geçer. |
+| Görevler | Proje kartının adı | Sığmazsa | Ad tek satırdır; karta sığmayan ad önce küçülür. |
+| Görevler | Görev satırı | AX1–AX5 | Başlık ve devreden satır sarar; "›" kutunun satırında, sağda durur. |
+| Kanban | Kart | AX1–AX5 | Görev kutusu metnin üstüne çıkar. |
+| Kişiler ve Konumlar | Graph ve Harita kartları | AX1–AX5 | Alt alta durur. |
+| Kişiler ve Konumlar | Liste satırı | AX1–AX5 | Rozet, ad, alt satır ve sayı ya da çubuk alt alta durur; ad sözcük aralarından sarar. |
+| Kişiler ve Konumlar | Eylem satırı | AX1–AX5 | "…" menüsü "+ Yeni kişi" ile yan yana sığmazsa onun altına iner. |
+| Varlık ekranı | Takma adlar satırı | AX1–AX5 | Adlar başlığın altına iner. |
+| Varlık ekranı | Son geçiş | AX1–AX5 | Başlığın altına iner. |
+| Varlık ekranı | 12 aylık geçiş çubuğu | AX1–AX5 | Sütunlar satıra döner. 90 günlük şerit her boyutta iki satır kalır. |
+| Hedefler | Hedef kartı | AX1–AX5 | "+" ya da kalem metnin altına, sağa iner. |
+| Hedefler | Dönem çipi | xxL ve üstü | Adın yanına sığmazsa adın altına iner; kural her genişlikte geçerlidir. |
+| Hedefler | Sütun kartı | AX1–AX5 | Halka metnin üstüne çıkar. |
+| Hedef ayrıntısı | Dönem çipi | AX1–AX5 | Miktar dönemin altına iner ve sarar. |
+| Hedef ayrıntısı | Halka | AX1–AX5 | Sayı hedefinin halkası değerin altına iner. |
+| Hedef ayrıntısı | İstatistik şeridi | AX1–AX5 | Değer ve etiket sarar. |
+| Hedef ayrıntısı | Değer grafiği | AX1–AX5 | Günlük grafik son 30 günü çizer. X ekseni etiket taşımaz; ilk ve son dönemde birer çentik durur. Altındaki tek satır aralığı yazar ve sözcük arasından sarar: "12 Eyl – 11 Eki". |
+| Hedef ayrıntısı | Son kayıtlar | AX1–AX5 | "Dokun, düzelt" başlığın altına, satırın değeri tarihin altına iner. |
+| Kenet'i destekle | Destek satırı | AX1–AX5 | Fiyat adın altına iner; rozet satırın başında kalır. |
+| İlk açılış | Ekran | AX1–AX5 | Ekran kayar. |
+| Zincir widget'ı | Satırlar | AX1–AX5 | Küçük widget 1, orta widget 2 hedef gösterir. |
+
+Değer grafiğinin nedeni: eksendeki iki uç etiketi 320 pt ekranda üst üste biner. Ekrana özgü içerik farkı [Ekranlar](screens.md) belgesindedir.
 
 ## Widget
 
@@ -823,7 +903,7 @@ Parıltı bilgi taşımaz. Bu yüzden kalktığında hiçbir bilgi kaybolmaz.
 |---|---|
 | Palet testi | `PaletteContrastTests` palet değerlerini, 4 varyantı ve parıltı karışım noktalarını denetler. |
 | Kaynak denetimi | `DesignTokenUsageTests`: hex yalnız `App/Design` içinde; `.inkGlow()` yalnız kök ekran görünümlerinde. <!-- sır değil --> |
-| Ekran görüntüsü | Her kök ekranın ve her sheet türünün referansı vardır. Referans sayısı ve küme listesi [Mimari](architecture.md#ekran-görüntüsü-ve-duman-testleri) belgesindedir. |
+| Ekran görüntüsü | Her kök ekranın ve her sheet türünün referansı vardır. Referansların kaydı ve tavanı [Geliştirme](development.md#ekran-görüntüsü-testleri) belgesindedir. |
 | Gerçek cihaz | Koyu ve açık, KA, AX3, Hareketi Azalt; iPhone, iPad ve Mac. |
 
 Ajanlar ekranı göremez; bu yüzden ekran görüntüsü testleri bu projede zorunludur.
@@ -865,7 +945,9 @@ Halkanın uçları tam yarım dairedir: `Capsule(style: .circular)`. Oranlar `Su
 | Destek sayfası, kazanılmış rozet | `84 pt` | `120 pt` |
 | Destek sayfası, destek satırının başı | `28 pt` | `56 pt` |
 
-Üç ölçü de gövde yazısıyla büyür (`@ScaledMetric`) ve tavanında durur. Satır başındaki rozet o desteğin kazandırdığı seviyeyi çizer; çizim kazanılmış rozetle aynıdır. Teşekkür anında rozet yaylanır ve `accent` ile `accentSoft` halkası açılıp söner. Hareketi Azalt bu canlandırmayı kapatır.
+Üç ölçü de gövde yazısıyla büyür (`@ScaledMetric`) ve tavanında durur. Satır başındaki rozet o desteğin kazandırdığı seviyeyi çizer; çizim kazanılmış rozetle aynıdır.
+
+Teşekkür anında rozet yaylanır ve `accent` ile `accentSoft` halkası açılıp söner; canlandırma yaklaşık 1 saniye sürer. Hareketi Azalt bu canlandırmayı kapatır.
 
 ## Terim sözlüğü
 
@@ -892,7 +974,8 @@ Halkanın uçları tam yarım dairedir: `Capsule(style: .circular)`. Oranlar `Su
 | destekçi rozeti | premium rozeti, üyelik | Supporter badge | Gönüllü destek verenin teşekkür rozeti; üç seviye, hiçbir özelliği açmaz |
 | test ekibi rozeti | beta rozeti | Test team badge | v1.0.0 öncesi TestFlight yapısını çalıştıranın rozeti; kesik çizgili halka |
 | yardım | destek (web bağlantısı için) | Help | Hakkında'daki yardım sayfası bağlantısı; "destek" yalnız gönüllü destek içindir |
-| erişilebilirlik boyutu | büyük yazı, büyük metin, erişilebilirlik yazı boyutu, AX boyutları | (arayüzde yok) | Dynamic Type'ın AX1–AX5 boyutları; kodda `isAccessibilitySize`. xxL ve xxxL bu kümede değildir. |
+| erişilebilirlik boyutu | büyük metin, erişilebilirlik yazı boyutu, AX boyutları | (arayüzde yok) | Dynamic Type'ın AX1–AX5 boyutları; kodda `isAccessibilitySize`. xxL ve xxxL bu kümede değildir. |
+| büyük yazı | erişilebilirlik boyutu (xL–xxxL'yi de kapsayan kural için) | (arayüzde yok) | Varsayılandan büyük her Dynamic Type boyutu: xL–xxxL ve AX1–AX5. Eşikler "Büyük yazı" bölümündedir. |
 | manşet | büyük başlık | (sayfanın adı) | Sayfanın üstündeki sayfa adı; `display` rolü |
 | künye | alt başlık | (arayüzde yok) | Manşetin altındaki ikincil metin; `pageByline` rolü. Künye cümlesi ayrı terimdir. |
 | hale | parıltı | (arayüzde yok) | "+" ve gönder düğmesinin çevresindeki ışık; `glowShadow` |

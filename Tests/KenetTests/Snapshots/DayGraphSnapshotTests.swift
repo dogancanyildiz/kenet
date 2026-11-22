@@ -10,7 +10,7 @@
     /// The day's own graph on the graph fixture vault (`Fixtures/vaults/graph`, 2026-10-01: two
     /// people, two places and a custom type book around the day), and the day page's manşet with
     /// its Graph icon. Light theme at the default size only: dark and AX3 belong to the
-    /// representative suites (docs/architecture.md, reference budget).
+    /// representative suites (docs/development.md, "Küme kuralları").
     enum DayGraphSnapshotCase: String, CaseIterable, Sendable {
         case dayGraphLight
         case dayMastheadLight

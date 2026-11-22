@@ -8,7 +8,7 @@ name: TestFlight
 # Platform girdisi: ios (varsayılan; iPhone ve iPad) ya da mac (testflight.sh --mac). İtme koşusu
 # yalnız iOS yükler; Mac elle başlatılır.
 # Repo herkese açıktır: gizli değerler yalnız Secrets'tan gelir; takım kimliği betikte maskelenir,
-# düşen koşunun günlüğü artifact'a kimlikler çıkarılmış olarak gider. Kurulum: README, "CD".
+# düşen koşunun günlüğü artifact'a kimlikler çıkarılmış olarak gider. Kurulum: docs/development.md, "CI'dan TestFlight (CD)".
 
 on:
   workflow_dispatch:
@@ -63,7 +63,7 @@ jobs:
             [ -n "$value" ] || missing="$missing $name"
           done
           if [ -n "$missing" ]; then
-            echo "::error::Eksik Secrets:$missing (README, CD kurulumu)."
+            echo "::error::Eksik Secrets:$missing (docs/development.md, CD kurulumu)."
             exit 1
           fi
       - uses: actions/checkout@v7

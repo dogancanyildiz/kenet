@@ -422,6 +422,34 @@ enum UITestSupport {
         _ = app.keyboards.firstMatch.waitForNonExistence(timeout: 3)
     }
 
+    /// Scrolls the page up until `element` is hittable and wholly above the quick entry capsule's
+    /// mode row and field, or the page has ended. `tap()` alone scrolls an element only into the
+    /// scroll view's frame, and the capsule floats over the bottom of that frame.
+    @MainActor
+    static func scrollClearOfQuickEntry(_ element: XCUIElement, in app: XCUIApplication, attempts: Int = 8) {
+        let field = quickEntryField(in: app)
+        waitForExistence(field)
+        // The mode row ("Olay", "Görev") and the time button sit on top of the field, in the capsule.
+        func capsuleTop() -> CGFloat {
+            let frame = field.frame
+            let above = app.buttons.allElementsBoundByIndex.map(\.frame).filter {
+                $0.maxY <= frame.minY + 1 && $0.maxY > frame.minY - 24 && $0.minX >= frame.minX - 1
+            }
+            return (above.map(\.minY).min() ?? frame.minY) - 4
+        }
+        func isClear() -> Bool { element.isHittable && element.frame.maxY <= capsuleTop() }
+        var tries = 0
+        var lastY = element.frame.minY
+        while !isClear() && tries < attempts {
+            app.swipeUp(velocity: .slow)
+            tries += 1
+            // The page has ended: another swipe would not move the element.
+            if abs(element.frame.minY - lastY) < 1 { break }
+            lastY = element.frame.minY
+        }
+        XCTAssertTrue(isClear(), "\(element) stays under the quick entry capsule")
+    }
+
     @MainActor
     static func quickEntryField(in app: XCUIApplication) -> XCUIElement {
         let byId = app.textFields["field.quickEntry"]

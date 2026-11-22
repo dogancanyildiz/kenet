@@ -315,15 +315,15 @@ struct EntityRow: View {
 
     /// "iş · Son görüşme 3 gün önce · 9 bağ": the qualifier joins the meta line. In the column:
     /// "iş · son 3 gün önce".
-    private var rowMeta: String? {
+    /// The line is drawn part by part, so that a line too long for the row breaks between two parts.
+    private var rowMetaParts: [String] {
         let today = LocalDay.today(at: clockNow())
         let meta =
             isColumn
-            ? EntityRowPresentation.columnMeta(lastDate: lastDate, today: today, locale: locale)
-            : EntityRowPresentation.meta(
+            ? [EntityRowPresentation.columnMeta(lastDate: lastDate, today: today, locale: locale)].compactMap { $0 }
+            : EntityRowPresentation.metaParts(
                 kind: entity.kind, lastDate: lastDate, links: relationCount, today: today, locale: locale)
-        let parts = [entity.qualifier, meta].compactMap { $0 }
-        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+        return [entity.qualifier].compactMap { $0 } + meta
     }
 
     /// Badge, text and count side by side; stacked from the leading edge at accessibility sizes.
@@ -347,11 +347,21 @@ struct EntityRow: View {
                         .font(.subheadline)
                         .foregroundStyle(.ink.text)
                         .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
-                    if let meta = rowMeta {
-                        Text(verbatim: meta)
-                            .font(.footnote)
-                            .foregroundStyle(.ink.secondaryText)
-                            .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+                    let metaParts = rowMetaParts
+                    if !metaParts.isEmpty {
+                        // Beside the mini bar the whole line does not always fit ("… · 0 b…"): it
+                        // wraps between two parts instead of being cut, at every text size.
+                        InkSeparatedFlowLayout {
+                            ForEach(Array(metaParts.enumerated()), id: \.offset) { index, part in
+                                if index > 0 { InkMetaSeparator() }
+                                Text(verbatim: part)
+                            }
+                        }
+                        .font(.footnote)
+                        .foregroundStyle(.ink.secondaryText)
+                        // One element reading the line as it was one text.
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(Text(verbatim: metaParts.joined(separator: " · ")))
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -491,6 +501,14 @@ enum EntityRowPresentation {
     static func meta(
         kind: String, lastDate: CalendarDate?, links: Int, today: CalendarDate, locale: Locale
     ) -> String? {
+        let parts = metaParts(kind: kind, lastDate: lastDate, links: links, today: today, locale: locale)
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    /// The line's parts in order ("Son görüşme 3 gün önce", "14 bağ"); the row breaks between them.
+    static func metaParts(
+        kind: String, lastDate: CalendarDate?, links: Int, today: CalendarDate, locale: Locale
+    ) -> [String] {
         let bundle = PresentationLocalization.bundle(locale)
         var parts: [String] = []
         if let lastDate, lastDate.ordinal <= today.ordinal {
@@ -507,6 +525,6 @@ enum EntityRowPresentation {
         if links > 0 || !parts.isEmpty {
             parts.append(String(localized: "\(links) bağ", bundle: bundle, locale: locale))
         }
-        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+        return parts
     }
 }

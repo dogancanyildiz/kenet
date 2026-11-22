@@ -27,6 +27,7 @@ mindmap
     Dosya içi sözdizimi
       Frontmatter
       Bağlantılar
+        Bağlantı yazımı
       Blok kimliği
     Dosya türleri
       Gün dosyası
@@ -43,6 +44,11 @@ mindmap
       Birleştirme işlevi
       Çakışma kopyası
       Varlık kopyası
+    Yorumlama kuralları
+      Otomatik tanıma
+      Hızlı giriş ve tarih ekleri
+      Yıl dönümleri
+      Zincir, skor, ısı haritası
 ```
 
 ## Kodlama ve satır sonu
@@ -91,7 +97,10 @@ Kural 1'in ayrıntıları:
 - Hedef satır uygulamanın üretmediği bir satır da olabilir. Örnek: kullanıcının Obsidian'da yazdığı bir görevi tamamlamak. O durumda da yalnız o satır değişir.
 - Birden çok dosyaya dokunan işlemler 4 tanedir: ad değiştirme, çakışma birleştirme, eski gün klasörünün geçişi ve kasa hazırlamadaki `type` ekleme. Ad değiştirmede uygulama bağlantıları da günceller. Kasa hazırlama `type` alanını yalnız kullanıcının onayıyla ekler.
 - Eski gün klasörünün geçişi yalnız kullanıcının onayıyla çalışır. Uygulama onu kendiliğinden başlatmaz. Ayrıntı: [Eski adlar ve geçiş](#eski-adlar-ve-geçiş).
-- Uygulama, kendi dışında yazılan metni kendiliğinden yeniden yazmaz. Uygulama o metnin biçimini düzeltmez. Uygulama o metindeki adları sonradan bağlantıya çevirmez. Kullanıcı o satırı uygulamada düzenlerse satır uygulamada yazılmış sayılır.
+- Uygulama, kendi dışında yazılan metni kendiliğinden yeniden yazmaz:
+  - Uygulama o metnin biçimini düzeltmez.
+  - Uygulama o metindeki adları sonradan bağlantıya çevirmez.
+  - Kullanıcı o satırı uygulamada düzenlerse satır uygulamada yazılmış sayılır.
 
 ### Tek geçişi bağlantıya çevirme
 
@@ -106,7 +115,17 @@ flowchart TD
   E --> F["Aynı satırdaki başka geçişler, satırın ve dosyanın kalan baytları aynı kalır"]
 ```
 
-Wikilink yazımını "Otomatik tanıma ve belirsizlik" kuralları üretir. Her onay tek bir geçiş içindir. Uygulama toplu çevirme yapmaz. Uygulama kendiliğinden çevirme yapmaz.
+- Wikilink yazımını [Bağlantı yazımı](#bağlantı-yazımı) kuralları üretir.
+- Her onay tek bir geçiş içindir.
+- Uygulama toplu çevirme yapmaz.
+- Uygulama kendiliğinden çevirme yapmaz.
+
+**İkiz satır:** ilk satırı aynı dosyada bayt bayt yinelenen olay ya da görev.
+
+| Durum | Uygulamanın davranışı |
+|---|---|
+| Dosya, onay listesinin okuduğu baytlarla duruyor | İkiz satırdaki geçişi bağlar. |
+| Dosya değişti | Yazmaz. Uygulama hangi ikizin onaylandığını ayırt edemez. |
 
 ### Var olan kasayı açma ve hazırlama
 
@@ -136,7 +155,16 @@ flowchart TD
 | Format sürümü | Hazırlama format sürümünü yükseltmez. Var olan vault.json dosyasını yeniden yazmaz. |
 | Desteklenmeyen ya da okunamayan sürüm dosyası | Hazırlama yazısı sunmaz. |
 
-`diary/YYYY-MM-DD.md` tanınan gün yoludur. Kökteki ya da `daily/` altındaki tarih adlı dosyaları kullanıcı isterse Obsidian'da kendisi düzenler. Standart klasör adları (`diary`, `people`, `places`, `goals`, `notes`, `templates`) bayt düzeyinde tam yazım ister. Yalnız harfi farklı bir klasör varsa uygulama yalnız o klasörü hedefleyen yazmayı reddeder. Örnek: `Diary/` varken uygulama `diary/…` yazmaz; `People/` varken gün olayı yazar ama `people/` altına yeni kişi oluşturmaz. Uygulama var olan dosyayı kendi gerçek yolunda düzenler; klasörü doğru ada kullanıcı çevirir.
+**Tam yazım ve yalnız harfi farklı klasör.**
+
+| Konu | Kural |
+|---|---|
+| Tanınan gün yolu | `diary/YYYY-MM-DD.md`. Kökteki ya da `daily/` altındaki tarih adlı dosyaları kullanıcı isterse Obsidian'da kendisi düzenler. |
+| Standart klasör adları | `diary`, `people`, `places`, `goals`, `notes`, `templates`. Adlar bayt düzeyinde tam yazım ister. |
+| Yalnız harfi farklı klasör | Uygulama yalnız o klasörü hedefleyen yazmayı reddeder. Uygulama oradaki dosyayı gün dosyası saymaz. |
+| Örnek: `Diary/` var | Uygulama `diary/…` yazmaz. |
+| Örnek: `People/` var | Uygulama gün olayı yazar ama `people/` altına yeni kişi oluşturmaz. |
+| Var olan dosya | Uygulama dosyayı kendi gerçek yolunda düzenler. Klasörü doğru ada kullanıcı çevirir. |
 
 ## Klasör yapısı
 
@@ -175,7 +203,7 @@ flowchart TD
 ```
 
 - Bir dosyanın türünü klasör değil frontmatter'daki `type` belirler. Klasörler yalnız uygulamanın yeni dosyayı nereye koyacağını söyler. Tek istisna gün dosyalarıdır: gün dosyasının kimliği yoludur. Ayrıntı: [Gün dosyası](#gün-dosyası).
-- Standart klasör adları ağaçtaki yazımla birebir aynıdır: `diary/`, `Diary/` değil. Uygulama yalnız harfi farklı klasördeki dosyayı gün dosyası saymaz. Uygulama böyle klasörü hazırlamada bildirir ve yalnız o klasörü hedefleyen yazmayı reddeder. Ayrıntı: [Var olan kasayı açma ve hazırlama](#var-olan-kasayı-açma-ve-hazırlama).
+- Standart klasör adları ağaçtaki yazımla birebir aynıdır: `diary/`, `Diary/` değil. Yalnız harfi farklı klasörün kuralı: [Var olan kasayı açma ve hazırlama](#var-olan-kasayı-açma-ve-hazırlama).
 - `type` alanı olmayan ya da tanınmayan bir `type` taşıyan dosya düz nottur.
 - Uygulama yalnız `.md` uzantılı dosyaları okur. Uygulama diğer dosyaları yok sayar ve korur. Örnek: görsel, PDF.
 - Uygulama şu klasörleri taramaz: adı nokta ile başlayan klasörler (`.app/`, `.obsidian/`, `.trash/`), kökteki `templates/` ve `conflicts/`. Uygulama bu klasörlerdeki dosyaları varlık saymaz ve indekslemez.
@@ -224,7 +252,7 @@ flowchart TD
 
 | Karşılaştırılan | Normalleştirme | Büyük ve küçük harf |
 |---|---|---|
-| Dosya adları ve varlık adları | Unicode NFC | Duyarsız. Önce Türkçe büyük harf eşlemesi: `İ` → `i`, `I` → `ı`. Sonra Unicode'un varsayılan, yerelden bağımsız küçük harf eşlemesi. |
+| Dosya adları ve varlık adları | Unicode NFC | Duyarsız. Karşılaştırma anahtarı aşağıdaki 4 adımla oluşur. |
 | Satırlar ve frontmatter değerleri | Yok. Bayt düzeyinde. | Duyarlı |
 
 **Ad karşılaştırma anahtarı 4 adımda oluşur.**
@@ -233,7 +261,7 @@ flowchart TD
 |---|---|---|
 | 1 | Adı NFC'ye çevir. Ayrışmış `I` + birleşik nokta (U+0307) `İ` olur. | `DENI\u{0307}Z` → `DENİZ` |
 | 2 | Türkçe büyük harf eşlemesi: `İ` → `i`, `I` → `ı`. | `DENİZ` → `DENiZ`; `IŞIK` → `ıŞıK` |
-| 3 | Unicode'un varsayılan küçük harf eşlemesi. | `DENiZ` → `deniz`; `ıŞıK` → `ışık` |
+| 3 | Unicode'un varsayılan, yerelden bağımsız küçük harf eşlemesi. | `DENiZ` → `deniz`; `ıŞıK` → `ışık` |
 | 4 | `i` harfinden hemen sonra gelen birleşik noktayı (U+0307) at. Sonucu yeniden NFC'ye çevir. | `i\u{0307}stanbul` → `istanbul` |
 
 4\. adım eski varsayılan eşlemenin `İ` için ürettiği `i` + U+0307 yazımını `i` ile aynı sayar. Böylece başka bir aracın küçük harfe indirdiği `i̇stanbul` yazımı da `İstanbul` adıyla eşleşir.
@@ -255,14 +283,26 @@ flowchart TD
 | `ISTANBUL` ve `İstanbul` | Ayrı ad | `ıstanbul` ve `istanbul` |
 | `Irmak` ve `irmak` | Ayrı ad | `ırmak` ve `irmak` |
 
-Eşleme Türkçe yazımı doğru okur, ama Türkçe olmayan adlarda bir bedeli vardır. `I` `i` ile eşleşmez. `[[ian]]` bağlantısı `Ian.md` dosyasına çözülmez; `[[ıan]]` ya da `[[Ian]]` çözülür. Tek anahtarla `I` hem `i` hem `ı` ile eşleşemez: o zaman `ı` ile `i` de aynı harf olurdu.
+**Bilinen bedel: Türkçe olmayan adlar.**
+
+| Konu | Ayrıntı |
+|---|---|
+| Bedel | Eşleme Türkçe yazımı doğru okur, ama `I` `i` ile eşleşmez. |
+| Örnek | `[[ian]]` bağlantısı `Ian.md` dosyasına çözülmez. `[[ıan]]` ya da `[[Ian]]` çözülür. |
+| Gerekçe | Tek anahtarla `I` hem `i` hem `ı` ile eşleşemez: o zaman `ı` ile `i` de aynı harf olurdu. |
 
 - Uygulama dosya adlarını ve adlarla yapılan bütün karşılaştırmaları NFC'ye normalleştirir. Gerekçe: macOS ve iCloud dosya adlarını farklı biçimde döndürebilir. Farklı biçim Türkçe karakterlerde eşleşme hatası doğurur.
-- NFC kuralı yalnız dosya adlarını ve varlık adlarını kapsar. Uygulama satırları ve frontmatter değerlerini normalleştirme yapmadan, bayt düzeyinde karşılaştırır.
 - Karşılaştırma cihazın dilinden bağımsızdır. Türkçe büyük harf eşlemesi her cihazda ve her dilde aynı uygulanır.
 - Bağlantı çözümü, ad ve takma ad araması, tanıma ve takvim katılımcısı eşlemesi bu anahtarı kullanır.
 
-**Ad çakışması denetimi daha sıkıdır.** İki adın anahtarı aynıysa ad doludur. Yalnız Unicode'un varsayılan küçük harf eşlemesi iki adı aynı sayıyorsa da ad doludur. Gerekçe: Mac dosya sistemi ve Obsidian Türkçe eşlemeyi yapmaz. `SELIN.md` ile `Selin.md` aynı klasörde aynı dosyadır. Kural yalnız oluşturma ve yeniden adlandırmayı reddeder; hiçbir bağlantıyı çözmez.
+**Ad çakışması denetimi daha sıkıdır.**
+
+| Konu | Kural |
+|---|---|
+| Dolu ad: anahtar | İki adın anahtarı aynıysa ad doludur. |
+| Dolu ad: varsayılan eşleme | Yalnız Unicode'un varsayılan küçük harf eşlemesi iki adı aynı sayıyorsa da ad doludur. |
+| Gerekçe | Mac dosya sistemi ve Obsidian Türkçe eşlemeyi yapmaz. `SELIN.md` ile `Selin.md` aynı klasörde aynı dosyadır. |
+| Kapsam | Kural yalnız oluşturma ve yeniden adlandırmayı reddeder; hiçbir bağlantıyı çözmez. |
 
 | Denetim | Örnek | Sonuç |
 |---|---|---|
@@ -272,11 +312,13 @@ Eşleme Türkçe yazımı doğru okur, ama Türkçe olmayan adlarda bir bedeli v
 | Dosya adı benzersizliği | `people/Işık.md` varken `İşık` | Oluşturur: iki okuma da farklı (`ışık`/`işık`, `işık`/`i̇şık`) |
 | Yer tutucu kardeşi | `.IŞIK.md.icloud` varken `Işık` | `awaitingDownload` |
 | Hedef adı ve hedef anahtarı | `name: IŞIK` olan hedef varken `Işık` | `nameTaken` |
+
 - Mac dosya sistemi ve Obsidian büyük ve küçük harfe duyarsızdır. iPhone dosya sistemi duyarlıdır. Bu nedenle uygulama karşılaştırmayı dosya sistemine bırakmaz.
 - Uygulamanın yazdığı bağlantılar dosya adını birebir taşır. Bu nedenle Türkçe harf kuralı yalnız elle yazılan bağlantıları etkiler.
 - Uzantısız dosya adları kasa genelinde benzersizdir. Uygulama kendi oluşturduğu dosyalarda benzersizliği sağlar.
 - Kasanın dışından aynı ad 2 dosyaya verilmişse bağlantı, kasa köküne göre yolu kod noktası sırasında önce gelen dosyaya gider. Uygulama durumu kullanıcıya bildirir.
-- Dosya adı şu karakterleri içermez: `/ \ : * ? " < > |`. Dosya adı bağlantı sözdizimini bozan `# ^ [ ]` karakterlerini de içermez. Görünen ad bu karakterleri içeriyorsa `name` alanında aynen durur. Uygulama dosya adını üretirken bu karakterleri atar.
+- Dosya adı şu karakterleri içermez: `/ \ : * ? " < > |`. Dosya adı bağlantı sözdizimini bozan `# ^ [ ]` karakterlerini de içermez.
+  - Görünen ad bu karakterleri içeriyorsa `name` alanında aynen durur. Uygulama dosya adını üretirken bu karakterleri atar.
 
 ## Dosya türleri
 
@@ -373,7 +415,14 @@ stateDiagram-v2
 | Okunur | Her alan desteklenen alt kümededir ya da ham alandır. | Uygulama alanları okur ve düzenler. |
 | Çözülemez | Blokta [Çözülemeyen bloklar](#çözülemeyen-bloklar) tablosundaki bir yazım var. | Uygulama frontmatter'ı yok sayar: `type` okumaz ve frontmatter'a yazmaz. Alan yazma isteği hata döndürür. Uygulama başa yeni blok da eklemez. |
 
-Dosyanın ilk satırı `---` ise frontmatter başlar. Dosyada BOM varsa ilk satır BOM'dan sonraki satırdır. Blok sonraki ilk `---` satırında biter ve sınır satırı tam olarak `---` olur. Uygulama bir bloğu yalnız bütün YAML okuyucularının aynı okuyacağından eminse okur; Obsidian da bu okuyuculardandır. İki uygulama aynı dosyayı aynı görür; uygulama Obsidian'ın okuyamadığı bloğa yazmaz.
+**Bloğun sınırı ve okuma ölçütü.**
+
+| Konu | Kural |
+|---|---|
+| Başlangıç | Dosyanın ilk satırı `---` ise frontmatter başlar. BOM varsa ilk satır BOM'dan sonraki satırdır. |
+| Bitiş | Blok sonraki ilk `---` satırında biter. Sınır satırı tam olarak `---` olur. |
+| Okuma ölçütü | Uygulama bloğu yalnız bütün YAML okuyucuları aynı okuyacaksa okur. Obsidian da bu okuyuculardandır. |
+| Sonuç | İki uygulama aynı dosyayı aynı görür. Uygulama Obsidian'ın okuyamadığı bloğa yazmaz. |
 
 ### Desteklenen YAML alt kümesi
 
@@ -540,7 +589,9 @@ Uygulama başka hiçbir karakteri kaçışla yazmaz. Böylece satır sonu içere
 | Çok satırlı listeye yeni öğe | Uygulama fazla yeni öğeleri mevcut girintiyle ve `- ` ile ekler. Yer: son yeniden yazılan satırın ardı. Öyle bir satır yoksa aynı kalan önceki öğenin ardı. O da yoksa ilk öğenin önü. |
 | Eşlem | Yalnız hedef kaydın satırı değişir. Uygulama yeni kaydı son kaydın ardına mevcut girintiyle ekler. Son kaydı silinen eşlemin `anahtar:` satırı kalır. |
 | Değersiz anahtara kayıt | Uygulama kaydı anahtarın altına 2 boşluk girintiyle ekler. Değeri olan bir alana uygulama kayıt yazmaz. |
-| Biçim değişimi | Çok satırlı liste olmayan bir alana uygulama listeyi tek satırlı yazar. Örnek alanlar: tek değer, boş değer, eşlem. Liste ya da eşlem olan alana uygulama tek değeri anahtar satırına yazar. 2 durumda da uygulama eski öğe ve kayıt satırlarını siler. |
+| Biçim değişimi | Çok satırlı liste olmayan bir alana uygulama listeyi tek satırlı yazar. Örnek alanlar: tek değer, boş değer, eşlem. |
+| Biçim değişimi: tek değer | Liste ya da eşlem olan alana uygulama tek değeri anahtar satırına yazar. |
+| Biçim değişimi: eski satırlar | 2 durumda da uygulama eski öğe ve kayıt satırlarını siler. |
 | Silme | Uygulama bir alanı silerken ya da alanın biçimini değiştirirken aradaki yorum ve boş satırlar yerinde kalır. Olmayan alanı ya da kaydı silmek dosyayı değiştirmez. |
 | Yeni anahtar | Uygulama yeni anahtarı frontmatter'ın sonuna, kapanış satırının hemen önüne ekler. Uygulama yeni listeyi tek satırlı, yeni eşlemi 2 boşluk girintiyle yazar. |
 | Frontmatter'ı olmayan dosya | Uygulama dosyanın başına yeni blok ekler: `---`, alan satırları, `---`. Uygulama blok ile gövde arasına boş satır eklemez. |
@@ -564,18 +615,15 @@ Uygulama başka hiçbir karakteri kaçışla yazmaz. Böylece satır sonu içere
 | Yazım | Anlamı |
 |---|---|
 | `[[Ahmet Yılmaz]]` | Varlığa bağlantı. |
-| `[[hedef#çapa]]` | Başlığa ya da `^` ile başlayan blok kimliğine bağlantı. |
+| `[[hedef\|görünen metin]]` | Görünen metinli bağlantı. Metinde takma ad geçiyorsa görünen metin kalır: `[[Ahmet Yılmaz\|Ahmet abi]]`. |
+| `[[hedef#çapa]]`, `[[hedef#çapa\|görünen metin]]` | Başlığa ya da `^` ile başlayan blok kimliğine bağlantı. |
 | `[[#Başlık]]` | Hedefi boş bağlantı. Aynı dosyanın içine gider. Varlık bağlantısı değildir. |
 | `![[hedef]]` | Gömme. Uygulama gömmeyi aynı kurallarla bağlantı sayar. |
 | `\![[hedef]]` | Kaçırılmış ünlem. Gömme değildir. |
 | `\[[` | Ters bölüyle kaçırılmış açılış. Bağlantı değildir. |
 | `[metin](dosya.md)` | Markdown biçimli bağlantı. Uygulama korur ama varlık bağlantısı saymaz ve yeniden adlandırmada güncellemez. |
 
-Sözdizimi: `[[hedef]]`, `[[hedef|görünen metin]]`, `[[hedef#çapa]]`, `[[hedef#çapa|görünen metin]]`.
-
-- Varlığa bağlantı: `[[Ahmet Yılmaz]]`
-- Metinde takma ad geçiyorsa görünen metin kalır: `[[Ahmet Yılmaz|Ahmet abi]]`
-- Kullanıcı arayüzde `@` ile seçim yapınca uygulama dosyaya wikilink yazar. `@` işareti dosyada yer almaz.
+Tablodaki `\|` yazımı yalnız tablo kaçışıdır; dosyadaki karakter `|` olur. Kullanıcı arayüzde `@` ile seçim yapınca uygulama dosyaya wikilink yazar. `@` işareti dosyada yer almaz.
 
 ### Bağlantı ayrıştırma
 
@@ -592,9 +640,31 @@ Sözdizimi: `[[hedef]]`, `[[hedef|görünen metin]]`, `[[hedef#çapa]]`, `[[hede
 | Kod | Çitli kod bloğu ve satır içi kod içindeki `[[...]]` bağlantı değildir. Çitli kod bloğunun açılışı ```` ``` ```` ya da `~~~` işaretidir. |
 | Satır içi kod | Açılış: bir ya da daha çok ters tırnak. Kapanış: aynı satırda aynı sayıda ters tırnak. |
 | Bulunmayan hedef | Hedefi kasada bulunmayan bağlantı geçerlidir ve kalır. Taranmayan klasörlerdeki dosyalar hedef olamaz. |
-| Frontmatter | Uygulama bağlantıyı çözülmüş değerlerin metninde arar. Uygulama ham alanlarda ve çözülemeyen blokta bağlantı aramaz. |
+| Frontmatter | Uygulama bağlantıyı çözülmüş değerlerin metninde arar. Kod, kaçış ve gömme tanıması da çözülmüş metinde çalışır. |
+| Frontmatter: taranmayanlar | Ham alanlar, çözülemeyen blok, anahtarlar ve yorumlar. |
+| Frontmatter: çözülmüş satır sonu | Kaçışla yazılmış satır sonu bağlantıyı böler. |
+| Yinelenen hedef | Aynı hedefe giden her yazım ayrı bağlantıdır. |
 
 Tablo içindeki ayırıcı yazımı `\|` biçimindedir. Örnek: Markdown tablosunun hücresindeki `[[Ahmet Yılmaz\|Ahmet]]` yazımının hedefi `Ahmet Yılmaz` olur.
+
+### Bağlantı yazımı
+
+**Uygulamanın tanıdığı ya da kullanıcının seçtiği ad için yazdığı wikilink.**
+
+| Konu | Kural |
+|---|---|
+| Hedef | Uzantısız dosya adı seçilen varlığa çözülüyorsa hedef o gövde adıdır. Çözülmüyorsa hedef klasörlü yoldur: `people/Ahmet`. Yol hedefi sözdiziminde zaten vardır. |
+| Kök yolu | Yol hedefinde `/` yoksa uygulama başına `/` ekler: `[[/Baran\|Baran]]`. Çözümleyici baştaki `/` parçasını yok sayar. |
+| Hedef seçimi | İndeks hedefi, seçilen dosyaya çözülecek biçimde belirler. |
+| Görünen metin | Kaynak yazım hedefle bayt bayt aynıysa uygulama `[[hedef]]` yazar. Diğer durumda uygulama `[[hedef\|yazım]]` yazar. |
+| Ayırt edicili varlık | Uygulama görünen metni her zaman yazar. |
+| Takma ad | Takma ad hedefle bayt bayt aynıysa ve hedefte ayırt edici yoksa uygulama görünen metni ayrıca yazmaz. |
+| Korunan baytlar | Yazımın harfleri, boşlukları, ekler ve metnin diğer bütün baytları aynı kalır. |
+| Eski anma | Kaynak yazım artık aralıkla uyuşmuyorsa bağlantıya çevirme eski anma hatası verir. |
+| Temsil edilemeyen hedef | Hedef wikilink sözdizimiyle temsil edilemiyorsa uygulama anmayı bağlamaz. Anma düz metin kalır. |
+| Temsil edilemeyen görünen metin | Görünen metin temsil edilemiyorsa uygulama işlemi reddeder ve kısmi çıktı üretmez. Örnek: köşeli ayraç içeren metin. |
+
+Tablo satırında ayırıcı farklıdır. Başındaki boşluklardan sonra `|` ile başlayan satırda uygulama görünen metin ayırıcısını `\|` olarak yazar.
 
 ### Yeniden adlandırma
 
@@ -621,7 +691,7 @@ flowchart TD
 | Konu | Kural |
 |---|---|
 | Yeni dosya adı | Yeni ad, ad üretme ve kasa genelinde benzersizlik kurallarına uyar. Uygulama başka dosyanın üzerine yazmaz. |
-| Değişen parça | Yalnız hedef yazımı değişir. Çapa, gömme işareti, hedef çevresindeki boşluklar, `.md` soneki, yol hedefinin yol biçimi ve tablo ayırıcı kaçışı aynı kalır. |
+| Değişen parça | Yalnız hedef yazımı değişir. Çapa, görünen metin, gömme işareti, hedef çevresindeki boşluklar, `.md` soneki, yol hedefinin yol biçimi ve tablo ayırıcı kaçışı aynı kalır. |
 | Gövde | Uygulama gövdede hedefin bayt aralığını değiştirir. |
 | Frontmatter | Uygulama çözülmüş metin değerini ilgili alan, liste ya da eşlem girdisi yazıcısıyla yazar. YAML kaçışlarını yazıcı doğru kodlar. |
 | Ham alan | Uygulama ham alanları değiştirmez. Uygulama eski hedefe benzeyen bağlantı içeren ham alanları sonuçta bildirir. |
@@ -634,7 +704,7 @@ flowchart TD
 | Kesintiden sonra | Sonraki yeniden adlandırma hâlâ çözülen bağlantıları günceller. Artık çözülmeyen eski hedefleri kullanıcı elle düzeltir. |
 | Geçmiş | Uygulama işlem geçmişi ya da gizli yönlendirme bilgisi tutmaz. |
 
-Açık görünen metin kullanıcınındır: `[[Eski|Eski]]` → `[[Yeni|Eski]]`; görünen metinsiz `[[Eski]]` → `[[Yeni]]`. Görünen metni kullanıcı ayrıca düzeltir. Yeniden adlandırmada yalnız hedef değişir; çapa ve görünen metin aynı kalır.
+Açık görünen metin kullanıcınındır: `[[Eski|Eski]]` → `[[Yeni|Eski]]`; görünen metinsiz `[[Eski]]` → `[[Yeni]]`. Görünen metni kullanıcı ayrıca düzeltir.
 
 ### İlişkiler
 
@@ -658,10 +728,13 @@ tanışma: Üniversite                                # bağ değil: bağlantı 
 | Kaynak | Kişi, konum ya da tanımlı özel tip dosyası. Gün, hedef, not ve tanınmayan tipteki dosya bağ kaynağı değildir. |
 | Bağ | Kaynağın frontmatter'ında üst düzey bir alanın tek değerinde ya da liste öğesinde geçen her bağlantı. Uygulama bağlantıyı [Bağlantı ayrıştırma](#bağlantı-ayrıştırma) kurallarıyla bulur. |
 | Hedef | Bağlantının çözüldüğü kişi, konum ya da tanımlı özel tip dosyası. Kaynağın kendisine çözülen bağlantı bağ değildir. |
-| Etiket | Anahtar `related` ise bağ etiketsizdir. Diğer anahtarlarda etiket anahtarın kendisidir: `eşi`. Etiket içerik katmanıdır ve kullanıcının dilindedir ([Dil katmanları](#dil-katmanları)). Uygulama anahtarları bayt bayt karşılaştırır: `Related` bir etikettir. |
+| Etiket | Anahtar `related` ise bağ etiketsizdir. Diğer anahtarlarda etiket anahtarın kendisidir: `eşi`. |
+| Etiketin dili ve karşılaştırması | Etiket içerik katmanıdır ve kullanıcının dilindedir ([Dil katmanları](#dil-katmanları)). Uygulama anahtarları bayt bayt karşılaştırır: `Related` bir etikettir. |
 | Özel tip alanı | Tip şemasındaki `link` alanı da bağdır. Etiketi alanın anahtarıdır: kitap dosyasında `yazar: "[[Elif Aydın]]"`. |
 | Tek bağ | Bir anahtar ve bir hedef tek bağdır. Aynı anahtarda aynı hedefe çözülen 2 bağlantı 1 bağdır. Aynı hedef farklı anahtarlarda farklı bağlardır. |
-| Bağ olmayan | Çözülmeyen bağlantı bağ değildir; çözülmemiş bağlantı olarak kalır. Hedef dosyası oluşunca bağ olur. Ham alan, çözülemeyen blok ve eşlem kaydı bağ üretmez. `type`, `name`, `qualifier` ve `aliases` alanlarındaki bağlantı bağ değildir. Gövdedeki bağlantı açık bağ değildir. |
+| Bağ olmayan: çözülmeyen bağlantı | Çözülmemiş bağlantı olarak kalır. Hedef dosyası oluşunca bağ olur. |
+| Bağ olmayan: yapı | Ham alan, çözülemeyen blok ve eşlem kaydı bağ üretmez. |
+| Bağ olmayan: alan ve gövde | `type`, `name`, `qualifier` ve `aliases` alanlarındaki bağlantı bağ değildir. Gövdedeki bağlantı açık bağ değildir. |
 
 **Yön.**
 
@@ -680,7 +753,7 @@ tanışma: Üniversite                                # bağ değil: bağlantı 
 | Etiketli, birden çok hedef | `iş arkadaşı: ["[[Can Demir]]", "[[Ece Şahin]]"]` |
 
 - Uygulama bağlantıyı her zaman çift tırnak içinde yazar. Tırnaksız `[[X]]` YAML'da iç içe listedir: Kenet'te [ham alan](#ham-alanlar), Obsidian'da bağlantı değil.
-- Uygulama hedefi [Otomatik tanıma ve belirsizlik](#otomatik-tanıma-ve-belirsizlik) bölümündeki Bağlantı yazımı tablosunun Hedef satırıyla yazar. Yol hedefinde `/` yoksa başına `/` ekler. Uygulama görünen metin ve çapa yazmaz: `[[Ahmet Yılmaz (iş)]]`.
+- Uygulama hedefi [Bağlantı yazımı](#bağlantı-yazımı) tablosunun Hedef satırıyla yazar. Yol hedefinde `/` yoksa başına `/` ekler. Uygulama görünen metin ve çapa yazmaz: `[[Ahmet Yılmaz (iş)]]`.
 
 **Bağ ekleme: uygulama önce bu 5 denetimi sırayla yapar.**
 
@@ -698,7 +771,10 @@ tanışma: Üniversite                                # bağ değil: bağlantı 
 |---|---|
 | Kırpma | Uygulama etiketin başındaki ve sonundaki boşluk ve sekmeleri kırpar. Satır sonunu kırpmaz. Boş etiket etiketsiz bağdır: uygulama `related` alanına yazar. |
 | Geçersiz etiket | Kırpılmış etikette satır sonu, sekme ya da [Çözülemeyen bloklar](#çözülemeyen-bloklar) 19'daki bir karakter. `<<` etiketi. Emoji birleştirici (U+200D) ve yumuşak tire (U+00AD) geçerlidir. |
-| Ayrılmış anahtar | `type`, `name`, `qualifier`, `aliases`, `related`. Kişi dosyasında `cadence_days`, `cadence_snoozed_until`, `cadence_paused`. Konum dosyasında `coordinates`, `radius`. Özel tip dosyasında tipin şemasındaki her alan anahtarı; `link` alanını kullanıcı alan düzenleyicisinde yazar. |
+| Ayrılmış anahtar: her dosya | `type`, `name`, `qualifier`, `aliases`, `related` |
+| Ayrılmış anahtar: kişi dosyası | `cadence_days`, `cadence_snoozed_until`, `cadence_paused` |
+| Ayrılmış anahtar: konum dosyası | `coordinates`, `radius` |
+| Ayrılmış anahtar: özel tip dosyası | Tipin şemasındaki her alan anahtarı. `link` alanını kullanıcı alan düzenleyicisinde yazar. |
 
 **Bağ ekleme: anahtarın durumuna göre yazılan.** Uygulama [Yazma kuralları](#yazma-kuralları) ile yazar.
 
@@ -749,19 +825,23 @@ tanışma: Üniversite                                # bağ değil: bağlantı 
 | Yazma biçimi | Satırın sonunda, bir boşluktan sonra `^` ve ardından 6 karakter: küçük harf `a-z` ve rakam. |
 | Anlam | Kimlik opaktır. Tür ya da başka anlam taşıyan önek içermez. Satırın olay mı görev mi olduğunu kimlik değil satırın yazımı belirler. |
 | Üretim | Uygulama kimliği rastgele üretir. Uygulama kasadaki mevcut kimliklerle çakışmayı denetler. Paylaşım uzantısı kasa indeksini açmaz; yeni kimliği yalnız gün dosyasındaki kimliklerle denetler. |
-| Uzantının yazdığı satır | Uzantı yazdığı satırın kimliğini `written.json` işaretine yazar: `writtenLineID`. Kimlik başka dosyada da varsa uygulama yalnız bu satıra yeni kimlik verir. Uygulama yalnız `^kimlik` baytlarını değiştirir. Kimlik gün dosyasında birden çok satırdaysa uygulama dokunmaz. Alanı olmayan işarette de dokunmaz. Öteki dosya değişmez. |
+| Uzantının yazdığı satır | Uzantı yazdığı satırın kimliğini `written.json` işaretine yazar: `writtenLineID`. |
+| Uzantı satırının onarımı | Kimlik başka dosyada da varsa uygulama yalnız bu satıra yeni kimlik verir. Uygulama yalnız `^kimlik` baytlarını değiştirir. Öteki dosya değişmez. |
+| Uzantı satırı: onarım yok | Kimlik gün dosyasında birden çok satırdaysa uygulama dokunmaz. Alanı olmayan işarette de dokunmaz. |
 | Düzenleme | Satır değişse de kimlik değişmez. |
 | Kimliksiz satır | Kullanıcının elle ya da Obsidian'da yazdığı satırda kimlik olmayabilir. Uygulama o satırı ilk kez değiştirdiğinde kimlik ekler. |
 | Okuma | Uygulama Obsidian'ın kabul ettiği her kimliği tanır ve değiştirmez: harf, rakam ve `-`, her uzunlukta. |
 | Yinelenen kimlik | Benzersizlik amaçtır ama garanti değildir: dışarıdaki kopyalama aynı kimliği çoğaltabilir. Kimliğin sahibi ilk geçen satırdır: önce dosya yolu sırası, sonra dosya içi sıra. |
-| Yinelenen kimliğin onarımı | Uygulama diğer satırları kendiliğinden değiştirmez. Uygulama onlardan birini değiştirdiğinde o satıra yeni kimlik verir. Uzantının yazdığı satır bu kurala aykırı değildir: satırı uygulamanın kendi yazısı yazdı. Kullanıcının aynı metinli eski satırı değişmez. |
+| Yinelenen kimliğin onarımı | Uygulama diğer satırları kendiliğinden değiştirmez. Uygulama onlardan birini değiştirdiğinde o satıra yeni kimlik verir. |
+| Onarım ve uzantı satırı | Uzantının yazdığı satır bu kurala aykırı değildir: satırı uygulamanın kendi yazısı yazdı. Kullanıcının aynı metinli eski satırı değişmez. |
 
 **Satır bloğu:** bir olay ya da görev satırı ve altındaki daha girintili satırlar.
 
 - Bir olay ya da görev satırının altındaki, daha girintili satırlar o satırın parçasıdır. Örnek: alt madde, devam satırı. Uygulama bu satırları üst satırla birlikte taşır, birleştirir ve siler.
 - Uygulama bu satırları üretmez, yalnız korur.
 - Aradaki boş satırlar, ardından yine girintili bir satır geliyorsa bloğa dahildir.
-- Uygulama girintiyi yalnız satır başındaki boşluk ve sekmelerle, sütun olarak ölçer. Sekme bir sonraki 4'ün katına ilerler.
+- Uygulama girintiyi yalnız satır başındaki boşluk ve sekmelerle, sütun olarak ölçer. Boşluk 1 sütun ilerler. Sekme bir sonraki 4'ün katına ilerler.
+- İç içe görevlerin blok aralıkları örtüşebilir. Kardeş görevlerden biri ötekinin aralığına girmez.
 - Alıntı içindeki görevler tek satırlık bloklardır. `>` girinti değildir.
 - Alt satırı olan bir görevi uygulama silince yalnız görevin kendi satırlarını siler. Üst blok o kadar kısalır. Sonda kalan boş satırlar blok aralığından çıkar ama dosyada kalır.
 
@@ -800,7 +880,11 @@ Bugün genel olarak verimli geçti...
 | `## Events` | Olaylar | Hızlı giriş, paylaşım uzantısı ve Kısayollar buraya satır ekler. |
 | `## Diary` | Serbest yazı | Kullanıcı kaydedince uygulama yalnız o düzenlemede eklenen ya da değişen satırlardaki kesin anmaları bağlantıya çevirir. Uygulama değişmeyen satırlara dokunmaz. |
 
-Gün dosyasının kimliği yoludur. `diary/` altında adı geçerli bir tarih olan dosya o günün dosyasıdır: `YYYY-MM-DD.md`. Frontmatter'ı olmayan dosya da o günün dosyasıdır; örneğin kullanıcı dosyayı Obsidian'da açtıysa. Bir günün tek dosyası vardır. Eski adlar için: [Eski adlar ve geçiş](#eski-adlar-ve-geçiş).
+- Gün dosyasının kimliği yoludur.
+- `diary/` altında adı geçerli bir tarih olan dosya o günün dosyasıdır: `YYYY-MM-DD.md`.
+- Frontmatter'ı olmayan dosya da o günün dosyasıdır. Örnek: kullanıcı dosyayı Obsidian'da açtı.
+- Bir günün tek dosyası vardır.
+- Eski adlar: [Eski adlar ve geçiş](#eski-adlar-ve-geçiş).
 
 ### Eski adlar ve geçiş
 
@@ -823,7 +907,9 @@ Uygulama eski adları kasa geçişi bitene kadar okur. Uygulama eski adlı dosya
 | Eski başlıklı dosyaya yazma | Uygulama metni `## Journal` başlığının altına ekler. Başlığı değiştirmez. |
 | Gün hiçbir klasörde yok | Uygulama yeni dosyayı `diary/` altında açar. Uygulama eski klasörde hiçbir zaman yeni gün dosyası açmaz. |
 | Gün seçimden sonra taşındı | Yazıcı eski dosyayı seçtikten sonra başka süreç onu taşıdıysa yazıcı günün dosyasını yeniden seçer. Yazı `diary/` altına gider. |
-| Aynı gün iki klasörde | `diary/` altındaki dosya günün dosyasıdır. Tarihe göre sayan görünümler eski dosyayı saymaz: gün listesi, özetler, geçmişte bugün, varlık zaman akışı, varlık kullanımı ve birlikte geçme, ilişki grafiği, bağlanmamış anmalar. Görev listeleri iki dosyanın satırlarını da gösterir. Geçiş eski dosyayı gün kopyası yapar. |
+| Aynı gün iki klasörde | `diary/` altındaki dosya günün dosyasıdır. Geçiş eski dosyayı gün kopyası yapar. |
+| Aynı gün iki klasörde: sayım | Tarihe göre sayan görünümler eski dosyayı saymaz. Görev listeleri iki dosyanın satırlarını da gösterir. |
+| Tarihe göre sayan görünümler | Gün listesi, özetler, geçmişte bugün, varlık zaman akışı, varlık kullanımı ve birlikte geçme, ilişki grafiği, bağlanmamış anmalar. |
 | Eski klasördeki sayılı ad | `journal/YYYY-MM-DD N.md` indekse girmez ve birleştirilmez. Geçiş onu `diary/` altına taşır. |
 | İki başlık aynı dosyada | Önce gelen tanınan başlıktır. Yinelenen başlık kuralı geçerlidir. |
 | Birleştirme | Eski başlık bölge eşleşmesinde `## Diary` sayılır. |
@@ -1028,7 +1114,6 @@ flowchart TD
 - Saati kalkan olay yerinde kalır.
 - Taşınan satırların içeriği aynı kalır. Satır sonları yeni satır kuralına uyar.
 - Saati küçülen olayı, kendisinden büyük saatli olay yoksa, kural saatsiz olayların da arkasına koyar.
-- Uygulama yeni olayı `- ` işaretiyle yazar.
 - Uygulama mevcut satırı düzenlerken yalnız değişen parçayı yeniden yazar: metin, saat ya da kimlik. Girinti, liste işareti ve altındaki satırlar aynı kalır.
 - Gösterim sırası dosyadaki sıradır.
 
@@ -1073,7 +1158,7 @@ flowchart TD
 | Ayırıcı | Alanlar arasında boşluk vardır. Tarih işareti ile ISO tarih arasında tek boşluk vardır. |
 | Yeni satırdaki sıra | Metinden sonra, kimlikten önce: `🛫 başlangıç`, `📅 bitiş`, `✅ tamamlanma`, öncelik, `🔁 tekrar`, `#project/...`. |
 | Okumadaki sıra | Sıra serbesttir. Alanlar metnin herhangi bir yerinde olabilir. |
-| Görev metni | Tanınan alanlar çıktıktan sonra kalan parçalar. Uygulama parçalardaki boşluk ve sekmeleri sadeleştirir. Ham satır baytları değişmez. |
+| Görev metni | Tanınan alanlar çıktıktan sonra kalan parçalar. Ham satır baytları değişmez. Sadeleştirme kuralları aşağıdaki tablodadır. |
 | Metin kalan yazımlar | Geçersiz tarih (`📅 2026-13-40`) ve tanınmayan emoji metindir. |
 | Alan olmayan yazımlar | Satır içi kod, wikilink, satır içi Markdown bağlantısı ya da referans bağlantısı içindeki alan benzeri yazım alan değildir. Referans bağlantısı: `[metin][etiket]`, `[metin][]`. |
 | Yinelenen alan | Tarih, öncelik, tekrar ya da proje yinelenirse değer ilk geçerli alandır. Uygulama bütün tanınan parçaların UTF-8 aralıklarını saklar. |
@@ -1082,6 +1167,19 @@ flowchart TD
 | Proje karşılaştırması | NFC ve yerelden bağımsız küçük harf eşlemesi. Özgün yazım dosyada kalır. |
 | Diğer öncelikler | Uygulama `🔺` ve `⏬` önceliklerini `other` olarak okur. Uygulama yalnız `⏫`, `🔼`, `🔽` yazar. |
 | Tanınmayan alanlar | Uygulamanın ayrıştırmadığı alanlar metnin parçası olarak kalır. Tanımadığı emoji alanları da dahildir. |
+
+**Olay ve görev metninin okunması.**
+
+| Konu | Kural |
+|---|---|
+| Metnin kaynağı | Yalnız bloğun ilk satırı. |
+| Görevde çıkan sözdizimi | Kutuya kadar olan liste ve alıntı sözdizimi. |
+| Olayda çıkan sözdizimi | Liste işareti ve ardından gelen boşluk ve sekmeler. |
+| Ayırıcı boşluk | Kutudan ve saatten sonraki tek ayırıcı boşluk çıkar. |
+| Olay metni | Diğer boşluklar ve metin aynen kalır. |
+| Görev metni | Kalan boşluk ve sekmeler tek boşluğa iner. Baş ve son kırpılır. |
+| Kimlik | Önündeki tek boşluk ve sonrasındaki boşluk ya da sekme çıkar. |
+| Kimlik yok | Sondaki boşluklar metinde kalır. |
 
 ### Görev düzenleme
 
@@ -1097,15 +1195,6 @@ flowchart TD
 | İptal: `cancelled` | Uygulama tamamlanma tarihine dokunmaz. Tarih yoksa eklemez. |
 | Korunanlar | Diğer baytlar, girinti, liste işareti, kutu yazımı ve alt satırlar aynı kalır. |
 | Yanlış okunacak metin | Uygulama, yeniden okunduğunda istenenden farklı okunacak metni yazmaz. İşlemi reddeder ve dosyaya dokunmaz. Örnekler: saatsiz olayda saatle başlayan metin, olayda onay kutusuyla başlayan metin, kimlik gibi biten metin. |
-
-### Tarihsiz görevler
-
-| Yer | Tarihsiz görev |
-|---|---|
-| Oluşturulduğu günün ekranı | Görünür. Gün ekranı, o günün `diary/` dosyasında yazılı tarihsiz görevleri listeler. |
-| Sonraki günlerin ekranı | Görünmez. |
-| Görevler ekranı, "Tarihsiz" listesi | Görev açık kaldıkça, oluşturulduğu günden başlayarak görünür. |
-| `notes/` altındaki tarihsiz görev | Hiçbir gün ekranında görünmez. "Tarihsiz" listesinde görünür. |
 
 ### Tekrarlayan görevler
 
@@ -1130,7 +1219,6 @@ flowchart TD
 - Yinelenen geçerli tekrarda uygulama ilk kuralı kullanır.
 - Kullanıcı Tekrar alanını açıkça düzenlerse uygulama tanınan kuralı hedef alır ve değiştirir ya da kaldırır. Satırın geri kalanı bayt bayt aynı kalır.
 - Uygulama tanınmayan kuralı değiştirmez ve kaldırmaz. Yinelenen alanlardan yalnız biri tanınmasa da kural geçerlidir. Gerekçe: kural satır sonuna kadar uzanabilir ve kullanıcının metnini içerebilir. Kullanıcı kuralı dosyada elle düzeltir.
-- Yeni görevde yazım sırası: `🛫`, `📅`, `✅`, öncelik, `🔁`, `#project/...`, kimlik. Mevcut görevde uygulama yalnız hedef alanı yerinde değiştirir.
 
 **Açık tekrarlayan görevi tamamlama.**
 
@@ -1163,37 +1251,6 @@ flowchart TD
 | Gün, hafta | Tam aralık kadar ilerler. |
 | Ay, yıl | Taşma ayın son gününe sıkışır: 31 Ocak → 28/29 Şubat; 29 Şubat → sonraki yıl 28 Şubat. |
 | Desteklenen tarih sınırı | Sonraki tarih üretilemiyorsa uygulama yazmadan hata verir. |
-
-### Hızlı girişte öncelik ve tekrar
-
-| Yazım | Sonuç |
-|---|---|
-| Metnin başında ya da sonunda bağımsız `!` | Orta: `🔼` |
-| Metnin başında ya da sonunda bağımsız `!!` | Yüksek: `⏫` |
-| `!!!`, sözcük içi işaretler, kod ve bağlantı içindekiler | Metinde kalır. |
-| Baş ve son işaret birlikte | Uygulama yüksek olanı seçer. |
-| Açık emoji önceliği | Kalır. |
-| Düşük öncelik | Yalnız öncelik seçicisinden gelir. |
-| `her gün/hafta/ay/yıl`, `her N gün/hafta/ay/yıl`, `her pazartesi/.../pazar`, İngilizce eşdeğerleri | Tekrar alanı. |
-| `tamamlanınca`/`when done` | Tekrar alanının `when done` soneki. |
-
-- Kurallar yalnız hızlı girişin görev modunda geçerlidir.
-- Uygulama tekrar sözcüklerini tarih ayrıştırmasından önce tüketir.
-- Uygulama bilinen ve korunan bağlantıya, koda, etikete ve `🔁` alanına dokunmaz.
-
-### Tarih ifadesindeki ekler
-
-| Girdi | Bitiş | Kalan metin |
-|---|---|---|
-| `Cuma'ya kadar raporu bitir` | Cuma | `kadar raporu bitir` |
-| `5 Ekim'e` | 5 Ekim | Ek ifadeyle birlikte çıkar. |
-| `15 Mart'tan sonra` | 15 Mart | Ek ifadeyle birlikte çıkar. |
-| `Cuma'da`, `Cuma'yı`, `Cuma'nın` | Cuma | Ek metinde kalır. |
-| `yarın'a` | Yarın | Ek metinde kalır. |
-| `25.10'a` | `25.10` | Ek metinde kalır. |
-| `Friday's` | Cuma | Ek metinde kalır. |
-
-Tarih ifadesi Türkçe gün ya da ay adıyla bitiyorsa, ada kesme işaretiyle bitişik yönelme ya da çıkma eki ifadenin parçasıdır. Kesme işareti `'` ya da `’` olabilir. Tanınan ekler: `'a`, `'e`, `'ya`, `'ye`, `'dan`, `'den`, `'tan`, `'ten`. Uygulama eki ifadeyle birlikte çıkarır; `kadar` ayrı bir ifade değildir ve metinde kalır. Başka ekler, göreli sözcükler, sayısal tarihler ve İngilizce adlar için uygulama ifadeyi eksiz çıkarır ve ek metinde kalır.
 
 ## Kişi dosyası
 
@@ -1260,21 +1317,6 @@ Serbest notlar...
 - "Bugün", kullanıcının o anki saat dilimindeki takvim günüdür. Uygulama dosyaya yalnız `YYYY-MM-DD` yazar.
 - Ritim anahtarları yalnız kişi dosyasında ritim anlamı taşır. Konum ya da özel tip dosyasında bu anahtarlar sıradan alandır. Uygulama onları ritim hesabına katmaz, diğer alanlar gibi gösterir ve düzenler.
 
-### Yıl dönümleri
-
-| Durum | Yıl dönümü |
-|---|---|
-| Kişi dosyasında tarih türündeki alan | Evet. Değer `YYYY-MM-DD` yazımıyla tarih okunmalıdır. |
-| Kayıtlı özel tip dosyasında tarih türündeki alan | Evet. Kişi dosyasıyla aynı yorum. |
-| Konum dosyasındaki tarih alanı | Hayır. |
-| `cadence_days`, `cadence_snoozed_until`, `cadence_paused` | Hayır, hangi dosyada olursa olsun. `cadence_snoozed_until` tarih türündedir ama yıl dönümü değildir. |
-| Kaynak yılı bu yıldan büyük | Satır yok. |
-| İlk yıl dönümü henüz gelmedi | Satır yok. |
-| Karşılaşılan gün kaynak tarihin kendisi: 0. yıl | Satır yok. |
-| 29 Şubat, artık olmayan yıl | Uygulama 28 Şubat'ta anar. |
-
-Yıl dönümünün etiketi alanın kendi adıdır. Yıl dönümü hesabı anahtar adına göre dallanmaz. Tek istisna aşağıdaki doğum günü alanıdır. Yıl dönümü bir yorum kuralıdır; yeni alan ya da sözdizimi eklemez.
-
 ### Doğum günü alanı
 
 | Konu | Kural |
@@ -1318,124 +1360,10 @@ aliases: [Ahmet]
 | Konu | Kural |
 |---|---|
 | Neden | Bağlantılar dosya adına gider. Bu nedenle dosya adları farklıdır. Ama kullanıcı dosya adı düşünmez. |
-| Görünen ad | `name` alanındadır. Arayüz her yerde `name` değerini gösterir. |
-| Arayüz | 2 varlık da "Ahmet Yılmaz" görünür. Arayüz ayırt ediciyi adın altında küçük yazıyla gösterir. |
+| Görünen ad | `name` alanındadır. Arayüz her yerde `name` değerini gösterir: 2 varlık da "Ahmet Yılmaz" görünür. Ayırt edicinin yeri: [Kişiler ve Konumlar](screens.md#kişiler-ve-konumlar). |
 | Bağlantı | `[[Ahmet Yılmaz (iş)\|Ahmet]]` |
 | İlk varlık | Dosya adı değişmez. Kullanıcı isterse ilk varlığa da ayırt edici ekleyebilir. |
 | Konumlar | Aynı kural konumlar için de geçerlidir. |
-
-### Otomatik tanıma ve belirsizlik
-
-**Bir eşleşmenin sonucu: kesin, öneri, belirsiz ya da bilinmeyen.**
-
-```mermaid
-flowchart TD
-  A["Metindeki eşleşme: name ya da aliases"] --> N{"Ad tamamı rakam ve önünde @ yok mu?"}
-  N -- Evet --> N1["Anma değil; metin aynı kalır"]
-  N -- Hayır --> B{"Aday sayısı"}
-  B -- "0, açık @ anması" --> U["Bilinmeyen anma: bildirir, bağlamaz"]
-  B -- "2 ya da daha çok" --> M["Belirsiz: adayları sıralar; kullanıcı seçmeden bağlamaz"]
-  B -- "1" --> C{"Açık @ anması mı?"}
-  C -- Evet --> K["Kesin: bağlar"]
-  C -- Hayır --> D{"Kaynak yazımın ilk harfi ad ya da takma adın ilk harfiyle aynı büyüklükte mi?"}
-  D -- Evet --> K
-  D -- Hayır --> S["Öneri: isCaseMismatch; kullanıcı seçmeden bağlamaz"]
-```
-
-**Eşleşme kuralları.**
-
-| Konu | Kural |
-|---|---|
-| Kaynak | Uygulama `name` ve `aliases` üzerinden tanır. |
-| Sınır | Eşleşme Unicode harf ve rakam sınırlarındadır. Sözcük içindeki ad eşleşmez. |
-| Karşılaştırma | "Adlar ve karşılaştırma" bölümündeki ad karşılaştırma anahtarı. `DENİZ` `Deniz` adını, `IŞIK` `Işık` adını tanır; `işık` `Işık` adını tanımaz. |
-| Çok sözcüklü ad | Sözcükler arasında 1 ya da daha çok Unicode boşluk olabilir. Satır sonu olamaz. U+2028 ve U+0085 satır sonudur ve boşluğun yerine geçmez. |
-| Örtüşme | Uygulama en uzun eşleşmeyi seçer. Eşit uzunlukta ad takma addan önce gelir. Sonra metinde önce başlayan eşleşme gelir. |
-| Adaylar | Aynı yazıma uyan bütün farklı varlıklar aday kalır. |
-| Ek | Adın hemen ardından gelen ve `'` ya da `’` ile başlayan ek bağlantının dışında kalır. |
-
-**Taranmayan yazımlar.**
-
-| Yazım | Neden |
-|---|---|
-| Var olan wikilinkler ve `[metin](hedef)` Markdown bağlantılarının tamamı | Zaten bağlantı. |
-| Satır içi kod, kod çiti satırları | Kod. |
-| Belge düzeyindeki çağrıda frontmatter satırları | Yapı. |
-| `://` içeren boşluksuz parça | Adres. |
-| İçinde `@` geçen boşluksuz parça, örneğin e-posta | Adres. Sözcük başındaki açık anmanın `@` işareti bu dışlamanın istisnasıdır. |
-| Harf.harf biçiminde noktayla birleşen boşluksuz parça | Alan adı benzeri. |
-| `#` ya da `^` ile başlayan boşluksuz parça | Etiket ya da kimlik. |
-| Önünde boşluk olmadan `[`, `!`, `\`, `#`, `^` ya da `\|` bulunan anma | Kaçırılmış ya da kapanmamış bağlantı yazımı. Düz metin kalır. |
-| Hemen arkasında `]` bulunan anma | Kapanmamış bağlantı yazımı. Düz metin kalır. |
-
-**Uygulama tamamı rakam olan adı yalnız `@` ile bağlar.**
-
-| Yazım | Sonuç |
-|---|---|
-| `12 kişi`, `12 Ekim 2026`, `(12)`, `12'de`, `1. Elma`, `Tel: 0212 555 12 12`, `12:30`, `12.10.2026`, `12+5`, `34 plakalı araç` | Anma değil. Metin olduğu gibi kalır. |
-| `@12` | `[[12]]` |
-| `@12'de` | `[[12]]'de` |
-| `@12:30` | `[[12]]:30`. Uygulama yalnız adı bağlar; ardındaki `30` çıplak yazımdır. |
-| `Daire 12` | `[[Daire 12]]` |
-| `Daire 12:30` | `[[Daire 12]]:30` |
-| `[[12]]`, `[[Hedef\|12]]` | Var olan bağlantı. Uygulama okur ve değiştirmez. |
-| `[[12]]:30`, `[[Deniz]]:12` | Yeniden taramada yeni anma çıkmaz. |
-
-- Kural, tamamı rakam olan ad ya da takma ad içindir: `12`, `2026`, `34`. Böyle bir ad çıplak yazıldığında anma değildir. Yazma yolu ve çevredeki karakterler fark etmez.
-- Böyle bir yazımı uygulama yalnız açık anmayla bağlar.
-- Açık anma birden çok varlığa uyuyorsa öteki adlardaki gibi belirsizdir. Uygulama kullanıcı seçmeden bağlamaz.
-- Rakam, hangi yazıda olursa olsun Unicode ondalık rakamıdır: ASCII `12`, Arap-Hint `١٢`, tam genişlik `１２`.
-- Kesir, üst simge, Roma rakamı ve tuş emojisi rakam değildir: `½`, `²`, `Ⅻ`, `1️⃣`. Bunlardan oluşan ad bu kurala girmez.
-- Kural varlığa değil yazıma bakar. Örnek: adı `Otoyol`, takma adı `34` olan varlıkta yalnız `34` yazımı `@` ister. `Otoyol` yazımı `@` istemeden eşleşir.
-- İçinde rakamdan başka karakter bulunan adlar kurala girmez ve öteki adlar gibi eşleşir: `Daire 12`, `3. Kat`, `7/24`, `12 5`.
-- Bağlanmamış anmalar sorgusu da çıplak rakam yazımlarını listelemez. Sorgu, `@` ile yazılıp bağlanmamış olanı listeler.
-
-**Uygulama satırın yapısını taramaz.**
-
-| Satır | Taranan | Taranmayan |
-|---|---|---|
-| Görev satırı: hangi dosyada ya da bölümde olursa olsun, Diary bölümü dahil | Yalnız görevin metni | Liste işareti, kutu, tanınan alanlar, uygulamanın okumadığı `⏳` ve `➕` tarihleri, sondaki `^kimlik` |
-| Events bölümündeki olay satırı | Olay metni | Liste işareti, baştaki saat, kimlik |
-
-- Tanınan alanlar: `📅`, `🛫`, `✅` ile tarihleri, öncelik işaretleri, `#project/...`, `🔁` ile kuralı.
-- Uygulamanın okuyamadığı `🔁` kuralı da bittiği yere kadar alandır: sonraki alan, bağlantı, satır içi kod ya da satır sonu. Uygulama kuraldaki adı tanımaz. Uygulama kuraldaki açık `@` anmasını da tanımaz. Örnek: `🔁 her hafta Deniz ile` olduğu gibi kalır.
-- Obsidian Tasks'ın `⏳` ve `➕` tarihleri: işaret, tek boşluk, geçerli ISO tarih.
-- Alan gibi görünen ama alan olmayan yazım metindir. Uygulama o yazımı öteki kurallarla tarar. Örnekler: ardından geçerli tarih gelmeyen `📅`; görev olmayan satırdaki `📅 2026-10-12`.
-- Bu tanım tektir. Yazarken tanıma da bağlanmamış anmalar sorgusu da aynı tanımı kullanır.
-
-**Açık anma ve kesinlik.**
-
-| Konu | Kural |
-|---|---|
-| Açık anma | `@` yalnız önünde harf ya da rakam yokken açık anmadır. |
-| Bilinen adda `@` | Uygulama `@` işaretini kaldırır ve yalnız adı bağlar. |
-| Bilinmeyen açık anma | Uygulama `@` sonrasındaki, büyük harfle başlayan en çok 4 sözcüğü bildirir. Satır sonu, noktalama ya da küçük harfle başlayan sözcük diziyi bitirir. Kesmeyle başlayan ek dışarıda kalır. Uygulama bilinmeyen açık anmayı bağlamaz. |
-| Kesin eşleşme | Tek aday var ve kaynak yazımın ilk harfi adın ya da eşleşen takma adın ilk harfiyle aynı büyüklükte. |
-| Harf büyüklüğü farkı | Uygulama eşleşmeyi `isCaseMismatch` ile öneri olarak bildirir. Kullanıcı seçmeden bağlamaz. Açık `@` anmasında bu fark kesinliği bozmaz. |
-| Birden çok aday | Puan ne olursa olsun belirsizdir. Uygulama kullanıcı seçmeden bağlamaz. |
-| Otomatik bağlama | Ad ya da takma ad tek bir varlığa aitse ve kesinlik koşulunu sağlıyorsa uygulama otomatik bağlar. |
-| Aday sıralaması | Bağlama göre: o konumda daha önce birlikte geçmek, yakın zamanda geçmek, geçme sıklığı. Uygulama en olası adayı üstte önerir. |
-| Emin olmama | Uygulama emin değilse bağlamaz ve kullanıcıya sorar. |
-| Sıralama ölçütleri | Dosyada durmaz. Uygulama ölçütleri indeksten hesaplar. |
-| Bağlanmış anma | Uygulama yeniden tanımaz. |
-| Bekleyen anmalar | Öneri, belirsiz ve bilinmeyen anmalar metinde kalır. Uygulama onları yeniden bildirir. |
-
-**Bağlantı yazımı.**
-
-| Konu | Kural |
-|---|---|
-| Hedef | Uzantısız dosya adı seçilen varlığa çözülüyorsa hedef o gövde adıdır. Çözülmüyorsa hedef klasörlü yoldur: `people/Ahmet`. Yol hedefi sözdiziminde zaten vardır. |
-| Kök yolu | Yol hedefinde `/` yoksa uygulama başına `/` ekler: `[[/Baran\|Baran]]`. Çözümleyici baştaki `/` parçasını yok sayar. |
-| Hedef seçimi | İndeks hedefi, seçilen dosyaya çözülecek biçimde belirler. |
-| Görünen metin | Kaynak yazım hedefle bayt bayt aynıysa uygulama `[[hedef]]` yazar. Diğer durumda uygulama `[[hedef\|yazım]]` yazar. |
-| Ayırt edicili varlık | Uygulama görünen metni her zaman yazar. |
-| Takma ad | Takma ad hedefle bayt bayt aynıysa ve hedefte ayırt edici yoksa uygulama görünen metni ayrıca yazmaz. |
-| Korunan baytlar | Yazımın harfleri, boşlukları, ekler ve metnin diğer bütün baytları aynı kalır. |
-| Eski anma | Kaynak yazım artık aralıkla uyuşmuyorsa bağlantıya çevirme eski anma hatası verir. |
-| Temsil edilemeyen hedef | Hedef wikilink sözdizimiyle temsil edilemiyorsa uygulama anmayı bağlamaz. Anma düz metin kalır. |
-| Temsil edilemeyen görünen metin | Görünen metin temsil edilemiyorsa uygulama işlemi reddeder ve kısmi çıktı üretmez. Örnek: köşeli ayraç içeren metin. |
-
-Tablo satırında ayırıcı farklıdır. Başındaki boşluklardan sonra `|` ile başlayan satırda uygulama görünen metin ayırıcısını `\|` olarak yazar. Bu bölümdeki tablolarda `\|` yazımı yalnız tablo kaçışıdır; dosyadaki karakter `|` olur.
 
 ## Konum dosyası
 
@@ -1508,7 +1436,7 @@ flowchart LR
   H -- Hayır --> J["Anahtar"]
 ```
 
-Türkçe `ç/ğ/ı/ö/ş/ü` harfleri `c/g/i/o/s/u` olur. Örnek: `Su İçme` → `su-icme`. Çakışmada uygulama `-2`, `-3`, … ekler. Uygulama tanımı geçersiz hedeflerin anahtarlarını da dolu sayar. Yalnız gün kayıtlarında kalan sahipsiz anahtarlar yeniden kullanılabilir.
+Örnek: `Su İçme` → `su-icme`. Uygulama tanımı geçersiz hedeflerin anahtarlarını da dolu sayar. Yalnız gün kayıtlarında kalan sahipsiz anahtarlar yeniden kullanılabilir.
 
 ### Dönemler ve geçerli tanım
 
@@ -1533,102 +1461,6 @@ Türkçe `ç/ğ/ı/ö/ş/ü` harfleri `c/g/i/o/s/u` olur. Örnek: `Su İçme` �
 | İlerleme | Yapıldı ya da yapılmadı, ve tamamlanma tarihi. Zincir ve ısı haritası yoktur. |
 | Hesap | Verilen güne kadarki, aynı yıl içindeki boolean `true` kayıtlarının ilk tarihi. Uygulama yinelenen dış kayıtları saymaz. `false` ve sayılar tamamlanma değildir. |
 | Tekrar | Uygulama aynı yıl içinde ikinci kayıt oluşturmaz. Bugünkü kart başka güne ait tamamlanmayı geri almaz. |
-
-### Zincir
-
-**Günlük hedefte kaçırma affı: zincir günü kazanılmamış geçmiş örnekleri.**
-
-| Günler | Sonuç |
-|---|---|
-| Pzt yapıldı, Sal yapıldı, Çar kaçtı, Per yapıldı, Cum yapıldı | Uygulama Çar'ı affeder. Zincir 4. |
-| Yapıldı, kaçtı, yapıldı | Af yok: kaçırmanın önünde iki yapılmış gün yok. Zincir 1. |
-| Yapıldı, kaçtı, kaçtı, yapıldı | Art arda 2 kaçırma. Af yok. Kaçırmalar zinciri keser. |
-| Yapıldı, kaçtı, yapıldı, kaçtı, yapıldı | Af yok: hiçbir kaçırmanın önünde iki yapılmış gün yok. Zincir 1. En uzun zincir 1. |
-| Yapıldı, yapıldı, kaçtı, yapıldı, kaçtı, yapıldı | Uygulama ilk kaçırmayı affeder. İkinci kaçırmanın önündeki iki günden biri affedilmiş gündür ve yapılmış sayılmaz: af yok. Zincir 1. En uzun zincir 3. |
-| Kaçtı, yapıldı, yapıldı, kaçtı, yapıldı | Uygulama ikinci kaçırmayı affeder. Zincir 3. |
-| Pzt–Cum yapıldı, Cmt kaçtı, Pazar sabahı, bugün henüz yapılmadı | Zincir 5. `isPendingToday` döner. |
-| Aynı hafta, Pazar yapıldı | Uygulama Cmt'yi affeder. Zincir 6. |
-| Aynı hafta, Pazar da yapılmadı, ertesi gün | Art arda 2 kaçırma. Zincir 0. |
-| Dün ve önceki gün birlikte kaçtı, bugün henüz yapılmadı | Bekleme zinciri korumaz. Zincir 0. |
-
-| Konu | Kural |
-|---|---|
-| Zincir tanımı | Verilen günün döneminden geriye ardışık başarılı dönem sayısı. |
-| Bekleyen güncel dönem | Güncel dönem henüz başarılı değilse sayım önceki dönemden başlar. `isPendingToday` bayrağı döner. Haftalık ve yıllık hedefte bayrak, güncel dönemin henüz başarılı olmadığını söyler. |
-| Haftalık ve yıllık hedef | Başarısız ya da kayıtsız dönem zinciri keser. Af yoktur. |
-| En uzun zincir | Verilen güne kadarki en uzun ardışık başarılı dönem dizisi. |
-| Günlük hedefte başlangıç | Aynı kural: bugün henüz başarılı değilse sayım dünden başlar ve `isPendingToday` döner. |
-| Yapılmış gün | Gün katkısı ≥ `target`. Dönem kuralıyla aynı eşik. |
-| Kaçırma | Gün yapılmamış: `false`, eşik altı, `0`, kayıt yok ya da tür uyuşmazlığı. |
-| Kaçırma affı | Bir takvim günü yapılmamışsa ve önceki iki takvim günü ile sonraki takvim günü yapılmışsa uygulama o günü affeder. Affedilen gün yapılmış gün sayılmaz: başka bir kaçırmanın önceki iki gününden biri olamaz. Uygulama affedilen günü zincir sayısına eklemez. |
-| Art arda kaçırmalar | Af yoktur. Bakiye varsa her kaçırma 1 zincir günü harcar; bakiye yetmeyen ilk kaçırma zinciri kırar. |
-| Af zamanı | Af yalnız bugünden önceki günlere geçerlidir. |
-| Dün kaçtı, önceki iki gün yapıldı, bugün henüz yok | Dün henüz affedilmiş değildir ama zinciri de düşürmez. Bugün dünü hâlâ affettirebilir. Bu nedenle uygulama zinciri dünden önceki günden sayar ve `isPendingToday` döner. |
-| Dün kaçtı, önceki iki günden biri yapılmadı ya da affedildi, bugün henüz yok | Zincir günü varsa dünün harcaması bekler ve zincir korunur. Yoksa zincir 0. `isPendingToday` döner. |
-| Beklemenin etkisi | Bekleme yalnız güncel zinciri etkiler. En uzun zincir ve ısı haritası yalnız kesinleşmiş affı sayar. Dün haritada `none` ya da kısmi kalır. |
-| Affedilmeyen kaçırmalar | Hedefin ilk ve ikinci günü, önünde iki yapılmış gün olmayan kaçırma, baştaki kaçırma ve arkası yapılmamış sondaki kaçırma. |
-| Günlük hedefte en uzun zincir | Aynı af ve zincir günü kuralıyla (harcanan günler zinciri köprüler), ilk kayıttan verilen güne kadar. |
-| Gün tanımı | Gün `CalendarDate` değeridir. Saat dilimi bir takvim gününü bölmez ya da birleştirmez. Yaz saati geçişi de tek gündür. |
-| Dinlenme günü | Yoktur. Af kuralı her zaman açıktır ve ayar değildir. |
-
-### Zincir günü
-
-Günlük hedefte aşağıdaki kural kaçırma affından sonra uygulanır. Yukarıdaki af örnekleri zincir günü kazanılmamış geçmiş içindir.
-
-| Konu | Kural |
-|---|---|
-| Kazanım | Mevcut zincirdeki her 7 yapılmış gün 1 zincir günü kazandırır: 7., 14., 21. … yapılmış gün. Affedilen ve zincir günüyle kapatılan günler sayacı artırmaz. |
-| Tavan | Bakiye en çok 3'tür. Sayaç devam eder; tavan doluyken kazanım eşiğine gelen ödül düşer, sonraya saklanmaz. |
-| Öncelik | Önce önceki iki gün ve sonraki gün yapılmışsa ücretsiz af uygulanır. Af yoksa 1 zincir günü harcanır. |
-| Harcama | Kapatılan gün yapılmış sayılmaz; zincir ve en uzun zincir sayısını, katkıyı ve skoru artırmaz. Art arda kaçırmalar ayrı ayrı harcanır. |
-| Kırılma | Af ve bakiye yoksa zincir kırılır; bakiye ve 7'lik kazanım sayacı sıfırlanır. En uzun zincir korunur. |
-| Bekleme | Bugün yapılmamışsa bugün için harcama yoktur. Dün kaçmışsa ve af ihtimali ya da bakiye varsa dünün kararı bugün bitene kadar bekler; dün için henüz harcama kaydedilmez. Önceki kaçırmalar kesinleşir; zinciri kırmışlarsa bekleme onu geri getirmez. |
-| Türetme | Bakiye (`graceDaysAvailable`) ve kesinleşmiş harcama tarihleri (`graceSpentDays`) kayıtlardan hesaplanır. Harcama listesi eski zincirlerdeki tarihleri de içerir; kırılınca yalnız bakiye sıfırlanır. Dosyaya ya da indekse yeni alan yazılmaz. |
-| Kapsam | Haftalık, yıllık ve kilometre taşı hedeflerinde bakiye 0, harcama listesi boştur. Dönem özeti aynı hesabı dönem sonu itibarıyla kullanır; son gün bu tablonun "Bekleme" satırındaki gibi bekleyen gündür. |
-
-`✓` yapılmış, `✗` kaçırılmış, `○` bugün henüz yapılmamış; diziler soldan sağa ilerler ve son simge bugündür.
-
-| Dizi | Sonuç |
-|---|---|
-| `✓×7 ✗ ✓` | Kaçırma önce ücretsiz affedilir. Zincir 8, bakiye 1, harcama yok. |
-| `✓×14 ✗ ✗ ✓` | İki kaçırmaya 2 zincir günü harcanır. Zincir 15, bakiye 0, en uzun 15. |
-| `✓×28` | Zincir 28, bakiye 3; 28. günün ödülü düşer. |
-| `✓×28 ✗ ✗ ✓×6` | İki harcama sonrası zincir 34, bakiye 1; düşen ödül geri gelmez. |
-| `✓ ✗ ✓` | Bakiye ve af yok; zincir 1, en uzun 1. |
-| `✓×7 ✗ ○` | Zincir 7, bakiye 1; dün henüz affedilmiş ya da harcanmış değildir, `isPendingToday = true`. |
-| `✓×7 ✗ ✗ ○` | İlk kaçırma 1 hak harcar; ikinci kaçırma için bakiye ve af yoktur. Zincir 0, bakiye 0, en uzun 7. |
-
-### İlerleme skoru
-
-| Konu | Kural |
-|---|---|
-| Kapsam | Yalnız günlük hedef. Haftalık ve yıllık hedeflerde skor yoktur. |
-| Değer | Son 30 takvim gününün başarı yüzdesi: 0–100 tam sayı, `(başarılı gün × 100) / gün sayısı`. Uygulama kesri atar. |
-| Pencere sonu | Bugün başarılıysa bugün, değilse dün. Bugün henüz yapılmadıysa paydaya girmez. |
-| Pencere başı | İlk kaydın günü. Daha önceki günler paydaya girmez. Geçmiş 30 günden kısaysa payda penceredeki gün sayısıdır. |
-| Affedilen ve kısmi gün | Affedilen gün başarılı değildir ve paydaya girer. Eşik altı gün de başarılı değildir. |
-| Ölçülen gün yok | Hiç kayıt yoksa ya da ilk kayıt henüz yapılmamış bugünse skor yoktur. Arayüz skoru göstermez ve 0 yazmaz. |
-| Dönem özeti: bitmiş dönem | Pencere dönemin son günüyle biter. O gün kaçırılmış olsa da paydaya girer. Uygulama zinciri dönemin son günü itibarıyla hesaplar. |
-| Dönem özeti: süren ya da başlamamış dönem | Bugünkü skor görünür. Henüz gelmemiş günler kaçırma değildir. Uygulama zinciri bugün itibarıyla hesaplar. |
-| Zincir farkı | Bu 2 zincir sayısının farkı. |
-
-### Isı haritası
-
-| Gün katkısı | İşaret |
-|---|---|
-| Boolean `true` | Tam |
-| `false`, eksik kayıt, sayısal `0` | Yok |
-| Pozitif sayı, `target` altında | Kısmi |
-| Pozitif sayı, `target` ya da üstü | Tam |
-| Günlük hedef, bugünden önceki affedilen gün, katkı yok | `forgiven` |
-| Günlük hedef, bugünden önceki affedilen gün, katkı sıfırdan büyük ama hedefin altında | `forgivenPartial`: kısmi emek görünür kalır. |
-
-- Harita iki ucu dahil aralıktaki her gün için işaret verir.
-- Haftalık ve yıllık haritada af işareti yoktur. Başarı ayrı dönem toplamıdır; harita günlük katkıyı gösterir.
-- Açık harita aralığı gelecek kayıtlarını da gösterebilir.
-- Yıl toplamı, güncel yılın verilen güne kadarki katkılarıdır. Yıllık ilerleme bu toplamı hedef miktarla karşılaştırır.
-
-Zincir, en uzun zincir, zincir günü bakiyesi, harcanan günler ve ilerleme dosyada durmaz. Uygulama hepsini gün dosyalarındaki kayıtlardan hesaplar.
 
 ## Serbest notlar
 
@@ -1696,7 +1528,9 @@ flowchart TD
 | Alan | Kural |
 |---|---|
 | `id` | `[a-z][a-z0-9_-]*` biçiminde ve benzersiz. Ayrılmış: `person`, `place`, `goal`, `diary`, eski gün türü `journal` ve indeksin iç türleri `day`, `note`. Düzenlemede id değişmez; yeni id yeni tiptir. |
-| `folder` | Kasa köküne göre göreli, boş olmayan dizin yolu. Boş bileşen, `.`, `..`, noktayla başlayan bileşen, ters bölü ve kontrol karakterleri geçersizdir. Kökte `templates`, `conflicts`, `diary` ve eski `journal` hedef klasör olamaz. Uygulama sembolik bağlantıları izlemez. |
+| `folder` | Kasa köküne göre göreli, boş olmayan dizin yolu. Uygulama sembolik bağlantıları izlemez. |
+| `folder`: geçersiz yazım | Boş bileşen, `.`, `..`, noktayla başlayan bileşen, ters bölü ve kontrol karakterleri. |
+| `folder`: ayrılmış klasör | Kökte `templates`, `conflicts`, `diary` ve eski `journal` hedef klasör olamaz. |
 | `name`, `plural` | Türkçe ve İngilizce, boş olmayan görünen adlar. |
 | `icon` | Boş olmayan SF Symbol adı. Arayüz tanınmayan simgeyi genel simgeyle gösterebilir. |
 | `fields` | Sıralı, benzersiz anahtarlı arayüz tanımları. `kind`: `text`, `date`, `number`, `boolean`, `link`. |
@@ -1737,11 +1571,13 @@ flowchart TD
   C --> L["Uygulama çakışma kopyasını Tanılama'da listeler"]
 ```
 
-**Çakışan sürüm:** iCloud'un aynı dosya için geçerli sürümün yanında sakladığı, çözülmemiş öteki sürüm. Sürüm kasada ayrı dosya değildir. **Gün kopyası:** iCloud'un aynı gün için ayırdığı, adının sonunda sayı taşıyan dosya. **Çakışma kopyası:** uygulamanın `conflicts/` altına bayt bayt sakladığı sürüm.
+| Terim | Tanım |
+|---|---|
+| **Çakışan sürüm** | iCloud'un aynı dosya için geçerli sürümün yanında sakladığı, çözülmemiş öteki sürüm. Sürüm kasada ayrı dosya değildir. |
+| **Gün kopyası** | iCloud'un aynı gün için ayırdığı, adının sonunda sayı taşıyan dosya. |
+| **Çakışma kopyası** | Uygulamanın `conflicts/` altına bayt bayt sakladığı sürüm. |
 
-Uygulama 2 sürümü tek içerikte birleştirir. Uygulama gün kopyasını birleştirdikten sonra siler. Ana dosya yoksa gün kopyası ana dosyanın adını alır.
-
-**NOT:** Uygulama gün kopyası birleştirmesini yalnız iCloud kasasında ve politika bayrağı açıkken çağırır; bayrak varsayılan açıktır. Uygulama gün kopyalarını, çakışma kopyalarını ve çakışan sürümleri Ayarlar → Tanılama ekranında listeler. Ayrıntı: [Varlık kopyası](#varlık-kopyası) ve [Çakışan sürümün listesi](#çakışan-sürümün-listesi).
+**NOT:** Uygulama gün kopyası birleştirmesini yalnız iCloud kasasında ve politika bayrağı açıkken çağırır; bayrak varsayılan açıktır. Kopyaların ve sürümlerin ekranı: [Ayarlar — Tanılama](screens.md#ayarlar--tanılama). Liste kuralları: [Varlık kopyası](#varlık-kopyası), [Çakışma kopyası](#çakışma-kopyası) ve [Çakışan sürümün listesi](#çakışan-sürümün-listesi).
 
 ### Çakışan sürümün listesi
 
@@ -1752,7 +1588,8 @@ Uygulama 2 sürümü tek içerikte birleştirir. Uygulama gün kopyasını birle
 | Okuma | Uygulama önce dosyanın "çözülmemiş çakışma var" bayrağına bakar. Yalnız bayraklı dosyanın sürümlerini koordineli okumayla okur. Uygulama kasaya hiçbir şey yazmaz. |
 | Satır | Dosyanın yolu, sürüm sayısı, en yeni sürümün kayıt zamanı ve sürümü kaydeden cihazların adları. Zamanı bilinmeyen sürümün satırında zaman yoktur. |
 | Sıra | Dosyalar yolun bayt sırasıyla gelir. Sürümler yeniden eskiye gelir. Aynı saniyedeki sürümler cihaz adına göre gelir; adsız sürüm sondadır. |
-| Çözümleme | Uygulama sürümü birleştirmez, seçmez ve silmez. Bölümün altındaki cümle yalnız bunu söyler; bir çözüm yolu vaat etmez. **Varsayım:** Dosyalar'ın ya da Finder'ın düz bir dosya için çözüm ekranı sunduğu doğrulanmadı. Çözüm yolu iki cihaz denemesinden sonra kararlaştırılır. |
+| Çözümleme | Uygulama sürümü birleştirmez, seçmez ve silmez. Tanılama'daki cümle yalnız bunu söyler; bir çözüm yolu vaat etmez. |
+| Çözüm yolu | **Varsayım:** Dosyalar'ın ya da Finder'ın düz bir dosya için çözüm ekranı sunduğu doğrulanmadı. Çözüm yolu iki cihaz denemesinden sonra kararlaştırılır. |
 | Yenileme | Tanılama listeyi her indeks yenilemesinde ve uygulama ön plana her dönüşte yeniden okur. iCloud çakışması kasa klasöründe olay üretmeyebilir. |
 
 ### Gün kopyası adları
@@ -1769,7 +1606,7 @@ Uygulama 2 sürümü tek içerikte birleştirir. Uygulama gün kopyasını birle
 | Alt klasördeki ve `diary/` dışındaki benzer adlar | Hayır | Yer `diary/` klasörünün hemen altı değil. |
 | `journal/2026-10-02 2.md` | Hayır | Eski gün klasörü. Geçiş onu `diary/` altına taşır. |
 
-- Gün kopyası adı `diary/` klasörünün hemen altındadır. Biçim: `YYYY-MM-DD` biçiminde geçerli bir gün, tek boşluk ve başında sıfır olmayan, 2 ya da daha büyük bir ASCII sayı. Örnek: `2026-10-02 2.md`, `2026-10-02 10.md`.
+- Gün kopyası adı `diary/` klasörünün hemen altındadır. Biçim: `YYYY-MM-DD` biçiminde geçerli bir gün, tek boşluk ve başında sıfır olmayan, 2 ya da daha büyük bir ASCII sayı.
 - Gün kopyası olmayan benzer adlar sıradan not olarak kalır.
 - Uygulama gün kopyasını indekslemez. Gün kopyasındaki satırlar olay ya da görev değildir. Satırlar gün dosyasına ancak birleştirmeyle girer.
 - Bir günün birden çok gün kopyası varsa uygulama sayısı küçük olandan başlar ve kopyaları birer birer birleştirir: `2026-10-02 2.md`, sonra `2026-10-02 3.md`. Böylece 2 cihaz sürümleri aynı sırayla birleştirir.
@@ -1790,7 +1627,7 @@ stateDiagram-v2
   Kopya --> Bekliyor: Kopyanın ya da gün dosyasının yer tutucusu var
   Kopya --> Tasindi: Gün dosyası yok
   Kopya --> MergeSiniri: Gün dosyası var
-  MergeSiniri --> Tasindi: Gün dosyası sınırda yok oldu
+  MergeSiniri --> Tasindi: Gün dosyası sınırda yok oldu, kopyayı aynı sınırda taşır
   MergeSiniri --> Birlesti: İki dosyayı ve değişiklik zamanlarını okur
   Birlesti --> Saklandi: Saklanacak sürüm var
   Birlesti --> GunYazildi: Saklanacak sürüm yok
@@ -1801,9 +1638,7 @@ stateDiagram-v2
   Silindi --> [*]: İndeksi günceller
 ```
 
-Gün dosyası `.merge` sınırı içinde yok olursa uygulama kopyayı aynı sınırda gün adına taşır.
-
-Uygulama birleşmiş içeriği ve gerekiyorsa çakışma kopyasını yazmadan hiçbir sürümü silmez. Gün dosyası değişmeden önceki her hata, o çağrının yazdığı çakışma kopyalarını geri alır.
+Gün dosyası değişmeden önceki her hata, o çağrının yazdığı çakışma kopyalarını geri alır. Silme sırası kuralı: [Çakışma kopyası](#çakışma-kopyası).
 
 **Birleşmiş gün dosyasının değişiklik zamanı.**
 
@@ -1813,7 +1648,15 @@ Uygulama birleşmiş içeriği ve gerekiyorsa çakışma kopyasını yazmadan hi
 | Gün dosyası yoktu; gün kopyası ana dosyanın adını aldı | Gün kopyasının zamanı. Uygulama zamanı değiştirmez. |
 | Birleşmiş içerik gün dosyasıyla bayt bayt aynı | Gün dosyasının zamanı. Uygulama gün dosyasını yazmaz. |
 
-Uygulama birleşmiş gün dosyasına değişiklik zamanı olarak yazma anını vermez. Gerekçe: yazma anı 3. bir sürümün zamanından da büyük olabilir. Örnek: gün dosyası 10:00, gün kopyası 2 10:30, gün kopyası 3 11:00. Uygulama 2'yi birleştirince gün dosyası 10:30:01 olur. Bu yüzden 3. sürüm yeni sürüm kalır ve 11:00'deki düzenleme kazanır. Bu örnekte sıra 3, sonra 2 olsa da 11:00'deki düzenleme kazanır.
+Uygulama birleşmiş gün dosyasına değişiklik zamanı olarak yazma anını vermez. Gerekçe: yazma anı 3. bir sürümün zamanından da büyük olabilir.
+
+| Adım | Gün dosyası | Gün kopyası 2 | Gün kopyası 3 |
+|---|---|---|---|
+| Başlangıç | 10:00 | 10:30 | 11:00 |
+| Uygulama 2'yi birleştirir | 10:30:01 | Silindi | 11:00 |
+| Uygulama 3'ü birleştirir | 3. sürüm yeni sürümdür; 11:00'deki düzenleme kazanır | Silindi | Silindi |
+
+Sıra 3, sonra 2 olsa da 11:00'deki düzenleme kazanır.
 
 Yakınsama iki cihazın kopyaları aynı numara sırasıyla birleştirmesine ve her sürümün kendi zamanıyla gelmesine bağlıdır. Eşit saniyeli sürümler ya da sıra dışı gelen kopya farklı gün dosyası üretebilir. İçerik `conflicts/` altında kalır; kayıp olmaz.
 
@@ -1824,7 +1667,7 @@ Yakınsama iki cihazın kopyaları aynı numara sırasıyla birleştirmesine ve 
 | Girdiler | Yalnız 2 sürümün içeriği ve değişiklik zamanları. İşlev cihazın durumuna ya da indekse bağlı değildir. |
 | Değişiklik zamanı | Tam sayı. Birimini çağıran belirler. |
 | Sıra | Sürümlerin veriliş sırası sonucu değiştirmez. |
-| Kararlılık | Sonucu sürümlerden biriyle, 2 sürümden de büyük bir zamanla yeniden birleştirmek içeriği değiştirmez. Gerekçe: uygulama birleşmiş gün dosyasına 2 sürümün büyük zamanından 1 saniye sonrasını verir. |
+| Kararlılık | Sonucu sürümlerden biriyle, 2 sürümden de büyük bir zamanla yeniden birleştirmek içeriği değiştirmez. Gerekçe: birleşmiş gün dosyasının zamanı 2 sürümün zamanından büyüktür ([Gün kopyası adları](#gün-kopyası-adları)). |
 | Yakınsama | 2 cihaz aynı 2 sürümü kendi zamanlarıyla birleştirirse aynı içeriğe varır. Birden çok kopyada yukarıdaki sıra sınırı geçerlidir. |
 | Yeni sürüm | Değişiklik zamanı büyük olan. Zamanlar eşitse içeriği bayt sırasında büyük olan. Diğeri eski sürümdür. |
 | Aynı sürümler | Bayt bayt aynı 2 sürümün sonucu kendileridir. Çakışma kopyası yoktur. |
@@ -1846,7 +1689,9 @@ Yakınsama iki cihazın kopyaları aynı numara sırasıyla birleştirmesine ve 
 
 - Uygulama denetimi bölge bölge ve satır sayılarıyla yapar.
 - Bir bölgedeki serbest yazı satırı ancak sonuçta aynı bölgenin serbest yazısında, en az o kadar sayıda bulunuyorsa vardır. Frontmatter ya da blok satırı serbest yazı satırının yerine geçmez.
-- İşlev sonucu vermeden önce sonucu yeniden okur. İşlev kayıp yok koşulunu ve yapının kurulduğu gibi okunduğunu kendi üzerinde denetler. Yapı: frontmatter sınırı, bölgeler, bloklar. Örnek: bir sürümdeki kapanmayan kod çiti diğerinin satırlarını yutmamıştır.
+- İşlev sonucu vermeden önce sonucu yeniden okur ve kendi üzerinde 2 şeyi denetler:
+  - Kayıp yok koşulu.
+  - Yapının kurulduğu gibi okunması: frontmatter sınırı, bölgeler, bloklar. Örnek: bir sürümdeki kapanmayan kod çiti diğerinin satırlarını yutmamıştır.
 - Denetim tutmazsa işlev birleştirmeyi yok sayar. Sonuç yeni sürümdür. Uygulama eski sürümü saklar.
 
 **UYARI:** Eksik kopya veri kaybıdır; fazladan kopya zararsızdır.
@@ -1923,7 +1768,8 @@ flowchart TD
 | Konu | Kural |
 |---|---|
 | Birim | Uygulama alanları anahtar bazında birleştirir. Yorumlar ve boş satırlar yeni sürümün bloğundan gelir. |
-| Eski sürümün satırları | Eski sürümün bloğundaki boş olmayan bir satır sonucun bloğunda birebir yoksa uygulama eski sürümü saklar. Satır türleri: yorum satırı, satır sonu yorumu taşıyan alan satırı. İstisna: yorum aynı alanın aynı anahtar parçalı satırında yeniden bulunuyorsa saklamaz. Liste öğesinde koşul aynı öğeli satırdır. Sonuçtaki her satır yalnız bir satırın yerine geçer. |
+| Eski sürümün satırları | Eski sürümün bloğundaki boş olmayan bir satır sonucun bloğunda birebir yoksa uygulama eski sürümü saklar. Satır türleri: yorum satırı, satır sonu yorumu taşıyan alan satırı. |
+| Eski sürümün satırları: istisna | Yorum aynı alanın aynı anahtar parçalı satırında yeniden bulunuyorsa uygulama saklamaz. Liste öğesinde koşul aynı öğeli satırdır. Sonuçtaki her satır yalnız bir satırın yerine geçer. |
 | Anahtar sırası | Yeni sürümünki. |
 | Yalnız eski sürümdeki anahtar | Uygulama anahtarı eski sürümdeki sırasıyla ve satırlarıyla aynen, kapanış satırının önüne ekler. Ham alanlar da dahildir. |
 | Yeni sürümde frontmatter yok | Uygulama dosyanın başına yeni blok açar. |
@@ -1969,8 +1815,10 @@ flowchart TD
 | Alınmış ad | `conflicts/2026-10-02 (conflict 20261002T110533Z 2).md`, sonra `3`. Uygulama var olan dosyanın üstüne yazmaz. |
 | Aynı baytlar | Ad dizisinde aynı baytları taşıyan kopya varsa uygulama yeniden yazmaz. Böylece yarım kalmış bir birleştirmenin tekrarı yeni kopya üretmez. |
 | Tarama | Uygulama `conflicts/` klasörünü taramaz. Kopyalar indekste yoktur. Kopyalardaki satırlar olay ya da görev değildir. Tanılama listesi yalnız klasördeki adları okur. |
-| Kullanıcı | Uygulama kopyaları Ayarlar → Tanılama ekranında "Çakışma kopyaları" bölümünde gösterir. Kullanıcı gerekeni ana dosyaya aldıktan sonra kopyayı siler. |
-| Liste | Liste yalnız tam `conflicts/` klasörünün doğrudan içindeki, ad kuralına uyan sıradan dosyaları gösterir. Alt klasör, sembolik bağlantı, yer tutucu ve kuralı tutmayan ad listeye girmez. Her satır kopyanın yolunu ve gün dosyasının yolunu gösterir. Sıra: gün, addaki zaman, sonra sayı; sayısız ad önce gelir. Kural: `ConflictCopyName`. |
+| Kullanıcı | Kullanıcı gerekeni ana dosyaya aldıktan sonra kopyayı siler. Kopyaların ekranı: [Ayarlar — Tanılama](screens.md#ayarlar--tanılama). |
+| Liste kapsamı | Yalnız tam `conflicts/` klasörünün doğrudan içindeki, ad kuralına uyan sıradan dosyalar. Kural: `ConflictCopyName`. |
+| Listeye girmeyenler | Alt klasör, sembolik bağlantı, yer tutucu ve kuralı tutmayan ad. |
+| Liste sırası | Gün, addaki zaman, sonra sayı; sayısız ad önce gelir. |
 | Silme sırası | Uygulama birleşmiş içeriği ve gerekiyorsa çakışma kopyasını yazmadan hiçbir sürümü silmez. Hiçbir içerik sessizce kaybolmaz. |
 
 ### Bilinen sonuçlar
@@ -2015,8 +1863,275 @@ flowchart TD
 | Varlık dosyası | İndekste varlık satırı olan dosya: kişi, konum, hedef ya da özel tip dosyası. |
 | Birleştirme | Uygulama varlık kopyasını birleştirmez, taşımaz ve silmez. Kullanıcı kopyayı Obsidian'da ya da Dosyalar'da kendisi düzenler. |
 | İndeks | Uygulama varlık kopyasını sıradan bir dosya gibi indeksler. Kopyada `type` alanı varsa kopya ayrı bir varlıktır. |
-| Liste | Uygulama varlık kopyalarını ve gün kopyalarını Ayarlar → Tanılama ekranında "Kopya dosyalar" bölümünde listeler. Her satır kopyanın yolunu ve özgün dosyanın yolunu gösterir. |
+| Liste | Tanılama "Kopya dosyalar" bölümü varlık kopyalarını ve gün kopyalarını listeler: [Ayarlar — Tanılama](screens.md#ayarlar--tanılama). |
 | Sıra | Önce gün kopyaları birleştirme sırasıyla gelir. Sonra varlık kopyaları özgün yola ve sayıya göre gelir. |
+
+## Yorumlama kuralları
+
+**Tablo, dosyada durmayan kuralları gösterir: uygulama sonucu girişten ya da kayıtlardan hesaplar.**
+
+| Kural | Girdi | Sonuç |
+|---|---|---|
+| [Otomatik tanıma ve belirsizlik](#otomatik-tanıma-ve-belirsizlik) | Yazılan metin, `name` ve `aliases` | Kesin, öneri, belirsiz ya da bilinmeyen anma |
+| [Hızlı girişte öncelik ve tekrar](#hızlı-girişte-öncelik-ve-tekrar) | Hızlı giriş metni | Görev alanları |
+| [Tarih ifadesindeki ekler](#tarih-ifadesindeki-ekler) | Hızlı giriş metni | Bitiş tarihi ve kalan metin |
+| [Tarihsiz görevler](#tarihsiz-görevler) | Bitiş tarihi olmayan görev | Görevin göründüğü liste |
+| [Yıl dönümleri](#yıl-dönümleri) | Tarih türündeki alan | Yıl dönümü satırı |
+| [Zincir](#zincir), [Zincir günü](#zincir-günü) | Gün dosyalarındaki `goals` kayıtları | Zincir, bakiye ve harcanan günler |
+| [İlerleme skoru](#i̇lerleme-skoru), [Isı haritası](#isı-haritası) | Gün dosyalarındaki `goals` kayıtları | Skor ve gün işaretleri |
+
+Bu bölümdeki kurallar dosyaya yeni alan ya da sözdizimi eklemez. Dosyada ne yazıldığını önceki bölümler tanımlar.
+
+### Otomatik tanıma ve belirsizlik
+
+**Bir eşleşmenin sonucu: kesin, öneri, belirsiz ya da bilinmeyen.**
+
+```mermaid
+flowchart TD
+  A["Metindeki eşleşme: name ya da aliases"] --> N{"Ad tamamı rakam ve önünde @ yok mu?"}
+  N -- Evet --> N1["Anma değil; metin aynı kalır"]
+  N -- Hayır --> B{"Aday sayısı"}
+  B -- "0, açık @ anması" --> U["Bilinmeyen anma: bildirir, bağlamaz"]
+  B -- "2 ya da daha çok" --> M["Belirsiz: adayları sıralar; kullanıcı seçmeden bağlamaz"]
+  B -- "1" --> C{"Açık @ anması mı?"}
+  C -- Evet --> K["Kesin: bağlar"]
+  C -- Hayır --> D{"Kaynak yazımın ilk harfi ad ya da takma adın ilk harfiyle aynı büyüklükte mi?"}
+  D -- Evet --> K
+  D -- Hayır --> S["Öneri: isCaseMismatch; kullanıcı seçmeden bağlamaz"]
+```
+
+**Eşleşme kuralları.**
+
+| Konu | Kural |
+|---|---|
+| Kaynak | Uygulama `name` ve `aliases` üzerinden tanır. |
+| Sınır | Eşleşme Unicode harf ve rakam sınırlarındadır. Sözcük içindeki ad eşleşmez. |
+| Karşılaştırma | [Ad karşılaştırma anahtarı](#adlar-ve-karşılaştırma). Örnek çiftler o bölümdeki tablodadır. |
+| Çok sözcüklü ad | Sözcükler arasında 1 ya da daha çok Unicode boşluk olabilir. Satır sonu olamaz. U+2028 ve U+0085 satır sonudur ve boşluğun yerine geçmez. |
+| Örtüşme | Uygulama en uzun eşleşmeyi seçer. Eşit uzunlukta ad takma addan önce gelir. Sonra metinde önce başlayan eşleşme gelir. |
+| Adaylar | Aynı yazıma uyan bütün farklı varlıklar aday kalır. |
+| Ek | Adın hemen ardından gelen ve `'` ya da `’` ile başlayan ek bağlantının dışında kalır. |
+
+**Taranmayan yazımlar.**
+
+| Yazım | Neden |
+|---|---|
+| Var olan wikilinkler ve `[metin](hedef)` Markdown bağlantılarının tamamı | Zaten bağlantı. |
+| Satır içi kod, kod çiti satırları | Kod. |
+| Belge düzeyindeki çağrıda frontmatter satırları | Yapı. |
+| `://` içeren boşluksuz parça | Adres. |
+| İçinde `@` geçen boşluksuz parça, örneğin e-posta | Adres. Sözcük başındaki açık anmanın `@` işareti bu dışlamanın istisnasıdır. |
+| Harf.harf biçiminde noktayla birleşen boşluksuz parça | Alan adı benzeri. |
+| `#` ya da `^` ile başlayan boşluksuz parça | Etiket ya da kimlik. |
+| Önünde boşluk olmadan `[`, `!`, `\`, `#`, `^` ya da `\|` bulunan anma | Kaçırılmış ya da kapanmamış bağlantı yazımı. Düz metin kalır. |
+| Hemen arkasında `]` bulunan anma | Kapanmamış bağlantı yazımı. Düz metin kalır. |
+
+**Uygulama tamamı rakam olan adı yalnız `@` ile bağlar.**
+
+| Yazım | Sonuç |
+|---|---|
+| `12 kişi`, `12 Ekim 2026`, `(12)`, `12'de`, `1. Elma`, `Tel: 0212 555 12 12`, `12:30`, `12.10.2026`, `12+5`, `34 plakalı araç` | Anma değil. Metin olduğu gibi kalır. |
+| `@12` | `[[12]]` |
+| `@12'de` | `[[12]]'de` |
+| `@12:30` | `[[12]]:30`. Uygulama yalnız adı bağlar; ardındaki `30` çıplak yazımdır. |
+| `Daire 12` | `[[Daire 12]]` |
+| `Daire 12:30` | `[[Daire 12]]:30` |
+| `[[12]]`, `[[Hedef\|12]]` | Var olan bağlantı. Uygulama okur ve değiştirmez. |
+| `[[12]]:30`, `[[Deniz]]:12` | Yeniden taramada yeni anma çıkmaz. |
+
+- Kural, tamamı rakam olan ad ya da takma ad içindir: `12`, `2026`, `34`. Böyle bir ad çıplak yazıldığında anma değildir. Yazma yolu ve çevredeki karakterler fark etmez.
+- Açık anma birden çok varlığa uyuyorsa öteki adlardaki gibi belirsizdir. Uygulama kullanıcı seçmeden bağlamaz.
+- Rakam, hangi yazıda olursa olsun Unicode ondalık rakamıdır: ASCII `12`, Arap-Hint `١٢`, tam genişlik `１２`.
+- Kesir, üst simge, Roma rakamı ve tuş emojisi rakam değildir: `½`, `²`, `Ⅻ`, `1️⃣`. Bunlardan oluşan ad bu kurala girmez.
+- Kural varlığa değil yazıma bakar. Örnek: adı `Otoyol`, takma adı `34` olan varlıkta yalnız `34` yazımı `@` ister. `Otoyol` yazımı `@` istemeden eşleşir.
+- İçinde rakamdan başka karakter bulunan adlar kurala girmez ve öteki adlar gibi eşleşir: `Daire 12`, `3. Kat`, `7/24`, `12 5`.
+- Bağlanmamış anmalar sorgusu da çıplak rakam yazımlarını listelemez. Sorgu, `@` ile yazılıp bağlanmamış olanı listeler.
+
+**Uygulama satırın yapısını taramaz.**
+
+| Satır | Taranan | Taranmayan |
+|---|---|---|
+| Görev satırı: hangi dosyada ya da bölümde olursa olsun, Diary bölümü dahil | Yalnız görevin metni | Liste işareti, kutu, tanınan alanlar, uygulamanın okumadığı `⏳` ve `➕` tarihleri, sondaki `^kimlik` |
+| Events bölümündeki olay satırı | Olay metni | Liste işareti, baştaki saat, kimlik |
+
+- Tanınan alanlar: `📅`, `🛫`, `✅` ile tarihleri, öncelik işaretleri, `#project/...`, `🔁` ile kuralı.
+- Uygulamanın okuyamadığı `🔁` kuralı da bittiği yere kadar alandır: sonraki alan, bağlantı, satır içi kod ya da satır sonu.
+  - Uygulama kuraldaki adı ve açık `@` anmasını tanımaz. Örnek: `🔁 her hafta Deniz ile` olduğu gibi kalır.
+- Obsidian Tasks'ın `⏳` ve `➕` tarihleri: işaret, tek boşluk, geçerli ISO tarih.
+- Alan gibi görünen ama alan olmayan yazım metindir. Uygulama o yazımı öteki kurallarla tarar. Örnekler: ardından geçerli tarih gelmeyen `📅`; görev olmayan satırdaki `📅 2026-10-12`.
+- Bu tanım tektir. Yazarken tanıma da bağlanmamış anmalar sorgusu da aynı tanımı kullanır.
+
+**Açık anma ve kesinlik.**
+
+| Konu | Kural |
+|---|---|
+| Açık anma | `@` yalnız önünde harf ya da rakam yokken açık anmadır. |
+| Bilinen adda `@` | Uygulama `@` işaretini kaldırır ve yalnız adı bağlar. |
+| Bilinmeyen açık anma | Uygulama `@` sonrasındaki, büyük harfle başlayan en çok 4 sözcüğü bildirir. Satır sonu, noktalama ya da küçük harfle başlayan sözcük diziyi bitirir. Kesmeyle başlayan ek dışarıda kalır. Uygulama bilinmeyen açık anmayı bağlamaz. |
+| Kesin eşleşme | Tek aday var ve kaynak yazımın ilk harfi adın ya da eşleşen takma adın ilk harfiyle aynı büyüklükte. Uygulama kesin eşleşmeyi kendiliğinden bağlar. |
+| Harf büyüklüğü farkı | Uygulama eşleşmeyi `isCaseMismatch` ile öneri olarak bildirir. Kullanıcı seçmeden bağlamaz. Açık `@` anmasında bu fark kesinliği bozmaz. |
+| Birden çok aday | Puan ne olursa olsun belirsizdir. Uygulama kullanıcı seçmeden bağlamaz. |
+| Aday sıralaması | Bağlama göre: o konumda daha önce birlikte geçmek, yakın zamanda geçmek, geçme sıklığı. Uygulama en olası adayı üstte önerir. |
+| Sıralama ölçütleri | Dosyada durmaz. Uygulama ölçütleri indeksten hesaplar. |
+| Bağlanmış anma | Uygulama yeniden tanımaz. |
+| Bekleyen anmalar | Öneri, belirsiz ve bilinmeyen anmalar metinde kalır. Uygulama onları yeniden bildirir. |
+
+### Hızlı girişte öncelik ve tekrar
+
+| Yazım | Sonuç |
+|---|---|
+| Metnin başında ya da sonunda bağımsız `!` | Orta: `🔼` |
+| Metnin başında ya da sonunda bağımsız `!!` | Yüksek: `⏫` |
+| `!!!`, sözcük içi işaretler, kod ve bağlantı içindekiler | Metinde kalır. |
+| Baş ve son işaret birlikte | Uygulama yüksek olanı seçer. |
+| Açık emoji önceliği | Kalır. |
+| Düşük öncelik | Yalnız öncelik seçicisinden gelir. |
+| `her gün/hafta/ay/yıl`, `her N gün/hafta/ay/yıl`, `her pazartesi/.../pazar`, İngilizce eşdeğerleri | Tekrar alanı. |
+| `tamamlanınca`/`when done` | Tekrar alanının `when done` soneki. |
+
+- Kurallar yalnız hızlı girişin görev modunda geçerlidir.
+- Uygulama tekrar sözcüklerini tarih ayrıştırmasından önce tüketir.
+- Uygulama bilinen ve korunan bağlantıya, koda, etikete ve `🔁` alanına dokunmaz.
+
+### Tarih ifadesindeki ekler
+
+| Girdi | Bitiş | Kalan metin |
+|---|---|---|
+| `Cuma'ya kadar raporu bitir` | Cuma | `kadar raporu bitir` |
+| `5 Ekim'e` | 5 Ekim | Ek ifadeyle birlikte çıkar. |
+| `15 Mart'tan sonra` | 15 Mart | Ek ifadeyle birlikte çıkar. |
+| `Cuma'da`, `Cuma'yı`, `Cuma'nın` | Cuma | Ek metinde kalır. |
+| `yarın'a` | Yarın | Ek metinde kalır. |
+| `25.10'a` | `25.10` | Ek metinde kalır. |
+| `Friday's` | Cuma | Ek metinde kalır. |
+
+| Konu | Kural |
+|---|---|
+| İfadenin parçası olan ek | Türkçe gün ya da ay adına kesme işaretiyle bitişik yönelme ya da çıkma eki. Uygulama eki ifadeyle birlikte çıkarır. |
+| Kesme işareti | `'` ya da `’` |
+| Tanınan ekler | `'a`, `'e`, `'ya`, `'ye`, `'dan`, `'den`, `'tan`, `'ten` |
+| `kadar` | Ayrı bir ifade değildir ve metinde kalır. |
+| Başka ekler, göreli sözcükler, sayısal tarihler, İngilizce adlar | Uygulama ifadeyi eksiz çıkarır. Ek metinde kalır. |
+
+### Tarihsiz görevler
+
+| Yer | Tarihsiz görev |
+|---|---|
+| Oluşturulduğu günün ekranı | Görünür. Gün ekranı, o günün `diary/` dosyasında yazılı tarihsiz görevleri listeler. |
+| Sonraki günlerin ekranı | Görünmez. |
+| Görevler ekranı, "Tarihsiz" listesi | Görev açık kaldıkça, oluşturulduğu günden başlayarak görünür. |
+| `notes/` altındaki tarihsiz görev | Hiçbir gün ekranında görünmez. "Tarihsiz" listesinde görünür. |
+
+### Yıl dönümleri
+
+| Durum | Yıl dönümü |
+|---|---|
+| Kişi dosyasında tarih türündeki alan | Evet. Değer `YYYY-MM-DD` yazımıyla tarih okunmalıdır. |
+| Kayıtlı özel tip dosyasında tarih türündeki alan | Evet. Kişi dosyasıyla aynı yorum. |
+| Konum dosyasındaki tarih alanı | Hayır. |
+| `cadence_days`, `cadence_snoozed_until`, `cadence_paused` | Hayır, hangi dosyada olursa olsun. `cadence_snoozed_until` tarih türündedir ama yıl dönümü değildir. |
+| Kaynak yılı bu yıldan büyük | Satır yok. |
+| İlk yıl dönümü henüz gelmedi | Satır yok. |
+| Karşılaşılan gün kaynak tarihin kendisi: 0. yıl | Satır yok. |
+| 29 Şubat, artık olmayan yıl | Uygulama 28 Şubat'ta anar. |
+
+Yıl dönümünün etiketi alanın kendi adıdır. Yıl dönümü hesabı anahtar adına göre dallanmaz. Tek istisna [doğum günü alanıdır](#doğum-günü-alanı). Yıl dönümü bir yorum kuralıdır; yeni alan ya da sözdizimi eklemez.
+
+### Zincir
+
+**Günlük hedefte kaçırma affı: zincir günü kazanılmamış geçmiş örnekleri.**
+
+| Günler | Sonuç |
+|---|---|
+| Pzt yapıldı, Sal yapıldı, Çar kaçtı, Per yapıldı, Cum yapıldı | Uygulama Çar'ı affeder. Zincir 4. |
+| Yapıldı, kaçtı, yapıldı | Af yok: kaçırmanın önünde iki yapılmış gün yok. Zincir 1. |
+| Yapıldı, kaçtı, kaçtı, yapıldı | Art arda 2 kaçırma. Af yok. Kaçırmalar zinciri keser. |
+| Yapıldı, kaçtı, yapıldı, kaçtı, yapıldı | Af yok: hiçbir kaçırmanın önünde iki yapılmış gün yok. Zincir 1. En uzun zincir 1. |
+| Yapıldı, yapıldı, kaçtı, yapıldı, kaçtı, yapıldı | Uygulama ilk kaçırmayı affeder. İkinci kaçırmanın önündeki iki günden biri affedilmiş gündür ve yapılmış sayılmaz: af yok. Zincir 1. En uzun zincir 3. |
+| Kaçtı, yapıldı, yapıldı, kaçtı, yapıldı | Uygulama ikinci kaçırmayı affeder. Zincir 3. |
+| Pzt–Cum yapıldı, Cmt kaçtı, Pazar sabahı, bugün henüz yapılmadı | Zincir 5. `isPendingToday` döner. |
+| Aynı hafta, Pazar yapıldı | Uygulama Cmt'yi affeder. Zincir 6. |
+| Aynı hafta, Pazar da yapılmadı, ertesi gün | Art arda 2 kaçırma. Zincir 0. |
+| Dün ve önceki gün birlikte kaçtı, bugün henüz yapılmadı | Bekleme zinciri korumaz. Zincir 0. |
+
+| Konu | Kural |
+|---|---|
+| Zincir tanımı | Verilen günün döneminden geriye ardışık başarılı dönem sayısı. |
+| Bekleyen güncel dönem | Güncel dönem henüz başarılı değilse sayım önceki dönemden başlar. `isPendingToday` bayrağı döner. Haftalık ve yıllık hedefte bayrak, güncel dönemin henüz başarılı olmadığını söyler. |
+| Haftalık ve yıllık hedef | Başarısız ya da kayıtsız dönem zinciri keser. Af yoktur. |
+| En uzun zincir | Verilen güne kadarki en uzun ardışık başarılı dönem dizisi. |
+| Günlük hedefte başlangıç | Aynı kural: bugün henüz başarılı değilse sayım dünden başlar ve `isPendingToday` döner. |
+| Yapılmış gün | Gün katkısı ≥ `target`. Dönem kuralıyla aynı eşik. |
+| Kaçırma | Gün yapılmamış: `false`, eşik altı, `0`, kayıt yok ya da tür uyuşmazlığı. |
+| Kaçırma affı | Bir takvim günü yapılmamışsa ve önceki iki takvim günü ile sonraki takvim günü yapılmışsa uygulama o günü affeder. Affedilen gün yapılmış gün sayılmaz: başka bir kaçırmanın önceki iki gününden biri olamaz. Uygulama affedilen günü zincir sayısına eklemez. |
+| Art arda kaçırmalar | Af yoktur. Bakiye varsa her kaçırma 1 [zincir günü](#zincir-günü) harcar; bakiye yetmeyen ilk kaçırma zinciri kırar. |
+| Af zamanı | Af yalnız bugünden önceki günlere geçerlidir. |
+| Dün kaçtı, önceki iki gün yapıldı, bugün henüz yok | Dün henüz affedilmiş değildir ama zinciri de düşürmez. Bugün dünü hâlâ affettirebilir. Bu nedenle uygulama zinciri dünden önceki günden sayar ve `isPendingToday` döner. |
+| Dün kaçtı, önceki iki günden biri yapılmadı ya da affedildi, bugün henüz yok | Zincir günü varsa dünün harcaması bekler ve zincir korunur. Yoksa zincir 0. `isPendingToday` döner. |
+| Beklemenin etkisi | Bekleme yalnız güncel zinciri etkiler. En uzun zincir ve ısı haritası yalnız kesinleşmiş affı sayar. Dün haritada `none` ya da kısmi kalır. |
+| Affedilmeyen kaçırmalar | Hedefin ilk ve ikinci günü, önünde iki yapılmış gün olmayan kaçırma, baştaki kaçırma ve arkası yapılmamış sondaki kaçırma. |
+| Günlük hedefte en uzun zincir | Aynı af ve zincir günü kuralıyla (harcanan günler zinciri köprüler), ilk kayıttan verilen güne kadar. |
+| Gün tanımı | Gün `CalendarDate` değeridir. Saat dilimi bir takvim gününü bölmez ya da birleştirmez. Yaz saati geçişi de tek gündür. |
+| Dinlenme günü | Yoktur. Af kuralı her zaman açıktır ve ayar değildir. |
+
+### Zincir günü
+
+Günlük hedefte aşağıdaki kural kaçırma affından sonra uygulanır. Yukarıdaki af örnekleri zincir günü kazanılmamış geçmiş içindir.
+
+| Konu | Kural |
+|---|---|
+| Kazanım | Mevcut zincirdeki her 7 yapılmış gün 1 zincir günü kazandırır: 7., 14., 21. … yapılmış gün. Affedilen ve zincir günüyle kapatılan günler sayacı artırmaz. |
+| Tavan | Bakiye en çok 3'tür. Sayaç devam eder; tavan doluyken kazanım eşiğine gelen ödül düşer, sonraya saklanmaz. |
+| Öncelik | Önce önceki iki gün ve sonraki gün yapılmışsa ücretsiz af uygulanır. Af yoksa 1 zincir günü harcanır. |
+| Harcama | Kapatılan gün yapılmış sayılmaz; zincir ve en uzun zincir sayısını, katkıyı ve skoru artırmaz. Art arda kaçırmalar ayrı ayrı harcanır. |
+| Kırılma | Af ve bakiye yoksa zincir kırılır; bakiye ve 7'lik kazanım sayacı sıfırlanır. En uzun zincir korunur. |
+| Bekleme | Bugün yapılmamışsa bugün için harcama yoktur. Dün kaçmışsa ve af ihtimali ya da bakiye varsa dünün kararı bugün bitene kadar bekler; dün için henüz harcama kaydedilmez. Önceki kaçırmalar kesinleşir; zinciri kırmışlarsa bekleme onu geri getirmez. |
+| Türetme | Bakiye (`graceDaysAvailable`) ve kesinleşmiş harcama tarihleri (`graceSpentDays`) kayıtlardan hesaplanır. Harcama listesi eski zincirlerdeki tarihleri de içerir; kırılınca yalnız bakiye sıfırlanır. Dosyaya ya da indekse yeni alan yazılmaz. |
+| Kapsam | Haftalık, yıllık ve kilometre taşı hedeflerinde bakiye 0, harcama listesi boştur. Dönem özeti aynı hesabı dönem sonu itibarıyla kullanır; son gün bu tablonun "Bekleme" satırındaki gibi bekleyen gündür. |
+
+`✓` yapılmış, `✗` kaçırılmış, `○` bugün henüz yapılmamış; diziler soldan sağa ilerler ve son simge bugündür.
+
+| Dizi | Sonuç |
+|---|---|
+| `✓×7 ✗ ✓` | Kaçırma önce ücretsiz affedilir. Zincir 8, bakiye 1, harcama yok. |
+| `✓×14 ✗ ✗ ✓` | İki kaçırmaya 2 zincir günü harcanır. Zincir 15, bakiye 0, en uzun 15. |
+| `✓×28` | Zincir 28, bakiye 3; 28. günün ödülü düşer. |
+| `✓×28 ✗ ✗ ✓×6` | İki harcama sonrası zincir 34, bakiye 1; düşen ödül geri gelmez. |
+| `✓ ✗ ✓` | Bakiye ve af yok; zincir 1, en uzun 1. |
+| `✓×7 ✗ ○` | Zincir 7, bakiye 1; dün henüz affedilmiş ya da harcanmış değildir, `isPendingToday = true`. |
+| `✓×7 ✗ ✗ ○` | İlk kaçırma 1 hak harcar; ikinci kaçırma için bakiye ve af yoktur. Zincir 0, bakiye 0, en uzun 7. |
+
+### İlerleme skoru
+
+| Konu | Kural |
+|---|---|
+| Kapsam | Yalnız günlük hedef. Haftalık ve yıllık hedeflerde skor yoktur. |
+| Değer | Son 30 takvim gününün başarı yüzdesi: 0–100 tam sayı, `(başarılı gün × 100) / gün sayısı`. Uygulama kesri atar. |
+| Pencere sonu | Bugün başarılıysa bugün, değilse dün. Bugün henüz yapılmadıysa paydaya girmez. |
+| Pencere başı | İlk kaydın günü. Daha önceki günler paydaya girmez. Geçmiş 30 günden kısaysa payda penceredeki gün sayısıdır. |
+| Affedilen ve kısmi gün | Affedilen gün başarılı değildir ve paydaya girer. Eşik altı gün de başarılı değildir. |
+| Ölçülen gün yok | Hiç kayıt yoksa ya da ilk kayıt henüz yapılmamış bugünse skor yoktur. Arayüz skoru göstermez ve 0 yazmaz. |
+| Dönem özeti: bitmiş dönem | Pencere dönemin son günüyle biter. O gün kaçırılmış olsa da paydaya girer. Uygulama zinciri dönemin son günü itibarıyla hesaplar. |
+| Dönem özeti: süren ya da başlamamış dönem | Bugünkü skor görünür. Henüz gelmemiş günler kaçırma değildir. Uygulama zinciri bugün itibarıyla hesaplar. |
+| Zincir farkı | Bu 2 zincir sayısının farkı. |
+
+### Isı haritası
+
+| Gün katkısı | İşaret |
+|---|---|
+| Boolean `true` | Tam |
+| `false`, eksik kayıt, sayısal `0` | Yok |
+| Pozitif sayı, `target` altında | Kısmi |
+| Pozitif sayı, `target` ya da üstü | Tam |
+| Günlük hedef, bugünden önceki affedilen gün, katkı yok | `forgiven` |
+| Günlük hedef, bugünden önceki affedilen gün, katkı sıfırdan büyük ama hedefin altında | `forgivenPartial`: kısmi emek görünür kalır. |
+
+- Harita iki ucu dahil aralıktaki her gün için işaret verir.
+- Haftalık ve yıllık haritada af işareti yoktur. Başarı ayrı dönem toplamıdır; harita günlük katkıyı gösterir.
+- Açık harita aralığı gelecek kayıtlarını da gösterebilir.
+- Yıl toplamı, güncel yılın verilen güne kadarki katkılarıdır. Yıllık ilerleme bu toplamı hedef miktarla karşılaştırır.
+
+Zincir, en uzun zincir, zincir günü bakiyesi, harcanan günler ve ilerleme dosyada durmaz. Uygulama hepsini gün dosyalarındaki kayıtlardan hesaplar.
 
 ## İlgili belgeler
 

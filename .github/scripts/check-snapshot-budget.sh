@@ -38,7 +38,7 @@ fi
 if [ "$fail" -ne 0 ]; then
   echo "Referanslar (boyut bayt, büyükten küçüğe, ilk 30):"
   printf '%s\n' "$list" | while IFS= read -r f; do printf '%s %s\n' "$(wc -c < "$f" | tr -d ' ')" "$f"; done | sort -rn | head -30
-  echo "Yeni vaka eklerken açık/koyu/AX3 üçlüsünü yalnız temsilci kümelerde tut (docs/architecture.md)."
+  echo "Yeni vaka eklerken açık/koyu/AX3 üçlüsünü yalnız temsilci kümelerde tut (docs/development.md)."
   exit 1
 fi
 echo "Görüntü referansı tavanı uygun ($count/$MAX_COUNT dosya, $mb/$MAX_MB MiB)."

@@ -41,7 +41,7 @@
     /// Device canvas a reference is drawn on: size, size classes and safe area.
     /// `.phone` is what every existing reference uses and stays the default everywhere; the Duo
     /// canvases add size-class trait overrides on top of the same host. Duo sizes are 3× estimates
-    /// from the panel pixels (docs/architecture.md); safe areas are estimates too. The iPad
+    /// from the panel pixels (docs/development.md); safe areas are estimates too. The iPad
     /// canvases are the iPad Pro 13-inch and 11-inch screens (and a compact Split View slot);
     /// their suites (`Pad…SnapshotTests`) run on an iPad simulator only.
     enum ShellCanvas: Sendable, Equatable {

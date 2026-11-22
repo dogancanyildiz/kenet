@@ -38,8 +38,11 @@ flowchart TD
   F -- Hayır --> I{"Test verisi ekliyor mu?"}
   H --> I
   I -- Evet --> J["docs/fixtures.md belgesine uy"]
-  I -- Hayır --> K{"Mimari ya da gerekçe sorusu var mı?"}
-  J --> K
+  I -- Hayır --> O{"Derleme, test ya da dağıtım işi mi?"}
+  J --> O
+  O -- Evet --> P["docs/development.md adımlarını izle"]
+  O -- Hayır --> K{"Mimari ya da gerekçe sorusu var mı?"}
+  P --> K
   K -- Mimari --> L["docs/architecture.md"]
   K -- Gerekçe --> M["docs/decisions.md"]
   K -- Yok --> N["Çalış"]
@@ -111,6 +114,7 @@ Değişmez kurallar zevk değil, ürünün temel vaatleridir. Veri kullanıcın�
 | `docs/design.md` | Referans ve gerekçe | Arayüz nasıl görünür ve neden? |
 | `docs/decisions.md` | Açıklama | Neden böyle karar verildi? |
 | `docs/architecture.md` | Açıklama | Sistem nasıl çalışır? |
+| `docs/development.md` | Nasıl yapılır | Yapı nasıl kurulur, sınanır ve dağıtılır? |
 | `docs/fixtures.md` | Referans | Test verisi nedir ve nerededir? |
 
 **Cümle ve biçim kuralları.** Bu kurallar `docs/`, `AGENTS.md` ve `README.md` için geçerlidir.
@@ -211,10 +215,9 @@ flowchart TD
 | 1.0 öncesi | `0.<aşama>.<yama>` | Aşama 1 bitince `v0.1.0`; o aşamadaki düzeltme `v0.1.1` |
 | İlk sürüm | `v0.9.0` | 2026-10-07'de `main`'e çıktı |
 | İlk mağaza yayını | `v1.0.0` | Henüz yok |
-| Yapı numarası | HEAD commit'inin UTC zamanı, `YYAAGG.SSDDss` | `CFBundleVersion` alanı, örnek `261111.153012`; elle yazma |
 
 - Sürüm numarasını kök dizindeki `VERSION` dosyasında tut: tek satır, `X.Y.Z`.
-- Yapı numarasını elle yazma.
+- Yapı numarasını elle yazma; derleme üretir. Anlatım: `docs/development.md`, "Yapı numarası".
 - Mağazaya yükleyeceğin yapıyı commit'lenmiş bir `dev` ya da `main` durumundan arşivle.
 - Sürümü `dev`'den `main`'e bir PR ile kes.
 - Sürüm PR'ında `VERSION` dosyasını yükselt.
@@ -224,7 +227,7 @@ flowchart TD
 - `main`'e birleştirme yapma.
 - Sürüm PR'ını yalnız kullanıcı isteyince hazırla.
 
-Xcode projesi ve iş akışları sürüm numarasını `VERSION` dosyasından okur. Derleme yapı numarasını `.github/scripts/build-number.sh` ile git geçmişinden üretir. `main`'e birleştirme `.github/workflows/release.yml` iş akışını başlatır; kararı `.github/scripts/release.sh` verir.
+Xcode projesi ve iş akışları sürüm numarasını `VERSION` dosyasından okur. `main`'e birleştirme `.github/workflows/release.yml` iş akışını başlatır; kararı `.github/scripts/release.sh` verir.
 
 ### Commit
 
@@ -276,16 +279,20 @@ App/                      iOS ve macOS SwiftUI uygulaması
   Mac/                    Yalnız Mac'te olan parçalar (hızlı giriş paneli, genel kısayol)
   Model/                  Ekran modelleri ve indeks erişimi (IndexStore)
   Navigation/             iPhone ve Mac gezinmesi
-  Resources/              String Catalog'lar, varlıklar, gizlilik bildirimi
-  Screens/                Ekranlar
+  Resources/              String Catalog'lar, varlıklar, lisans metinleri, gizlilik bildirimi
+  Screens/                Konuya göre ekranlar: Today, Days, Summaries, Tasks, Entities, Goals, Graph, Map,
+                          Calendar, Onboarding, Settings; Shared/: ortak görünüm parçaları
   Services/               Sistem hizmetleri (takvim, konum, bildirim, kilit)
-  Support/                Entitlements, plist ekleri, küçük yardımcılar, simge kaynağı (AppIcon/)
-Widgets/                  WidgetKit hedefi (iOS: zincir, kilit ekranı, hızlı giriş, Denetim Merkezi kontrolü);
+  Support/                Entitlements, plist ekleri, kimlik sabitleri (AppIdentifiers), küçük yardımcılar,
+                          simge kaynağı (AppIcon/)
+Widgets/                  WidgetKit hedefi (iOS: zincir, kilit ekranı, hızlı giriş, Denetim Merkezi kontrolü):
+                          WidgetBundle, LockScreenWidget, QuickEntryWidget, QuickEntryControl;
                           Shared/: uygulamayla ortak; Support/: Info.plist, entitlements, gizlilik bildirimi;
                           String Catalog'u App/Resources'tan derler
 ShareExtension/           Paylaşım uzantısı (iOS): paylaşılanı olay olarak ekler; Form/: uygulamayla ortak;
                           Support/: Info.plist, entitlements, gizlilik bildirimi
-Shared/                   Uygulama ve paylaşım uzantısıyla ortak olay yazıcısı ve kuyruk (Foundation, Core)
+Shared/                   Uygulama ve paylaşım uzantısıyla ortak olay yazıcısı ve kuyruk (EntryWriting.swift);
+                          atılacak indeks (ThrowawayIndex.swift; widget hedefi de derler). Yalnız Foundation ve Core
 Packages/Core/            Ayrıştırıcı, modeller, indeksleyici (Apple'a bağımsız): VaultFormat,
                           VaultIndex, VaultStore, EntityRecognition, DateParsing, GoalTracking,
                           Summaries, ForceLayout
@@ -312,4 +319,4 @@ LICENSE, .swift-format    Lisans metni ve swift format ayarı
 | `.github/scripts/check-snapshot-budget.sh` | Görüntü referansı tavanı: `__Snapshots__` altındaki PNG sayısı ve toplam boyutu |
 | `.github/scripts/check-frontmatter-yaml.rb` | Frontmatter fixture'larını bağımsız YAML okuyucularıyla karşılaştırır; CI koşmaz, elle çalışır |
 
-CI ilk beş betiği "Biçim ve kurallar" işinde çalıştırır. Kurulum, test, ekran turu ve dağıtım betiklerini `README.md` "Kurulum adımları" ve sonraki bölümleri anlatır. CI işlerinin ve öteki CI betiklerinin ayrıntısını `docs/architecture.md` anlatır.
+CI ilk beş betiği "Biçim ve kurallar" işinde çalıştırır. Bütün betiklerin envanterini `docs/development.md` "Betik envanteri" tablosu verir. Kurulum, test, CI ve dağıtım adımlarını aynı belge anlatır.

@@ -201,7 +201,7 @@ jobs:
         id: ios_boot
         timeout-minutes: 10
         run: xcrun simctl bootstatus "${{ steps.build.outputs.udid }}" -b
-      # Bu adım ara sıra hiçbir test düşmeden asılıyor (bkz. docs/architecture.md, "iOS test asılması").
+      # Bu adım ara sıra hiçbir test düşmeden asılıyor (bkz. docs/development.md, "iOS test asılması").
       # Zaman aşımı ADIM düzeyindedir: iş düzeyindeki süre dolunca sonraki adımlar koşmaz, tanılama
       # yüklenemez. Çıktı -quiet değildir ve dosyaya yazılır: başlayıp bitmeyen test oradan okunur.
       # Normal süre 3-8 dk; 12. dakikada hâlâ koşuyorsa süreçler asılıyken yığın örneği alınır.

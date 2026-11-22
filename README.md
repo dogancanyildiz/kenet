@@ -1,29 +1,12 @@
 # Kenet
 
-**Amaç:** README depoya giriş noktasıdır: uygulamayı, kurulumu ve belgeleri tek sayfada verir.
+**Amaç:** README depoya giriş noktasıdır: uygulamayı, en kısa kurulumu ve belgeleri tek sayfada verir.
 
 **Kapsam:**
 
 - Ürün özeti, proje durumu ve platformlar
-- Geliştirme ortamı, kurulum, test ve cihaza kurulum adımları
+- Hızlı başlangıç
 - Belge tablosu ve lisans
-
-## Belgeler
-
-**Tablo, `docs/` altındaki her belgeyi ve cevapladığı soruyu verir.**
-
-| Belge | İçerik |
-|---|---|
-| [docs/roadmap.md](docs/roadmap.md) | Ne, ne zaman yapılır? Aktif aşama burada yazar. |
-| [docs/product.md](docs/product.md) | Ürün nedir ve neden vardır? |
-| [docs/screens.md](docs/screens.md) | Hangi öğe nerede durur ve ne yapar? |
-| [docs/vault-format.md](docs/vault-format.md) | Dosyada ne nerede yazılır? Platformlar arası sözleşme. |
-| [docs/design.md](docs/design.md) | Arayüz nasıl görünür ve neden? |
-| [docs/decisions.md](docs/decisions.md) | Neden böyle karar verildi? |
-| [docs/architecture.md](docs/architecture.md) | Sistem nasıl çalışır? |
-| [docs/fixtures.md](docs/fixtures.md) | Test verisi nedir ve nerededir? |
-
-Ajan kuralları, okuma sırası ve belge kuralları [AGENTS.md](AGENTS.md) içindedir. `.github/scripts/check-docs.sh` tabloda olmayan belgeyi reddeder.
 
 ## Ürün özeti
 
@@ -38,7 +21,7 @@ Ajan kuralları, okuma sırası ve belge kuralları [AGENTS.md](AGENTS.md) için
 | Veri | Obsidian uyumlu düz Markdown dosyaları; SQLite yalnız indeks |
 | Ad kararı | Karar günlüğü, 2026-10-07 |
 
-Kenet, kişiler, konumlar ve olaylar üzerine kurulu bir kişisel günlük uygulamasıdır. Uygulama görevleri, hedefleri ve hedef zincirlerini aynı yerde toplar.
+Kenet, kişiler, konumlar ve olaylar üzerine kurulu bir kişisel günlük uygulamasıdır. Uygulama görevleri, hedefleri ve hedef zincirlerini aynı yerde toplar. Ayrıntı [Ürün](docs/product.md) belgesindedir.
 
 ## Proje durumu
 
@@ -60,264 +43,47 @@ Kenet, kişiler, konumlar ve olaylar üzerine kurulu bir kişisel günlük uygul
 
 **NOT:** iPad desteği 2026-10-16 kararıyla açıldı; cihaz ailesine iPad girdi ve geri alınamaz. Mağaza listesindeki iPad ekran görüntüleri sürümde gelir.
 
-## Geliştirme ortamı
+## Hızlı başlangıç
 
-**Tablo, gereken araçları ve sürümleri verir.**
-
-| Araç | Sürüm | Kullanım |
-|---|---|---|
-| Xcode | 26 ya da üstü | Uygulama derlemesi ve testleri |
-| CI (sürekli bütünleştirme), macOS | `.github/actions/xcode` seçer; ayrıntı [Mimari: CI](docs/architecture.md#ci) | Core ve uygulama testleri; iPhone ve iPad ayrı işlerde |
-| CI, Linux | Swift 6.4 | Core derlemesi, biçim ve belge denetimi |
-| XcodeGen | Homebrew | `project.yml` dosyasından Xcode projesi üretimi |
-| python3 | Sistem sürümü | `.github/scripts/check-docs.sh`, `check-catalog-keys.py` (koddaki sabit metin katalogda var mı) ve `test-check-catalog-keys.py` |
-| `gh` | Homebrew | "CI'dan TestFlight (CD)" bölümündeki kurulum komutları ve `record-snapshots` iş akışını başlatma |
-| Ruby | Sistem sürümü | `.github/scripts/check-frontmatter-yaml.rb`; isteğe bağlı, CI koşmaz |
-
-**DİKKAT:** `xcodebuild` ve `swift` komutlarından önce `DEVELOPER_DIR` değişkenini ayarla.
-
-**Tablo, Xcode projesindeki şemaları verir.**
-
-| Şema | İçerik |
-|---|---|
-| `Kenet_iOS` | iPhone ve iPad uygulaması; test eylemi `KenetTests_iOS` ve `KenetUITests` hedeflerini koşar |
-| `Kenet_macOS` | Mac uygulaması; test eylemi `KenetTests_macOS` hedefini koşar |
-| `Kenet_macOS_ScreenTour` | Mac ekran turu; yalnız `screen-tour.sh --mac` kullanır |
-| `VaultFormat` | Core testleri |
-| `VaultIndex`, `VaultStore`, `EntityRecognition`, `DateParsing`, `GoalTracking`, `Summaries`, `ForceLayout` | Core paketinin öteki ürün şemaları; Xcode yerel paketten üretir |
-
-Core testlerinin tamamı için `swift test` komutunu kullan. Komut aşağıdaki adımlarda yazılıdır.
-
-## Kurulum adımları
-
-**Şema, ilk kurulumdan ilk test koşusuna kadar olan sırayı gösterir.**
-
-```mermaid
-flowchart LR
-  A[XcodeGen kur] --> B[Projeyi üret]
-  B --> C[DEVELOPER_DIR ayarla]
-  C --> D[Core testleri]
-  D --> E[Mac testleri]
-  E --> F[iOS testleri]
-  F --> G[Biçim ve belge denetimi]
-```
-
-1. Xcode projesini üret. XcodeGen, projeyi `project.yml` dosyasından üretir. `Kenet.xcodeproj` repoya girmez.
+**Komutlar projeyi üretir, Core testlerini koşar ve projeyi Xcode'da açar.**
 
 ```sh
 brew install xcodegen
 xcodegen generate
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+swift test --package-path Packages/Core -Xswiftc -warnings-as-errors
 open Kenet.xcodeproj
 ```
 
-2. Komut satırı için Xcode'u seç.
+Xcode 26 ya da üstü gerekir. Testler imzasız koşar; takım kimliği gerekmez. Öteki her adımı [Geliştirme](docs/development.md) belgesi anlatır.
 
-```sh
-export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
-```
-
-3. Core testlerini koş: `swift test --package-path Packages/Core -Xswiftc -warnings-as-errors`
-4. Mac uygulama testlerini koş: `xcodebuild test -project Kenet.xcodeproj -scheme Kenet_macOS -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO`
-5. iOS birim testlerini koş. Komut, CI gibi ekran görüntüsü kümelerini atlar. `pick-simulator.sh` CI ile aynı aygıtı kimliğiyle seçer.
-
-```sh
-xcodebuild test -project Kenet.xcodeproj -scheme Kenet_iOS \
-  -destination "platform=iOS Simulator,id=$(sh .github/scripts/pick-simulator.sh iPhone | cut -d' ' -f1)" \
-  -only-testing:KenetTests_iOS \
-  $(sh .github/scripts/snapshot-suites.sh | sed 's#^#-skip-testing:KenetTests_iOS/#' | tr '\n' ' ') \
-  CODE_SIGNING_ALLOWED=NO
-```
-
-6. iOS arayüz testlerini koş: `Kenet_iOS` şemasına `-only-testing:KenetUITests` ekle.
-7. Biçimi denetle: `swift format lint --strict --recursive Packages App Tests Widgets ShareExtension Shared`
-8. Belgeleri denetle: `sh .github/scripts/check-docs.sh`
-
-**NOT:** CI ve yerel testler `CODE_SIGNING_ALLOWED=NO` ile imzasız koşar; takım kimliği gerekmez.
-
-## Ekran görüntüsü testleri
-
-| İş | Komut |
+| İş | Yer |
 |---|---|
-| iPhone referanslarını yerelde doğrula | `SNAPSHOT_TESTING_RECORD=never sh .github/scripts/record-screen-snapshots.sh` |
-| iPad referanslarını yerelde doğrula | `SNAPSHOT_TESTING_RECORD=never sh .github/scripts/record-screen-snapshots.sh --pad` |
-| Farkı yerelde incele | `sh .github/scripts/record-screen-snapshots.sh`; yalnız eşleşmeyen ya da eksik referansları yazar; çıkan PNG'leri commit etme |
-| iPhone, iPad ve Duo referanslarını yenile | CI `record-snapshots` iş akışı, `target=ios` |
-| Mac referanslarını yenile | CI `record-snapshots` iş akışı, `target=mac` |
-| iOS ve Mac referanslarını birlikte yenile | CI `record-snapshots` iş akışı, `target=both` |
-| Yalnız Duo referanslarını yenile | CI `record-snapshots` iş akışı, `target=duo` |
+| Araçlar, şemalar, uygulama testleri | [Kurulum adımları](docs/development.md#kurulum-adımları) |
+| Görüntü referansları | [Ekran görüntüsü testleri](docs/development.md#ekran-görüntüsü-testleri) |
+| Ekran turu | [Ekran turu](docs/development.md#ekran-turu) |
+| CI işleri | [CI](docs/development.md#ci) |
+| Cihaza kurulum, TestFlight ve CD | [Cihaza kurulum ve TestFlight](docs/development.md#cihaza-kurulum-ve-testflight) |
+| Yapı numarası | [Yapı numarası](docs/development.md#yapı-numarası) |
+| Betikler | [Betik envanteri](docs/development.md#betik-envanteri) |
 
-**DİKKAT:** Referansları yalnız CI kaydeder; yerel koşu incelemedir. Yerel simülatörün çalışma zamanı CI'dakinden farklıysa yerel görüntü farklı çıkar. CI'ın seçtiği aygıtı ve çalışma zamanını Mimari belgesindeki "Simülatör seçimi" satırı verir.
+## Belgeler
 
-Küme kuralları, tavanlar, Mac kayıt ortamı ve ortam değişkenleri [Mimari](docs/architecture.md#ekran-görüntüsü-ve-duman-testleri) belgesindedir. Yerel PNG'leri commit etme. `SNAPSHOT_DERIVED_DATA` kayıt betiğinin derleme klasörünü seçer; varsayılan `.dd/snapshots`.
+**Tablo, `docs/` altındaki her belgeyi ve cevapladığı soruyu verir.**
 
-## Ekran turu
-
-**Tablo, iPhone, iPad ve Mac ekran turlarını karşılaştırır.**
-
-| Konu | iPhone | iPad | Mac |
-|---|---|---|---|
-| Komut | `sh .github/scripts/screen-tour.sh <çıktı klasörü> [simülatör kimliği]` | `sh .github/scripts/screen-tour.sh --pad <çıktı klasörü> [simülatör kimliği]` | `sh .github/scripts/screen-tour.sh --mac <çıktı klasörü>` |
-| Test | `ScreenTourUITests` | `ScreenTourUITests`; sekme yerine kenar çubuğu satırları (`sidebar.<key>`) | `ScreenTourMacUITests` |
-| Şema | `Kenet_iOS` | `Kenet_iOS` | `Kenet_macOS_ScreenTour` |
-| Aygıt | En eski iOS runtime'ındaki iPhone 17 | `record-screen-snapshots.sh --pad` ile aynı: iPad Pro 13 inç (M5) önce; yatay | Ana ekranda 1280x800 pencere |
-| Çıktı | Her ekran için `NN-ekran-durum.png` | iPhone ile aynı adlar; ayrı klasöre yaz | Aynı adlarla pencere görüntüleri; yalnız Mac'te olan ekranlar 30'dan başlar |
-| Ulaşılamayan adım | `atlananlar.txt` dosyasına düşer; test düşmez | Aynı | Aynı |
-| Koşu | Yalnız betikle; olağan arayüz testi koşusu ve CI turu atlar | Aynı; koşu bitince aygıt dik yöne döner | Yalnız betikle; tur sürerken fare ve klavye testin elindedir |
-
-**Tablo, turu ayarlayan ortam değişkenlerini verir.**
-
-| Değişken | Etki |
+| Belge | İçerik |
 |---|---|
-| `SCREEN_TOUR_SIMULATOR` | Simülatör kimliği; ikinci bağımsız değişkenin yerine geçer |
-| `SCREEN_TOUR_PLATFORM=mac`, `=pad` | `--mac`, `--pad` ile aynı |
-| `--store`, `SCREEN_TOUR_STORE=1` | Mağaza boyutu: iPhone 6,9 inç Pro Max, iPad 13 inç, Mac 1440x900 pencere; uymayan görüntüleri listeler |
-| `SCREEN_TOUR_ORIENTATION=portrait` | iPad turunu dik koşturur; varsayılan yatay |
-| `SCREEN_TOUR_DERIVED_DATA` | iPhone ve iPad turunun derleme klasörü; varsayılan `.dd/screen-tour` |
-| `SCREEN_TOUR_WINDOW=1000x700` | Mac penceresinin boyutu; varsayılan 1280x800 |
-| `SCREEN_TOUR_ONLY=ayarlar,koyu` | Mac turunda yalnız adı verilen bölümleri koşar |
-| `SCREEN_TOUR_TREE=1` | Her görüntünün yanına erişilebilirlik ağacını `<çıktı>/agac/` altına yazar |
+| [docs/roadmap.md](docs/roadmap.md) | Ne, ne zaman yapılır? Aktif aşama burada yazar. |
+| [docs/product.md](docs/product.md) | Ürün nedir ve neden vardır? |
+| [docs/screens.md](docs/screens.md) | Hangi öğe nerede durur ve ne yapar? |
+| [docs/vault-format.md](docs/vault-format.md) | Dosyada ne nerede yazılır? Platformlar arası sözleşme. |
+| [docs/design.md](docs/design.md) | Arayüz nasıl görünür ve neden? |
+| [docs/decisions.md](docs/decisions.md) | Neden böyle karar verildi? |
+| [docs/architecture.md](docs/architecture.md) | Sistem nasıl çalışır? |
+| [docs/development.md](docs/development.md) | Yapı nasıl kurulur, sınanır ve dağıtılır? |
+| [docs/fixtures.md](docs/fixtures.md) | Test verisi nedir ve nerededir? |
 
-Tur uygulama saatini `09:41`'e kendisi sabitler (`KENET_UITEST_CLOCK`); bu değeri betik okumaz. Tur, tasarım işinde önce ve sonra karşılaştırması içindir. iPhone turu uygulamayı örnek kasayla simülatörde gezer. Mac turunda uygulama ayrı bir bundle kimliği ve geçici bir ev klasörü kullanır. Mac turu gerçek kasaya ve ayarlara dokunmaz.
-
-**NOT:** Çıktı klasörünü depo dışında seç; Kasa ayar sayfası görüntüsü makine yolunu gösterebilir, görüntüleri depoya ve PR'a ekleme.
-
-## Cihaza kurulum ve TestFlight
-
-**Şema, imza hazırlığından üç kurulum yoluna kadar olan akışı gösterir.**
-
-```mermaid
-flowchart TD
-  A[Local.xcconfig oluştur] --> B[xcodegen generate]
-  B --> C{Hedef}
-  C -->|iPhone, geliştirme| D[Xcode: Kenet_iOS, Çalıştır]
-  C -->|iPhone, TestFlight| E[testflight.sh]
-  C -->|Mac| F[install-mac.sh]
-  E --> G[App Store Connect dahili test]
-  F --> H["Applications klasöründe Kenet.app"]
-```
-
-1. Yerel imza dosyasını oluştur: `cp Config/Local.xcconfig.example Config/Local.xcconfig`. Dosyada `XXXXXXXXXX` yerine kendi takım kimliğini yaz. Takım kimliği repoya girmez; dosya `.gitignore`'dadır.
-2. Projeyi üret: `xcodegen generate`. Bundle kimliği `project.yml` içindeki `APP_BUNDLE_IDENTIFIER` değeridir. Xcode takımı yerel dosyadan okur. XcodeGen projeyi yeniden üretince takım seçimi kaybolmaz.
-
-   **DİKKAT:** Xcode'da takımı elle seçme; Xcode seçimi `Kenet.xcodeproj` içine yazar ve XcodeGen seçimi siler.
-
-3. Cihaza kur. `Kenet_iOS` şemasını seç. Hedef olarak iPhone'u seç. Çalıştır'a bas. Xcode imzalamayı otomatik yapar.
-4. TestFlight'a yükle: `dev` dalında `sh .github/scripts/testflight.sh` komutunu çalıştır.
-
-   | Seçenek | Ne yapar |
-   |---|---|
-   | Seçeneksiz | Arşivler, özeti gösterir, onay gelince yükler |
-   | `--yes` | Onay sormadan yükler |
-   | `--check` | İmzasız arşivler ve yalnız denetler; yükleme yok |
-   | `--mac` | Mac uygulamasını (`Kenet_macOS`) arşivler ve yükler; `--check` ya da `--ci` ile birleşir |
-   | `--ci` | CI'da API anahtarıyla onaysız yükler; `--keychain`, `--api-key`, `--api-key-id`, `--api-issuer` ister; `--check` ile birleşmez; "CI'dan TestFlight (CD)" bölümü |
-
-   Betik HEAD'i geçici bir kopyaya çıkarır ve arşivi oradan alır. Xcode'un çalışma klasöründe yeniden yazdığı dosyalar böylece yapıya girmez. Betik paketteki kimliği, sürümü, yapı numarasını ve belge paylaşımı anahtarlarını denetler. Koşullar: yerel `dev`, `origin/dev` ile aynıdır; Xcode'da aynı Apple hesabıyla oturum açıktır. `dev` dalına itme olunca `.github/workflows/testflight-check.yml` aynı `--check` denetimini koşar ve yükleme yapmaz.
-
-   Elle yol: `Kenet_iOS` şeması, hedef "Any iOS Device", Product → Archive, Organizer'da Distribute App → TestFlight Internal Only.
-
-   **DİKKAT:** Elle yolda Xcode'un değiştirdiği dosyalar arşive girer; önce `git status` çıktısının temiz olduğunu denetle.
-
-5. Mac'i TestFlight'a yükle: `dev` dalında `sh .github/scripts/testflight.sh --mac`.
-
-   | Konu | Bilgi |
-   |---|---|
-   | Betiğin işi | `Kenet_macOS` şemasını Mac App Store paketi olarak arşivler ve aynı hesapla yükler |
-   | Paket denetimi | İmzalı pakette App Sandbox ve iCloud kapsayıcı yetkisi |
-   | Hazırlık 1 | App Store Connect'te uygulama kaydına macOS platformunu ekle: uygulama sayfası → platform ekle |
-   | Hazırlık 2 | Takımda en az bir Mac kayıtlı olsun: Certificates, Identifiers & Profiles → Devices → macOS |
-   | Mac UDID | Sistem Bilgisi → Donanım → Provisioning UDID |
-   | Kayıtlı Mac yoksa | Arşiv "Your team has no devices" hatasıyla durur; CI'daki Mac yüklemesi de aynı kayda dayanır |
-   | Sertifika | Xcode "Mac Installer Distribution" sertifikasını otomatik imzada kendisi oluşturur |
-   | `dev` itmesi | `testflight-check.yml` Mac arşivini de imzasız denetler |
-
-6. Mac'e doğrudan kur (geliştirme makinesi): `sh .github/scripts/install-mac.sh`. Betik HEAD'i geçici bir kopyaya çıkarır ve Release derler. Betik kimliği, sürümü ve imzayı denetler. Sonra uygulamayı `/Applications/Kenet.app` olarak kopyalar. Kenet açıksa betik durur. `/Applications/Kenet.app` başka bir uygulamaysa da betik durur. Bu kurulum geliştirici imzalıdır ve yalnız derlendiği Mac'te çalışır; başka Mac'e TestFlight yolu kullanılır.
-
-## CI'dan TestFlight (CD)
-
-**Şema, gizli değerlerden TestFlight yüklemesine kadar olan CI yolunu gösterir.**
-
-```mermaid
-flowchart LR
-  A[GitHub ortam sırları] --> B[Geçici anahtar zinciri ve .p8]
-  B --> C["testflight.sh --ci"]
-  C --> D[İmzalı arşiv ve paket denetimi]
-  D --> E[App Store Connect dahili test]
-```
-
-`.github/workflows/testflight.yml` yerel yolu CI'da koşar: `testflight.sh --ci`. Betik aynı denetimleri yapar ve aynı dışa aktarma ayarıyla yükler. Betik Xcode hesabının yerine App Store Connect API anahtarını kullanır. Betik takım kimliğini anahtar zincirindeki Apple Distribution kimliğinden okur. Repoya ve günlüğe kimlik yazılmaz.
-
-**Tablo, iş akışının beklediği Secrets değerlerini ve kaynaklarını verir.** <!-- sır değil -->
-
-| Secret | İçerik | Kaynak <!-- sır değil --> |
-|---|---|---|
-| `ASC_KEY_ID` | API anahtarının kimliği, 10 karakter | App Store Connect, anahtar satırı |
-| `ASC_ISSUER_ID` | Yayıncı kimliği, UUID | App Store Connect, anahtar tablosunun üstü |
-| `ASC_KEY_P8` | `AuthKey_<kimlik>.p8` dosyası, base64 | Anahtar oluşunca bir kez indirilir |
-| `DIST_CERT_P12` | Apple Distribution ve Apple Development kimlikleri, tek `.p12`, base64 | Anahtar Zinciri Erişimi, dışa aktarma |
-| `DIST_CERT_PASSWORD` | `.p12` parolası | Dışa aktarırken sen seçersin <!-- sır değil --> |
-
-1. API anahtarını oluştur. App Store Connect → Users and Access → Integrations → App Store Connect API → Team Keys → `+`. Ad: `Kenet CI`. Erişim: App Manager. `.p8` dosyasını indir; Apple dosyayı yalnız bir kez verir. Key ID ve Issuer ID değerlerini not et.
-2. Dağıtım sertifikasını hazırla. Xcode → Settings → Accounts → takım → Manage Certificates. Listede Apple Distribution yoksa `+` → Apple Distribution.
-3. Kimlikleri dışa aktar. Anahtar Zinciri Erişimi → login → My Certificates. "Apple Distribution: …" ve "Apple Development: …" satırlarını birlikte seç → Export 2 items → `.p12`, güçlü bir parolayla.
-
-   **NOT:** Otomatik imzalamada arşiv adımı geliştirme kimliğiyle imzalar; dışa aktarma dağıtım kimliğiyle yeniden imzalar. `.p12` içinde Apple Development yoksa Xcode her koşuda API anahtarıyla yeni bir geliştirme sertifikası oluşturabilir. Betik bu durumda uyarı yazar.
-
-4. Secrets değerlerini yaz. Depo kökünde: <!-- sır değil -->
-
-   ```sh
-   # Önce "testflight" ortamını yalnız dev dalına açık olarak oluştur (Settings → Environments:
-   # Deployment branches → Selected branches → dev); Secrets bu ortama yazılır, başka dal okuyamaz.  # sır değil
-   gh api -X PUT repos/dogancanyildiz/kenet/environments/testflight \
-     -F 'deployment_branch_policy[protected_branches]=false' \
-     -F 'deployment_branch_policy[custom_branch_policies]=true'
-   gh api -X POST repos/dogancanyildiz/kenet/environments/testflight/deployment-branch-policies -f name=dev
-   gh secret set ASC_KEY_ID --env testflight  # sır değil
-   gh secret set ASC_ISSUER_ID --env testflight  # sır değil
-   base64 -i AuthKey_<Key ID>.p8 | gh secret set ASC_KEY_P8 --env testflight  # sır değil
-   base64 -i Kenet-imza.p12 | gh secret set DIST_CERT_P12 --env testflight  # sır değil
-   gh secret set DIST_CERT_PASSWORD --env testflight  # sır değil
-   ```
-
-   Son komut parolayı gizli girişle sorar. Sonra `.p8` ve `.p12` dosyalarını parola yöneticisine taşı ve diskten sil.
-
-5. İlk koşuyu başlat: `gh workflow run testflight.yml --ref dev -f notes='ilk CD denemesi'`. Not koşu adında ve özetinde görünür; TestFlight'a gitmez. Mac için `-f platform=mac` eklenir; itme koşusu yalnız iOS yükler.
-6. İsteğe bağlı olarak `dev`'e her itmede yüklemeyi aç: `gh variable set KENET_CD_ON_PUSH --body true`. Varsayılan kapalıdır. Değişken açıkken `testflight-check` atlanır; yükleme koşusu aynı denetimi imzalı arşivde yapar.
-
-**Tablo, CD'nin sınırlarını ve bakımını verir.**
-
-| Konu | Bilgi |
-|---|---|
-| Dal | Yalnız `dev`. Betik başka dalı ve `origin/dev` geçmişinde olmayan commit'i reddeder |
-| Kuyruk | Aynı anda tek yükleme. Yükleme yarıda kesilmez; bekleyen koşu yenisi gelince iptal olur |
-| Yapı numarası | Commit'in UTC işlenme zamanı. Aynı commit'ten ikinci yükleme reddedilir |
-| Sertifika süresi | Apple Distribution bir yıl geçerlidir. Yenileyince `DIST_CERT_P12` ve `DIST_CERT_PASSWORD` değerlerini güncelle <!-- sır değil --> |
-| API anahtarı | Süresi dolmaz. Sızarsa App Store Connect'te iptal et ve yenisini yaz. İki adımlı doğrulama istemez |
-| Düşen koşu | `testflight-logs` artifact'ı arşiv ve yükleme günlüğünü taşır. Takım, anahtar ve yayıncı kimliği günlükte yer tutucuyla değişir |
-
-## Yapı numarası
-
-**Şema, sürüm ve yapı numarasının kaynağını gösterir.**
-
-```mermaid
-flowchart LR
-  A[VERSION dosyası] --> C[Sürümü yaz adımı]
-  B["HEAD commit zamanı, UTC"] --> D[build-number.sh] --> C
-  C --> E[Info.plist: CFBundleShortVersionString]
-  C --> F[Info.plist: CFBundleVersion]
-```
-
-**Tablo, yapı numarasının durumlara göre değerini verir.**
-
-| Durum | Sonuç |
-|---|---|
-| Git var, sığ kopya dahil | Numara `YYAAGG.SSDDss` biçimindedir, örnek `261111.153012`; iOS ve Mac aynı numarayı alır |
-| Git yok | Numara `1` kalır ve derleme uyarı verir; o yapıyı yükleme |
-| Aynı sürümde aynı numara | App Store Connect ikinci yüklemeyi kabul etmez; yeni yükleme için en az bir yeni commit gerekir |
-| `main` ve `dev` | Sürüm birleşmesi kendi zamanını alır; sonraki `dev` commit'leri daha büyük numara alır |
-| İş dalı | Squash commit'i yeni zaman alır; arşivi `dev` ya da `main` üzerinden al |
-
-`CFBundleVersion` yapı numarasını elle yazma. Sürüm numarası kökteki `VERSION` dosyasından gelir.
+Ajan kuralları, okuma sırası ve belge kuralları [AGENTS.md](AGENTS.md) içindedir. `.github/scripts/check-docs.sh` tabloda olmayan belgeyi reddeder.
 
 ## Lisans
 

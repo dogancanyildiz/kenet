@@ -33,6 +33,15 @@ final class AccessibilityAuditExemptionTests: XCTestCase {
         XCTAssertFalse(isExempt(.contrast, label: "S"))
     }
 
+    /// The Tasks künye is exempt on the Tasks screen only, in both languages, for dynamicType only.
+    func testTasksBylineIsExemptOnTasksOnly() {
+        XCTAssertTrue(isExempt(.dynamicType, label: "14 open · 11 carried over", screen: "tasks"))
+        XCTAssertTrue(isExempt(.dynamicType, label: "14 açık · 11 devreden", screen: "tasks"))
+        XCTAssertFalse(isExempt(.dynamicType, label: "14 open · 11 carried over", screen: "today"))
+        XCTAssertFalse(isExempt(.textClipped, label: "14 open · 11 carried over", screen: "tasks"))
+        XCTAssertFalse(isExempt(.dynamicType, label: "14 open", screen: "tasks"))
+    }
+
     /// SectionHeader titles and counters are named by the component's identifier, not by their text.
     func testSectionHeaderIsNamedByItsIdentifier() {
         XCTAssertTrue(isExempt(.dynamicType, identifier: "sectionHeader", label: "Carried over"))

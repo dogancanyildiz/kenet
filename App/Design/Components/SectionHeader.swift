@@ -8,8 +8,12 @@ struct SectionHeader: View {
     static let titleIdentifier = "sectionHeader"
     static let counterIdentifier = "sectionHeader.count"
 
-    private let titleText: Text
-    private let spokenTitle: String?
+    private enum Title {
+        case verbatim(String)
+        case key(LocalizedStringKey)
+    }
+
+    private let titleSource: Title
     /// Integer count formatted with the environment locale (grouping off).
     var count: Int? = nil
     /// Preformatted counter (e.g. Today goals `"1/3"`). Wins over ``count`` when set.
@@ -20,14 +24,15 @@ struct SectionHeader: View {
     var isExpanded: Bool? = nil
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    /// The width the title is given at accessibility sizes; `nil` until the first layout.
+    @State private var titleWidth: CGFloat?
 
     /// Already-localized or verbatim title (callers that used `String(localized:)`).
     init(
         title: String, count: Int? = nil, counter: String? = nil, isLoading: Bool = false,
         isExpanded: Bool? = nil
     ) {
-        self.titleText = Text(verbatim: title)
-        self.spokenTitle = title
+        self.titleSource = .verbatim(title)
         self.count = count
         self.counter = counter
         self.isLoading = isLoading
@@ -39,8 +44,7 @@ struct SectionHeader: View {
         _ titleKey: LocalizedStringKey, count: Int? = nil, counter: String? = nil,
         isLoading: Bool = false, isExpanded: Bool? = nil
     ) {
-        self.titleText = Text(titleKey)
-        self.spokenTitle = nil
+        self.titleSource = .key(titleKey)
         self.count = count
         self.counter = counter
         self.isLoading = isLoading
@@ -52,7 +56,8 @@ struct SectionHeader: View {
         // it the title was squeezed into a mid-word break ("Hede- / fler" at AX5). One layout keeps the
         // title the same view at every size: the accessibility audit measures it while it grows, and a
         // title that changes views as it grows (if/else, ViewThatFits) reads to it as clipped (iPad
-        // Tasks, "Carried over").
+        // Tasks, "Carried over"). A word wider than the stacked title's line shrinks the title until
+        // it fits: it broke by the letter in a narrow column ("görüşmedikler / n").
         let stacks = dynamicTypeSize.isAccessibilitySize
         let layout =
             stacks
@@ -60,10 +65,15 @@ struct SectionHeader: View {
             : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
         layout {
             titleText
-                .font(.ink.sectionTitle)
+                .font(
+                    InkWordFit.font(
+                        base: .ink.sectionTitle, text: stacks ? measuredTitle : "", style: .sectionTitle,
+                        size: dynamicTypeSize, available: stacks ? titleWidth : nil)
+                )
                 .foregroundStyle(.ink.text)
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier(Self.titleIdentifier)
+                .modifier(InkOfferedWidthReader(isActive: stacks, width: $titleWidth))
             if stacks {
                 HStack(alignment: .firstTextBaseline, spacing: 8) { marks }
             } else {
@@ -113,16 +123,44 @@ struct SectionHeader: View {
         return nil
     }
 
+    /// The drawn title: a catalog key goes to `Text` as a key, as it always did.
+    private var titleText: Text {
+        switch titleSource {
+        case .verbatim(let text): Text(verbatim: text)
+        case .key(let key): Text(key)
+        }
+    }
+
+    /// The title as a string, to measure its widest word (``InkWordFit``). A key is read back
+    /// from `LocalizedStringKey` and resolved in the environment's language; a key that cannot be
+    /// read gives an empty string, and the title then keeps its size.
+    private var measuredTitle: String {
+        switch titleSource {
+        case .verbatim(let text): text
+        case .key(let key):
+            Self.catalogKey(of: key).map {
+                PresentationLocalization.string(localized: String.LocalizationValue($0), locale: locale)
+            } ?? ""
+        }
+    }
+
+    /// `LocalizedStringKey` keeps its key without a public reader; its mirror shows it.
+    static func catalogKey(of key: LocalizedStringKey) -> String? {
+        Mirror(reflecting: key).children.first { $0.label == "key" }?.value as? String
+    }
+
     private var accessibilitySpokenLabel: Text {
-        if let spokenTitle {
+        switch titleSource {
+        case .verbatim(let title):
             if let counterText {
-                return Text(verbatim: "\(spokenTitle), \(counterText)")
+                return Text(verbatim: "\(title), \(counterText)")
             }
-            return Text(verbatim: spokenTitle)
+            return Text(verbatim: title)
+        case .key:
+            if let counterText {
+                return Text("\(titleText), \(counterText)")
+            }
+            return titleText
         }
-        if let counterText {
-            return Text("\(titleText), \(counterText)")
-        }
-        return titleText
     }
 }

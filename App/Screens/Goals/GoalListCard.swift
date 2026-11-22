@@ -91,10 +91,10 @@ struct GoalListCard<Detail: View>: View {
     private var cardBody: some View {
         VStack(alignment: .leading, spacing: 6) {
             titleLayout {
-                if complete, !stacks { completeMark }
+                if complete, !flowsTitle { completeMark }
                 // The mark stays on the name's first line when the chip wraps under the name.
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    if complete, stacks { completeMark }
+                    if complete, flowsTitle { completeMark }
                     Text(verbatim: goal.name)
                         .font(.ink.content.weight(.semibold))
                         .foregroundStyle(complete ? Color.ink.secondaryText : Color.ink.text)
@@ -121,10 +121,17 @@ struct GoalListCard<Detail: View>: View {
         }
     }
 
-    /// The name and its chip on one line; at accessibility sizes the chip wraps under a name that
-    /// leaves it no room, and the name takes the card's width.
-    private var titleLayout: AnyLayout {
-        stacks
+    /// The name and its chip on one line. From xxL up the chip wraps under a name that leaves it
+    /// no room, and the name takes the card's width: squeezed beside the name the chip was cut to
+    /// "Hafta…" (xxxL on a 320 pt screen).
+    private var titleLayout: AnyLayout { Self.titleLayout(flows: flowsTitle) }
+
+    private var flowsTitle: Bool { Self.flowsTitle(at: typeSize) }
+
+    static func flowsTitle(at size: DynamicTypeSize) -> Bool { size >= .xxLarge }
+
+    static func titleLayout(flows: Bool) -> AnyLayout {
+        flows
             ? AnyLayout(InkFlowLayout(spacing: 8, lineSpacing: 4))
             : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
     }

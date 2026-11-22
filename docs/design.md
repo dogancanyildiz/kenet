@@ -4,7 +4,7 @@
 
 **Kapsam:**
 
-- Şafak yönünün tanımı ve önceki yön Mürekkep'in kısa tarihçesi.
+- Şafak yönünün tanımı.
 - Bütün ekranlar için ortak kurallar ve denetim kalıpları.
 - Renk, parıltı, yazı, yarıçap, boşluk, yüzey ve gölge belirteçleri; uygulama simgesi.
 - Bileşen ailesi ve ekran başına uygulama.
@@ -49,10 +49,6 @@ Ad "Şafak"tır, çünkü parıltı günün başlangıcını gösterir. Kod adla
 
 Parıltının yeri ve gücü bu yüzden sayıyla tanımlıdır.
 
-## Önceki yön: Mürekkep
-
-Önceki yön Mürekkep'ti (2026-10-05 – 2026-11-09). Gerekçe karar günlüğündedir ve git geçmişindedir.
-
 ## Her yönde geçerli kurallar
 
 | No | Kural |
@@ -68,7 +64,7 @@ Parıltının yeri ve gücü bu yüzden sayıyla tanımlıdır.
 | 9 | iOS'ta hiçbir metin 12 pt'nin altında değildir. Etiketler cümle düzenindedir: hafta şeridinde "Pzt". Büyük harfli, geniş aralıklı etiket yoktur. |
 | 10 | Dokunma hedefleri en az 44 pt'dir. iOS'ta kısa sözcüklü metin düğmesi ("Geri", "İleri") 44 pt genişliğe uzar; sözcük başta kalır. Tek satırlık satır ve anahtar satırı 44 pt yüksekliktedir. Hafta şeridinin her günü 44 × 56 pt'dir. |
 | 11 | İçerikte zeminle zıt parlaklıkta büyük yüzey yoktur. Parıltı zeminin parlaklık ailesinde kalır; parıltı üstündeki ikincil metin en az 4,5:1 taşır. Böylece altından geçen sistem camı açık ile koyu arasında çevrilmez. |
-| 12 | Mac'te kenar çubuğunun seçili satırı `accentSoft` ile dolar. Seçili satırın simgesi vurgu rengindedir: mürdüm. Seçili satırın yazısı `text` rengindedir ve yarı kalındır. Öteki satırların simgesi `secondaryText` rengindedir. Kontrast `accentSoft` üstünde yazıda açıkta 13,41:1, koyuda 13,50:1'dir. Simgede açıkta 6,45:1, koyuda 5,87:1'dir. Önceki değer: vurgu dolgusu, vurgu üstü yazı ve simge; Şafak çizimi `c-mac` 2026-11-11'de değiştirdi. Kenar çubuğu `elevated` zemindedir; parıltı yoktur. Yalnız seçili girdi vurgu alır: Görevler'in altındaki Kanban, Zaman çizelgesi ve projeler ayrı satırdır. Seçimin kendisi sistemindir: ok tuşları, odak, VoiceOver. Yalnız çizim uygulamanındır. Bölünmüş kabukta (iPhone Duo iç ekranı, iPad) aynı kural geçerlidir: sistemin seçim vurgusu ve odak çerçevesi dolgunun üstüne çizilmez. |
+| 12 | Mac'te kenar çubuğunun seçili satırı `accentSoft` ile dolar. Seçili satırın simgesi vurgu rengindedir: mürdüm. Seçili satırın yazısı `text` rengindedir ve yarı kalındır. Öteki satırların simgesi `secondaryText` rengindedir. Kontrast `accentSoft` üstünde yazıda açıkta 13,41:1, koyuda 13,50:1'dir. Simgede açıkta 6,45:1, koyuda 5,87:1'dir. Karar: `decisions.md` 2026-11-11 kenar çubuğu satırı. Kenar çubuğu `elevated` zemindedir; parıltı yoktur. Yalnız seçili girdi vurgu alır: Görevler'in altındaki Kanban, Zaman çizelgesi ve projeler ayrı satırdır. Seçimin kendisi sistemindir: ok tuşları, odak, VoiceOver. Yalnız çizim uygulamanındır. Bölünmüş kabukta (iPhone Duo iç ekranı, iPad) aynı kural geçerlidir: sistemin seçim vurgusu ve odak çerçevesi dolgunun üstüne çizilmez. |
 | 13 | Hareket sistem varsayılanlarıyla sınırlıdır ve Hareketi Azalt ayarına uyar. Parıltı ve hale durağandır: nabız, dönme ve renk geçişi yoktur. Tek istisna Graph'tır: düğümler kuvvet benzetimiyle hareket eder, çünkü içerik hareketin kendisidir. Hareketi Azalt açıkken Graph da canlı oynamaz; uygulama oturmuş düzeni tek seferde gösterir. |
 
 **DİKKAT:** Kural numaralarını değiştirme; kod kural 12'ye `MacSidebar.swift` içinde, Şafak kuralı 4'e `InkLinkStyle.swift` içinde numarayla gönderme yapar.
@@ -125,16 +121,7 @@ Ayrım renge dayanmaz; kalınlık anlamı taşır. Graph bir bağ çizdiğinde g
 
 ## Denetim kalıpları
 
-**Ekim 2026 denetiminde aynı işin kaç biçimde kurulduğu.**
-
-| Konu | Biçim sayısı |
-|---|---|
-| Arama | 2 |
-| Birini seç | 5 |
-| Sheet başlığı yazısı | 3 |
-| Sheet zemini | 4 |
-
-Denetim 84 gerçek ekran görüntüsünü ve kod envanterini inceledi. Aşağıdaki 8 kalıp tek tanımdır. Her ekran kalıpları ortak bileşenlerle kurar; hiçbir ekran bir kalıbı elle yeniden yazmaz. Referans Bugün ekranıdır.
+Aşağıdaki 8 kalıp tek tanımdır. Her ekran kalıpları ortak bileşenlerle kurar; hiçbir ekran bir kalıbı elle yeniden yazmaz. Referans Bugün ekranıdır.
 
 ### 1. Sayfa üstü
 
@@ -318,23 +305,23 @@ Açık modda `tertiaryText` `#5E6168` değerindedir; önceki değer `#666972` id
 
 ### Kod adları ve kullanım
 
-**Kod adları Mürekkep'ten kalır; yalnız değerler değişir.** Dört belirteç yenidir.
+**Her kod adının asset'i ve kullanımı.**
 
 | Kod adı | Asset | Kullanım |
 |---|---|---|
 | `paper` | `InkPaper` | Sayfa, kaydırma alanı, Mac araç çubuğu |
-| `elevated` (yeni) | `InkElevated` | Sheet, Mac kenar çubuğu, popover, iPad yüzen kenar çubuğu |
+| `elevated` | `InkElevated` | Sheet, Mac kenar çubuğu, popover, iPad yüzen kenar çubuğu |
 | `surface` | `InkSurface` | Bölüm kartı, liste kartı, kanban kartı, zaman kartı, hızlı giriş kapsülü, Graph tuvali |
 | `well` | `InkWell` | Çip, süzgeç alanı, ısı haritasının boş hücresi, Mac'te hafta sonu sütunu |
 | `rule` | `InkRule` | Kart sınırı, satır ayracı; bilgi taşımaz |
-| `line` (yeni) | `InkLine` | Yüzen öğe sınırı, seçili kart sınırı |
+| `line` | `InkLine` | Yüzen öğe sınırı, seçili kart sınırı |
 | `control` | `InkControl` | Görev kutusu, halka izi, artı konturu; metin dışı |
 | `text` | `InkText` | İçerik, başlık, künyedeki sayılar |
 | `secondaryText` | `InkSecondaryText` | Meta, saat, künyenin geri kalanı, yapılmış iş |
-| `tertiaryText` (yeni) | `InkTertiaryText` | Yer tutucu, hafta şeridinde gelecek gün, takvimde gelecek gün |
+| `tertiaryText` | `InkTertiaryText` | Yer tutucu, hafta şeridinde gelecek gün, takvimde gelecek gün |
 | `accent` | `InkAccent`, `AccentColor` | Artı, gönder, seçili sekme, kip çizgisi, birincil düğme dolgusu |
 | `onAccent` | `InkOnAccent` | Vurgu dolgusundaki yazı ve simge |
-| `accentSoft` (yeni) | `InkAccentSoft` | Kart içindeki seçili liste satırı, seçili zaman kartı, seçili gün kartı |
+| `accentSoft` | `InkAccentSoft` | Kart içindeki seçili liste satırı, seçili zaman kartı, seçili gün kartı |
 | `warning` | `InkWarning` | Yalnız devreden tarihi ve işareti; devreden görevin zaman kartındaki çerçeve |
 | `danger` | `InkDanger` | Yalnız yıkıcı eylem ve hata metni; yıkıcı eylem örneği silmedir |
 | `person` | `InkPerson` | Düz alt çizgi, simge, Graph dairesi |
@@ -505,7 +492,7 @@ Kart içinde kart yoktur. Gölge yalnız yüzen öğeyi zeminden ayırır. Doku 
 
 ## Uygulama simgesi
 
-**Simgenin her görünümdeki renkleri.** Simge Şafak'ta aynen kalır; renkleri palet değişiminden etkilenmez.
+**Simgenin her görünümdeki renkleri.** Simgenin renkleri renk belirteçlerine bağlı değildir.
 
 | Görünüm | Zemin | Mürekkep şerit | Mürdüm şerit | Dosya biçimi |
 |---|---|---|---|---|
@@ -640,7 +627,7 @@ Zincir günüyle korunan gün de zinciri koruyan bir kaçırmadır; bu yüzden a
 | Haftalık / aylık toplam | 12 dolu çubuk, sıfır toplamda iz yok | Vurgu | Aralık, toplam, en yüksek dönem ve değeri |
 | Eksen ve özet | `ink.meta`, sayılarda eş aralıklı rakamlar; ızgara yok | İkincil metin; eksen işareti kontrol çizgisi | Görsel özet yinelenmez |
 
-Grafik hedef ayrıntısında kendi kartındadır. Grafik yüksekliği 160 pt'dir. Y ekseninde hedef etiketi her zaman vardır; 0 ve tepe etiketi hedefe bir etiket satırından (en az eksenin %15'i) yakınsa çizilmez. Günlük grafikte ay başları etiketlidir. Toplam çubuklarında üç dönemde bir etiket vardır. Erişilebilirlik boyutunda günlük grafik son 30 günü çizer. Erişilebilirlik boyutunda X ekseni etiket taşımaz; ilk ve son dönemde birer çentik durur. Grafiğin altındaki tek satır aralığı yazar: "12 Eyl – 11 Eki". Bu satır sözcük arasından sarar; eksendeki iki uç etiketi 320 pt ekranda üst üste biniyordu. Hareketi Azalt açıkken animasyon yoktur. VoiceOver atlanan etiket dahil her ayın tam adını okur.
+Grafik hedef ayrıntısında kendi kartındadır. Grafik yüksekliği 160 pt'dir. Y ekseninde hedef etiketi her zaman vardır; 0 ve tepe etiketi hedefe bir etiket satırından (en az eksenin %15'i) yakınsa çizilmez. Günlük grafikte ay başları etiketlidir. Toplam çubuklarında üç dönemde bir etiket vardır. Erişilebilirlik boyutunda günlük grafik son 30 günü çizer. Erişilebilirlik boyutunda X ekseni etiket taşımaz; ilk ve son dönemde birer çentik durur. Grafiğin altındaki tek satır aralığı yazar: "12 Eyl – 11 Eki". Bu satır sözcük arasından sarar. Neden: eksendeki iki uç etiketi 320 pt ekranda üst üste biner. Hareketi Azalt açıkken animasyon yoktur. VoiceOver atlanan etiket dahil her ayın tam adını okur.
 
 ### Ritim şeridi ve yığılı çubuk
 
@@ -744,7 +731,6 @@ Renk tek başına anlam taşımaz; proje adı ve durum metni yanında durur.
 | Kart satırı | Hedefler sütununda satır kendisi karttır. Seçilince kart 1 pt `line` sınır ve vurgu çubuğu alır. |
 | İşaret | Kartın sol kenarından 4 pt içeride 3 pt kapsül vurgu çubuğu. Çubuk üstten ve alttan 12 pt kısadır. |
 | Yazı | Seçili satırdaki yazı belirteçleri `surface` ve `accentSoft` zeminde alt sınır kontrastını taşır. |
-| Önceki değer | `accentSoft` dolgu, solda kenara yapışık 2 pt çizgi. Şafak `c-mac` ve `j-mac2` çizimi 2026-11-11'de değiştirdi. |
 | iPad ve Duo, bölünmüş kabuk | Liste sütunlarında Mac'teki seçim. Arama sonucunda da aynı çizim. Sistemin odak çerçevesi satıra çizilmez. İşaretçi üstünde durduğu sütun satırını sistemin hafif vurgusuyla gösterir. |
 | iPhone | Sekme kabuğunda satır `surface` kalır. Yalnız arama sonucunda klavye seçimi `accentSoft` alır. |
 | Görev sütunu | Kutu görevi tamamlar. Metindeki bağlantı kendi sayfasını açar. Satıra tıklamak ayrıntıyı seçer. Bağlam menüsündeki silme onay diyaloğuna gider. |
@@ -835,7 +821,7 @@ Parıltı bilgi taşımaz. Bu yüzden kalktığında hiçbir bilgi kaybolmaz.
 
 | Adım | Kapsam |
 |---|---|
-| Palet testi | `PaletteContrastTests` yeni değerleri, 4 varyantı ve parıltı karışım noktalarını denetler. |
+| Palet testi | `PaletteContrastTests` palet değerlerini, 4 varyantı ve parıltı karışım noktalarını denetler. |
 | Kaynak denetimi | `DesignTokenUsageTests`: hex yalnız `App/Design` içinde; `.inkGlow()` yalnız kök ekran görünümlerinde. <!-- sır değil --> |
 | Ekran görüntüsü | Her kök ekranın ve her sheet türünün referansı vardır. Referans sayısı ve küme listesi [Mimari](architecture.md#ekran-görüntüsü-ve-duman-testleri) belgesindedir. |
 | Gerçek cihaz | Koyu ve açık, KA, AX3, Hareketi Azalt; iPhone, iPad ve Mac. |
@@ -849,7 +835,6 @@ Ajanlar ekranı göremez; bu yüzden ekran görüntüsü testleri bu projede zor
 | Kart ailesi | Kartlar ekranı planlayıcı uygulamasına benzetebilir. Şafak bunu sınırlar: kart yalnız bölüm kabıdır, bento yoktur. |
 | İlk ekran yüksekliği | Gün halkası, hafta şeridi ve künye cümlesi ilk ekranı uzatır. İlk olay kaydırmadan görünmelidir; `TodayScreenSnapshotTests` bunu korur. |
 | Parıltı ve fotoğraf | Parıltı kart zemini değildir; kart opak kalır. Kartın altında renk kayması olmaz. |
-| Maketler | Maketler HTML'dir; cam ve parıltı yaklaşıktır. Son söz gerçek cihazdadır. |
 
 ## Rozetler
 

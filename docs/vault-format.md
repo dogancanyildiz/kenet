@@ -800,19 +800,19 @@ Bugün genel olarak verimli geçti...
 | `## Events` | Olaylar | Hızlı giriş, paylaşım uzantısı ve Kısayollar buraya satır ekler. |
 | `## Diary` | Serbest yazı | Kullanıcı kaydedince uygulama yalnız o düzenlemede eklenen ya da değişen satırlardaki kesin anmaları bağlantıya çevirir. Uygulama değişmeyen satırlara dokunmaz. |
 
-Gün dosyasının kimliği yoludur. `diary/` altında adı geçerli bir tarih olan dosya o günün dosyasıdır: `YYYY-MM-DD.md`. Frontmatter'ı olmayan dosya da o günün dosyasıdır; örneğin kullanıcı dosyayı Obsidian'da açtıysa. Bir günün tek dosyası vardır. 2026-11-13 öncesinin adları için: [Eski adlar ve geçiş](#eski-adlar-ve-geçiş).
+Gün dosyasının kimliği yoludur. `diary/` altında adı geçerli bir tarih olan dosya o günün dosyasıdır: `YYYY-MM-DD.md`. Frontmatter'ı olmayan dosya da o günün dosyasıdır; örneğin kullanıcı dosyayı Obsidian'da açtıysa. Bir günün tek dosyası vardır. Eski adlar için: [Eski adlar ve geçiş](#eski-adlar-ve-geçiş).
 
 ### Eski adlar ve geçiş
 
-**Değişiklik kaydı: 2026-11-13'te değişen 3 ad.**
+**Tablo 2026-11-13 öncesi kasaların taşıdığı 3 eski adı gösterir.**
 
-| Ad | Önceki değer | Yeni değer | Okuma | Yeni yazılan ad |
+| Ad | Eski ad | Güncel ad | Okuma | Yeni yazılan ad |
 |---|---|---|---|---|
 | Gün klasörü | `journal/` | `diary/` | İki klasördeki gün dosyası da gündür. | Yalnız `diary/` |
 | Serbest yazı başlığı | `## Journal` | `## Diary` | İki başlık da serbest yazı bölümünü açar. | Yalnız `## Diary` |
 | Gün dosyasının `type` değeri | `journal` | `diary` | İki değer de ayrılmıştır. Gün kimliği yine yoldur. | Yalnız `diary` |
 
-Uygulama eski adları kasa geçişi bitene kadar okur. Uygulama eski adlı dosyanın ve başlığın içine yazar. Uygulama eski adı hiçbir zaman yeni üretmez. Başka cihazdaki eski sürüm de eski adlarla yazmayı sürdürebilir. Geri alma: bu 3 adı eski değerine döndüren sürüm ve ters yönde aynı geçiş.
+Uygulama eski adları kasa geçişi bitene kadar okur. Uygulama eski adlı dosyanın ve başlığın içine yazar. Uygulama eski adı hiçbir zaman yeni üretmez. Başka cihazdaki eski sürüm de eski adlarla yazmayı sürdürebilir.
 
 **Okuma ve yazma kuralları.**
 
@@ -831,47 +831,28 @@ Uygulama eski adları kasa geçişi bitene kadar okur. Uygulama eski adlı dosya
 
 **Geçiş: kullanıcı onaylayınca uygulama eski klasörü `diary/` altına taşır.**
 
-```mermaid
-flowchart TD
-  A["Yenileme biter; kasa yazılabilir"] --> B{"Kökte tam yazımla journal/ altında gün dosyası var mı?"}
-  B -- Hayır --> Z["Öneri yok"]
-  B -- Evet --> O["Ana ekranda öneri bandı: Taşı… ve kapat"]
-  O -- "Kapat" --> Z2["Kasa yeniden açılana kadar öneri yok"]
-  O -- "Taşı…" --> Q{"Onay: önce bütün cihazları güncelle; yol bağlantıları kırılır"}
-  Q -- Sonra --> Z2
-  Q -- Taşı --> D["50 dosyalık partiler; her parti yazma kuyruğunda tek sıra"]
-  D --> E{"Kaynak indirilmiş mi?"}
-  E -- Hayır --> E1["Atlar; dosya eski klasörde kalır"]
-  E -- Evet --> F["Çevrilmiş baytlar: başlığın adı ve type değeri yeni ad"]
-  F --> G{"diary/ altında aynı ad var mı?"}
-  G -- Hayır --> H["Dosyayı o ada yazar; kaynağın zamanını verir; kaynağı siler"]
-  G -- "Evet, baytlar çevrilmiş baytlarla aynı" --> I["Yarım kalmış geçiş: yalnız kaynağı siler"]
-  G -- "Evet, baytlar farklı" --> J["İlk boş gün kopyası adına yazar: YYYY-MM-DD N.md"]
-  J --> H2["Kaynağı siler; gün kopyası birleştirmesi ya da Tanılama onu ele alır"]
-  H --> K{"Partiler bitti ve journal/ boş mu?"}
-  I --> K
-  H2 --> K
-  K -- Evet --> L["Klasörü rmdir ile siler"]
-  K -- Hayır --> M["Klasörü bırakır; bant kalan dosyaları adıyla sayar"]
-```
-
 | Konu | Kural |
 |---|---|
+| Öneri | Yenileme bitince ve kasa yazılabilirse uygulama kökte tam yazımla `journal/` altında gün dosyası arar. Varsa ana ekranda öneri bandı çıkar: "Taşı…" ve kapat. |
 | Başlatma | Yalnız kullanıcının onayı. Uygulama geçişi kendiliğinden başlatmaz; içe aktarılan kasada da başlatmaz. |
 | Onay metni | Önce Kenet'i bütün cihazlarda güncelle. Dosyalar `journal/` klasöründen `diary/` klasörüne taşınır. Başlık ve `type` yeni adı alır. `[[journal/…]]` yol bağlantıları çalışmaz. |
-| Ertelenen öneri | Kapatılan öneri kasa yeniden açılana kadar gelmez. Uygulama kasaya hiçbir işaret yazmaz. |
+| Ertelenen öneri | Kullanıcı bandı kapatırsa ya da onayda "Sonra" derse öneri kasa yeniden açılana kadar gelmez. Uygulama kasaya hiçbir işaret yazmaz. |
 | Kapsam | Yalnız `journal/` klasörünün hemen altındaki gün dosyaları ve sayılı adlar (`YYYY-MM-DD N.md`). Notlar, alt klasörler ve öteki adlar yerinde kalır. |
+| İndirilmemiş kaynak | Uygulama indirilmemiş dosyayı atlar. Dosya eski klasörde kalır. |
 | Değişen baytlar | Tanınan başlık `## Journal` ise yalnız ad `Diary` olur. Sondaki boşluklar ve satır sonu kalır. |
 | `type` alanı | Okunabilen frontmatter'daki `type: journal` değeri tek alan kuralıyla `diary` olur. |
 | Değişmeyen dosya | UTF-8 olarak çözülemeyen dosya ve eski adı olmayan dosya bayt bayt taşınır. |
+| Boş hedef | `diary/` altında aynı ad yoksa uygulama çevrilmiş baytları o ada yazar ve kaynağı siler. |
+| Dolu hedef, aynı baytlar | Hedefin baytları çevrilmiş baytlarla aynıysa geçiş yarım kalmıştır. Uygulama yalnız kaynağı siler. |
+| Dolu hedef, farklı baytlar | Uygulama var olan dosyanın üzerine yazmaz. Çevrilmiş baytları ilk boş gün kopyası adına yazar: `YYYY-MM-DD N.md`. Sonra kaynağı siler. Gün kopyası birleştirmesi ya da Tanılama kopyayı ele alır. |
+| Dolu ad | Yazma dışlayıcıdır. Yer tutucusu olan ad da dolu sayılır. |
 | Değişiklik zamanı | Yeni dosya kaynağın değişiklik zamanını alır. Gün kopyası birleştirmesi bu zamanı karşılaştırır. |
-| Var olan hedef | Uygulama var olan dosyanın üzerine yazmaz. Yazma dışlayıcıdır. Yer tutucusu olan ad da dolu sayılır. |
 | Koordinasyon | Boş hedef tek `.move(kaynak → hedef)` sınırıdır. Hazır hedef tek `.merge(kaynak → hedef)` sınırıdır. Klasör silme tek silme sınırıdır. |
 | Sınırın içi | Uygulama hedef adın boş olduğunu ve yer tutucusu olmadığını sınırın içinde yeniden denetler. |
 | Partiler | Her parti en çok 50 dosyadır ve yazma kuyruğunda tek sıradır. Düzenlemeler ve paylaşım satırları partilerin arasında yazılır. |
 | Yeniden deneme | Ad dolduysa ya da hedef değiştiyse uygulama yeni listeyle bir kez daha dener. |
 | Hata | Hata o dosyayı eski klasörde bırakır. Öteki dosyalar sürer. Bant kalan dosyaları sayar ve ilk 5 adını yazar. Öneri yeniden gelir. |
-| Klasör silme | Uygulama klasörü yalnız boşsa ve `rmdir` ile siler; içi dolu klasör silinmez. Son anda gelen dosya da klasörü tutar. |
+| Klasör silme | Partiler bitince uygulama klasörü yalnız boşsa ve `rmdir` ile siler; içi dolu klasör silinmez. Son anda gelen dosya da klasörü tutar. Klasör kalırsa bant kalan dosyaları sayar. |
 | Yalnız harfi farklı yeni klasör | `Diary/` varsa geçiş hiçbir dosyayı taşımaz. Bant kalan dosyaları sayar. |
 | Bağlantılar | Uygulama gün dosyasına bağlantı yazmaz. Adla yazılan `[[2026-10-02]]` taşımadan sonra da aynı günü bulur. Yol taşıyan `[[journal/…]]` bağlantısına uygulama dokunmaz. |
 | Format sürümü | `formatVersion` değişmez. Eski adlar okunduğu için eski kasa açılır. |
@@ -1127,8 +1108,6 @@ flowchart TD
 | `notes/` altındaki tarihsiz görev | Hiçbir gün ekranında görünmez. "Tarihsiz" listesinde görünür. |
 
 ### Tekrarlayan görevler
-
-**NOT:** Tekrarlayan görevler aşama 5'te geldi.
 
 **Desteklenen `🔁` kuralları.**
 
@@ -1594,7 +1573,7 @@ Türkçe `ç/ğ/ı/ö/ş/ü` harfleri `c/g/i/o/s/u` olur. Örnek: `Su İçme` �
 
 ### Zincir günü
 
-Günlük hedefte aşağıdaki kural kaçırma affından sonra uygulanır (karar 2026-10-21). Yukarıdaki af örnekleri zincir günü kazanılmamış geçmiş içindir.
+Günlük hedefte aşağıdaki kural kaçırma affından sonra uygulanır. Yukarıdaki af örnekleri zincir günü kazanılmamış geçmiş içindir.
 
 | Konu | Kural |
 |---|---|
@@ -1762,7 +1741,7 @@ flowchart TD
 
 Uygulama 2 sürümü tek içerikte birleştirir. Uygulama gün kopyasını birleştirdikten sonra siler. Ana dosya yoksa gün kopyası ana dosyanın adını alır.
 
-**NOT:** Birleştirme işlevi ve gün kopyası birleştirme bugün Core'da hazırdır. Uygulama gün kopyası birleştirmesini yalnız iCloud kasasında ve politika bayrağı açıkken çağırır; bayrak varsayılan açıktır (karar 2026-11-09). Uygulama gün kopyalarını, çakışma kopyalarını ve çakışan sürümleri Ayarlar → Tanılama ekranında listeler. Ayrıntı: [Varlık kopyası](#varlık-kopyası) ve [Çakışan sürümün listesi](#çakışan-sürümün-listesi).
+**NOT:** Uygulama gün kopyası birleştirmesini yalnız iCloud kasasında ve politika bayrağı açıkken çağırır; bayrak varsayılan açıktır. Uygulama gün kopyalarını, çakışma kopyalarını ve çakışan sürümleri Ayarlar → Tanılama ekranında listeler. Ayrıntı: [Varlık kopyası](#varlık-kopyası) ve [Çakışan sürümün listesi](#çakışan-sürümün-listesi).
 
 ### Çakışan sürümün listesi
 

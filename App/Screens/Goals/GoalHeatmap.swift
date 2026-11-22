@@ -56,6 +56,31 @@ enum GoalHeatmapMetrics {
             <= availableWidth
     }
 
+    /// Room a month label leaves before the next label, so two never read as one ("Ağu Eyl").
+    static let monthLabelGap: CGFloat = 10
+    /// Room the last label leaves at the grid's edge.
+    static let lastMonthLabelGap: CGFloat = 4
+
+    /// The gap after a month label: ``monthLabelGap`` before another label, less at the edge.
+    static func monthLabelGap(isLast: Bool) -> CGFloat {
+        isLast ? lastMonthLabelGap : monthLabelGap
+    }
+
+    /// The width a month label may take over `weeks` week columns; a wider label is left out. A
+    /// month with one week in view (27 pt cells) has no room for "Ağu" and its neighbour's gap.
+    static func monthLabelWidth(weeks: Int, step: CGFloat, isLast: Bool) -> CGFloat {
+        max(0, CGFloat(weeks) * step - monthLabelGap(isLast: isLast))
+    }
+
+    /// One letter per weekday in the locale's language, Monday first (`CalendarDate` weeks start
+    /// on Monday; the calendar's symbols start on Sunday).
+    static func weekdaySymbols(locale: Locale) -> [String] {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.locale = locale
+        let symbols = calendar.veryShortStandaloneWeekdaySymbols
+        return Array(symbols[1...]) + [symbols[0]]
+    }
+
     /// Visual square side (same as the fitted cell).
     static func displaySize(cellSize: CGFloat) -> CGFloat {
         cellSize
@@ -83,7 +108,7 @@ struct GoalHeatmap: View {
     let select: (CalendarDate) -> Void
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @ScaledMetric(relativeTo: .footnote) private var legendMarkSize = 10
+    @Environment(\.locale) private var locale
     @ScaledMetric(relativeTo: .footnote) private var weekdayColumnWidth =
         GoalHeatmapMetrics.weekdayColumnWidth
     @State private var availableWidth: CGFloat = 358
@@ -108,33 +133,39 @@ struct GoalHeatmap: View {
         let weeks = heatmapWeeks
         let marks = GoalProgress.heatmap(
             definition: goal, logs: logs, from: weeks.first?.first ?? today, to: today, today: today)
-        ScrollView(.horizontal, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: GoalHeatmapMetrics.spacing) {
-                monthLabels(weeks: weeks, cellSize: cellSize)
-                // Week columns abut: each cell's tap frame is `step` wide (gap inside the frame).
-                HStack(alignment: .top, spacing: 0) {
-                    weekdayColumn(cellSize: cellSize)
-                    ForEach(Array(weeks.enumerated()), id: \.offset) { _, week in
-                        VStack(spacing: GoalHeatmapMetrics.rowSpacing(cellSize: cellSize)) {
-                            ForEach(week, id: \.self) { day in
-                                cell(day: day, marks: marks, cellSize: cellSize)
+        // The legend stays under the grid, outside its scroll: scrolled with the weeks, a long title
+        // ("Partial contribution") was out of view.
+        VStack(alignment: .leading, spacing: GoalHeatmapMetrics.spacing) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: GoalHeatmapMetrics.spacing) {
+                    monthLabels(weeks: weeks, cellSize: cellSize)
+                    // Week columns abut: each cell's tap frame is `step` wide (gap inside the frame).
+                    HStack(alignment: .top, spacing: 0) {
+                        weekdayColumn(cellSize: cellSize)
+                        ForEach(Array(weeks.enumerated()), id: \.offset) { _, week in
+                            VStack(spacing: GoalHeatmapMetrics.rowSpacing(cellSize: cellSize)) {
+                                ForEach(week, id: \.self) { day in
+                                    cell(day: day, marks: marks, cellSize: cellSize)
+                                }
                             }
                         }
                     }
                 }
-                legend(showsGrace: GraceDayPresentation.showsLegend(days: weeks.flatMap { $0 }, spent: graceSpentDays))
+                .frame(minWidth: max(availableWidth, 1), alignment: .leading)
             }
-            .frame(minWidth: max(availableWidth, 1), alignment: .leading)
-        }
-        // Overflow: open on the current week. Fits: no scroll range, anchor unused.
-        .defaultScrollAnchor(contentFits ? .leading : .trailing)
-        .background(
-            GeometryReader { geo in
-                Color.clear.preference(key: HeatmapWidthKey.self, value: geo.size.width)
+            // Overflow: open on the current week. Fits: no scroll range, anchor unused.
+            .defaultScrollAnchor(contentFits ? .leading : .trailing)
+            .background(
+                GeometryReader { geo in
+                    Color.clear.preference(key: HeatmapWidthKey.self, value: geo.size.width)
+                }
+            )
+            .onPreferenceChange(HeatmapWidthKey.self) { width in
+                if width > 0 { availableWidth = width }
             }
-        )
-        .onPreferenceChange(HeatmapWidthKey.self) { width in
-            if width > 0 { availableWidth = width }
+            GoalHeatmapLegend(
+                period: goal.period,
+                showsGrace: GraceDayPresentation.showsLegend(days: weeks.flatMap { $0 }, spent: graceSpentDays))
         }
         .accessibilityElement(children: .contain)
     }
@@ -150,7 +181,7 @@ struct GoalHeatmap: View {
     }
 
     private func weekdayColumn(cellSize: CGFloat) -> some View {
-        let symbols = weekdaySymbols
+        let symbols = GoalHeatmapMetrics.weekdaySymbols(locale: locale)
         let visual = GoalHeatmapMetrics.displaySize(cellSize: cellSize)
         let tap = GoalHeatmapMetrics.tapSize(cellSize: cellSize)
         return VStack(spacing: GoalHeatmapMetrics.rowSpacing(cellSize: cellSize)) {
@@ -183,8 +214,12 @@ struct GoalHeatmap: View {
                             .fixedSize()
                         Color.clear.frame(height: 14)
                     }
-                    .frame(width: CGFloat(next - index) * tap - 4, alignment: .leading)
-                    .padding(.trailing, 4)
+                    .frame(
+                        width: GoalHeatmapMetrics.monthLabelWidth(
+                            weeks: next - index, step: tap, isLast: next == weeks.count),
+                        alignment: .leading
+                    )
+                    .padding(.trailing, GoalHeatmapMetrics.monthLabelGap(isLast: next == weeks.count))
                     // VoiceOver reads every month, also one whose label did not fit.
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text(verbatim: monthName(for: week)))
@@ -194,7 +229,7 @@ struct GoalHeatmap: View {
     }
 
     private func monthName(for week: [CalendarDate]) -> String {
-        week.first.map { LocalDay.instant(for: $0).formatted(.dateTime.month(.wide).year()) } ?? ""
+        week.first.map { LocalDay.instant(for: $0).formatted(.dateTime.month(.wide).year().locale(locale)) } ?? ""
     }
 
     private func monthLabel(for week: [CalendarDate], previous: [CalendarDate]?) -> String {
@@ -202,7 +237,7 @@ struct GoalHeatmap: View {
         if let previous, let prior = previous.first, prior.month == first.month, prior.year == first.year {
             return ""
         }
-        return LocalDay.instant(for: first).formatted(.dateTime.month(.abbreviated))
+        return LocalDay.instant(for: first).formatted(.dateTime.month(.abbreviated).locale(locale))
     }
 
     private func cell(day: CalendarDate, marks: [CalendarDate: GoalDayMark], cellSize: CGFloat)
@@ -238,35 +273,36 @@ struct GoalHeatmap: View {
                 : Text(LocalDay.instant(for: day), format: .dateTime.day().month().year()))
     }
 
-    /// The kinds a goal's heatmap can draw. The chain-day item comes only while a covered day is
-    /// in view, on a line of its own: the row of four is as wide as the narrowest page allows.
-    private func legend(showsGrace: Bool) -> some View {
+}
+
+/// The kinds a goal's heatmap can draw, under the weeks and outside their scroll. The chain-day
+/// item comes only while a covered day is in view, on a line of its own.
+struct GoalHeatmapLegend: View {
+    let period: GoalPeriod
+    var showsGrace: Bool
+
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @ScaledMetric(relativeTo: .footnote) private var legendMarkSize = 10
+
+    var body: some View {
         let marks: [GoalDayMark] =
-            goal.period == .day ? [.none, .partial, .full, .forgiven] : [.none, .partial, .full]
-        return Group {
-            if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 8) {
-                    ForEach(marks, id: \.rawValue) { mark in
-                        legendItem(mark.heatmapKind, title: mark.title)
-                    }
-                    if showsGrace { graceLegendItem }
-                }
-            } else {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 12) {
-                        ForEach(marks, id: \.rawValue) { mark in
-                            legendItem(mark.heatmapKind, title: mark.title)
-                        }
-                    }
-                    if showsGrace { graceLegendItem }
+            period == .day ? [.none, .partial, .full, .forgiven] : [.none, .partial, .full]
+        // Accessibility sizes: one kind per line. Otherwise a row that wraps when the card is
+        // narrower than its four kinds (xxxL on a 320 pt screen); outside the scroll it cannot run on.
+        let stacks = dynamicTypeSize.isAccessibilitySize
+        let row =
+            stacks
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+            : AnyLayout(InkFlowLayout(spacing: 12, lineSpacing: 8))
+        VStack(alignment: .leading, spacing: 8) {
+            row {
+                ForEach(marks, id: \.rawValue) { mark in
+                    legendItem(mark.heatmapKind, title: mark.title)
                 }
             }
+            if showsGrace { legendItem(.graceSpent, title: "Zincir günü") }
         }
         .accessibilityElement(children: .combine)
-    }
-
-    private var graceLegendItem: some View {
-        legendItem(.graceSpent, title: "Zincir günü")
     }
 
     private func legendItem(_ kind: HeatmapCellKind, title: LocalizedStringKey) -> some View {
@@ -277,16 +313,11 @@ struct GoalHeatmap: View {
             Text(title)
                 .font(.ink.meta)
                 .foregroundStyle(Color.ink.secondaryText)
-                .fixedSize(horizontal: true, vertical: false)
+                // One line beside the mark; at accessibility sizes a long title wraps inside the card.
+                .fixedSize(
+                    horizontal: !dynamicTypeSize.isAccessibilitySize,
+                    vertical: dynamicTypeSize.isAccessibilitySize)
         }
-    }
-
-    private var weekdaySymbols: [String] {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.locale = .current
-        // CalendarDate weeks start Monday; system symbols are Sunday-first.
-        let symbols = calendar.veryShortStandaloneWeekdaySymbols
-        return Array(symbols[1...]) + [symbols[0]]
     }
 }
 

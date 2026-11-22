@@ -34,6 +34,8 @@ struct TimelineDayBoard: View {
 
     @ScaledMetric(relativeTo: .body) private var hourHeight: CGFloat = 68
     @ScaledMetric(relativeTo: .body) private var timeColumnWidth: CGFloat = 48
+    /// The hour axis's measured width; `nil` until the first layout.
+    @State private var axisWidth: CGFloat?
 
     var body: some View {
         let untimed = events.filter { $0.time == nil }
@@ -78,12 +80,10 @@ struct TimelineDayBoard: View {
             ForEach(Array(hours), id: \.self) { hour in
                 // Accessibility sizes: the hour sits above its cards, which take the row's width. The
                 // "now" badge then has no column to sit in: it takes a line of its own above the cards.
+                // xxL and xxxL do the same on a narrow screen (320 pt), by the row's own width.
                 let isNowHour = day == today && currentHour == hour
-                let stacks = dynamicTypeSize.isAccessibilitySize
-                let layout =
-                    stacks
-                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
-                    : AnyLayout(HStackLayout(alignment: .top, spacing: 10))
+                let stacks = Self.stacksHour(width: axisWidth, dynamicTypeSize: dynamicTypeSize)
+                let layout = Self.hourLayout(dynamicTypeSize: dynamicTypeSize)
                 layout {
                     InkTimeColumn(
                         text: EventTimeFormat.string(hour: hour, minute: 0, locale: locale),
@@ -104,6 +104,35 @@ struct TimelineDayBoard: View {
                 }
             }
         }
+        .onGeometryChange(for: CGFloat.self) {
+            $0.size.width
+        } action: {
+            axisWidth = $0
+        }
+    }
+
+    /// The hour row's layout, one at every size so a card keeps its identity as the text grows:
+    /// the hour above its cards at accessibility sizes, beside them otherwise, and at xxL and xxxL
+    /// above them when the row is narrower than ``InkSpacing/narrowPageRowWidth``. Two subviews:
+    /// the hour column, the cards.
+    static func hourLayout(dynamicTypeSize: DynamicTypeSize) -> AnyLayout {
+        if dynamicTypeSize.isAccessibilitySize {
+            return AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+        }
+        let narrow = InkSpacing.timeStackingWidth(
+            narrowWidth: InkSpacing.narrowPageRowWidth, dynamicTypeSize: dynamicTypeSize)
+        guard let narrow else { return AnyLayout(HStackLayout(alignment: .top, spacing: 10)) }
+        return AnyLayout(InkTimeRowLayout(gap: 10, stacksBelowWidth: narrow))
+    }
+
+    /// Whether the hour sits above its cards in an axis `width` points wide (`nil`: not measured
+    /// yet). The layout decides the same from its own width; this places the "now" line with it.
+    static func stacksHour(width: CGFloat?, dynamicTypeSize: DynamicTypeSize) -> Bool {
+        if dynamicTypeSize.isAccessibilitySize { return true }
+        let narrow = InkSpacing.timeStackingWidth(
+            narrowWidth: InkSpacing.narrowPageRowWidth, dynamicTypeSize: dynamicTypeSize)
+        guard let narrow, let width else { return false }
+        return width < narrow
     }
 
     private func nowLine(offset: CGFloat) -> some View {

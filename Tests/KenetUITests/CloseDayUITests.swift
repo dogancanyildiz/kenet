@@ -24,6 +24,10 @@ final class CloseDayUITests: XCTestCase {
         UITestSupport.waitForExistence(UITestSupport.element(in: app, identifier: "screen.today"), timeout: 30)
         let entry = UITestSupport.element(in: app, identifier: "button.closeDay")
         UITestSupport.waitForExistence(entry)
+        // The row is the page's last one. XCUITest's own scroll stops as soon as the row is inside
+        // the scroll view, where the quick entry capsule still floats over it: the tap then lands
+        // on the capsule and no sheet opens (iOS 27.2, hit point {201, 699}).
+        UITestSupport.scrollClearOfQuickEntry(entry, in: app)
         entry.tap()
 
         let apply = UITestSupport.element(in: app, identifier: "button.closeDay.apply")

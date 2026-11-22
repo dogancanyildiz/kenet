@@ -94,7 +94,79 @@ struct EntityListPluralTests {
             #expect(height(stacks: false, width: 150) == 44)
         }
 
-        private static func height(of view: some View, size: DynamicTypeSize) -> CGFloat {
+        /// The phone list's card row, less its paddings (iPhone 17: 402 − 2 × 16 − 2 × 12).
+        static let phoneRowWidth: CGFloat = 346
+
+        /// The phone row's meta line beside the mini bar: with a qualifier the line is longer than
+        /// the row ("iş · Son görüşme 57 gün önce · 0 b…" was cut). It takes a second line instead.
+        @Test(arguments: [DynamicTypeSize.large, .xLarge, .xxLarge, .xxxLarge])
+        func phoneRowWrapsTheMetaLineInsteadOfCuttingIt(_ size: DynamicTypeSize) throws {
+            let today = LocalDay.today()
+            let last = try #require(today.addingDays(-57))
+            let activity = EntityListActivity(lastEncounter: last, recentDays: [last], relationCount: 0)
+            func row(qualifier: String?) -> some View {
+                EntityRow(
+                    entity: EntitySummary(
+                        id: "people/Mert Aksu.md", kind: "person", name: "Mert Aksu", qualifier: qualifier,
+                        aliases: [], incomingLinks: 0),
+                    activity: activity
+                )
+                .environment(\.shellKind, .tabs)
+            }
+            let long = row(qualifier: "tedarikçi firmadaki eski iş arkadaşı")
+            let wrapped = Self.height(of: long, size: size, width: Self.phoneRowWidth)
+            let oneLine = Self.height(of: long, size: size, width: 2000)
+            #expect(wrapped > oneLine, "the meta line stayed on one line at \(size)")
+            // A line that fits is left alone.
+            #expect(oneLine == Self.height(of: row(qualifier: nil), size: size, width: 2000))
+            // The sample vault's own row: "iş · Son görüşme 57 gün önce · 0 bağ".
+            let sample = row(qualifier: "iş")
+            #expect(
+                Self.height(of: sample, size: size, width: Self.phoneRowWidth)
+                    > Self.height(of: sample, size: size, width: 2000))
+        }
+
+        /// Parts break between each other, and the separator of a broken line takes no room.
+        @Test func separatedFlowBreaksBetweenParts() {
+            func size(parts: Int, width: CGFloat) -> CGSize {
+                let view = InkSeparatedFlowLayout(spacing: 4, lineSpacing: 2) {
+                    ForEach(0..<parts, id: \.self) { index in
+                        if index > 0 { Color.clear.frame(width: 6, height: 10) }
+                        Color.clear.frame(width: 100, height: 10)
+                    }
+                }
+                return UIHostingController(rootView: view).sizeThatFits(in: CGSize(width: width, height: 4000))
+            }
+            // 100 + 4 + 6 + 4 + 100 + 4 + 6 + 4 + 100 = 328.
+            #expect(size(parts: 3, width: 328) == CGSize(width: 328, height: 10))
+            // Two parts on the first line (214), the third alone: no separator ends or starts a line.
+            #expect(size(parts: 3, width: 327) == CGSize(width: 214, height: 22))
+            #expect(size(parts: 3, width: 213) == CGSize(width: 100, height: 34))
+            #expect(size(parts: 1, width: 50) == CGSize(width: 100, height: 10))
+        }
+
+        /// A part longer than the whole line wraps alone: nothing shares a line with it.
+        @Test func separatedFlowKeepsAWrappedPartOnItsOwnLines() {
+            let long = "Son görüşme elli yedi gün önce"
+            func height(_ first: String, _ second: String, width: CGFloat) -> CGFloat {
+                let view = InkSeparatedFlowLayout {
+                    Text(verbatim: first)
+                    InkMetaSeparator()
+                    Text(verbatim: second)
+                }
+                .font(.footnote)
+                return UIHostingController(rootView: view).sizeThatFits(in: CGSize(width: width, height: 4000)).height
+            }
+            let line = height("iş", "bağ", width: 1000)
+            #expect(height("iş", long, width: 1000) == line)
+            // 120 pt: "iş" on its line, then the long part on two or more.
+            #expect(height("iş", long, width: 120) >= line * 3)
+            #expect(height(long, "iş", width: 120) >= line * 3)
+        }
+
+        private static func height(
+            of view: some View, size: DynamicTypeSize, width columnWidth: CGFloat = columnWidth
+        ) -> CGFloat {
             let sized =
                 view
                 .frame(width: columnWidth)

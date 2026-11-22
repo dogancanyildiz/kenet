@@ -150,6 +150,22 @@ enum MacSidebarChrome {
     static func wrapsTitle(dynamicTypeSize: DynamicTypeSize) -> Bool {
         dynamicTypeSize.isAccessibilitySize
     }
+
+    /// How far a one-line name shrinks before it is cut. The selected row is semibold: at 17 pt
+    /// "Zaman çizelgesi" is then about 6 pt wider than the room beside its icon in the 240 pt
+    /// sidebar, and was cut to "Zaman çizelg…" only while selected.
+    static let titleMinimumScale: CGFloat = 0.9
+
+    /// The same for a project name at accessibility sizes. A project name is one word (a tag)
+    /// with nowhere to wrap: "performans" at AX5 is wider than the row and broke inside the
+    /// word ("perfor- / mans"). It keeps one line and shrinks instead (as the project cards do).
+    static let accessibilityProjectMinimumScale: CGFloat = 0.6
+
+    /// Lines of a name at accessibility sizes: a project name keeps one, the others wrap
+    /// between their words.
+    static func accessibilityLineLimit(for entry: MacSidebarEntry) -> Int? {
+        if case .project = entry { 1 } else { nil }
+    }
 }
 
 /// The sidebar list. Selection stays the system's (arrow keys, focus, VoiceOver "selected");
@@ -264,17 +280,21 @@ struct MacSidebarRow: View {
             .listRowBackground(background)
     }
 
-    /// One line with "…" at the end. At accessibility sizes on iOS no column is wide enough for
+    /// One line, shrunk a little before it is cut with "…" at the end. At accessibility sizes on iOS no column is wide enough for
     /// "Zaman çizelgesi" beside its icon: the row is the name alone, wrapped between its words
     /// and read whole. VoiceOver reads the name in both (the icon was never read).
     @ViewBuilder private var label: some View {
         #if os(iOS)
             if MacSidebarChrome.wrapsTitle(dynamicTypeSize: dynamicTypeSize) {
+                let lines = MacSidebarChrome.accessibilityLineLimit(for: entry)
                 title
+                    .lineLimit(lines)
+                    .minimumScaleFactor(lines == nil ? 1 : MacSidebarChrome.accessibilityProjectMinimumScale)
             } else {
                 Label {
                     title
                         .lineLimit(1)
+                        .minimumScaleFactor(MacSidebarChrome.titleMinimumScale)
                         .truncationMode(.tail)
                 } icon: {
                     icon

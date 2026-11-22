@@ -160,7 +160,7 @@ Kod karşılığı: `InkPageTitle`, `InkPageTitleRow`, `inkRootPageNavigationTit
 | Renk | Yardımcı eylemler ikincil metin rengindedir: ara, sırala, filtrele, Ayarlar, günün grafiği. Kayıt açan ya da içeriği değiştiren eylem vurgu rengindedir: ekle, düzenle. "Eylem tek renktir" kuralı bu eylemler içindir. |
 | Sayı | Bir satırda en çok 3 simge durur. Fazlası sayfanın en üstünde ayrı satır olur; örneğin Günlük'teki Özetler ve Haftalık inceleme çipleri. |
 | Sıra | Sıra sabittir. iPhone'da en sağda ara durur, solunda ekrana özgü simgeler durur. Mac'te manşet satırında arama simgesi yoktur. |
-| Büyük yazı | Erişilebilirlik yazı boyutlarında simgeler manşetin üstünde ayrı satıra çıkar. Satıra sığmayan simge ikinci satıra iner. Alt sayfada geri öğesinin yanına sığmayan simgeler onun altına iner. Manşet ve künye sarar, kırpılmaz. |
+| Büyük yazı | Erişilebilirlik yazı boyutlarında simgeler manşetin üstünde ayrı satıra çıkar. Satıra sığmayan simge ikinci satıra iner. Alt sayfada geri öğesinin yanına sığmayan simgeler onun altına iner. Manşet ve künye sarar, kırpılmaz. Varsayılandan büyük her boyutta (xL ve üstü) manşet ve künye satırlarının yüksekliğini alır. |
 
 Kod karşılığı: `InkHeaderAction`, `InkHeaderMenu` ve `InkHeaderActionChrome`. Sınırlar `maximumCount = 3`, `spacing = 4` ve `macMinimumSide = 28` değerleridir.
 
@@ -611,6 +611,16 @@ Kutu `@ScaledMetric` ile büyür; dokunma alanı en az 44 pt kalır. Öncelik i�
 
 Affedilen gün yalnız günlük hedefte olur. Affedilen gün, önceki iki günü ve sonraki günü yapılmış bir kaçırmadır. Affedilen gün yapılmış gün sayılmaz; bu yüzden gün aşırı ikinci kaçırma affedilmez. Kesik çizgi af işaretini bugünün kesiksiz çerçevesinden renge bağlı olmadan ayırır. Kesik desen hücre boyuyla büyür: kenar başına 3 çizgi. Hücre köşesi sabit 2 pt'dir; `chipCorner` belirtecini kullanmaz.
 
+**Hedef ısı haritasının etiketleri ve göstergesi.**
+
+| Öğe | Kural |
+|---|---|
+| Ay etiketi | Kısa ay adı, ayın ilk haftasının üstünde. Etiket sonraki etiketten önce 10 pt boşluk bırakır. Sığmayan etiket çizilmez: "Ağu Eyl" yerine yalnız "Eyl". |
+| Gün harfi | Ortam yerel ayarının tek harfli gün adı, pazartesiden başlar: "P S Ç P C C P". |
+| Gösterge | Haftaların altında, yatay kaydırmanın dışındadır. Satıra sığmayan tür alt satıra iner. Erişilebilirlik boyutunda her tür ayrı satırdadır ve adı sarar. |
+
+VoiceOver çizilmeyen ay etiketini de okur.
+
 Zincir günüyle korunan gün de zinciri koruyan bir kaçırmadır; bu yüzden af çerçevesini paylaşır. Affedilen günden noktayla ayrılır: renk değil biçim ayırır. Noktanın çapı hücrenin %30'udur, en az 3 pt. Nokta hücrenin dolgusuz kısmının ortasındadır; kısmi dolgunun üstüne binmez.
 
 **Zincir günü rozeti.** `GraceDayBadge` Bugün hedef bölümünde adın yanında, Hedefler listesinde zincir metninin yanında durur (`InkGoalRow.graceBadgePlacement`). Rozet: `link` simgesi ve sayı, `meta` yazısı, ikincil metin rengi, 1 pt kontrol çizgisi kapsül çerçeve. Rozet bir nottur, eylem değildir; bu yüzden vurgu rengini almaz. Bakiye 0 ise rozet çizilmez.
@@ -626,7 +636,7 @@ Zincir günüyle korunan gün de zinciri koruyan bir kaçırmadır; bu yüzden a
 | Haftalık / aylık toplam | 12 dolu çubuk, sıfır toplamda iz yok | Vurgu | Aralık, toplam, en yüksek dönem ve değeri |
 | Eksen ve özet | `ink.meta`, sayılarda eş aralıklı rakamlar; ızgara yok | İkincil metin; eksen işareti kontrol çizgisi | Görsel özet yinelenmez |
 
-Grafik hedef ayrıntısında kendi kartındadır. Grafik yüksekliği 160 pt'dir; erişilebilirlik boyutunda bir eksen etiketi satırı eklenir. Y ekseninde hedef etiketi her zaman vardır; 0 ve tepe etiketi hedefe bir etiket satırından (en az eksenin %15'i) yakınsa çizilmez. Günlük grafikte ay başları etiketlidir; erişilebilirlik boyutunda son 30 gün ve iki uç tarih etiketi vardır. Toplam çubuklarında üç dönemde bir, erişilebilirlik boyutunda altı dönemde bir etiket vardır. Hareketi Azalt açıkken animasyon yoktur. VoiceOver atlanan etiket dahil her ayın tam adını okur.
+Grafik hedef ayrıntısında kendi kartındadır. Grafik yüksekliği 160 pt'dir. Y ekseninde hedef etiketi her zaman vardır; 0 ve tepe etiketi hedefe bir etiket satırından (en az eksenin %15'i) yakınsa çizilmez. Günlük grafikte ay başları etiketlidir. Toplam çubuklarında üç dönemde bir etiket vardır. Erişilebilirlik boyutunda günlük grafik son 30 günü çizer. Erişilebilirlik boyutunda X ekseni etiket taşımaz; ilk ve son dönemde birer çentik durur. Grafiğin altındaki tek satır aralığı yazar: "12 Eyl – 11 Eki". Bu satır sözcük arasından sarar; eksendeki iki uç etiketi 320 pt ekranda üst üste biniyordu. Hareketi Azalt açıkken animasyon yoktur. VoiceOver atlanan etiket dahil her ayın tam adını okur.
 
 ### Ritim şeridi ve yığılı çubuk
 
@@ -799,8 +809,8 @@ Mac'te parıltı yalnız ayrıntı sütununun üstündedir. iPad üç sütunda M
 | Saydamlığı Azalt | Parıltı kalkar. |
 | Hareketi Azalt | Parıltı ve hale zaten durağandır. Hafta şeridinde gün değişimi çapraz geçiş olur, kayma olmaz. Graph oturmuş düzeni tek seferde gösterir. |
 | Kalın Metin | Sistem yazısı ağırlığı artırır. Künye cümlesinde sayı ile bağlaç arasındaki ayrım renkle de sürer. |
-| Dynamic Type, AX boyutları | Hafta şeridi 2 satıra iner: 4 + 3 gün. Gün halkası gün rakamının üstüne çıkar. İşaret sütunu metnin üstüne iner. Kart iç boşluğu en çok 22 pt olur. Bölüm başlığının sayacı başlığın altındaki satırdadır. Sayfa künyesi sarar, kırpılmaz. Metin sözcük ortasından bölünmez; 320 pt ekranda AX5'te de sözcük arasından sarar. Bugün sayfası ekrandan geniş olmaz; ayrıntı [Ekranlar](screens.md) belgesinin "Gün başlığı" tablosundadır. |
-| Dynamic Type, xxL ve xxxL, dar ekran | Dar ekran 352 pt'den dar ekrandır; 320 pt bu sınırın altındadır. Saat sütunu metnin ya da kartın üstündeki satıra çıkar. Kural Bugün'ün Olaylar kartında ve gün ekranının saatli programında geçerlidir. 375 pt ve üstü genişlikte düzen değişmez. Sınırlar `InkSpacing.narrowPageRowWidth` (320 pt) ve `narrowCardRowWidth` (280 pt) değerleridir. |
+| Dynamic Type, AX boyutları | Hafta şeridi 2 satıra iner: 4 + 3 gün. Gün halkası gün rakamının üstüne çıkar. İşaret sütunu metnin üstüne iner. Kart iç boşluğu en çok 22 pt olur. Bölüm başlığının sayacı başlığın altındaki satırdadır. Sayfa künyesi sarar, kırpılmaz. Metin sözcük ortasından bölünmez; 320 pt ekranda AX5'te de sözcük arasından sarar. Satırdan geniş tek sözcük bölünmez, yazı küçülür: bölüm başlığında ve Kanban kartında en çok yarısına kadar. Küçülme ilk çizimde, tek yerleşim geçişinde olur; metin önce büyük çizilip sonra küçülmez. Kanban kartında görev kutusu metnin üstüne çıkar. Süzgeç alanının büyüteci AX2'den büyük çizilmez; yuvası 48 pt olur. Bugün sayfası ekrandan geniş olmaz; ayrıntı [Ekranlar](screens.md) belgesinin "Gün başlığı" tablosundadır. |
+| Dynamic Type, xxL ve xxxL, dar ekran | Dar ekran 352 pt'den dar ekrandır; 320 pt bu sınırın altındadır. Saat sütunu metnin ya da kartın üstündeki satıra çıkar. Kural Bugün'ün Olaylar kartında, gün ekranının saatli programında ve Zaman çizelgesi'nin Gün ölçeğinde geçerlidir. Hedef kartında dönem çipi ada sığmazsa adın altına iner; bu kural her genişlikte geçerlidir. 375 pt ve üstü genişlikte düzen değişmez. Sınırlar `InkSpacing.narrowPageRowWidth` (320 pt) ve `narrowCardRowWidth` (280 pt) değerleridir. |
 | Renk Olmadan Ayırt Et | Devreden: işaret ve tarih metni. Zaman kartı çubuğu: metin etiketi. Graph: biçim. |
 | VoiceOver | Künye cümlesi tek öğedir. Hafta şeridi her gün için "20 Eylül Pazar, bugün, 3 olay" okur. Gün halkası "3 hedef kaldı" okur. Alt sayfanın geri öğesi üst sayfanın adını okur. |
 

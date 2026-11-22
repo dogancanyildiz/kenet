@@ -47,12 +47,12 @@ struct PageHeadline: View {
             if let shownByline {
                 // A subpage's byline is a footnote line (drawing: varlık sayfası). No line limit:
                 // a long date wraps at larger text sizes instead of being cut (audit "Text clipped").
-                // At accessibility sizes it always takes the height its lines need: a list row
+                // Above the default size it always takes the height its lines need: a list row
                 // offered the künye one line there and cut it ("16 açık · 5 d…", Görevler at 320 pt).
                 shownByline
                     .font(isSubpage ? .ink.meta : .ink.pageByline)
                     .foregroundStyle(.ink.secondaryText)
-                    .fixedSize(horizontal: false, vertical: isSubpage || dynamicTypeSize.isAccessibilitySize)
+                    .fixedSize(horizontal: false, vertical: isSubpage || takesItsLines)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -66,6 +66,13 @@ struct PageHeadline: View {
     }
 
     private var shrinksToFit: Bool { fitsOneLine && !dynamicTypeSize.isAccessibilitySize }
+
+    /// Above the default size the title and the künye take the height their lines need.
+    private var takesItsLines: Bool { Self.takesItsLines(at: dynamicTypeSize) }
+
+    /// From xL up a list row gave the manşet less height than its lines need and the title was
+    /// cut ("Deniz A…" at xxxL on a 320 pt screen). The default size keeps its drawing.
+    static func takesItsLines(at size: DynamicTypeSize) -> Bool { size > .large }
 
     private var accessibilityTitle: Text {
         switch title {
@@ -92,13 +99,13 @@ struct PageHeadline: View {
                     .minimumScaleFactor(0.75)
             }
         } else {
-            // Accessibility sizes: the title takes the height its lines need, as the künye does
+            // Above the default size the title takes the height its lines need, as the künye does
             // (a list row cut "Deniz Arıkan" to "Deniz Arı…" on a 320 pt screen).
             titleText
                 .font(titleFont)
                 .lineLimit(shrinksToFit ? 1 : nil)
                 .minimumScaleFactor(shrinksToFit ? 0.75 : 1)
-                .fixedSize(horizontal: false, vertical: dynamicTypeSize.isAccessibilitySize)
+                .fixedSize(horizontal: false, vertical: takesItsLines)
         }
     }
 

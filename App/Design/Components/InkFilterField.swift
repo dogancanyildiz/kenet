@@ -28,6 +28,7 @@ struct InkFilterField: View {
     private let clearIdentifier: String?
     private let showsClearButton: Bool
     @FocusState private var internalFocus: Bool
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     /// - Parameters:
     ///   - prompt: placeholder; also the field's accessibility label.
@@ -55,6 +56,7 @@ struct InkFilterField: View {
     private var focus: FocusState<Bool>.Binding { externalFocus ?? $internalFocus }
     /// A search or filter field starts with a magnifier; a form field (no clear button) does not.
     private var showsSearchIcon: Bool { showsClearButton }
+    private var iconSlot: CGFloat { InkFilterFieldMetrics.iconSlot(dynamicTypeSize: dynamicTypeSize) }
     private var showsClear: Bool {
         showsClearButton && InkFilterFieldChrome.showsClear(text: text)
     }
@@ -66,7 +68,7 @@ struct InkFilterField: View {
             .foregroundStyle(.ink.text)
             .focused(focus)
             .inkAccessibilityIdentifier(identifier)
-            .padding(.leading, showsSearchIcon ? InkFilterFieldMetrics.iconSlot : 12)
+            .padding(.leading, showsSearchIcon ? iconSlot : 12)
             .padding(.trailing, showsClear ? InkFilterFieldMetrics.clearSlot : 12)
             .padding(.vertical, 10)
             .background(
@@ -85,7 +87,10 @@ struct InkFilterField: View {
                     Image(systemName: "magnifyingglass")
                         .font(.body)
                         .foregroundStyle(Color.ink.secondaryText)
-                        .frame(width: InkFilterFieldMetrics.iconSlot)
+                        // The icon stops growing at AX2 so it stays inside its slot: at AX5 it was
+                        // wider than the slot and ran over the field's leading edge.
+                        .dynamicTypeSize(...InkFilterFieldMetrics.iconSizeCeiling)
+                        .frame(width: iconSlot)
                         .accessibilityHidden(true)
                 }
             }
@@ -119,9 +124,17 @@ struct InkFilterField: View {
     }
 }
 
-private enum InkFilterFieldMetrics {
+enum InkFilterFieldMetrics {
     /// Trailing space kept free for the clear button so text never runs under it.
     static let clearSlot: CGFloat = 36
     /// Leading space for the magnifier of a search / filter field.
     static let iconSlot: CGFloat = 36
+    /// The same space at accessibility sizes, where the magnifier is drawn at up to AX2.
+    static let accessibilityIconSlot: CGFloat = 48
+    /// The largest text size the magnifier is drawn at.
+    static let iconSizeCeiling = DynamicTypeSize.accessibility2
+
+    static func iconSlot(dynamicTypeSize: DynamicTypeSize) -> CGFloat {
+        dynamicTypeSize.isAccessibilitySize ? accessibilityIconSlot : iconSlot
+    }
 }

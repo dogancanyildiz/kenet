@@ -43,6 +43,12 @@ struct GoalValueChart: View {
         ([0, top].filter { domain > 0 && abs($0 - target) / domain >= gap } + [target]).sorted()
     }
 
+    /// A span shorter than 60 days names its first and last day in a line under the plot.
+    static func namesSpanBelow(span: Int) -> Bool { span < 60 }
+
+    /// "22 Ağu – 20 Eyl": the plot's first and last day, one text that wraps between its words.
+    static func spanText(from start: String, to end: String) -> String { start + " – " + end }
+
     static func title(for goal: GoalDefinition, isAccessibilitySize: Bool, locale: Locale = .current) -> String {
         switch goal.period {
         case .day:
@@ -51,11 +57,6 @@ struct GoalValueChart: View {
         case .week: PresentationLocalization.string(localized: "Son 12 hafta", locale: locale)
         case .year: PresentationLocalization.string(localized: "Son 12 ay", locale: locale)
         }
-    }
-
-    /// At accessibility sizes the X labels grow; the chart grows with them so the plot keeps about 160 pt.
-    private var chartHeight: CGFloat {
-        typeSize.isAccessibilitySize ? Self.height + labelHeight + 8 : Self.height
     }
 
     /// The axis fraction one label line needs: the label's height over the plot, at least 15 %.
@@ -82,14 +83,24 @@ struct GoalValueChart: View {
         if let average = series.average, let peak = series.peak {
             VStack(alignment: .leading, spacing: 8) {
                 header(dailySummary(average: average, metCount: series.metCount))
+                // 30 days (accessibility sizes): the span is one line of text under the plot. Two end
+                // labels on the axis ran into each other on a 320 pt screen ("22 Ağu" over "20 Eyl").
+                let namesSpanBelow = Self.namesSpanBelow(span: series.span)
                 lineChart(series, peak: peak)
-                    .frame(height: chartHeight)
+                    .frame(height: Self.height)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(
                         PresentationLocalization.string(
                             localized:
                                 "Son \(series.span) gün: ortalama \(amount(average)), \(series.metCount) gün hedefin üstünde, en yüksek \(amount(peak.value)) \(dayText(peak.day))",
                             locale: locale))
+                if namesSpanBelow {
+                    Text(verbatim: Self.spanText(from: dayString(series.start), to: dayString(today)))
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityHidden(true)
+                }
                 if title == nil {
                     Text(
                         PresentationLocalization.string(
@@ -170,9 +181,9 @@ struct GoalValueChart: View {
 
     private func lineChart(_ series: GoalValueSeries, peak: GoalValueSeries.Point) -> some View {
         let top = max(peak.value, series.target, series.averages.map(\.value).max() ?? 0)
-        // 90 days: a label at each month's first day. 30 days (accessibility sizes): the first and
-        // the last day, so two labels name the span.
-        let isShort = series.span < 60
+        // 90 days: a label at each month's first day. 30 days (accessibility sizes): a tick at the
+        // first and the last day; the line under the plot names them.
+        let isShort = Self.namesSpanBelow(span: series.span)
         let monthStarts = (0..<series.span).filter { series.start.addingDays($0)?.day == 1 }
         return Chart {
             RuleMark(y: .value(Plot.target, series.target))
@@ -193,11 +204,9 @@ struct GoalValueChart: View {
         .chartYScale(domain: 0...(max(top, 1) * 1.08))
         .chartXAxis {
             if isShort {
-                AxisMarks(values: [0]) { _ in
-                    AxisValueLabel(anchor: .topLeading) { dayLabel(series.start) }
-                }
-                AxisMarks(values: [series.span - 1]) { _ in
-                    AxisValueLabel(anchor: .topTrailing) { dayLabel(today) }
+                AxisMarks(values: [0, series.span - 1]) { _ in
+                    AxisTick(length: 4, stroke: StrokeStyle(lineWidth: 1))
+                        .foregroundStyle(Color.ink.control)
                 }
             } else {
                 AxisMarks(values: monthStarts) { value in
@@ -244,13 +253,26 @@ struct GoalValueChart: View {
         VStack(alignment: .leading, spacing: 8) {
             header(Text(totalText(totals)))
             barChart(totals)
-                .frame(height: chartHeight)
+                .frame(height: Self.height)
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(
                     PresentationLocalization.string(
                         localized:
                             "\(Self.title(for: goal, isAccessibilitySize: typeSize.isAccessibilitySize, locale: locale)): toplam \(amount(totals.total)), en yüksek \(amount(peak?.total ?? 0)) \(peak.map { bucketText($0.start, unit: totals.unit) } ?? "")",
                         locale: locale))
+            // Accessibility sizes: the first and the last period in a line under the plot, as the
+            // daily plot does. On the axis two labels ran into each other on a 320 pt screen.
+            if typeSize.isAccessibilitySize, let first = totals.buckets.first, let last = totals.buckets.last {
+                Text(
+                    verbatim: Self.spanText(
+                        from: bucketText(first.start, unit: totals.unit),
+                        to: bucketText(last.start, unit: totals.unit))
+                )
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityHidden(true)
+            }
             if title == nil {
                 Text(totalText(totals))
                     .font(.ink.meta.monospacedDigit())
@@ -271,10 +293,8 @@ struct GoalValueChart: View {
 
     private func barChart(_ totals: GoalPeriodTotals) -> some View {
         let top = max(totals.peak?.total ?? 0, totals.pace)
-        let step = typeSize.isAccessibilitySize ? 6 : 3
-        let labelled = totals.buckets.map(\.index).filter { (totals.buckets.count - 1 - $0).isMultiple(of: step) }
-        // At accessibility sizes the last label would run past the plot's edge and be cut to "…".
-        let trailing = typeSize.isAccessibilitySize ? totals.buckets.count - 1 : nil
+        let stacksSpan = typeSize.isAccessibilitySize
+        let labelled = totals.buckets.map(\.index).filter { (totals.buckets.count - 1 - $0).isMultiple(of: 3) }
         return Chart {
             ForEach(totals.buckets, id: \.index) { bucket in
                 if bucket.total > 0 {
@@ -299,12 +319,19 @@ struct GoalValueChart: View {
         .chartXScale(domain: -0.6...(Double(totals.buckets.count) - 0.4))
         .chartYScale(domain: 0...(max(top, 1) * 1.15))
         .chartXAxis {
-            AxisMarks(values: labelled) { value in
-                AxisValueLabel(anchor: value.as(Int.self) == trailing ? .topTrailing : .top) {
-                    if let index = value.as(Int.self), totals.buckets.indices.contains(index) {
-                        Text(bucketText(totals.buckets[index].start, unit: totals.unit))
-                            .font(.ink.meta)
-                            .foregroundStyle(Color.ink.secondaryText)
+            if stacksSpan {
+                AxisMarks(values: [0, max(totals.buckets.count - 1, 0)]) { _ in
+                    AxisTick(length: 4, stroke: StrokeStyle(lineWidth: 1))
+                        .foregroundStyle(Color.ink.control)
+                }
+            } else {
+                AxisMarks(values: labelled) { value in
+                    AxisValueLabel(anchor: .top) {
+                        if let index = value.as(Int.self), totals.buckets.indices.contains(index) {
+                            Text(bucketText(totals.buckets[index].start, unit: totals.unit))
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.secondaryText)
+                        }
                     }
                 }
             }
@@ -399,10 +426,8 @@ struct GoalValueChart: View {
         LocalDay.instant(for: day, timeZone: timeZone).formatted(style(.dateTime.day().month(.wide)))
     }
 
-    private func dayLabel(_ day: CalendarDate) -> some View {
-        Text(LocalDay.instant(for: day, timeZone: timeZone).formatted(style(.dateTime.day().month(.abbreviated))))
-            .font(.ink.meta)
-            .foregroundStyle(Color.ink.secondaryText)
+    private func dayString(_ day: CalendarDate) -> String {
+        LocalDay.instant(for: day, timeZone: timeZone).formatted(style(.dateTime.day().month(.abbreviated)))
     }
 
     private func monthText(_ day: CalendarDate) -> String {

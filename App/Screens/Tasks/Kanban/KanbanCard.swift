@@ -10,6 +10,7 @@ struct KanbanCard: View {
     @State private var dateEditor: TaskEditorModel?
     @Environment(\.locale) private var locale
     @Environment(\.shellKind) private var shellKind
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         card
@@ -73,7 +74,15 @@ struct KanbanCard: View {
         Button(action: select) {
             InkKanbanCard(isDragging: model.draggingRowID == row.id) {
                 VStack(alignment: .leading, spacing: 8) {
-                    HStack(alignment: .top, spacing: 10) {
+                    // Accessibility sizes: the box sits above the text, which takes the card's width,
+                    // and a word wider than the card shrinks the text until it fits. Beside the box
+                    // a word broke in two ("hede- / flerini"). One layout keeps the text's identity.
+                    let stacks = dynamicTypeSize.isAccessibilitySize
+                    let wordWidth =
+                        stacks
+                        ? InkWordFit.wordWidth(in: row.text.plainText, style: .content, size: dynamicTypeSize) : 0
+                    let titleLayout = Self.titleLayout(stacks: stacks)
+                    titleLayout {
                         TaskBox(state: boxState, isDecorative: true)
                         LinkedTextView(
                             text: row.text, store: model.store,
@@ -82,7 +91,9 @@ struct KanbanCard: View {
                         .font(.ink.content)
                         .foregroundStyle(
                             presentation.usesSecondaryText
-                                ? Color.ink.secondaryText : Color.ink.text)
+                                ? Color.ink.secondaryText : Color.ink.text
+                        )
+                        .modifier(InkWordFitModifier(wordWidth: wordWidth))
                     }
                     HStack(spacing: 8) {
                         if let project = row.project {
@@ -138,6 +149,13 @@ struct KanbanCard: View {
             dateEditor = TaskEditorModel(store: model.store, row: row)
         }
         .modifier(KanbanMoveAccessibilityActions(model: model, row: row))
+    }
+
+    /// The task box and the text: side by side, or the box above the text at accessibility sizes.
+    static func titleLayout(stacks: Bool) -> AnyLayout {
+        stacks
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: 10))
     }
 
     private func makeDragProvider() -> NSItemProvider {

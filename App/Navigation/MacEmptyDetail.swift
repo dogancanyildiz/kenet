@@ -18,11 +18,23 @@ struct MacEmptyDetail: View {
     }
 
     var body: some View {
-        EmptyState(message)
+        card
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             #if os(iOS)
                 .overlay(alignment: .topTrailing) { searchSlot }
             #endif
+    }
+
+    /// iOS: the card stands where a page's cards do, inside the page margin and the reading
+    /// column. Without them it ran from the list column's edge to the screen's edge.
+    @ViewBuilder private var card: some View {
+        #if os(iOS)
+            EmptyState(message)
+                .padding(.horizontal, InkSpacing.margin)
+                .inkPageColumn()
+        #else
+            EmptyState(message)
+        #endif
     }
 
     #if os(iOS)

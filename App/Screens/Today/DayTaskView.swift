@@ -107,7 +107,7 @@ struct DayTaskView: View {
                 .inkAdaptiveSheetPresentation(fitsContent: true)
         }
         .sheet(item: $recurrenceEditor) { model in
-            NavigationStack { TaskRecurrenceEditor(model: model) }.inkAdaptiveSheetPresentation(fitsContent: true)
+            TaskRecurrenceSheet(model: model)
         }
         .sheet(item: $dateEditor) { model in
             NavigationStack { TaskDateEditor(model: model) }.frame(minWidth: 320, minHeight: 200)

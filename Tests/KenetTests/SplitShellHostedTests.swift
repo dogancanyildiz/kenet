@@ -424,6 +424,40 @@
             }
         }
 
+        /// The empty detail's card stands inside the page margin and the reading column, like a
+        /// page's cards: in a wide detail column (13" landscape: 816 pt) it ran edge to edge.
+        @Test(arguments: [CGFloat(816), 472])
+        func emptyDetailCardKeepsThePageMargin(_ width: CGFloat) async throws {
+            let size = CGSize(width: width, height: 600)
+            let host = try HostedWindow(size: size) {
+                MacEmptyDetail("Bir görev seç")
+                    .background(Color.ink.paper)
+                    .environment(\.shellKind, .split)
+            }
+            defer { host.close() }
+            await host.settle()
+            let image = Pixels(host.window)
+            let paper = Pixels.color(.paper, style: .light)
+            // Just above the card's bottom edge: below the icon and the sentence, the card alone.
+            let middle = size.height / 2
+            var row: CGFloat?
+            for y in stride(from: middle, to: size.height, by: 1)
+            where image.color(at: CGPoint(x: size.width / 2, y: y)).isClose(to: paper) {
+                row = y - 6
+                break
+            }
+            let y = try #require(row, "no card under the middle of the column")
+            let inked = stride(from: CGFloat(0), to: size.width, by: 1).filter {
+                !image.color(at: CGPoint(x: $0, y: y)).isClose(to: paper)
+            }
+            let leading = try #require(inked.first, "no card")
+            let trailing = try #require(inked.last) + 1
+            #expect(leading >= InkSpacing.margin - 1, "card starts at \(leading)")
+            #expect(trailing <= size.width - InkSpacing.margin + 1, "card ends at \(trailing) of \(size.width)")
+            #expect(trailing - leading <= InkSpacing.macPageWidth - 2 * InkSpacing.margin + 2, "card width")
+            #expect(abs((leading + trailing) / 2 - size.width / 2) <= 1, "card is not centered")
+        }
+
         // MARK: - Search sheet
 
         /// In the split shell search is a form sheet (580 × 480), so it does not run under the

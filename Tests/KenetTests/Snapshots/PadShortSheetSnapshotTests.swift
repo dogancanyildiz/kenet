@@ -19,9 +19,7 @@
                         .frame(minWidth: 320, minHeight: 200)
                         .inkAdaptiveSheetPresentation(fitsContent: true))
             case .taskRecurrenceLight:
-                return AnyView(
-                    NavigationStack { TaskRecurrenceEditor(model: model) }
-                        .inkAdaptiveSheetPresentation(fitsContent: true))
+                return AnyView(TaskRecurrenceSheet(model: model))
             case .taskTextLight:
                 return AnyView(
                     NavigationStack { TaskTextEditor(model: model) }

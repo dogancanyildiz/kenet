@@ -110,6 +110,12 @@ extension AccessibilityAuditExemption {
         .init(
             type: .dynamicType, element: .identifier("button.addRelation"),
             reason: "Relations header action grows at AX3 (relations.sectionAX3.png)"),
+        // The Tasks künye ("14 açık · 11 devreden") grows and wraps at AX3 (tasksScreen.tasksAX3.png,
+        // largeText.tasksLandscapeAX3.png). In the iPad list column the audit reports it on some runs of
+        // the CI runner and not on others (runs 44808684730, 45031517661), like the titles above.
+        .init(
+            type: .dynamicType, element: .catalogKey("%@ açık · %@"), reason: Reason.tasksByline,
+            screens: ["tasks"]),
         // Days calendar weekday letters (`veryShortStandaloneWeekdaySymbols`, `.ink.meta`) in the list
         // column; they grow at AX3 (shell.todayLandscapeAX3.png: "S Ç P C C P"). Reported on the CI
         // runner's iPad only (run 39497456184, Today, 'S').
@@ -206,6 +212,7 @@ extension AccessibilityAuditExemption {
 
 private enum Reason {
     static let sectionHeader = "SectionHeader text grows at AX3 (tasksScreen.tasksAX3.png, shell.todayLandscapeAX3.png)"
+    static let tasksByline = "Tasks künye grows at AX3 (tasksScreen.tasksAX3.png, largeText.tasksLandscapeAX3.png)"
     static let entityPage = "entity page text grows with Dynamic Type (entities.personDatesAX3.png)"
     static let sidebarName =
         "sidebar name grows and wraps at accessibility sizes (largeText.todayLandscapeAX5.png)"

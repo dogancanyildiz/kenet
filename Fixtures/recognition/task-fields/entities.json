@@ -1,4 +1,5 @@
 {
+  "description": "Tam gün gövdesinde tanıyıcı satır yapısını ve görev alanlarını taramaz; adları yalnız metinde bağlar.",
   "entities": [
     {
       "file": "people/Deniz Arıkan.md",

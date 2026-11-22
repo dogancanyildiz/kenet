@@ -1,4 +1,5 @@
 {
+  "description": "Gövde bağlantıları karışık satır sonu, BOM ve eksik son satır sonuyla güncellenir; kod içi korunur.",
   "path": "people/Deniz Arıkan.md",
   "name": "Deniz Arıkan Yılmaz",
   "newPath": "people/Deniz Arıkan Yılmaz.md",

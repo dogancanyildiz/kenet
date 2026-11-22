@@ -1,4 +1,5 @@
 {
+  "description": "Desteklenmeyen format sürümünde hazırlama hiçbir şey yazmaz.",
   "options": { "folders": true, "settings": true, "types": true },
   "apply": true,
   "report": {

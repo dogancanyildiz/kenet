@@ -1,4 +1,5 @@
 {
+  "description": "Tamamı rakam olan ad yalnız açık anmayla bağlanır; çıplak sayı düz kalır.",
   "entities": [
     {
       "file": "places/12.md",

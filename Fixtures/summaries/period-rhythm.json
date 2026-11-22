@@ -1,6 +1,7 @@
 [
   {
     "id": "year-running-to-same-date",
+    "description": "Süren yıl, önceki yılın aynı tarihine kadarki bölümüyle karşılaştırılır; başlamamış aylar ölçülmez.",
     "vault": "rhythm",
     "period": "year",
     "containing": "2026-10-07",
@@ -306,6 +307,7 @@
   },
   {
     "id": "week-running-to-same-weekday",
+    "description": "Çarşamba süren hafta, önceki haftanın çarşambasına kadarki bölümüyle karşılaştırılır.",
     "vault": "rhythm",
     "period": "week",
     "containing": "2026-10-07",
@@ -520,6 +522,7 @@
   },
   {
     "id": "month-slices-from-the-first",
+    "description": "Ay dilimleri ayın 1'inden başlar; son dilim kısa kalır ve ilk kez geçenler listelenir.",
     "vault": "rhythm",
     "period": "month",
     "containing": "2025-10-15",
@@ -701,6 +704,7 @@
   },
   {
     "id": "empty-week-carries-open-tasks",
+    "description": "Boş hafta, önceki haftadan devreden ve tarihsiz açık görevleri taşır.",
     "vault": "rhythm",
     "period": "week",
     "containing": "2026-08-12",

@@ -1,4 +1,5 @@
 {
+  "description": "Tip alanı olmayan varlık dosyalarına tip alanı eklenir; CRLF'li ve yorumlu dosya dahildir.",
   "options": {
     "folders": true,
     "settings": true,

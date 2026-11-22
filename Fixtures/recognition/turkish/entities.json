@@ -1,4 +1,5 @@
 {
+  "description": "Türkçe harf eşlemesini sınar; Işık bu kural için uydurulmuş sentetik takma addır.",
   "entities": [
     {
       "file": "people/Deniz Arıkan.md",

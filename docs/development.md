@@ -117,6 +117,19 @@ Test verisinin yerini ve sözleşmesini [Örnek dosyalar](fixtures.md) belgesi a
 
 Ayrı kimlik, test konağının pencere çerçevesini ve tercihlerini kullanıcının alanına yazmasını önler. Ayrı kimlik ayrıca çökme penceresinin gerçek uygulamayla karışmasını önler.
 
+### Tasarım doğrulaması
+
+**Tablo tasarım dilini koruyan doğrulama adımlarını gösterir.**
+
+| Adım | Kapsam |
+|---|---|
+| Palet testi | `PaletteContrastTests` palet değerlerini, 4 varyantı ve parıltı karışım noktalarını denetler. |
+| Kaynak denetimi | `DesignTokenUsageTests`: hex yalnız `App/Design` içinde; `.inkGlow()` yalnız kök ekran görünümlerinde. <!-- sır değil --> |
+| Ekran görüntüsü | Her kök ekranın ve her sheet türünün referansı vardır. Referansların kaydı ve tavanı [Ekran görüntüsü testleri](#ekran-görüntüsü-testleri) bölümündedir. |
+| Gerçek cihaz | Koyu ve açık, KA, AX3, Hareketi Azalt; iPhone, iPad ve Mac. |
+
+Ajanlar ekranı göremez; bu yüzden ekran görüntüsü testleri bu projede zorunludur. Kuralların kendisi [Tasarım dili](design.md) belgesindedir.
+
 ## Ekran görüntüsü testleri
 
 Ekran görüntüsü testleri SwiftUI görünümünü sabit ortamda çizer ve `SnapshotTesting` ile karşılaştırır. CI kapısı iOS'tur.

@@ -1,4 +1,5 @@
 {
+  "description": "Frontmatter'daki tek değer, liste ve eşlem bağlantıları güncellenir; ham alan bildirilir.",
   "path": "places/Tepe Spor Salonu.md",
   "name": "Liman Ofis",
   "newPath": "places/Liman Ofis.md",

@@ -18,7 +18,7 @@
 | Yön | Şafak |
 | Seçim tarihi | 2026-11-09 |
 | Karar | [Kararlar](decisions.md) tablosu, 2026-11-09 satırları |
-| Uygulama | [Yol haritası](roadmap.md), Aşama 17: Tasarım yenileme |
+| Uygulama | [Yol haritası](roadmap.md), Tamamlanan aşamalar: Aşama 17 |
 | Önceki yön | Mürekkep, 2026-10-05 |
 | Belirteç kodu | `App/Design/` ve `App/Resources/Assets.xcassets` |
 | Ekran içeriği | [Ekranlar](screens.md) |
@@ -591,7 +591,7 @@ Kutu `@ScaledMetric` ile büyür; dokunma alanı en az 44 pt kalır. Öncelik i�
 | Zincir günüyle korunan gün, katkısız | `graceSpent` | Yok; ortada vurgu noktası | 2 pt kesik vurgu | "Zincir günüyle korundu" |
 | Zincir günüyle korunan gün, hedefin altında katkı | `graceSpentPartial` | `well`, alttan %45 vurgu; boş kısmın ortasında vurgu noktası | 2 pt kesik vurgu | "Kısmi katkı, zincir günüyle korundu" |
 
-Af ve zincir kuralı [Ekranlar](screens.md#hedefler) belgesinin "Zincir kuralı" paragrafındadır. Kesik çizgi af işaretini bugünün kesiksiz çerçevesinden renge bağlı olmadan ayırır. Kesik desen hücre boyuyla büyür: kenar başına 3 çizgi; hücre köşesi sabit 2 pt'dir.
+Af ve zincir kuralı [Kasa biçimi](vault-format.md#zincir) belgesindedir. Kesik çizgi af işaretini bugünün kesiksiz çerçevesinden renge bağlı olmadan ayırır. Kesik desen hücre boyuyla büyür: kenar başına 3 çizgi; hücre köşesi sabit 2 pt'dir.
 
 **Hedef ısı haritasının etiketleri ve göstergesi.**
 
@@ -707,7 +707,7 @@ Yazılan günün çubuğu en az 3 pt genişlik alır. Eşit oranda olay sayısı
 | Biten | Metin ikincil renkte; "Bitti" etiketi | `secondaryText` |
 | Şimdi çizgisi | Yatay vurgu çizgisi ve saat rozeti | `accent`, rozet yazısı `onAccent` |
 
-**Proje rengi.** Proje adından kararlı türetilir: adın FNV-1a özeti 4 belirteçlik diziye bölünür: `accent`, `person`, `place`, `control`. Amber (`warning`) dizide yoktur; amber "devreden" demektir. Projesiz görev `control` alır. Renk her zaman proje adı metniyle birlikte görünür; renk tek başına anlam taşımaz. Türetme tek yardımcıdadır: `ProjectColor` (`App/Model/ProjectColor.swift`). Kanban kartı, zaman kartı, zaman çizelgesi çubuğu, proje grubu başlığı ve proje kartı noktası aynı yardımcıyı kullanır.
+**Proje rengi.** Proje adından kararlı türetilir ve 4 belirteçlik diziden gelir: `accent`, `person`, `place`, `control`. Amber (`warning`) dizide yoktur; amber "devreden" demektir. Projesiz görev `control` alır. Renk her zaman proje adı metniyle birlikte görünür; renk tek başına anlam taşımaz. Türetme hesabı ve kullanan yerler [Mimari](architecture.md#görevler) belgesindedir.
 
 **Zaman çizelgesi çubuğu ve ekseni.**
 
@@ -832,6 +832,10 @@ Parıltı bilgi taşımaz. Bu yüzden kalktığında hiçbir bilgi kaybolmaz.
 | Manşet satırı simgeleri | AX1–AX5 | Manşetin üstünde ayrı satıra çıkar; satıra sığmayan simge ikinci satıra iner. Alt sayfada geri öğesinin yanına sığmayan simgeler onun altına iner. |
 | Geri çipi, manşet simgeleri, gün başlığı düğmeleri | AX2 tavanı | AX2 boyutundan sonra büyümez. |
 | Süzgeç alanının büyüteci | AX2 tavanı | AX2'den büyük çizilmez; yuvası 48 pt olur. |
+| Süzgeç alanının temizle simgesi | AX2 tavanı | AX2'den büyük çizilmez; yuvasının içinde kalır (`InkFilterField`). |
+| Hızlı giriş: kip sözcükleri ve gönder | AX2 tavanı | AX2 boyutundan sonra büyümez; alandaki yazı büyümeyi sürdürür (`QuickEntryCapsule`). |
+| Hızlı giriş: saat çipi ve öneri düğmesi | AX2 tavanı | AX2 boyutundan sonra büyümez. |
+| Sheet çubuğunun metin düğmeleri | AX2 tavanı | Çubuk sabit yükseklikte tek satırdır; sözcükler AX2 boyutundan sonra büyümez (`InkSheetButtonStyle`). Paylaşım formunun çubuğu aynı kurala uyar. |
 | Metin | AX1–AX5 | Sözcük ortasından bölünmez; 320 pt ekranda AX5'te de sözcük arasından sarar. |
 | Satırdan geniş tek sözcük | AX1–AX5 | Bölünmez, yazı küçülür: bölüm başlığında ve Kanban kartında en çok yarısına kadar. Küçülme ilk çizimde, tek yerleşim geçişinde olur (`InkWordFit`). |
 | Kart iç boşluğu | AX1–AX5 | En çok 22 pt olur: `accessibilityCardPaddingCeiling`. |
@@ -883,6 +887,7 @@ Parıltı bilgi taşımaz. Bu yüzden kalktığında hiçbir bilgi kaybolmaz.
 | Kenet'i destekle | Destek satırı | AX1–AX5 | Fiyat adın altına iner; rozet satırın başında kalır. |
 | İlk açılış | Ekran | AX1–AX5 | Ekran kayar. |
 | Zincir widget'ı | Satırlar | AX1–AX5 | Küçük widget 1, orta widget 2 hedef gösterir. |
+| Zincir widget'ı | Yazı | AX1–AX5 | Yazı AX3 boyutundan sonra büyümez (`GoalChainWidgetView`). |
 
 Değer grafiğinin nedeni: eksendeki iki uç etiketi 320 pt ekranda üst üste biner. Ekrana özgü içerik farkı [Ekranlar](screens.md) belgesindedir.
 
@@ -896,17 +901,6 @@ Değer grafiğinin nedeni: eksendeki iki uç etiketi 320 pt ekranda üst üste b
 | Dikdörtgen | Etkinlik tek satıra sığar, görev sayısı alt satırdadır. |
 | Daire | Büyük sayı ve altında küçük görev simgesi vardır; VoiceOver görev sayısını okur. |
 | Satır | Saat ve görev sayısı orta noktayla ayrılır; boş durum tek kısa metindir. |
-
-## Doğrulama
-
-| Adım | Kapsam |
-|---|---|
-| Palet testi | `PaletteContrastTests` palet değerlerini, 4 varyantı ve parıltı karışım noktalarını denetler. |
-| Kaynak denetimi | `DesignTokenUsageTests`: hex yalnız `App/Design` içinde; `.inkGlow()` yalnız kök ekran görünümlerinde. <!-- sır değil --> |
-| Ekran görüntüsü | Her kök ekranın ve her sheet türünün referansı vardır. Referansların kaydı ve tavanı [Geliştirme](development.md#ekran-görüntüsü-testleri) belgesindedir. |
-| Gerçek cihaz | Koyu ve açık, KA, AX3, Hareketi Azalt; iPhone, iPad ve Mac. |
-
-Ajanlar ekranı göremez; bu yüzden ekran görüntüsü testleri bu projede zorunludur.
 
 ## Bilinen riskler
 
@@ -997,3 +991,4 @@ Teşekkür anında rozet yaylanır ve `accent` ile `accentSoft` halkası açıl�
 - [Kararlar](decisions.md)
 - [Yol haritası](roadmap.md)
 - [Mimari](architecture.md)
+- [Geliştirme](development.md#tasarım-doğrulaması): palet testi, kaynak denetimi, ekran görüntüsü ve gerçek cihaz adımları

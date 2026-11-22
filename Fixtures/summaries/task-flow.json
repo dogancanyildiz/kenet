@@ -1,6 +1,7 @@
 [
   {
     "id": "empty",
+    "description": "Görev yoktur; her birim 0 açık görev gösterir.",
     "period": "week",
     "containing": "2026-10-05",
     "today": null,
@@ -144,6 +145,7 @@
   },
   {
     "id": "running-week",
+    "description": "Bugüne kadar süren haftayı sınar; başlamamış birim yoktur.",
     "period": "week",
     "containing": "2026-10-05",
     "today": "2026-10-07",
@@ -282,6 +284,7 @@
   },
   {
     "id": "finished-leap-month",
+    "description": "Artık yıldaki bitmiş Şubat ayını sınar.",
     "period": "month",
     "containing": "2024-02-01",
     "today": "2026-10-16",
@@ -414,6 +417,7 @@
   },
   {
     "id": "inventory-exclusions",
+    "description": "İptal ve tamamlanma tarihsiz görevler sayılmaz; bugün yokken kaynak günü olmayan görev de sayılmaz.",
     "period": "week",
     "containing": "2026-10-05",
     "today": null,
@@ -612,6 +616,7 @@
   },
   {
     "id": "running-year",
+    "description": "Bugüne kadar süren yılı sınar.",
     "period": "year",
     "containing": "2026-01-01",
     "today": "2026-03-15",
@@ -789,6 +794,7 @@
   },
   {
     "id": "future-period",
+    "description": "Bugünden sonra başlayan dönemi sınar.",
     "period": "week",
     "containing": "2026-10-19",
     "today": "2026-10-07",
@@ -945,6 +951,7 @@
   },
   {
     "id": "calendar-lower-bound",
+    "description": "Takvimin alt sınırındaki ayı sınar.",
     "period": "month",
     "containing": "0100-01-01",
     "today": null,
@@ -1013,6 +1020,7 @@
   },
   {
     "id": "running-month",
+    "description": "Süren ay, önceki ayından daha fazla dilim taşır.",
     "period": "month",
     "containing": "2026-03-01",
     "today": "2026-03-09",
@@ -1103,6 +1111,7 @@
   },
   {
     "id": "source-less-opens-today",
+    "description": "Kaynak günü olmayan görev yalnız bugünden itibaren açık sayılır; önceki hafta değişmez.",
     "period": "week",
     "containing": "2026-10-07",
     "today": "2026-10-07",

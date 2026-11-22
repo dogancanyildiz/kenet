@@ -1,4 +1,5 @@
 {
+  "description": "Boş klasörde kasa klasörleri, şablonlar ve ayar dosyası oluşur.",
   "options": {
     "folders": true,
     "settings": true,

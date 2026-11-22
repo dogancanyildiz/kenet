@@ -87,7 +87,6 @@ struct TaskRecurrenceEditor: View {
                 }
             }
         }
-        .frame(minWidth: 320, minHeight: 280)
     }
     private var recurrence: TaskRecurrence? {
         let frequency: TaskRecurrence.Frequency
@@ -100,5 +99,22 @@ struct TaskRecurrenceEditor: View {
         case .year: frequency = .interval(count, .year)
         }
         return TaskRecurrence(frequency: frequency, whenDone: whenDone)
+    }
+}
+
+/// The recurrence editor as a sheet; every presenter uses this. The editor is a `List`, which
+/// has no height of its own, and a `NavigationStack` does not pass a frame inside it up to the
+/// sheet. In the split iOS shell the sheet is fitted to its content: with the minimum inside
+/// the stack it opened 140 pt tall around a 280 pt list, whose rows then sat above the body.
+/// The minimum is on the stack itself. A phone detent and the Mac sheet are taller than it.
+struct TaskRecurrenceSheet: View {
+    /// Bar, title row and the three rows of a chosen rule at the default text size.
+    static let minHeight: CGFloat = 280
+    let model: TaskEditorModel
+
+    var body: some View {
+        NavigationStack { TaskRecurrenceEditor(model: model) }
+            .frame(minWidth: 320, minHeight: Self.minHeight)
+            .inkAdaptiveSheetPresentation(fitsContent: true)
     }
 }

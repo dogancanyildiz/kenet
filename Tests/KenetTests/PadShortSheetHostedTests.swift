@@ -22,6 +22,7 @@
                     let size = sheet.view.bounds.size
                     #expect(size.width >= 480, "Form width: \(size)")
                     #expect(size.height > 100 && size.height < 480, "Short editor height: \(size)")
+                    if editor == .taskRecurrenceLight { Self.expectRecurrenceRowsFit(sheet) }
                     if editor == .taskDateLight {
                         #expect(size.height < 360, "The date editor must drop the old minimum: \(size)")
                         Self.expectDateContentFits(sheet)
@@ -51,6 +52,35 @@
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                             .inkPage())
                 })
+        }
+
+        /// The recurrence editor is a `List`, which has no height of its own. A minimum height
+        /// inside the `NavigationStack` does not reach a sheet fitted to its content: the list was
+        /// laid out taller than the sheet, centered, and its rows sat above the body, under the
+        /// bar. The list must lie inside the sheet and every row below the bar.
+        private static func expectRecurrenceRowsFit(_ sheet: UIViewController) {
+            let root: UIView = sheet.view
+            guard
+                let list = ChromeSheetsDuoHost.views(UICollectionView.self, under: root).first(where: {
+                    $0.numberOfSections > 0
+                })
+            else {
+                Issue.record("Recurrence editor has no list")
+                return
+            }
+            let frame = list.convert(list.bounds, to: root)
+            #expect(
+                frame.minY >= -1 && frame.maxY <= root.bounds.maxY + 1,
+                "Recurrence list \(frame) outside the sheet \(root.bounds)")
+            let bar = ChromeSheetsDuoHost.views(UINavigationBar.self, under: root).first
+            let top = max(bar.map { $0.convert($0.bounds, to: root).maxY } ?? 0, root.safeAreaInsets.top)
+            let rows = list.visibleCells.map { $0.convert($0.bounds, to: root) }
+            #expect(rows.count >= 2, "Recurrence rows: \(rows.count)")
+            for row in rows {
+                #expect(
+                    row.minY >= top - 1 && row.maxY <= root.bounds.maxY + 1,
+                    "Recurrence row \(row) outside the body (bar ends at \(top), sheet \(root.bounds))")
+            }
         }
 
         private static func expectDateContentFits(_ sheet: UIViewController) {

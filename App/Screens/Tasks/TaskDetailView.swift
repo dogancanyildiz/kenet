@@ -66,8 +66,7 @@ struct TaskDetailView: View {
         }
         .onChange(of: task.priority) { _, _ in pendingPriority = nil }
         .sheet(item: $recurrenceEditor) { model in
-            NavigationStack { TaskRecurrenceEditor(model: model) }
-                .inkAdaptiveSheetPresentation(fitsContent: true)
+            TaskRecurrenceSheet(model: model)
         }
     }
 

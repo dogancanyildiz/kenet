@@ -11,13 +11,14 @@
 
 | Konu | Değer |
 |---|---|
-| Son güncelleme | `2026-11-22` |
+| Son güncelleme | `2026-11-23` |
 | Aktif aşama | 12 Yayın |
 | Aktif aşamanın işi | "Yayına kalanlar" tablosunun Şart satırları |
 | Birlikte yürüyen | Aşama 8, 11 ve 13'ün Şart sınıfındaki açık kutuları: Y6, Y7, Y8, Y10 |
 | Kod işi biten aşamalar | 0–7, 9, 10, 14–17 |
 | Sürüm | `v0.9.0` `main` dalındadır (`2026-10-07`). Hedef `v1.0.0`: ilk mağaza yayını. |
 | Kullanıcıda bekleyen | Sınıf onayı, cihaz denemeleri, mağaza hesabı işleri |
+| Dağıtım kanalı | `main` App Store; `dev` TestFlight. Kullanıcı `2026-11-23` teyit etti. |
 
 Aktif aşama `2026-11-22` kullanıcı kararıyla 11'den 12'ye geçti. Bitmiş kutuların tek tek listesi git geçmişinde ve [karar günlüğünde](decisions.md) durur.
 
@@ -48,8 +49,8 @@ timeline
 
 ```mermaid
 pie title Belgede duran kutular
-    "Bitti" : 1
-    "Açık" : 19
+    "Bitti" : 3
+    "Açık" : 17
 ```
 
 | İşaret | Anlamı |
@@ -57,7 +58,7 @@ pie title Belgede duran kutular
 | `[x]` | Kod `dev` dalında, testlerden ve CI'dan geçti. CI, sürekli bütünleştirme demektir. |
 | `[ ]` | Madde açık. Kalan işi "Yayına kalanlar" tablosu söyler. |
 
-Pasta yalnız bu belgede duran kutuları sayar. Biten 127 kutu "Tamamlanan aşamalar" tablosundadır. TestFlight'ta iPhone, iPad ve Mac için dahili test sürer.
+Pasta yalnız bu belgede duran kutuları sayar. Biten 129 kutu "Tamamlanan aşamalar" tablosundadır. TestFlight'ta iPhone, iPad ve Mac için dahili test sürer.
 
 ## Aşama 12: Yayın
 
@@ -67,7 +68,7 @@ Pasta yalnız bu belgede duran kutuları sayar. Biten 127 kutu "Tamamlanan aşam
 flowchart LR
     K["Kod ve CI: Y1, Y8, Y9"] --> P["Sürüm PR'ı: Y13"]
     C["Cihaz denemeleri: Y6, Y7, Y10, Y11, Y12"] --> P
-    S["Sayfalar ve mağaza kaydı: Y2, Y3, Y4, Y5"] --> P
+    S["Mağaza kaydı: Y4, Y5"] --> P
     P --> G["Mağaza gönderimi: Y14"]
     G --> V["v1.0.0 mağazada"]
 ```
@@ -79,8 +80,8 @@ flowchart LR
 | No | İş | Kimin işi | Ön koşul | Sınıf | Kaynak |
 |---|---|---|---|---|---|
 | Y1 | Mağazaya gönderilebilir yapı yolu. `testflight.sh` yalnız `dev` dalından ve yalnız iç test bayrağıyla yükler; `release.yml` yalnız etiket üretir. | Kod | Yükleme yolu kararı: elle ya da CI | Şart | E1 |
-| Y2 | Gizlilik politikası sayfası yayında: `kenet.app/gizlilik`, `kenet.app/en/privacy` | Kullanıcı; metin taslağı kod | Alan adı `kenet.app` | Şart | E2; Aşama 12 |
-| Y3 | Destek sayfası yayında: `kenet.app/destek`, `kenet.app/en/support` | Kullanıcı | Alan adı `kenet.app` | Şart | E2 |
+| Y2 | Gizlilik politikası sayfası yayında: `kenet.app/gizlilik`, `kenet.app/en/privacy` | Kullanıcı; metin taslağı kod | Bitti `2026-11-23` | Şart | E2; Aşama 12 |
+| Y3 | Destek sayfası yayında: `kenet.app/destek`, `kenet.app/en/support` | Kullanıcı | Bitti `2026-11-23` | Şart | E2 |
 | Y4 | Üç destek ürünü App Store Connect'te. Seçenek: destek ekranı `1.0`'da gizlenir. | Kullanıcı | App Store Connect uygulama kaydı | Şart | E3; Aşama 12 |
 | Y5 | Mağaza kaydı içeriği: metinler, iPhone, iPad ve Mac ekran görüntüleri, yaş derecelendirmesi, gizlilik etiketi yanıtları, inceleme notu | Kod (görüntü, metin taslağı) ve kullanıcı (giriş) | Hazır: `screen-tour.sh --store` | Şart | E4; Aşama 12 |
 | Y6 | İki cihazda eşitleme denemesi: kayıp ve kopya dosya çıkmaz. Gün kopyası birleştirmesi varsayılan açıktır. | Kullanıcı | TestFlight yapısı; iki cihaz | Şart | E5; Aşama 11 |
@@ -137,8 +138,8 @@ Bu kararların ayrıntısı [açık soru 15](decisions.md#açık-sorular) satır
 ### Kutular
 
 - [ ] Y1 Mağazaya gönderilebilir yapı yolu.
-- [ ] Y2 Gizlilik politikası sayfası yayında.
-- [ ] Y3 Destek sayfası yayında.
+- [x] Y2 Gizlilik politikası sayfası yayında. Kanıt: `kenet.app/gizlilik`, `kenet.app/en/privacy` (`2026-11-23`).
+- [x] Y3 Destek sayfası yayında. Kanıt: `kenet.app/destek`, `kenet.app/en/support` (`2026-11-23`).
 - [ ] Y4 Üç destek ürünü App Store Connect'te.
 - [ ] Y5 Mağaza kaydı içeriği.
 - [ ] Y9 `dev` CI'ı yeşil.
@@ -274,7 +275,7 @@ Aşama 8, 11, 12 ve 13'ün ölçütleri kendi bölümlerindedir. Gerçek kullan�
 | 9 Tasarım dili | 10 | Mürekkep dili, bileşen kitaplığı, görüntü testleri; Aşama 17 yönü Şafak'a çevirdi | #121–#127, #151, #254 |
 | 10 Bağlam ve geri dönüş | 12 | Bu gün geçmişte, görüşme ritmi, günü kapat, haftalık inceleme, Rehberden aktarma | #162–#199 |
 | 11 Kimlik, eşitleme ve widget'lar | 9 | iCloud kasa konumu, iOS widget'ları, paylaşım uzantısı, günlük önerileri, takvime yazma, ekran başına sorgu | #314, #318–#325, #359–#361, #369, #382 |
-| 12 Yayın, biten parçalar | 1 | Gizlilik bildirimi, ihracat bildirimi, simge, lisans bildirimi, elle TestFlight yolu; ad, lisans ve gelir modeli kararı; destek ekranı | #130, #131, #134, #151, #188, #197, #313, #408, #411 |
+| 12 Yayın, biten parçalar | 3 | Gizlilik bildirimi, ihracat bildirimi, simge, lisans bildirimi, elle TestFlight yolu; ad, lisans ve gelir modeli kararı; destek ekranı; gizlilik ve destek sayfaları (`kenet.app`) | #130, #131, #134, #151, #188, #197, #313, #408, #411; sayfalar `2026-11-23` |
 | 13 Uyarlanır düzen | 4 | Duo kabuğu, iPad karma kabuk, iPad kısayolları, iPad cihaz ailesi `1,2` | #233–#242, #264–#277 |
 | 14 Görselleştirme | 2 | Yedi grafik | #249–#251, #256, #257 |
 | 15 Kullanım kolaylığı | 5 | Onaylı silme, hedef şeridi, tek form, şablonlar ve bağlam menüsü | #258–#262, #273, #275, #276 |

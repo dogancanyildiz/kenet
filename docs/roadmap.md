@@ -11,13 +11,15 @@
 
 | Konu | Değer |
 |---|---|
-| Son güncelleme | `2026-11-22` |
+| Son güncelleme | `2026-11-23` |
 | Aktif aşama | 12 Yayın |
 | Aktif aşamanın işi | "Yayına kalanlar" tablosunun Şart satırları |
-| Birlikte yürüyen | Aşama 8, 11 ve 13'ün Şart sınıfındaki açık kutuları: Y6, Y7, Y8, Y10 |
+| Birlikte yürüyen | Aşama 8 ve 11'in Şart kutuları: Y6, Y7, Y10. Y8 yayın sonrası. |
 | Kod işi biten aşamalar | 0–7, 9, 10, 14–17 |
 | Sürüm | `v0.9.0` `main` dalındadır (`2026-10-07`). Hedef `v1.0.0`: ilk mağaza yayını. |
-| Kullanıcıda bekleyen | Sınıf onayı, cihaz denemeleri, mağaza hesabı işleri |
+| Kullanıcıda bekleyen | Y4/Y5 mağaza hesabı; Y9 CI; cihaz turu Y6–Y7 ve Y10–Y12 |
+| Dağıtım kanalı | `main` App Store; `dev` TestFlight. Kullanıcı `2026-11-23` teyit etti. |
+| Mağaza yükleme | İlk `1.0.0` elle. CD (Y29) sonra. |
 
 Aktif aşama `2026-11-22` kullanıcı kararıyla 11'den 12'ye geçti. Bitmiş kutuların tek tek listesi git geçmişinde ve [karar günlüğünde](decisions.md) durur.
 
@@ -48,8 +50,8 @@ timeline
 
 ```mermaid
 pie title Belgede duran kutular
-    "Bitti" : 1
-    "Açık" : 19
+    "Bitti" : 4
+    "Açık" : 16
 ```
 
 | İşaret | Anlamı |
@@ -57,7 +59,7 @@ pie title Belgede duran kutular
 | `[x]` | Kod `dev` dalında, testlerden ve CI'dan geçti. CI, sürekli bütünleştirme demektir. |
 | `[ ]` | Madde açık. Kalan işi "Yayına kalanlar" tablosu söyler. |
 
-Pasta yalnız bu belgede duran kutuları sayar. Biten 127 kutu "Tamamlanan aşamalar" tablosundadır. TestFlight'ta iPhone, iPad ve Mac için dahili test sürer.
+Pasta yalnız bu belgede duran kutuları sayar. Biten 130 kutu "Tamamlanan aşamalar" tablosundadır. TestFlight'ta iPhone, iPad ve Mac için dahili test sürer.
 
 ## Aşama 12: Yayın
 
@@ -65,33 +67,33 @@ Pasta yalnız bu belgede duran kutuları sayar. Biten 127 kutu "Tamamlanan aşam
 
 ```mermaid
 flowchart LR
-    K["Kod ve CI: Y1, Y8, Y9"] --> P["Sürüm PR'ı: Y13"]
-    C["Cihaz denemeleri: Y6, Y7, Y10, Y11, Y12"] --> P
-    S["Sayfalar ve mağaza kaydı: Y2, Y3, Y4, Y5"] --> P
+    K["Kod ve CI: Y9"] --> P["Sürüm PR'ı: Y13"]
+    S["Mağaza kaydı: Y4, Y5"] --> P
     P --> G["Mağaza gönderimi: Y14"]
+    C["Cihaz denemeleri: Y6, Y7, Y10, Y11, Y12"] --> G
     G --> V["v1.0.0 mağazada"]
 ```
 
 ### Yayına kalanlar
 
-**Varsayım:** Sınıf sütunu öneridir. Sınıfları kullanıcı onaylar. Onay gelene kadar tablo bu işareti taşır.
+Sınıflar `2026-11-23` kullanıcı onayıyla kilitlidir. Ayrıntı [karar günlüğünde](decisions.md) durur.
 
 | No | İş | Kimin işi | Ön koşul | Sınıf | Kaynak |
 |---|---|---|---|---|---|
-| Y1 | Mağazaya gönderilebilir yapı yolu. `testflight.sh` yalnız `dev` dalından ve yalnız iç test bayrağıyla yükler; `release.yml` yalnız etiket üretir. | Kod | Yükleme yolu kararı: elle ya da CI | Şart | E1 |
-| Y2 | Gizlilik politikası sayfası yayında: `kenet.app/gizlilik`, `kenet.app/en/privacy` | Kullanıcı; metin taslağı kod | Alan adı `kenet.app` | Şart | E2; Aşama 12 |
-| Y3 | Destek sayfası yayında: `kenet.app/destek`, `kenet.app/en/support` | Kullanıcı | Alan adı `kenet.app` | Şart | E2 |
-| Y4 | Üç destek ürünü App Store Connect'te. Seçenek: destek ekranı `1.0`'da gizlenir. | Kullanıcı | App Store Connect uygulama kaydı | Şart | E3; Aşama 12 |
-| Y5 | Mağaza kaydı içeriği: metinler, iPhone, iPad ve Mac ekran görüntüleri, yaş derecelendirmesi, gizlilik etiketi yanıtları, inceleme notu | Kod (görüntü, metin taslağı) ve kullanıcı (giriş) | Hazır: `screen-tour.sh --store` | Şart | E4; Aşama 12 |
-| Y6 | İki cihazda eşitleme denemesi: kayıp ve kopya dosya çıkmaz. Gün kopyası birleştirmesi varsayılan açıktır. | Kullanıcı | TestFlight yapısı; iki cihaz | Şart | E5; Aşama 11 |
-| Y7 | İndirilmemiş iCloud dosyası tespiti. Tespit yalnız `.icloud` yer tutucu adına bakar. Önce cihazda doğrula; yanlışsa düzelt. | Kod ve kullanıcı | Y6 ile aynı deneme | Şart | E6; Aşama 11 |
-| Y8 | iOS 27 CI kapısına girer: runner Xcode 27, referansların yeniden kaydı, `SplitShellHostedTests` | Kod | Runner imajında Xcode 27. Bugün `Xcode_26.6`. | Şart | E7; Aşama 13 |
-| Y9 | `dev` CI'ı yeşil kalır: iPad `testTasksPassesAccessibilityAudit` ve XCUITest düşüşleri | Kod | - | Şart | E8 |
-| Y10 | Kilit "Hemen" ayarının cihaz doğrulaması | Kullanıcı | TestFlight yapısı | Şart | Aşama 8 |
-| Y11 | Cihaz kabul turu: widget'ta hedef işaretleme, kilit ekranı widget'ı, Eylem düğmesi ve kilit ekranı kontrolü, günlük önerileri, takvim, Dosyalar'da kasa | Kullanıcı | TestFlight yapısı | Şart | Aşama 11 |
-| Y12 | Koyu, açık ve Kontrastı Artır doğrulaması; Aşama 15 davranışları | Kullanıcı | TestFlight yapısı | Şart | Aşama 15 ve 17 |
-| Y13 | Sürüm PR'ı: `dev`'den `main`'e, `VERSION` `1.0.0` | Kullanıcı talimatı; hazırlık kod | Y1–Y12 | Şart | E9 |
-| Y14 | Mağaza gönderimi ve inceleme onayı | Kullanıcı | Y13 | Şart | İnceleme |
+| Y1 | Mağazaya gönderilebilir yapı yolu. İlk `1.0.0` `main` arşivi elle App Store Connect'e yüklenir. `testflight.sh` yalnız `dev` ve iç test. `release.yml` yalnız etiket üretir. | Kod | Bitti `2026-11-23`: elle | Şart | E1 |
+| Y2 | Gizlilik politikası sayfası yayında: `kenet.app/gizlilik`, `kenet.app/en/privacy` | Kullanıcı; metin taslağı kod | Bitti `2026-11-23` | Şart | E2; Aşama 12 |
+| Y3 | Destek sayfası yayında: `kenet.app/destek`, `kenet.app/en/support` | Kullanıcı | Bitti `2026-11-23` | Şart | E2 |
+| Y4 | Üç destek ürünü App Store Connect'te. Destek ekranı `1.0`'da açıktır. | Kullanıcı | App Store Connect uygulama kaydı | Şart | E3; Aşama 12 |
+| Y5 | Mağaza kaydı içeriği: metinler, iPhone, iPad ve Mac ekran görüntüleri, yaş derecelendirmesi, gizlilik etiketi yanıtları, inceleme notu. Mac aynı gün çıkar. | Kod (görüntü, metin taslağı) ve kullanıcı (giriş) | Hazır: `screen-tour.sh --store` | Şart | E4; Aşama 12 |
+| Y6 | İki cihazda eşitleme denemesi: kayıp ve kopya dosya çıkmaz. Gün kopyası birleştirmesi varsayılan açıktır. Y14 öncesi. | Kullanıcı | TestFlight yapısı; iki cihaz | Şart | E5; Aşama 11 |
+| Y7 | İndirilmemiş iCloud dosyası tespiti. Tespit yalnız `.icloud` yer tutucu adına bakar. Önce cihazda doğrula; yanlışsa düzelt. Y14 öncesi. | Kod ve kullanıcı | Y6 ile aynı deneme | Şart | E6; Aşama 11 |
+| Y8 | iOS 27 CI kapısına girer: runner Xcode 27, referansların yeniden kaydı, `SplitShellHostedTests` | Kod | Runner imajında Xcode 27. Bugün `Xcode_26.6`. | Yayın sonrası | E7; Aşama 13 |
+| Y9 | `dev` CI'ı yeşil kalır: iPad `testTasksPassesAccessibilityAudit` ve XCUITest düşüşleri. Y13 öncesi. | Kod | - | Şart | E8 |
+| Y10 | Kilit "Hemen" ayarının cihaz doğrulaması. Y14 öncesi; Y11 turuyla birlikte. | Kullanıcı | TestFlight yapısı | Şart | Aşama 8 |
+| Y11 | Cihaz kabul turu: widget'ta hedef işaretleme, kilit ekranı widget'ı, Eylem düğmesi ve kilit ekranı kontrolü, günlük önerileri, takvim, Dosyalar'da kasa. Y14 öncesi. | Kullanıcı | TestFlight yapısı | Şart | Aşama 11 |
+| Y12 | Koyu, açık ve Kontrastı Artır doğrulaması; Aşama 15 davranışları. Y14 öncesi; Y11 turuyla birlikte. | Kullanıcı | TestFlight yapısı | Şart | Aşama 15 ve 17 |
+| Y13 | Sürüm PR'ı: `dev`'den `main`'e, `VERSION` `1.0.0` | Kullanıcı talimatı; hazırlık kod | Y1, Y4, Y5, Y9 | Şart | E9 |
+| Y14 | Mağaza gönderimi ve inceleme onayı | Kullanıcı | Y13; Y6, Y7, Y10, Y11, Y12 | Şart | İnceleme |
 | Y15 | Yazılı "veri kilidi yok" taahhüdü | Kod (taslak) ve kullanıcı (onay) | Y2 | İyi olur | Aşama 12 |
 | Y16 | Not gövdesi Markdown başlığını ham gösterir | Kod | - | İyi olur | Test turu |
 | Y17 | iPad arama sheet'inde klavye son sonucu keser. **Varsayım:** doğrulanmadı. | Kod | Önce doğrula | İyi olur | Test turu |
@@ -123,24 +125,26 @@ flowchart LR
 | Test turu, büyük yazı turları, belge denetimi | Kasım 2026 turlarının bulguları |
 | Aşama N | O aşamanın açık kutusu ya da çıkış ölçütü |
 
-| Kullanıcıda bekleyen karar | Etkilediği satır |
+| Onaylanan karar (`2026-11-23`) | Etkilediği satır |
 |---|---|
-| Sınıfların onayı | Bütün tablo |
-| `v1.0.0` iCloud kasasını ilk seçenek sunar mı? | Y6, Y7: yerel kasa ilk seçenek olursa ikisi Şart olmaktan çıkar |
-| Destek ekranı `1.0`'da açık mı çıkar? | Y4 |
-| Mac ilk sürümle aynı gün mü çıkar? | Y5 |
-| Mağaza yapısı elle mi, CI ile mi yüklenir? | Y1, Y29 |
-| Runner imajı gecikirse iOS 27 kapısı yayını tutar mı? | Y8 |
+| Mağaza yükleme elle; CD sonra | Y1 bitti; Y29 İyi olur |
+| Destek ekranı `1.0`'da açık | Y4 |
+| Mac aynı gün | Y5 |
+| iCloud seçenek olarak sunulur; Y6/Y7 şart | Y6, Y7 |
+| Cihaz turları Y14 öncesi; Y13'ü bloklamaz | Y6, Y7, Y10–Y12 |
+| iOS 27 CI yayını tutmaz | Y8 Yayın sonrası |
+| `dev` CI yeşil Y13 öncesi şart | Y9 |
+| Y15–Y29 ve Y37 `1.0`'ı tutmaz | İyi olur / Yayın sonrası |
 
-Bu kararların ayrıntısı [açık soru 15](decisions.md#açık-sorular) satırındadır. E1–E9 satırlarını inceleme okuyarak buldu; orkestratör kanıtları tek tek yeniden doğrulamadı. #415 uygulama testleri PR koşusunda geçti; `dev` üzerinde tam koşu sonraki kod değişikliğinde oluşur.
+E1–E9 satırlarını inceleme okuyarak buldu; orkestratör kanıtları tek tek yeniden doğrulamadı. #415 uygulama testleri PR koşusunda geçti; `dev` üzerinde tam koşu sonraki kod değişikliğinde oluşur.
 
 ### Kutular
 
-- [ ] Y1 Mağazaya gönderilebilir yapı yolu.
-- [ ] Y2 Gizlilik politikası sayfası yayında.
-- [ ] Y3 Destek sayfası yayında.
+- [x] Y1 Mağazaya gönderilebilir yapı yolu: ilk `1.0.0` elle.
+- [x] Y2 Gizlilik politikası sayfası yayında. Kanıt: `kenet.app/gizlilik`, `kenet.app/en/privacy` (`2026-11-23`).
+- [x] Y3 Destek sayfası yayında. Kanıt: `kenet.app/destek`, `kenet.app/en/support` (`2026-11-23`).
 - [ ] Y4 Üç destek ürünü App Store Connect'te.
-- [ ] Y5 Mağaza kaydı içeriği.
+- [ ] Y5 Mağaza kaydı içeriği (Mac dahil).
 - [ ] Y9 `dev` CI'ı yeşil.
 - [ ] Y11 Cihaz kabul turu.
 - [ ] Y12 Görünüm ve Aşama 15 doğrulaması.
@@ -150,7 +154,7 @@ Bu kararların ayrıntısı [açık soru 15](decisions.md#açık-sorular) satır
 - [ ] Yayın öncesi cila turları: büyük yazı dalgaları, tasarım farkı turları ve test turu bulguları (#385–#415). Kalan kusurlar Y16–Y26 ve Y33–Y35 satırlarındadır.
 - [x] Gönüllü destek ekranı ve StoreKit katmanı: Ayarlar → Hakkında → Kenet'i destekle. Kanıt: #408, #411.
 
-Y6, Y7, Y8 ve Y10'un kutuları kendi aşamalarındadır. Cila kutusu sürüm PR'ı açılınca kapanır; sınıfı "İyi olur"dur. Cila turlarının PR'ları hiçbir kutuya bağlı değildi; bu kutu o işi adlandırır.
+Y6, Y7, Y8 ve Y10'un kutuları kendi aşamalarındadır. Y8 sınıfı Yayın sonrası'dır. Cila kutusu sürüm PR'ı açılınca kapanır; sınıfı "İyi olur"dur. Cila turlarının PR'ları hiçbir kutuya bağlı değildi; bu kutu o işi adlandırır.
 
 **Çıkış ölçütü:** Şart satırlarının hepsi kapandı; `v1.0.0` mağazada yayında.
 
@@ -186,7 +190,7 @@ Y6, Y7, Y8 ve Y10'un kutuları kendi aşamalarındadır. Cila kutusu sürüm PR'
 
 | Açık kutu | Kalan iş | Satır |
 |---|---|---|
-| CI geçişi | Duo kümeleri `2026-11-16`'da CI kapısı oldu. Runner `Xcode_26.6` kullanır; geçiş runner imajını bekler. | Y8 |
+| CI geçişi | Duo kümeleri `2026-11-16`'da CI kapısı oldu. Runner `Xcode_26.6` kullanır; geçiş runner imajını bekler. Sınıf Yayın sonrası. | Y8 |
 | Duo iOS 27.1 API uyarlaması | Kod yok. SDK yerelde vardır (Xcode `27.2`). Kod CI geçişinden önce `dev`'e girmez. | Y32 |
 
 - [ ] CI geçişi: xcode-27 runner, simülatör seçicileri, referansların yeniden kaydı, `testflight.sh` SDK denetimi.
@@ -274,7 +278,7 @@ Aşama 8, 11, 12 ve 13'ün ölçütleri kendi bölümlerindedir. Gerçek kullan�
 | 9 Tasarım dili | 10 | Mürekkep dili, bileşen kitaplığı, görüntü testleri; Aşama 17 yönü Şafak'a çevirdi | #121–#127, #151, #254 |
 | 10 Bağlam ve geri dönüş | 12 | Bu gün geçmişte, görüşme ritmi, günü kapat, haftalık inceleme, Rehberden aktarma | #162–#199 |
 | 11 Kimlik, eşitleme ve widget'lar | 9 | iCloud kasa konumu, iOS widget'ları, paylaşım uzantısı, günlük önerileri, takvime yazma, ekran başına sorgu | #314, #318–#325, #359–#361, #369, #382 |
-| 12 Yayın, biten parçalar | 1 | Gizlilik bildirimi, ihracat bildirimi, simge, lisans bildirimi, elle TestFlight yolu; ad, lisans ve gelir modeli kararı; destek ekranı | #130, #131, #134, #151, #188, #197, #313, #408, #411 |
+| 12 Yayın, biten parçalar | 4 | Gizlilik bildirimi, ihracat bildirimi, simge, lisans bildirimi, elle TestFlight yolu; ad, lisans ve gelir modeli kararı; destek ekranı; gizlilik ve destek sayfaları (`kenet.app`); mağaza yükleme yolu elle | #130, #131, #134, #151, #188, #197, #313, #408, #411; sayfalar ve Y1 `2026-11-23` |
 | 13 Uyarlanır düzen | 4 | Duo kabuğu, iPad karma kabuk, iPad kısayolları, iPad cihaz ailesi `1,2` | #233–#242, #264–#277 |
 | 14 Görselleştirme | 2 | Yedi grafik | #249–#251, #256, #257 |
 | 15 Kullanım kolaylığı | 5 | Onaylı silme, hedef şeridi, tek form, şablonlar ve bağlam menüsü | #258–#262, #273, #275, #276 |
